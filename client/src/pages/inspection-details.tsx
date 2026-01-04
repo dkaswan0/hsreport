@@ -18,7 +18,8 @@ import { cn } from "@/lib/utils";
 import * as Dialog from "@radix-ui/react-dialog";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useToast } from "@/hooks/use-toast";
-import type { InspectionItem, CreateInspectionItemRequest } from "@shared/schema";
+import type { InspectionItem, CreateInspectionItemRequest, FaultLibrary } from "@shared/schema";
+import { useQuery } from "@tanstack/react-query";
 
 const CATEGORIES = [
   { id: "engine", label: "المحرك", icon: "⚙️" },
@@ -228,8 +229,14 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
   });
 
   const createMutation = useCreateInspectionItem();
-  const suggestions = useFaultSuggestions();
+  const { data: library = [] } = useQuery<FaultLibrary[]>({ 
+    queryKey: ['/api/fault-library'],
+    enabled: isOpen
+  });
+
   const { toast } = useToast();
+
+  const categoryFaults = library.filter(f => f.category === CATEGORIES.find(c => c.id === category)?.label || f.category === category);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -252,21 +259,17 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
     });
   };
 
-  const handleSuggestion = (query: string) => {
-    setFormData(prev => ({ ...prev, faultName: query }));
-    if (query.length > 2) {
-      suggestions.mutate(query, {
-        onSuccess: (data) => {
-          if (data) {
-             // If exact match found or AI returns structure
-             setFormData(prev => ({
-               ...prev,
-               description: data.description,
-               severity: data.severity,
-             }));
-          }
-        }
-      });
+  const handleFaultSelect = (name: string) => {
+    const fault = categoryFaults.find(f => f.faultName === name);
+    if (fault) {
+      setFormData(prev => ({
+        ...prev,
+        faultName: fault.faultName,
+        description: fault.description || '',
+        severity: (fault.severity as any) || 'medium'
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, faultName: name }));
     }
   };
 
@@ -281,19 +284,17 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">اسم العطل</label>
-              <div className="relative">
-                <input 
-                  value={formData.faultName}
-                  onChange={(e) => handleSuggestion(e.target.value)}
-                  className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
-                  placeholder="مثال: تسريب زيت..."
-                  autoFocus
-                />
-                {suggestions.isPending && (
-                  <Loader2 className="absolute left-3 top-2.5 w-4 h-4 animate-spin text-slate-400 rtl:right-auto rtl:left-3" />
-                )}
-              </div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">اختيار العطل</label>
+              <select
+                value={formData.faultName}
+                onChange={(e) => handleFaultSelect(e.target.value)}
+                className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all bg-white"
+              >
+                <option value="">اختر العطل من القائمة...</option>
+                {categoryFaults.map(f => (
+                  <option key={f.id} value={f.faultName}>{f.faultName}</option>
+                ))}
+              </select>
             </div>
 
             <div>

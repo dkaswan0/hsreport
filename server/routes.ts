@@ -134,5 +134,34 @@ export async function registerRoutes(
     });
   });
 
+  // Helper for seeding fault library
+  async function seedFaultLibrary() {
+    const { faultLibrary } = await import("@shared/schema");
+    const { db } = await import("./db");
+    const existing = await db.select().from(faultLibrary).limit(1);
+    if (existing.length === 0) {
+      const faults = [
+        // Engine (المكينة)
+        { category: "المكينة", faultName: "تهريب زيت المحرك", severity: "high", description: "وجود آثار زيت أسفل المحرك" },
+        { category: "المكينة", faultName: "صوت طقطقة في المحرك", severity: "high", description: "أصوات غير طبيعية عند التشغيل" },
+        { category: "المكينة", faultName: "ضعف عزم المحرك", severity: "medium", description: "تسارع السيارة بطيء جداً" },
+        { category: "المكينة", faultName: "ارتفاع حرارة المحرك", severity: "high", description: "مؤشر الحرارة يتجاوز المعدل الطبيعي" },
+        // Chassis (الشاصي)
+        { category: "الشاصي", faultName: "ضربة في مقدمة الشاصي", severity: "high", description: "وجود اعوجاج أو تلحيم في المقدمة" },
+        { category: "الشاصي", faultName: "صدأ وتآكل في الشاصي", severity: "medium", description: "تآكل ناتج عن الرطوبة أو الأملاح" },
+        { category: "الشاصي", faultName: "تعديل في هيكل الشاصي", severity: "high", description: "آثار سحب أو تعديل يدوي" },
+        // Body (البودي)
+        { category: "البودي", faultName: "رش تجميلي", severity: "low", description: "صبغ خارجي بدون معجون" },
+        { category: "البودي", faultName: "حوادث متفرقة", severity: "medium", description: "وجود معجون في مناطق مختلفة" },
+        { category: "البودي", faultName: "تبديل قطع خارجية", severity: "medium", description: "تبديل الرفرف أو الباب بقطعة تجارية" },
+        // Airbags (الأرباقات)
+        { category: "الأرباقات", faultName: "خروج الأرباق", severity: "high", description: "الأرباق مفتوح أو تم إعادة حشوه" },
+        { category: "الأرباقات", faultName: "لمبة الأرباق مضاءة", severity: "high", description: "وجود عطل في نظام الوسائد الهوائية" }
+      ];
+      await db.insert(faultLibrary).values(faults);
+    }
+  }
+  seedFaultLibrary().catch(console.error);
+
   return httpServer;
 }
