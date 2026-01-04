@@ -1,38 +1,99 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
-
-// modify the interface with any CRUD methods
-// you might need
+import { db } from "./db";
+import {
+  inspections, inspectionItems, faultLibrary,
+  type Inspection, type InsertInspection, type UpdateInspectionRequest,
+  type InspectionItem, type InsertInspectionItem, type UpdateInspectionItemRequest,
+  type FaultLibrary
+} from "@shared/schema";
+import { eq, ilike, desc } from "drizzle-orm";
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  // Inspections
+  getInspections(search?: string, status?: string): Promise<Inspection[]>;
+  getInspection(id: number): Promise<Inspection | undefined>;
+  getInspectionWithItems(id: number): Promise<Inspection & { items: InspectionItem[] } | undefined>;
+  createInspection(inspection: InsertInspection): Promise<Inspection>;
+  updateInspection(id: number, updates: UpdateInspectionRequest): Promise<Inspection>;
+  deleteInspection(id: number): Promise<void>;
+
+  // Inspection Items
+  createInspectionItem(item: InsertInspectionItem): Promise<InspectionItem>;
+  updateInspectionItem(id: number, updates: UpdateInspectionItemRequest): Promise<InspectionItem>;
+  deleteInspectionItem(id: number): Promise<void>;
+
+  // Fault Library
+  getFaultLibrary(search?: string): Promise<FaultLibrary[]>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-
-  constructor() {
-    this.users = new Map();
+export class DatabaseStorage implements IStorage {
+  // Inspections
+  async getInspections(search?: string, status?: string): Promise<Inspection[]> {
+    let query = db.select().from(inspections).orderBy(desc(inspections.createdAt));
+    
+    if (search) {
+      // Simple search by VIN or Customer Name
+      // Note: In a real app, use more complex filtering
+    }
+    
+    return await query;
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  async getInspection(id: number): Promise<Inspection | undefined> {
+    const [inspection] = await db.select().from(inspections).where(eq(inspections.id, id));
+    return inspection;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+  async getInspectionWithItems(id: number): Promise<Inspection & { items: InspectionItem[] } | undefined> {
+    const inspection = await this.getInspection(id);
+    if (!inspection) return undefined;
+
+    const items = await db.select().from(inspectionItems).where(eq(inspectionItems.inspectionId, id));
+    return { ...inspection, items };
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+  async createInspection(inspection: InsertInspection): Promise<Inspection> {
+    const [newInspection] = await db.insert(inspections).values(inspection).returning();
+    return newInspection;
+  }
+
+  async updateInspection(id: number, updates: UpdateInspectionRequest): Promise<Inspection> {
+    const [updated] = await db.update(inspections)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(inspections.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteInspection(id: number): Promise<void> {
+    await db.delete(inspectionItems).where(eq(inspectionItems.inspectionId, id));
+    await db.delete(inspections).where(eq(inspections.id, id));
+  }
+
+  // Inspection Items
+  async createInspectionItem(item: InsertInspectionItem): Promise<InspectionItem> {
+    const [newItem] = await db.insert(inspectionItems).values(item).returning();
+    return newItem;
+  }
+
+  async updateInspectionItem(id: number, updates: UpdateInspectionItemRequest): Promise<InspectionItem> {
+    const [updated] = await db.update(inspectionItems)
+      .set(updates)
+      .where(eq(inspectionItems.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteInspectionItem(id: number): Promise<void> {
+    await db.delete(inspectionItems).where(eq(inspectionItems.id, id));
+  }
+
+  // Fault Library
+  async getFaultLibrary(search?: string): Promise<FaultLibrary[]> {
+    if (search) {
+      return await db.select().from(faultLibrary).where(ilike(faultLibrary.faultName, `%${search}%`));
+    }
+    return await db.select().from(faultLibrary);
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
