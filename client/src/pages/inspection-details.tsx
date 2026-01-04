@@ -22,14 +22,18 @@ import type { InspectionItem, CreateInspectionItemRequest, FaultLibrary } from "
 import { useQuery } from "@tanstack/react-query";
 
 const CATEGORIES = [
-  { id: "engine", label: "المحرك", icon: "⚙️" },
+  { id: "engine", label: "المكينة", icon: "⚙️" },
   { id: "transmission", label: "ناقل الحركة", icon: "🕹️" },
   { id: "chassis", label: "الشاصي", icon: "🔧" },
-  { id: "body", label: "الهيكل الخارجي", icon: "🚗" },
+  { id: "body", label: "البودي", icon: "🚗" },
+  { id: "tires", label: "الكوتش", icon: "🛞" },
+  { id: "wheels", label: "الجنوط", icon: "🔘" },
   { id: "brakes", label: "الفرامل", icon: "🛑" },
   { id: "electric", label: "الكهرباء", icon: "⚡" },
-  { id: "interior", label: "الداخلية", icon: "💺" },
-  { id: "ac", label: "التكييف", icon: "❄️" },
+  { id: "suspension", label: "التعليق والتوجيه", icon: "🛣️" },
+  { id: "ac", label: "التبريد والتكييف", icon: "❄️" },
+  { id: "exhaust", label: "العادم", icon: "💨" },
+  { id: "safety", label: "السلامة", icon: "🛡️" },
 ];
 
 export default function InspectionDetails() {
@@ -191,30 +195,41 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
     warning: <AlertTriangle className="w-5 h-5 text-amber-600" />,
   };
 
-  return (
-    <div className="flex items-start gap-4 p-4 rounded-xl border bg-white hover:border-primary/20 transition-all group relative">
-      <div className={cn("p-2 rounded-lg", statusColors[item.status as keyof typeof statusColors])}>
-        {statusIcons[item.status as keyof typeof statusIcons]}
-      </div>
-      
-      <div className="flex-1">
-        <h4 className="font-bold text-slate-900">{item.faultName}</h4>
-        {item.description && <p className="text-sm text-slate-600 mt-1">{item.description}</p>}
-        {item.imageUrl && (
-          <div className="mt-3">
-            <img src={item.imageUrl} alt="Fault" className="h-20 w-auto rounded-lg border border-slate-200" />
-          </div>
-        )}
-      </div>
+  const [arabic, english] = item.faultName.split(" - ");
 
-      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity absolute top-4 left-4 rtl:right-auto rtl:left-4">
+  return (
+    <div className="flex flex-col gap-4 p-5 rounded-2xl border bg-white hover:border-primary/20 transition-all group relative shadow-sm">
+      <div className="flex items-start gap-4">
+        <div className={cn("p-2.5 rounded-xl shrink-0", statusColors[item.status as keyof typeof statusColors])}>
+          {statusIcons[item.status as keyof typeof statusIcons]}
+        </div>
+        
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-col gap-0.5">
+            <h4 className="font-bold text-lg text-slate-900 leading-tight">{arabic}</h4>
+            {english && <span className="text-sm font-medium text-slate-400 font-mono tracking-tight uppercase">{english}</span>}
+          </div>
+          
+          <div className="mt-2 bg-slate-50 rounded-xl p-3 border border-slate-100">
+            <p className="text-sm text-slate-700 font-medium">التشخيص / Diagnosis:</p>
+            <p className="text-sm text-slate-600 mt-1">{item.description || "لا يوجد وصف إضافي"}</p>
+          </div>
+        </div>
+
         <button 
           onClick={() => deleteMutation.mutate({ id: item.id, inspectionId })}
-          className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+          className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100 shrink-0"
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="w-5 h-5" />
         </button>
       </div>
+
+      {item.imageUrl && (
+        <div className="relative group/img overflow-hidden rounded-xl border border-slate-200 aspect-video bg-slate-100">
+          <img src={item.imageUrl} alt="Fault Evidence" className="w-full h-full object-cover transition-transform duration-500 group-hover/img:scale-105" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover/img:opacity-100 transition-opacity" />
+        </div>
+      )}
     </div>
   );
 }

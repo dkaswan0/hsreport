@@ -141,22 +141,53 @@ export async function registerRoutes(
     const existing = await db.select().from(faultLibrary).limit(1);
     if (existing.length === 0) {
       const faults = [
-        // Engine (المكينة)
-        { category: "المكينة", faultName: "تهريب زيت المحرك", severity: "high", description: "وجود آثار زيت أسفل المحرك" },
-        { category: "المكينة", faultName: "صوت طقطقة في المحرك", severity: "high", description: "أصوات غير طبيعية عند التشغيل" },
-        { category: "المكينة", faultName: "ضعف عزم المحرك", severity: "medium", description: "تسارع السيارة بطيء جداً" },
-        { category: "المكينة", faultName: "ارتفاع حرارة المحرك", severity: "high", description: "مؤشر الحرارة يتجاوز المعدل الطبيعي" },
-        // Chassis (الشاصي)
-        { category: "الشاصي", faultName: "ضربة في مقدمة الشاصي", severity: "high", description: "وجود اعوجاج أو تلحيم في المقدمة" },
-        { category: "الشاصي", faultName: "صدأ وتآكل في الشاصي", severity: "medium", description: "تآكل ناتج عن الرطوبة أو الأملاح" },
-        { category: "الشاصي", faultName: "تعديل في هيكل الشاصي", severity: "high", description: "آثار سحب أو تعديل يدوي" },
-        // Body (البودي)
-        { category: "البودي", faultName: "رش تجميلي", severity: "low", description: "صبغ خارجي بدون معجون" },
-        { category: "البودي", faultName: "حوادث متفرقة", severity: "medium", description: "وجود معجون في مناطق مختلفة" },
-        { category: "البودي", faultName: "تبديل قطع خارجية", severity: "medium", description: "تبديل الرفرف أو الباب بقطعة تجارية" },
-        // Airbags (الأرباقات)
-        { category: "الأرباقات", faultName: "خروج الأرباق", severity: "high", description: "الأرباق مفتوح أو تم إعادة حشوه" },
-        { category: "الأرباقات", faultName: "لمبة الأرباق مضاءة", severity: "high", description: "وجود عطل في نظام الوسائد الهوائية" }
+        // الهيكل والدهان (Body & Paint)
+        { category: "البودي", faultName: "خدش سطحي - Surface Scratch", severity: "low", description: "خدش بسيط في الطبقة الخارجية للدهان" },
+        { category: "البودي", faultName: "خدش عميق - Deep Scratch", severity: "medium", description: "خدش يصل إلى طبقة الأساس أو المعدن" },
+        { category: "البودي", faultName: "طعجة خفيفة - Minor Dent", severity: "low", description: "انبعاج بسيط لا يؤثر على سلامة الهيكل" },
+        { category: "البودي", faultName: "طعجة شديدة - Major Dent", severity: "high", description: "انبعاج كبير يتطلب إصلاحاً سمكرياً" },
+        { category: "البودي", faultName: "كسر - Fracture/Break", severity: "high", description: "كسر في القطع البلاستيكية أو المعدنية" },
+        { category: "البودي", faultName: "شق - Crack", severity: "medium", description: "وجود شق في الصدام أو أجزاء الفيبر" },
+        { category: "البودي", faultName: "صبغ غير أصلي - Non-Original Paint", severity: "medium", description: "إعادة صبغ القطعة في ورشة غير الوكالة" },
+        { category: "البودي", faultName: "فرق لون - Color Mismatch", severity: "low", description: "عدم تطابق درجة اللون بين القطع المجاورة" },
+        { category: "البودي", faultName: "صدأ - Rust", severity: "high", description: "بدء تآكل المعدن بسبب الرطوبة" },
+        { category: "البودي", faultName: "عدم اتزان الهيكل - Frame Misalignment", severity: "high", description: "انحراف في أبعاد الهيكل ناتج عن حادث" },
+
+        // الإطارات (Tires)
+        { category: "الكوتش", faultName: "كوتش بالي (تآكل) - Worn Tire", severity: "high", description: "انتهاء العمر الافتراضي لسطح الإطار" },
+        { category: "الكوتش", faultName: "كوتش مفلت (مثقوب) - Punctured Tire", severity: "medium", description: "وجود ثقب أو مسمار في الإطار" },
+        { category: "الكوتش", faultName: "كوتش متشقق - Cracked Tire", severity: "high", description: "تشققات جافة في جدار الإطار" },
+        { category: "الكوتش", faultName: "كوتش منفوخ (تورم) - Tire Bulge", severity: "high", description: "وجود انتفاخ جانبي يشكل خطراً" },
+        { category: "الكوتش", faultName: "كوتش تآكل غير متساوي - Uneven Wear", severity: "medium", description: "تآكل من جهة واحدة بسبب الميزانية" },
+        { category: "الكوتش", faultName: "كوتش أملس (بدون نقشة) - Bald Tire", severity: "high", description: "مسح كامل لنقشة الإطار" },
+
+        // المكينة (Engine)
+        { category: "المكينة", faultName: "مكينة تسخن زيادة - Engine Overheating", severity: "high", description: "ارتفاع غير طبيعي في درجة حرارة المحرك" },
+        { category: "المكينة", faultName: "مكينة تسرب زيت - Oil Leak", severity: "high", description: "وجود تهريب زيت من الجوانات أو الكرتير" },
+        { category: "المكينة", faultName: "مكينة تسرب ماي راديتر - Coolant Leak", severity: "high", description: "تهريب سائل التبريد من الراديتر أو الخراطيم" },
+        { category: "المكينة", faultName: "مكينة صوت طرق - Knocking Sound", severity: "high", description: "أصوات داخلية معدنية تدل على تلف الكرنك أو السبيكة" },
+        { category: "المكينة", faultName: "مكينة دخان أبيض/أزرق/أسود - Smoke Output", severity: "high", description: "انبعاث أدخنة تدل على حرق زيت أو وقود زائد" },
+        { category: "المكينة", faultName: "مكينة تفتفة - Misfiring", severity: "medium", description: "عدم انتظام احتراق المحرك" },
+        { category: "المكينة", faultName: "مكينة كراسي تالفة - Worn Engine Mounts", severity: "medium", description: "تلف قواعد تثبيت المحرك مسبباً اهتزاز" },
+
+        // الفرامل (Brakes)
+        { category: "الفرامل", faultName: "صوت صرير الفرامل - Brake Squeal", severity: "medium", description: "تلف سفايف الفرامل أو اتساخ الهوبات" },
+        { category: "الفرامل", faultName: "اهتزاز عند الكبح - Brake Judder", severity: "medium", description: "اعوجاج في هوبات الفرامل (الديسكات)" },
+        { category: "الفرامل", faultName: "ضعف الفرامل - Weak Braking", severity: "high", description: "نقص في ضغط الزيت أو تلف المستر" },
+        
+        // الجنوط (Wheels)
+        { category: "الجنوط", faultName: "جنط مضروب - Bent Rim", severity: "high", description: "انبعاج في حافة الجنط يؤدي لتسريب الهواء" },
+        { category: "الجنوط", faultName: "جنط ملوي - Buckled Wheel", severity: "high", description: "اعوجاج في دوران الجنط يسبب اهتزاز" },
+        { category: "الجنوط", faultName: "جنط مخدوش - Scratched Rim", severity: "low", description: "خدوش سطحية في طلاء الجنط" },
+
+        // الكهرباء (Electric)
+        { category: "الكهرباء", faultName: "عطل البطارية - Battery Failure", severity: "high", description: "ضعف الجهد أو انتهاء العمر الافتراضي" },
+        { category: "الكهرباء", faultName: "عطل الدينمو - Alternator Fault", severity: "high", description: "عدم شحن البطارية أثناء عمل المحرك" },
+        { category: "الكهرباء", faultName: "حساس خربان - Sensor Fault", severity: "medium", description: "خلل في قراءة أحد الحساسات (ABS, O2, etc)" },
+
+        // السلامة (Safety)
+        { category: "السلامة", faultName: "أعطال الأرباقات - Airbag System Fault", severity: "high", description: "خلل في نظام الوسائد الهوائية" },
+        { category: "السلامة", faultName: "أحزمة الأمان - Seatbelt Fault", severity: "high", description: "عدم قفل أو سحب حزام الأمان بشكل صحيح" }
       ];
       await db.insert(faultLibrary).values(faults);
     }
