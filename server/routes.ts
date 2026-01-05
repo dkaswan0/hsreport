@@ -141,57 +141,68 @@ export async function registerRoutes(
     const existing = await db.select().from(faultLibrary).limit(1);
     if (existing.length === 0) {
       const faults = [
+        // ⚙️ المكينة (Engine)
+        { category: "المكينة", faultName: "مكينة تسخن زيادة - Engine Overheating", severity: "high", description: "ارتفاع غير طبيعي في درجة حرارة المحرك" },
+        { category: "المكينة", faultName: "مكينة تسرب زيت - Oil Leak", severity: "high", description: "وجود تهريب زيت من الجوانات أو الكرتير" },
+        { category: "المكينة", faultName: "مكينة تسرب ماي راديتر - Coolant Leak", severity: "high", description: "تهريب سائل التبريد من الراديتر أو الخراطيم" },
+        { category: "المكينة", faultName: "مكينة صوت طرق - Knocking Sound", severity: "high", description: "أصوات معدنية داخلية" },
+        { category: "المكينة", faultName: "مكينة دخان - Engine Smoke (White/Blue/Black)", severity: "high", description: "انبعاث أدخنة ملونة من العادم" },
+        { category: "المكينة", faultName: "مكينة تفتفة - Misfiring", severity: "medium", description: "عدم انتظام احتراق المحرك" },
+        { category: "المكينة", faultName: "مكينة كراسي تالفة - Worn Engine Mounts", severity: "medium", description: "تلف قواعد تثبيت المحرك" },
+        { category: "المكينة", faultName: "مكينة اهتزاز - Engine Vibration", severity: "medium", description: "رجة غير طبيعية أثناء التشغيل" },
+
+        // 🚗 البودي (Body & Paint)
+        { category: "البودي", faultName: "خدش سطحي - Surface Scratch", severity: "low", description: "خدش بسيط في الدهان" },
+        { category: "البودي", faultName: "خدش عميق - Deep Scratch", severity: "medium", description: "خدش يصل لطبقة الأساس" },
+        { category: "البودي", faultName: "طعجة خفيفة - Minor Dent", severity: "low", description: "انبعاج بسيط" },
+        { category: "البودي", faultName: "طعجة شديدة - Major Dent", severity: "high", description: "انبعاج كبير يتطلب سمكرة" },
+        { category: "البودي", faultName: "صبغ غير أصلي - Non-Original Paint", severity: "medium", description: "إعادة صبغ القطعة" },
+        { category: "البودي", faultName: "صدأ - Rust", severity: "high", description: "تآكل معدني" },
+
+        // 🛞 الكوتش (Tires)
+        { category: "الكوتش", faultName: "كوتش بالي - Worn Tire", severity: "high", description: "تآكل سطح الإطار" },
+        { category: "الكوتش", faultName: "كوتش منفوخ - Tire Bulge", severity: "high", description: "انتفاخ جانبي" },
+        { category: "الكوتش", faultName: "كوتش متشقق - Cracked Tire", severity: "high", description: "تشققات جافة" },
+
+        // 🛑 الفرامل (Brakes)
+        { category: "الفرامل", faultName: "صوت صرير - Brake Squeal", severity: "medium", description: "تلف السفايف" },
+        { category: "الفرامل", faultName: "اهتزاز عند الكبح - Brake Judder", severity: "medium", description: "اعوجاج الهوبات" },
+
         // ⚡ الكهرباء (Electrical & Electronics)
-        { category: "الكهرباء", faultName: "أعطال البطارية - Battery Failure", severity: "high", description: "ضعف الجهد أو انتهاء العمر الافتراضي أو تمليح الأقطاب" },
-        { category: "الكهرباء", faultName: "أعطال الشحن / الدينمو - Alternator Fault", severity: "high", description: "فشل الدينمو في شحن البطارية أو ضجيج من المحامل" },
-        { category: "الكهرباء", faultName: "أعطال الحساسات - Sensor Faults (ABS, TPS, O2)", severity: "medium", description: "خلل في قراءات الحساسات يسبب مشاكل في الأداء أو نظام الأمان" },
-        { category: "الكهرباء", faultName: "أعطال المصابيح - Lighting Faults", severity: "medium", description: "تعطل الإضاءة الأمامية أو الخلفية أو الداخلية" },
-        { category: "الكهرباء", faultName: "النوافذ / الأبواب الكهربائية - Power Window/Door Faults", severity: "low", description: "خلل في محركات النوافذ أو الأقفال المركزية" },
-        { category: "الكهرباء", faultName: "شاشة الملاحة / النظام الصوتي - Navigation/Audio System Faults", severity: "low", description: "تعطل الشاشة أو نظام الصوت أو الكاميرا الخلفية" },
-        { category: "الكهرباء", faultName: "أعطال كمبيوتر السيارة - ECU Faults", severity: "high", description: "خلل في وحدة التحكم المركزية يؤثر على كامل أنظمة السيارة" },
+        { category: "الكهرباء", faultName: "أعطال البطارية - Battery Failure", severity: "high", description: "ضعف الجهد أو تمليح الأقطاب" },
+        { category: "الكهرباء", faultName: "أعطال الشحن / الدينمو - Alternator Fault", severity: "high", description: "فشل الدينمو في شحن البطارية" },
+        { category: "الكهرباء", faultName: "أعطال الحساسات - Sensor Faults", severity: "medium", description: "خلل في قراءات الحساسات" },
+        { category: "الكهرباء", faultName: "أعطال كمبيوتر السيارة - ECU Faults", severity: "high", description: "خلل في وحدة التحكم المركزية" },
 
         // 🛣️ التعليق والتوجيه (Suspension & Steering)
-        { category: "التعليق والتوجيه", faultName: "اهتزاز أثناء القيادة - Steering Vibration", severity: "medium", description: "رجة في المقود تدل على مشاكل في الميزانية أو الأذرعة" },
-        { category: "التعليق والتوجيه", faultName: "صعوبة التحكم أو التوجيه - Difficult Steering", severity: "high", description: "ثقل في المقود أو نقص زيت الباور أو عطل في المضخة" },
-        { category: "التعليق والتوجيه", faultName: "صوت طرق من العجلات - Suspension Knocking", severity: "medium", description: "أصوات غير طبيعية تدل على تلف الجوزات أو الروبلات" },
-        { category: "التعليق والتوجيه", faultName: "انحراف السيارة - Vehicle Pulling", severity: "medium", description: "السيارة تسحب جهة اليمين أو اليسار أثناء القيادة المستقيمة" },
-        { category: "التعليق والتوجيه", faultName: "ممتص الصدمات تالف - Worn Shock Absorber", severity: "medium", description: "تهريب زيت من المساعد أو فقدان خاصية امتصاص الصدمات" },
+        { category: "التعليق والتوجيه", faultName: "اهتزاز أثناء القيادة - Steering Vibration", severity: "medium", description: "رجة في المقود" },
+        { category: "التعليق والتوجيه", faultName: "صعوبة التحكم أو التوجيه - Difficult Steering", severity: "high", description: "ثقل في المقود" },
+        { category: "التعليق والتوجيه", faultName: "ممتص الصدمات تالف - Worn Shock Absorber", severity: "medium", description: "تهريب زيت من المساعد" },
 
         // ❄️ التبريد والتكييف (Cooling & AC)
-        { category: "التبريد والتكييف", faultName: "مكيف لا يبرد - AC Not Cooling", severity: "medium", description: "عطل في الكومبريسور أو ضعف أداء المروحة" },
-        { category: "التبريد والتكييف", faultName: "مروحة الرادياتير لا تعمل - Radiator Fan Failure", severity: "high", description: "توقف مروحة التبريد مسبباً ارتفاع حرارة المحرك" },
-        { category: "التبريد والتكييف", faultName: "تسريب غاز التكييف - AC Gas Leak", severity: "medium", description: "نقص الفريون بسبب وجود تهريب في الأنابيب أو الثلاجة" },
-        { category: "التبريد والتكييف", faultName: "تسريب ماء التبريد - Coolant Leak", severity: "high", description: "تهريب سائل التبريد من الراديتر أو الخراطيم أو الطرمبة" },
+        { category: "التبريد والتكييف", faultName: "مكيف لا يبرد - AC Not Cooling", severity: "medium", description: "عطل في الكومبريسور" },
+        { category: "التبريد والتكييف", faultName: "تسريب ماء التبريد - Coolant Leak", severity: "high", description: "تهريب سائل التبريد" },
 
         // 💨 العادم (Exhaust System)
-        { category: "العادم", faultName: "صوت عالي / فرقعة - Loud Exhaust/Popping", severity: "medium", description: "ثقب في الشكمان أو تلف في علبة العادم" },
-        { category: "العادم", faultName: "تسريب غازات العادم - Exhaust Gas Leak", severity: "high", description: "خروج الغازات قبل وصولها لنهاية النظام مما قد يدخلها للمقصورة" },
-        { category: "العادم", faultName: "مشاكل دبة الرصاص - Catalytic Converter Issues", severity: "medium", description: "انسداد أو تلف دبة البيئة مسبباً كتمة في المحرك" },
+        { category: "العادم", faultName: "صوت عالي / فرقعة - Loud Exhaust", severity: "medium", description: "ثقب في الشكمان" },
+        { category: "العادم", faultName: "مشاكل دبة الرصاص - Catalytic Converter Issues", severity: "medium", description: "انسداد دبة البيئة" },
 
         // 🛡️ السلامة (Safety)
-        { category: "السلامة", faultName: "أعطال أحزمة الأمان - Seatbelt Faults", severity: "high", description: "عدم قفل أو سحب حزام الأمان بشكل صحيح" },
-        { category: "السلامة", faultName: "أعطال الوسائد الهوائية - Airbags System Faults", severity: "high", description: "خلل في نظام الأرباقات أو لمبة التحذير مضاءة" },
+        { category: "السلامة", faultName: "أعطال أحزمة الأمان - Seatbelt Faults", severity: "high", description: "عدم قفل الحزام" },
+        { category: "السلامة", faultName: "أعطال الوسائد الهوائية - Airbags Faults", severity: "high", description: "خلل في نظام الأرباقات" },
 
-        // 🔘 الجنوط (Wheels/Rims)
-        { category: "الجنوط", faultName: "جنط مضروب - Bent Rim", severity: "high", description: "انبعاج في حافة الجنط يؤدي لتسريب الهواء" },
-        { category: "الجنوط", faultName: "جنط ملوي - Buckled Wheel", severity: "high", description: "اعوجاج في دوران الجنط يسبب اهتزاز" },
-        { category: "الجنوط", faultName: "جنط مخدوش - Scratched Rim", severity: "low", description: "خدوش سطحية في طلاء الجنط" },
-        { category: "الجنوط", faultName: "جنط متآكل (صدأ) - Corroded Wheel", severity: "medium", description: "تأكسد أو صدأ على سطح الجنط" },
+        // 🔘 الجنوط (Wheels)
+        { category: "الجنوط", faultName: "جنط مضروب - Bent Rim", severity: "high", description: "انبعاج في الحافة" },
+        { category: "الجنوط", faultName: "جنط ملوي - Buckled Wheel", severity: "high", description: "اعوجاج في دوران الجنط" },
 
         // ⚙️ ناقل الحركة (Transmission)
-        { category: "ناقل الحركة", faultName: "صعوبة تغيير السرعات - Hard Shifting", severity: "high", description: "ثقل في التبديلات أو عدم قبول الغيارات" },
-        { category: "ناقل الحركة", faultName: "انزلاق القير - Transmission Slipping", severity: "high", description: "ارتفاع دوران المحرك دون زيادة السرعة" },
-        { category: "ناقل الحركة", faultName: "صوت طرق عند النقل - Transmission Clunking", severity: "medium", description: "أصوات معدنية عند التبديل بين الغيارات" },
-        { category: "ناقل الحركة", faultName: "تأخر الحركة - Delayed Engagement", severity: "medium", description: "تأخر السيارة في الاستجابة بعد وضع الغيار" },
-        { category: "ناقل الحركة", faultName: "تسريب زيت القير - Transmission Fluid Leak", severity: "high", description: "وجود بقع زيت أسفل القير" },
+        { category: "ناقل الحركة", faultName: "صعوبة تغيير السرعات - Hard Shifting", severity: "high", description: "ثقل في التبديلات" },
+        { category: "ناقل الحركة", faultName: "انزلاق القير - Transmission Slipping", severity: "high", description: "ارتفاع دوران المحرك دون سرعة" },
 
-        // 🔧 الشاصي (Chassis - Structural)
-        { category: "الشاصي", faultName: "تلاعب أو تغيير الشاصي - Chassis Tampering", severity: "high", description: "عدم مطابقة الشاصي للمستندات أو وجود آثار قص وتلحيم" },
-        { category: "الشاصي", faultName: "رقم الشاصي غير واضح - VIN Not Readable", severity: "high", description: "الرقم مخدوش أو مطلي أو مقطوع بشكل غير قانوني" },
-        { category: "الشاصي", faultName: "صدأ شديد - Severe Chassis Rust", severity: "high", description: "تآكل عميق في هيكل السيارة الأساسي" },
-        { category: "الشاصي", faultName: "تلف هيكلي نتيجة حادث - Structural Damage", severity: "high", description: "انحناء أو التواء أو كسر في أجزاء الهيكل الأساسية" },
-        { category: "الشاصي", faultName: "عدم اتزان الهيكل - Chassis Misalignment", severity: "high", description: "اختلاف قياسات الشاصي وعلامات إصلاح سابقة" },
-        { category: "الشاصي", faultName: "نقاط التثبيت تالفة - Damaged Mount Points", severity: "high", description: "تلف في نقاط تثبيت المحرك أو التعليق أو المقاعد" }
+        // 🔧 الشاصي (Chassis)
+        { category: "الشاصي", faultName: "تلاعب أو تغيير الشاصي - Chassis Tampering", severity: "high", description: "آثار قص وتلحيم" },
+        { category: "الشاصي", faultName: "رقم الشاصي غير واضح - VIN Not Readable", severity: "high", description: "الرقم مخدوش أو مطلي" },
+        { category: "الشاصي", faultName: "تلف هيكلي نتيجة حادث - Structural Damage", severity: "high", description: "انحناء أو التواء في الشاصي" }
       ];
       await db.insert(faultLibrary).values(faults);
     }

@@ -9,18 +9,27 @@ import InspectionDetails from "@/pages/inspection-details";
 import FaultLibrary from "@/pages/fault-library";
 import NotFound from "@/pages/not-found";
 
+import InteractiveReport from "@/pages/interactive-report";
+
 function Router() {
   return (
-    <LayoutShell>
-      <Switch>
-        <Route path="/" component={Dashboard} />
-        <Route path="/inspections" component={Dashboard} />
-        <Route path="/inspections/new" component={NewInspection} />
-        <Route path="/inspections/:id" component={InspectionDetails} />
-        <Route path="/fault-library" component={FaultLibrary} />
-        <Route component={NotFound} />
-      </Switch>
-    </LayoutShell>
+    <Switch>
+      <Route path="/reports/:id">
+        {(params) => <InteractiveReport />}
+      </Route>
+      <Route path="*">
+        <LayoutShell>
+          <Switch>
+            <Route path="/" component={Dashboard} />
+            <Route path="/inspections" component={Dashboard} />
+            <Route path="/inspections/new" component={NewInspection} />
+            <Route path="/inspections/:id" component={InspectionDetails} />
+            <Route path="/fault-library" component={FaultLibrary} />
+            <Route component={NotFound} />
+          </Switch>
+        </LayoutShell>
+      </Route>
+    </Switch>
   );
 }
 

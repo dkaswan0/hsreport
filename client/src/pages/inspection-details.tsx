@@ -27,9 +27,9 @@ const CATEGORIES = [
   { id: "chassis", label: "الشاصي", icon: "🔧" },
   { id: "body", label: "البودي", icon: "🚗" },
   { id: "tires", label: "الكوتش", icon: "🛞" },
-  { id: "wheels", label: "الجنوط", icon: "🔘" },
   { id: "brakes", label: "الفرامل", icon: "🛑" },
   { id: "electric", label: "الكهرباء", icon: "⚡" },
+  { id: "wheels", label: "الجنوط", icon: "🔘" },
   { id: "suspension", label: "التعليق والتوجيه", icon: "🛣️" },
   { id: "ac", label: "التبريد والتكييف", icon: "❄️" },
   { id: "exhaust", label: "العادم", icon: "💨" },
@@ -53,7 +53,12 @@ export default function InspectionDetails() {
 
   const handleStatusUpdate = (status: 'completed' | 'draft') => {
     updateInspection.mutate({ id, status }, {
-      onSuccess: () => toast({ title: "تم التحديث", description: "تم تحديث حالة الفحص بنجاح" })
+      onSuccess: () => {
+        toast({ title: "تم التحديث", description: "تم تحديث حالة الفحص بنجاح" });
+        if (status === 'completed') {
+          window.location.href = `/reports/${id}`;
+        }
+      }
     });
   };
 
