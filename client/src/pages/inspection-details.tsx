@@ -277,6 +277,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
     e.preventDefault();
     if (!formData.faultName) return;
 
+    // Fix: Pass the base64 image data directly to the mutation
     createMutation.mutate({
       inspectionId,
       category,
@@ -284,11 +285,12 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
       status: formData.status as any,
       description: formData.description,
       severity: formData.severity,
-      imageUrl: formData.imageUrl
+      imageUrl: formData.imageUrl || photo || undefined // Ensure photo is passed if imageUrl is not set
     }, {
       onSuccess: () => {
         toast({ title: "تمت الإضافة", description: "تمت إضافة الملاحظة بنجاح" });
         setFormData({ status: 'fail', severity: 'medium', faultName: '', description: '', category });
+        setPhoto(null);
         onClose();
       }
     });

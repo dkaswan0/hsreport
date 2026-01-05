@@ -11,7 +11,8 @@ import {
   AlertCircle,
   ShieldCheck,
   Image as ImageIcon,
-  X
+  X,
+  Gauge
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,60 @@ import { useToast } from "@/hooks/use-toast";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { useState } from "react";
+
+// Mock Logo (in real app, use @assets/logo.png)
+const LogoPlaceholder = () => (
+  <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-primary/20">
+    HS
+  </div>
+);
+
+const CarVisual = ({ items }: { items: any[] }) => {
+  const getCategoryStatus = (cat: string) => {
+    const catItems = items.filter(i => i.category === cat);
+    if (catItems.some(i => i.status === 'fail')) return 'bg-red-500';
+    if (catItems.some(i => i.status === 'warning')) return 'bg-amber-500';
+    return 'bg-green-500';
+  };
+
+  return (
+    <div className="relative w-full max-w-2xl mx-auto aspect-[2/1] bg-slate-50 rounded-3xl border border-slate-100 p-8 overflow-hidden">
+      <div className="absolute inset-0 flex items-center justify-center opacity-10">
+        <Car className="w-64 h-64" />
+      </div>
+      
+      {/* Schematic Car Representation */}
+      <div className="relative w-full h-full flex items-center justify-center">
+        <div className="w-4/5 h-2/3 border-4 border-slate-200 rounded-[60px] relative">
+          {/* Front (Engine) */}
+          <div className={cn("absolute -top-4 left-1/2 -translate-x-1/2 w-24 h-8 rounded-full flex items-center justify-center text-[10px] text-white font-bold transition-colors", getCategoryStatus('engine'))}>المكينة</div>
+          
+          {/* Wheels */}
+          <div className={cn("absolute -top-6 -left-4 w-12 h-16 rounded-xl border-2 border-white transition-colors", getCategoryStatus('tires'))}></div>
+          <div className={cn("absolute -top-6 -right-4 w-12 h-16 rounded-xl border-2 border-white transition-colors", getCategoryStatus('tires'))}></div>
+          <div className={cn("absolute -bottom-6 -left-4 w-12 h-16 rounded-xl border-2 border-white transition-colors", getCategoryStatus('tires'))}></div>
+          <div className={cn("absolute -bottom-6 -right-4 w-12 h-16 rounded-xl border-2 border-white transition-colors", getCategoryStatus('tires'))}></div>
+
+          {/* Body Parts */}
+          <div className={cn("absolute top-1/2 left-0 -translate-y-1/2 w-4 h-32 rounded-full transition-colors", getCategoryStatus('body'))}></div>
+          <div className={cn("absolute top-1/2 right-0 -translate-y-1/2 w-4 h-32 rounded-full transition-colors", getCategoryStatus('body'))}></div>
+          
+          {/* Chassis/Transmission Central Area */}
+          <div className="absolute inset-8 border-2 border-dashed border-slate-200 rounded-3xl flex items-center justify-center gap-4">
+             <div className={cn("w-12 h-12 rounded-lg flex items-center justify-center text-[8px] text-white font-bold", getCategoryStatus('transmission'))}>القير</div>
+             <div className={cn("w-12 h-12 rounded-lg flex items-center justify-center text-[8px] text-white font-bold", getCategoryStatus('chassis'))}>الشاصي</div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="absolute bottom-4 right-6 flex gap-4 text-[10px] font-bold font-arabic">
+        <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-green-500" /> سليم</div>
+        <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-amber-500" /> تنبيه</div>
+        <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-500" /> معيب</div>
+      </div>
+    </div>
+  );
+};
 
 export default function InteractiveReport() {
   const [, params] = useRoute("/reports/:id");
@@ -85,18 +140,21 @@ export default function InteractiveReport() {
         <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 flex flex-col md:flex-row-reverse justify-between items-center gap-8 relative overflow-hidden">
            <div className="absolute top-0 left-0 w-32 h-32 bg-primary/5 rounded-br-[100px] -ml-8 -mt-8" />
            
-           <div className="flex flex-col items-center md:items-end text-center md:text-right z-10">
-             <div className="text-3xl font-black text-primary tracking-tighter mb-2 font-arabic uppercase text-right">High Safety International</div>
-             <div className="text-xl font-bold text-slate-700 font-arabic text-right">مركز الأمان العالي الدولي</div>
-             <div className="text-sm text-slate-500 font-arabic text-right">لخدمات فحص وتسجيل السيارات | Car Inspection & Registration</div>
+           <div className="flex items-center gap-6 z-10">
+             <div className="flex flex-col items-end text-right">
+               <div className="text-3xl font-black text-primary tracking-tighter mb-1 font-arabic uppercase">High Safety International</div>
+               <div className="text-xl font-bold text-slate-700 font-arabic">مركز الأمان العالي الدولي</div>
+               <div className="text-xs text-slate-400 font-arabic">لخدمات فحص وتسجيل السيارات | Car Inspection & Registration</div>
+             </div>
+             <LogoPlaceholder />
            </div>
 
            <div className="hidden md:block w-px h-24 bg-slate-100" />
 
            <div className="flex flex-col gap-2 text-sm text-slate-600 font-arabic z-10 text-right">
-             <div className="flex items-center gap-2 justify-end">
-               الشارقة - الصناعية 13 - طريق المدينة الجامعية
-               <MapPin className="w-4 h-4 text-primary" />
+             <div className="flex items-center gap-2 justify-end font-bold text-primary">
+               CITY PLAZA Al darari - الشارقة
+               <MapPin className="w-4 h-4" />
              </div>
              <div className="flex items-center gap-2 justify-end">
                0542206000
@@ -109,64 +167,87 @@ export default function InteractiveReport() {
            </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="rounded-3xl border-none shadow-sm bg-gradient-to-br from-primary to-primary/90 text-white">
-            <CardContent className="p-6 text-right">
-              <div className="flex items-center justify-end gap-4 mb-4">
-                <div>
-                  <div className="text-xs text-white/70 font-arabic">المركبة | Vehicle</div>
-                  <div className="text-xl font-bold">{inspection.make} {inspection.model}</div>
+            <CardContent className="p-5 text-right">
+              <div className="flex items-center justify-end gap-3 mb-3">
+                <div className="text-right">
+                  <div className="text-[10px] text-white/70 font-arabic">المركبة | Vehicle</div>
+                  <div className="text-base font-bold leading-tight">{inspection.make} {inspection.model}</div>
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center">
-                  <Car className="w-6 h-6" />
+                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                  <Car className="w-5 h-5" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <div className="text-white/60 font-arabic text-right">سنة الصنع</div>
-                  <div className="font-bold text-right">{inspection.year}</div>
+              <div className="grid grid-cols-2 gap-2 text-[11px]">
+                <div className="bg-white/10 p-2 rounded-xl">
+                  <div className="text-white/60 font-arabic">سنة الصنع</div>
+                  <div className="font-bold">{inspection.year}</div>
                 </div>
-                <div>
-                  <div className="text-white/60 font-arabic text-right">اللون</div>
-                  <div className="font-bold text-right">{inspection.color}</div>
+                <div className="bg-white/10 p-2 rounded-xl">
+                  <div className="text-white/60 font-arabic">اللون</div>
+                  <div className="font-bold">{inspection.color}</div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="rounded-3xl border-none shadow-sm bg-white border border-slate-100">
-            <CardContent className="p-6 text-right">
-              <div className="flex items-center justify-end gap-4 mb-4">
+            <CardContent className="p-5 text-right">
+              <div className="flex items-center justify-end gap-3 mb-3">
                 <div className="text-right">
-                  <div className="text-xs text-slate-400 font-arabic">رقم الشاصي | VIN</div>
-                  <div className="text-lg font-bold font-mono tracking-wider">{inspection.vin}</div>
+                  <div className="text-[10px] text-slate-400 font-arabic">عداد المسافة | Odometer</div>
+                  <div className="text-base font-bold font-mono">{inspection.odometer?.toLocaleString()} KM</div>
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center">
-                  <ShieldCheck className="w-6 h-6 text-primary" />
+                <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center shrink-0">
+                  <Gauge className="w-5 h-5 text-primary" />
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-sm">
-                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                  <div className="bg-primary h-full w-[100%]" />
-                </div>
+              <div className="text-[11px] text-slate-500 font-arabic bg-slate-50 p-2 rounded-xl">
+                حالة المحرك تعتمد على المسافة
               </div>
             </CardContent>
           </Card>
 
           <Card className="rounded-3xl border-none shadow-sm bg-white border border-slate-100">
-            <CardContent className="p-6 text-right">
-              <div className="flex items-center justify-end gap-4 mb-4">
+            <CardContent className="p-5 text-right">
+              <div className="flex items-center justify-end gap-3 mb-3">
                 <div className="text-right">
-                  <div className="text-xs text-slate-400 font-arabic">العميل | Customer</div>
-                  <div className="text-lg font-bold font-arabic">{inspection.customerName || "عميل زائر"}</div>
+                  <div className="text-[10px] text-slate-400 font-arabic">رقم الشاصي | VIN</div>
+                  <div className="text-sm font-bold font-mono tracking-tighter">{inspection.vin}</div>
                 </div>
-                <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center">
-                  <User className="w-6 h-6 text-primary" />
+                <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-5 h-5 text-primary" />
                 </div>
               </div>
-              <div className="text-sm text-slate-600 font-arabic text-right">{inspection.customerPhone}</div>
+              <div className="text-[11px] text-slate-500 font-arabic bg-slate-50 p-2 rounded-xl overflow-hidden text-ellipsis whitespace-nowrap">
+                مرجع تقرير: HS-{inspection.id}-{new Date().getFullYear()}
+              </div>
             </CardContent>
           </Card>
+
+          <Card className="rounded-3xl border-none shadow-sm bg-white border border-slate-100">
+            <CardContent className="p-5 text-right">
+              <div className="flex items-center justify-end gap-3 mb-3">
+                <div className="text-right">
+                  <div className="text-[10px] text-slate-400 font-arabic">العميل | Customer</div>
+                  <div className="text-base font-bold font-arabic">{inspection.customerName || "عميل زائر"}</div>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center shrink-0">
+                  <User className="w-5 h-5 text-primary" />
+                </div>
+              </div>
+              <div className="text-[11px] text-slate-600 font-arabic bg-slate-50 p-2 rounded-xl">{inspection.customerPhone}</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="space-y-4">
+           <h2 className="text-xl font-black text-slate-900 font-arabic px-2 flex items-center gap-3 justify-end">
+             توزيع الأعطال على جسم المركبة
+             <div className="w-2 h-6 bg-primary rounded-full" />
+           </h2>
+           <CarVisual items={inspection.items || []} />
         </div>
 
         <div className="space-y-6">
