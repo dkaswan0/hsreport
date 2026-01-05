@@ -172,7 +172,7 @@ export async function registerRoutes(
         { category: "السلامة", faultName: "أعطال أحزمة الأمان - Seatbelt Faults", severity: "high", description: "عدم قفل أو سحب حزام الأمان بشكل صحيح" },
         { category: "السلامة", faultName: "أعطال الوسائد الهوائية - Airbags System Faults", severity: "high", description: "خلل في نظام الأرباقات أو لمبة التحذير مضاءة" },
 
-        // 🔘 الجنوط (Wheels)
+        // 🔘 الجنوط (Wheels/Rims)
         { category: "الجنوط", faultName: "جنط مضروب - Bent Rim", severity: "high", description: "انبعاج في حافة الجنط يؤدي لتسريب الهواء" },
         { category: "الجنوط", faultName: "جنط ملوي - Buckled Wheel", severity: "high", description: "اعوجاج في دوران الجنط يسبب اهتزاز" },
         { category: "الجنوط", faultName: "جنط مخدوش - Scratched Rim", severity: "low", description: "خدوش سطحية في طلاء الجنط" },
