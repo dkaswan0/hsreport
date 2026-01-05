@@ -13,7 +13,7 @@ import {
   Loader2,
   Camera
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 import * as Dialog from "@radix-ui/react-dialog";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -248,6 +248,21 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
     category
   });
 
+  const [photo, setPhoto] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhoto(reader.result as string);
+        setFormData(prev => ({ ...prev, imageUrl: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const createMutation = useCreateInspectionItem();
   const { data: library = [] } = useQuery<FaultLibrary[]>({ 
     queryKey: ['/api/fault-library'],
@@ -351,19 +366,37 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
             </div>
             
             <div>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handlePhotoUpload}
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+              />
               <button 
                 type="button"
-                className="w-full py-3 border-2 border-dashed border-slate-300 rounded-xl text-slate-500 hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2"
-                onClick={() => {
-                   // Mock upload logic
-                   const url = "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=200&h=200&fit=crop";
-                   setFormData({ ...formData, imageUrl: url });
-                   toast({ title: "صورة تجريبية", description: "تم إرفاق صورة تجريبية (الخادم يحتاج إعداد رفع الملفات)" });
-                }}
+                className={cn(
+                  "w-full py-3 border-2 border-dashed rounded-xl transition-colors flex items-center justify-center gap-2",
+                  photo ? "border-primary text-primary bg-primary/5" : "border-slate-300 text-slate-500 hover:border-primary hover:text-primary"
+                )}
+                onClick={() => fileInputRef.current?.click()}
               >
                 <Camera className="w-5 h-5" />
-                {formData.imageUrl ? "تم إرفاق الصورة" : "إرفاق صورة"}
+                {photo ? "تم إرفاق الصورة" : "إرفاق صورة العطل"}
               </button>
+              {photo && (
+                <div className="mt-2 relative w-full aspect-video rounded-xl overflow-hidden border border-slate-200">
+                  <img src={photo} alt="Preview" className="w-full h-full object-cover" />
+                  <button 
+                    type="button"
+                    onClick={() => { setPhoto(null); setFormData(prev => ({ ...prev, imageUrl: undefined })); }}
+                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3 mt-6">

@@ -9,7 +9,9 @@ import {
   MapPin,
   Calendar,
   AlertCircle,
-  ShieldCheck
+  ShieldCheck,
+  Image as ImageIcon,
+  X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -18,12 +20,14 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { useState } from "react";
 
 export default function InteractiveReport() {
   const [, params] = useRoute("/reports/:id");
   const id = Number(params?.id);
   const { data: inspection, isLoading } = useInspection(id);
   const { toast } = useToast();
+  const [selectedImage, setSelectedImage] = useState<{ url: string, name: string, description: string } | null>(null);
 
   if (isLoading) return <div className="flex justify-center items-center h-screen font-arabic text-primary">جاري تحميل التقرير...</div>;
   if (!inspection) return <div className="text-center p-12 text-red-500 font-arabic">التقرير غير موجود</div>;
@@ -34,15 +38,24 @@ export default function InteractiveReport() {
     
     toast({ title: "جاري التحضير", description: "جاري إنشاء نسخة PDF للتقرير..." });
     
-    const canvas = await html2canvas(element, { scale: 2 });
-    const imgData = canvas.toDataURL('image/png');
+    // Hide buttons for PDF
+    const canvas = await html2canvas(element, { 
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      windowWidth: element.scrollWidth,
+      windowHeight: element.scrollHeight
+    });
+
+    const imgData = canvas.toDataURL('image/jpeg', 0.85);
     const pdf = new jsPDF('p', 'mm', 'a4');
-    const imgProps = pdf.getImageProperties(imgData);
     const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
     
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    // Multi-page PDF logic if needed, but for now single page or fit
+    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
     pdf.save(`HS_Report_${inspection.vin}.pdf`);
+    toast({ title: "تم التحميل", description: "تم حفظ التقرير بصيغة PDF" });
   };
 
   const categories = ["المكينة", "البودي", "الكوتش", "الفرامل", "الكهرباء", "التعليق والتوجيه", "التبريد والتكييف", "العادم", "السلامة", "الجنوط", "ناقل الحركة", "الشاصي"];
@@ -175,11 +188,21 @@ export default function InteractiveReport() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {items.map(item => (
-                     <div key={item.id} className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col gap-4">
+                     <div 
+                       key={item.id} 
+                       onClick={() => item.imageUrl && setSelectedImage({ url: item.imageUrl, name: item.faultName, description: item.description || '' })}
+                       className={cn(
+                         "bg-white rounded-3xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col gap-4 group",
+                         item.imageUrl && "cursor-pointer active:scale-[0.98]"
+                       )}
+                     >
                         <div className="flex flex-row-reverse gap-4">
                           {item.imageUrl && (
-                            <div className="w-24 h-24 rounded-2xl overflow-hidden shrink-0 border border-slate-100">
+                            <div className="w-24 h-24 rounded-2xl overflow-hidden shrink-0 border border-slate-100 relative">
                                <img src={item.imageUrl} className="w-full h-full object-cover" alt="Fault" />
+                               <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                 <ImageIcon className="w-6 h-6 text-white" />
+                               </div>
                             </div>
                           )}
                           <div className="flex-1 text-right">
@@ -193,9 +216,18 @@ export default function InteractiveReport() {
                                <h4 className="font-bold text-slate-900 font-arabic text-base">{item.faultName.split(' - ')[0]}</h4>
                             </div>
                             <p className="text-xs text-slate-400 font-mono uppercase mb-2 text-right">{item.faultName.split(' - ')[1]}</p>
-                            <p className="text-sm text-slate-600 font-arabic leading-relaxed text-right">{item.description}</p>
+                            <p className="text-sm text-slate-600 font-arabic leading-relaxed text-right line-clamp-2">{item.description}</p>
                           </div>
                         </div>
+                        
+                        {/* PDF View Images - Visible only in PDF/Print */}
+                        {item.imageUrl && (
+                          <div className="hidden print:block mt-4 border-t pt-4">
+                             <div className="aspect-video rounded-2xl overflow-hidden border">
+                               <img src={item.imageUrl} className="w-full h-full object-cover" alt="Full view" />
+                             </div>
+                          </div>
+                        )}
                      </div>
                   ))}
                 </div>
@@ -203,6 +235,41 @@ export default function InteractiveReport() {
             );
           })}
         </div>
+
+        {/* Modal for Interactive Image Viewing */}
+        {selectedImage && (
+          <div 
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => setSelectedImage(null)}
+          >
+            <div 
+              className="relative w-full max-w-4xl bg-white rounded-3xl overflow-hidden animate-in zoom-in-95 duration-200 shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            >
+              <button 
+                onClick={() => setSelectedImage(null)}
+                className="absolute top-4 right-4 z-10 p-2 bg-black/20 hover:bg-black/40 text-white rounded-full backdrop-blur-md transition-all"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2">
+                <div className="aspect-square md:aspect-auto bg-slate-900 flex items-center justify-center">
+                  <img src={selectedImage.url} alt="Fault" className="max-w-full max-h-full object-contain" />
+                </div>
+                <div className="p-8 flex flex-col justify-center text-right" dir="rtl">
+                  <h3 className="text-2xl font-black text-slate-900 font-arabic mb-4">{selectedImage.name.split(' - ')[0]}</h3>
+                  <p className="text-sm text-slate-400 font-mono uppercase mb-6">{selectedImage.name.split(' - ')[1]}</p>
+                  <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                    <p className="text-lg text-slate-700 font-arabic leading-relaxed">
+                      {selectedImage.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 text-center text-sm text-slate-500 font-arabic">
            <AlertCircle className="w-5 h-5 mx-auto mb-2 text-slate-400" />
