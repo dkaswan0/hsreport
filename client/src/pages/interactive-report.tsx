@@ -134,86 +134,185 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
             transform: `rotateY(${rotateY}deg) rotateX(5deg)`
           }}
         >
-          {/* Main car body - SVG based realistic representation */}
-          <svg viewBox="0 0 400 180" className="w-full h-full drop-shadow-2xl">
-            {/* Car shadow */}
-            <ellipse cx="200" cy="175" rx="160" ry="8" fill="rgba(0,0,0,0.3)" />
-            
-            {/* Car body base */}
-            <path 
-              d="M50,120 L70,70 Q80,50 120,50 L280,50 Q320,50 330,70 L350,120 Q355,130 350,140 L50,140 Q45,130 50,120" 
-              fill="url(#carGradient)" 
-              stroke="rgba(255,255,255,0.2)" 
-              strokeWidth="1"
-            />
-            
-            {/* Roof */}
-            <path 
-              d="M100,50 L120,25 Q130,15 160,15 L240,15 Q270,15 280,25 L300,50" 
-              fill="url(#roofGradient)" 
-              stroke="rgba(255,255,255,0.3)" 
-              strokeWidth="1"
-            />
-            
-            {/* Windows */}
-            <path 
-              d="M110,48 L125,28 Q132,22 155,22 L180,22 L180,48 Z" 
-              fill="url(#windowGradient)" 
-              opacity="0.9"
-            />
-            <path 
-              d="M185,22 L185,48 L260,48 L260,22 Q250,22 245,28 L232,28 Q220,22 185,22 Z" 
-              fill="url(#windowGradient)" 
-              opacity="0.9"
-            />
-            <path 
-              d="M265,48 L280,28 Q287,22 290,48 Z" 
-              fill="url(#windowGradient)" 
-              opacity="0.9"
-            />
-            
-            {/* Headlights */}
-            <ellipse cx="60" cy="95" rx="12" ry="10" fill="#fff" opacity="0.9" />
-            <ellipse cx="340" cy="95" rx="12" ry="10" fill="#fff" opacity="0.9" />
-            
-            {/* Taillights */}
-            <rect x="345" y="90" width="8" height="20" rx="2" fill="#ef4444" opacity="0.8" />
-            <rect x="47" y="90" width="8" height="20" rx="2" fill="#ef4444" opacity="0.8" />
-            
-            {/* Front/Rear wheels */}
-            <circle cx="100" cy="140" r="28" fill="#1e293b" stroke="#374151" strokeWidth="4" />
-            <circle cx="100" cy="140" r="15" fill="#475569" />
-            <circle cx="100" cy="140" r="8" fill="#1e293b" />
-            
-            <circle cx="300" cy="140" r="28" fill="#1e293b" stroke="#374151" strokeWidth="4" />
-            <circle cx="300" cy="140" r="15" fill="#475569" />
-            <circle cx="300" cy="140" r="8" fill="#1e293b" />
-            
-            {/* Wheel details */}
-            <g fill="#64748b">
-              <rect x="95" cy="125" width="10" height="3" rx="1" transform="rotate(0 100 140)" />
-              <rect x="95" cy="125" width="10" height="3" rx="1" transform="rotate(72 100 140)" />
-              <rect x="95" cy="125" width="10" height="3" rx="1" transform="rotate(144 100 140)" />
-              <rect x="95" cy="125" width="10" height="3" rx="1" transform="rotate(216 100 140)" />
-              <rect x="95" cy="125" width="10" height="3" rx="1" transform="rotate(288 100 140)" />
-            </g>
-            
-            {/* Gradients */}
+          {/* Realistic Sedan Car SVG */}
+          <svg viewBox="0 0 500 200" className="w-full h-full drop-shadow-2xl">
             <defs>
-              <linearGradient id="carGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#3b82f6" />
-                <stop offset="50%" stopColor="#2563eb" />
+              {/* Main body gradient - metallic blue */}
+              <linearGradient id="bodyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#60a5fa" />
+                <stop offset="30%" stopColor="#3b82f6" />
+                <stop offset="60%" stopColor="#2563eb" />
                 <stop offset="100%" stopColor="#1d4ed8" />
               </linearGradient>
-              <linearGradient id="roofGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#60a5fa" />
+              
+              {/* Roof highlight */}
+              <linearGradient id="roofHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#93c5fd" />
                 <stop offset="100%" stopColor="#3b82f6" />
               </linearGradient>
-              <linearGradient id="windowGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#0f172a" />
+              
+              {/* Window gradient */}
+              <linearGradient id="glassGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#1e3a5f" />
+                <stop offset="50%" stopColor="#0f172a" />
                 <stop offset="100%" stopColor="#1e293b" />
               </linearGradient>
+              
+              {/* Chrome/metal effect */}
+              <linearGradient id="chromeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#e2e8f0" />
+                <stop offset="50%" stopColor="#94a3b8" />
+                <stop offset="100%" stopColor="#64748b" />
+              </linearGradient>
+              
+              {/* Wheel gradient */}
+              <radialGradient id="wheelGradient" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#475569" />
+                <stop offset="70%" stopColor="#1e293b" />
+                <stop offset="100%" stopColor="#0f172a" />
+              </radialGradient>
+              
+              {/* Rim gradient */}
+              <radialGradient id="rimGradient" cx="30%" cy="30%" r="70%">
+                <stop offset="0%" stopColor="#cbd5e1" />
+                <stop offset="100%" stopColor="#64748b" />
+              </radialGradient>
+              
+              {/* Headlight glow */}
+              <radialGradient id="headlightGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#fef3c7" />
+                <stop offset="60%" stopColor="#fde68a" />
+                <stop offset="100%" stopColor="#fbbf24" />
+              </radialGradient>
             </defs>
+            
+            {/* Ground shadow */}
+            <ellipse cx="250" cy="188" rx="200" ry="10" fill="rgba(0,0,0,0.4)" />
+            
+            {/* Lower body / rocker panel */}
+            <path 
+              d="M55,145 L55,125 Q55,118 65,115 L435,115 Q445,118 445,125 L445,145 Q445,152 435,155 L65,155 Q55,152 55,145 Z" 
+              fill="url(#bodyGradient)"
+            />
+            
+            {/* Main body */}
+            <path 
+              d="M50,115 L65,80 Q75,65 100,60 L400,60 Q425,65 435,80 L450,115 Q455,120 450,125 L50,125 Q45,120 50,115 Z" 
+              fill="url(#bodyGradient)"
+              stroke="rgba(255,255,255,0.3)"
+              strokeWidth="0.5"
+            />
+            
+            {/* Upper body / cabin */}
+            <path 
+              d="M115,60 L140,30 Q150,18 175,18 L325,18 Q350,18 360,30 L385,60" 
+              fill="url(#roofHighlight)"
+              stroke="rgba(255,255,255,0.4)"
+              strokeWidth="0.5"
+            />
+            
+            {/* Roof panel */}
+            <path 
+              d="M145,28 Q155,20 175,20 L325,20 Q345,20 355,28 L360,30 L140,30 Z" 
+              fill="url(#roofHighlight)"
+            />
+            
+            {/* Front windshield */}
+            <path 
+              d="M122,58 L145,30 Q152,23 172,23 L200,23 L200,58 Z" 
+              fill="url(#glassGradient)"
+              stroke="rgba(100,116,139,0.5)"
+              strokeWidth="1"
+            />
+            
+            {/* Rear window */}
+            <path 
+              d="M300,23 L328,23 Q348,23 355,30 L378,58 L300,58 Z" 
+              fill="url(#glassGradient)"
+              stroke="rgba(100,116,139,0.5)"
+              strokeWidth="1"
+            />
+            
+            {/* Side windows */}
+            <rect x="205" y="23" width="90" height="35" rx="2" fill="url(#glassGradient)" stroke="rgba(100,116,139,0.5)" strokeWidth="1" />
+            
+            {/* Window pillar dividers */}
+            <rect x="200" y="23" width="4" height="35" fill="url(#bodyGradient)" />
+            <rect x="248" y="23" width="3" height="35" fill="url(#bodyGradient)" />
+            <rect x="296" y="23" width="4" height="35" fill="url(#bodyGradient)" />
+            
+            {/* Door lines */}
+            <line x1="200" y1="60" x2="200" y2="120" stroke="rgba(0,0,0,0.2)" strokeWidth="1" />
+            <line x1="300" y1="60" x2="300" y2="120" stroke="rgba(0,0,0,0.2)" strokeWidth="1" />
+            
+            {/* Door handles */}
+            <rect x="165" y="85" width="20" height="5" rx="2" fill="url(#chromeGradient)" />
+            <rect x="315" y="85" width="20" height="5" rx="2" fill="url(#chromeGradient)" />
+            
+            {/* Front grille */}
+            <rect x="48" y="95" width="15" height="25" rx="3" fill="#1e293b" />
+            <rect x="50" y="98" width="11" height="4" fill="#374151" />
+            <rect x="50" y="104" width="11" height="4" fill="#374151" />
+            <rect x="50" y="110" width="11" height="4" fill="#374151" />
+            
+            {/* Front headlights */}
+            <ellipse cx="55" cy="85" rx="8" ry="10" fill="url(#headlightGlow)" />
+            <ellipse cx="55" cy="85" rx="5" ry="6" fill="#fef3c7" />
+            
+            {/* Rear taillights */}
+            <rect x="443" y="80" width="8" height="25" rx="2" fill="#dc2626" />
+            <rect x="445" y="82" width="4" height="8" fill="#ef4444" />
+            <rect x="445" y="93" width="4" height="10" fill="#fbbf24" />
+            
+            {/* Side mirror */}
+            <ellipse cx="118" cy="55" rx="8" ry="5" fill="url(#bodyGradient)" stroke="rgba(255,255,255,0.3)" strokeWidth="0.5" />
+            
+            {/* Chrome trim line */}
+            <line x1="60" y1="110" x2="440" y2="110" stroke="url(#chromeGradient)" strokeWidth="2" />
+            
+            {/* Front wheel */}
+            <circle cx="120" cy="155" r="32" fill="url(#wheelGradient)" />
+            <circle cx="120" cy="155" r="28" fill="#1e293b" stroke="#374151" strokeWidth="3" />
+            <circle cx="120" cy="155" r="18" fill="url(#rimGradient)" />
+            <circle cx="120" cy="155" r="6" fill="#475569" />
+            {/* Wheel spokes */}
+            <g stroke="#94a3b8" strokeWidth="3">
+              <line x1="120" y1="140" x2="120" y2="148" />
+              <line x1="133" y1="148" x2="128" y2="152" />
+              <line x1="133" y1="162" x2="128" y2="158" />
+              <line x1="120" y1="170" x2="120" y2="162" />
+              <line x1="107" y1="162" x2="112" y2="158" />
+              <line x1="107" y1="148" x2="112" y2="152" />
+            </g>
+            
+            {/* Rear wheel */}
+            <circle cx="380" cy="155" r="32" fill="url(#wheelGradient)" />
+            <circle cx="380" cy="155" r="28" fill="#1e293b" stroke="#374151" strokeWidth="3" />
+            <circle cx="380" cy="155" r="18" fill="url(#rimGradient)" />
+            <circle cx="380" cy="155" r="6" fill="#475569" />
+            {/* Wheel spokes */}
+            <g stroke="#94a3b8" strokeWidth="3">
+              <line x1="380" y1="140" x2="380" y2="148" />
+              <line x1="393" y1="148" x2="388" y2="152" />
+              <line x1="393" y1="162" x2="388" y2="158" />
+              <line x1="380" y1="170" x2="380" y2="162" />
+              <line x1="367" y1="162" x2="372" y2="158" />
+              <line x1="367" y1="148" x2="372" y2="152" />
+            </g>
+            
+            {/* Body reflection highlights */}
+            <path 
+              d="M70,75 Q150,70 250,72 Q350,74 430,78" 
+              fill="none" 
+              stroke="rgba(255,255,255,0.3)" 
+              strokeWidth="2"
+            />
+            <path 
+              d="M60,105 Q150,102 250,103 Q350,104 440,107" 
+              fill="none" 
+              stroke="rgba(255,255,255,0.15)" 
+              strokeWidth="1"
+            />
           </svg>
 
           {/* Category indicators overlaid on car */}
@@ -561,6 +660,226 @@ export default function InteractiveReport() {
     }
   };
 
+  // Text-only PDF generation (English only for proper rendering)
+  const handleTextPDF = () => {
+    if (!inspection) return;
+    
+    toast({ title: "جاري التحضير", description: "جاري إنشاء تقرير نصي PDF..." });
+    
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const margin = 15;
+    let y = 20;
+    
+    const addText = (text: string, size: number, align: 'left' | 'center' = 'left') => {
+      pdf.setFontSize(size);
+      const x = align === 'center' ? pageWidth / 2 : margin;
+      pdf.text(text, x, y, { align });
+      y += size * 0.45;
+    };
+    
+    const addBoldText = (text: string, size: number, align: 'left' | 'center' = 'left') => {
+      pdf.setFont('helvetica', 'bold');
+      addText(text, size, align);
+      pdf.setFont('helvetica', 'normal');
+    };
+    
+    const addLine = () => {
+      pdf.setDrawColor(180, 180, 180);
+      pdf.line(margin, y, pageWidth - margin, y);
+      y += 6;
+    };
+    
+    const checkPageBreak = (neededSpace: number) => {
+      if (y + neededSpace > pdf.internal.pageSize.getHeight() - 25) {
+        pdf.addPage();
+        y = 20;
+      }
+    };
+    
+    // ========== HEADER ==========
+    pdf.setFillColor(30, 41, 59);
+    pdf.rect(0, 0, pageWidth, 35, 'F');
+    pdf.setTextColor(255, 255, 255);
+    y = 15;
+    addBoldText('HIGH SAFETY INTERNATIONAL', 20, 'center');
+    y += 2;
+    addText('Vehicle Inspection & Registration Center', 10, 'center');
+    y += 2;
+    addText('CITY PLAZA Al darari, Sharjah | WhatsApp: 0542206000', 9, 'center');
+    
+    pdf.setTextColor(0, 0, 0);
+    y = 45;
+    
+    // ========== REPORT INFO ==========
+    pdf.setFillColor(241, 245, 249);
+    pdf.rect(margin, y - 5, pageWidth - margin * 2, 20, 'F');
+    addBoldText('VEHICLE INSPECTION REPORT', 16, 'center');
+    y += 3;
+    addText(`Report No: HS-${inspection.id}-${new Date().getFullYear()}`, 10, 'center');
+    y += 1;
+    addText(`Inspection Date: ${inspection.createdAt ? new Date(inspection.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : 'N/A'}`, 10, 'center');
+    y += 10;
+    
+    // ========== VEHICLE DETAILS ==========
+    addLine();
+    addBoldText('VEHICLE DETAILS', 13);
+    y += 4;
+    
+    const vehicleData = [
+      ['Make', inspection.make || 'N/A'],
+      ['Model', inspection.model || 'N/A'],
+      ['Year', String(inspection.year || 'N/A')],
+      ['VIN', inspection.vin || 'N/A'],
+      ['Odometer', `${inspection.odometer?.toLocaleString() || 'N/A'} KM`],
+      ['Color', inspection.color?.split(',')[0]?.trim()?.split(' ').slice(0, 3).join(' ') || 'N/A'],
+    ];
+    
+    vehicleData.forEach(([label, value]) => {
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(`${label}:`, margin, y);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(value, margin + 35, y);
+      y += 5;
+    });
+    y += 5;
+    
+    // ========== CUSTOMER INFO ==========
+    addLine();
+    addBoldText('CUSTOMER INFORMATION', 13);
+    y += 4;
+    
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Name:', margin, y);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(inspection.customerName || 'Walk-in Customer', margin + 35, y);
+    y += 5;
+    
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Phone:', margin, y);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(inspection.customerPhone || 'N/A', margin + 35, y);
+    y += 10;
+    
+    // ========== INSPECTION FINDINGS ==========
+    addLine();
+    addBoldText('INSPECTION FINDINGS', 13);
+    y += 6;
+    
+    const items = inspection.items || [];
+    
+    if (items.length === 0) {
+      pdf.setFillColor(220, 252, 231);
+      pdf.rect(margin, y - 3, pageWidth - margin * 2, 15, 'F');
+      pdf.setTextColor(22, 101, 52);
+      addBoldText('VEHICLE IN EXCELLENT CONDITION', 12, 'center');
+      addText('No issues or defects were found during inspection.', 10, 'center');
+      pdf.setTextColor(0, 0, 0);
+    } else {
+      let itemNum = 1;
+      
+      CATEGORIES.forEach(cat => {
+        const catItems = items.filter((i: any) => i.category === cat.id);
+        if (catItems.length === 0) return;
+        
+        checkPageBreak(25);
+        
+        // Category header
+        pdf.setFillColor(241, 245, 249);
+        pdf.rect(margin, y - 3, pageWidth - margin * 2, 8, 'F');
+        addBoldText(`${cat.labelEn.toUpperCase()}`, 11);
+        y += 3;
+        
+        catItems.forEach((item: any) => {
+          checkPageBreak(20);
+          
+          const statusText = item.status === 'fail' ? 'NEEDS REPAIR' : 'NEEDS ATTENTION';
+          const statusColor = item.status === 'fail' ? [220, 38, 38] : [217, 119, 6];
+          
+          // Get English fault name (after the dash)
+          const faultParts = item.faultName.split(' - ');
+          const faultNameEn = faultParts[1] || faultParts[0];
+          
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(`${itemNum}.`, margin, y);
+          pdf.text(faultNameEn, margin + 8, y);
+          
+          // Status badge
+          pdf.setTextColor(statusColor[0], statusColor[1], statusColor[2]);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(`[${statusText}]`, pageWidth - margin, y, { align: 'right' });
+          pdf.setTextColor(0, 0, 0);
+          pdf.setFont('helvetica', 'normal');
+          y += 5;
+          
+          if (item.description) {
+            const descLines = pdf.splitTextToSize(item.description, pageWidth - margin * 2 - 10);
+            descLines.forEach((line: string) => {
+              checkPageBreak(6);
+              pdf.text(`   ${line}`, margin + 5, y);
+              y += 4;
+            });
+          }
+          y += 3;
+          itemNum++;
+        });
+        y += 3;
+      });
+    }
+    
+    // ========== SUMMARY ==========
+    checkPageBreak(35);
+    y += 5;
+    addLine();
+    addBoldText('INSPECTION SUMMARY', 13);
+    y += 5;
+    
+    const failCount = items.filter((i: any) => i.status === 'fail').length;
+    const warningCount = items.filter((i: any) => i.status === 'warning').length;
+    const passedCount = 12 - (new Set(items.map((i: any) => i.category))).size;
+    
+    pdf.setFillColor(241, 245, 249);
+    pdf.rect(margin, y - 3, pageWidth - margin * 2, 25, 'F');
+    
+    const col1 = margin + 20;
+    const col2 = pageWidth / 2;
+    const col3 = pageWidth - margin - 40;
+    
+    pdf.setTextColor(22, 163, 74);
+    addBoldText(`${passedCount}`, 18);
+    y -= 5;
+    pdf.setTextColor(0, 0, 0);
+    pdf.text('Categories Passed', margin + 5, y + 8);
+    
+    y -= 4;
+    pdf.setTextColor(217, 119, 6);
+    pdf.text(String(warningCount), col2, y, { align: 'center' });
+    pdf.setTextColor(0, 0, 0);
+    pdf.setFontSize(9);
+    pdf.text('Needs Attention', col2, y + 5, { align: 'center' });
+    
+    pdf.setTextColor(220, 38, 38);
+    pdf.setFontSize(18);
+    pdf.text(String(failCount), col3, y);
+    pdf.setTextColor(0, 0, 0);
+    pdf.setFontSize(9);
+    pdf.text('Needs Repair', col3 - 5, y + 5);
+    
+    y += 20;
+    
+    // ========== FOOTER ==========
+    y = pdf.internal.pageSize.getHeight() - 20;
+    pdf.setDrawColor(180, 180, 180);
+    pdf.line(margin, y - 5, pageWidth - margin, y - 5);
+    pdf.setFontSize(8);
+    pdf.setTextColor(100, 100, 100);
+    pdf.text('This report reflects the vehicle condition at the time of inspection. Results may change with use.', pageWidth / 2, y, { align: 'center' });
+    pdf.text('For inquiries: WhatsApp 0542206000 | Email: highsafety2021@gmail.com', pageWidth / 2, y + 4, { align: 'center' });
+    
+    pdf.save(`HS_Report_${inspection.vin}.pdf`);
+    toast({ title: "تم بنجاح", description: "تم حفظ التقرير النصي بصيغة PDF" });
+  };
+
   const handleShareReport = async () => {
     const shareUrl = `${window.location.origin}/reports/${id}`;
     
@@ -622,6 +941,10 @@ export default function InteractiveReport() {
             <Button variant="ghost" size="sm" onClick={() => window.print()} className="font-arabic">
               <Printer className="w-4 h-4 ml-1" />
               <span className="hidden md:inline">طباعة</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleTextPDF} className="font-arabic">
+              <Download className="w-4 h-4 ml-1" />
+              <span className="hidden md:inline">نصي</span>
             </Button>
             <Button variant="default" size="sm" onClick={handleDownloadPDF} className="font-arabic">
               <Download className="w-4 h-4 ml-1" />
