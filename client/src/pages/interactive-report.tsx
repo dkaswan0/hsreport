@@ -660,171 +660,283 @@ export default function InteractiveReport() {
     }
   };
 
-  // Arabic PDF generation using html2canvas for proper RTL support
+  // Arabic PDF generation using pdfmake with Arabic font
   const handleTextPDF = async () => {
     if (!inspection) return;
     
     toast({ title: "جاري التحضير", description: "جاري إنشاء التقرير العربي..." });
     
-    const items = inspection.items || [];
-    const failCount = items.filter((i: any) => i.status === 'fail').length;
-    const warningCount = items.filter((i: any) => i.status === 'warning').length;
-    const passedCount = 12 - (new Set(items.map((i: any) => i.category))).size;
-    const primaryColor = inspection.color?.split(',')[0]?.trim() || 'غير محدد';
-    
-    // Create hidden Arabic report element
-    const container = document.createElement('div');
-    container.style.position = 'absolute';
-    container.style.left = '-9999px';
-    container.style.top = '0';
-    container.style.width = '800px';
-    container.style.backgroundColor = '#ffffff';
-    container.style.fontFamily = 'Arial, sans-serif';
-    container.dir = 'rtl';
-    
-    container.innerHTML = `
-      <div style="padding: 30px; background: white;">
-        <!-- Header -->
-        <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; padding: 25px; border-radius: 12px; margin-bottom: 20px;">
-          <div style="display: flex; align-items: center; justify-content: space-between;">
-            <div style="text-align: right;">
-              <h1 style="margin: 0; font-size: 28px; font-weight: bold;">مركز الأمان العالي الدولي</h1>
-              <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.8;">HIGH SAFETY INTERNATIONAL</p>
-              <p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.6;">مركز فحص وتسجيل المركبات</p>
-            </div>
-            <img src="${logoPath}" style="width: 70px; height: 70px; border-radius: 12px; object-fit: contain; background: white; padding: 5px;" />
-          </div>
-          <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2); display: flex; gap: 20px; font-size: 11px; opacity: 0.7;">
-            <span>واتساب: 0542206000</span>
-            <span>|</span>
-            <span>highsafety2021@gmail.com</span>
-            <span>|</span>
-            <span>سيتي بلازا الدراري - الشارقة</span>
-          </div>
-        </div>
-        
-        <!-- Report Title -->
-        <div style="background: #f1f5f9; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
-          <h2 style="margin: 0 0 10px 0; font-size: 22px; color: #1e293b;">تقرير فحص المركبة</h2>
-          <p style="margin: 0; font-size: 13px; color: #64748b;">رقم التقرير: HS-${inspection.id}-${new Date().getFullYear()} | التاريخ: ${inspection.createdAt ? new Date(inspection.createdAt).toLocaleDateString('ar-AE') : '-'}</p>
-        </div>
-        
-        <!-- Vehicle & Customer Info -->
-        <div style="display: flex; gap: 20px; margin-bottom: 20px;">
-          <div style="flex: 1; background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
-            <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #1e293b; border-bottom: 2px solid #0ea5e9; padding-bottom: 8px;">بيانات المركبة</h3>
-            <table style="width: 100%; font-size: 13px;">
-              <tr><td style="padding: 5px 0; color: #64748b;">الشركة المصنعة:</td><td style="padding: 5px 0; font-weight: bold; color: #1e293b;">${inspection.make || '-'}</td></tr>
-              <tr><td style="padding: 5px 0; color: #64748b;">الموديل:</td><td style="padding: 5px 0; font-weight: bold; color: #1e293b;">${inspection.model || '-'}</td></tr>
-              <tr><td style="padding: 5px 0; color: #64748b;">سنة الصنع:</td><td style="padding: 5px 0; font-weight: bold; color: #1e293b;">${inspection.year || '-'}</td></tr>
-              <tr><td style="padding: 5px 0; color: #64748b;">رقم الشاصي:</td><td style="padding: 5px 0; font-weight: bold; color: #1e293b; font-family: monospace; direction: ltr;">${inspection.vin || '-'}</td></tr>
-              <tr><td style="padding: 5px 0; color: #64748b;">العداد:</td><td style="padding: 5px 0; font-weight: bold; color: #1e293b;">${inspection.odometer?.toLocaleString() || '-'} كم</td></tr>
-              <tr><td style="padding: 5px 0; color: #64748b;">اللون:</td><td style="padding: 5px 0; font-weight: bold; color: #1e293b;">${primaryColor}</td></tr>
-            </table>
-          </div>
-          <div style="width: 250px; background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
-            <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #1e293b; border-bottom: 2px solid #0ea5e9; padding-bottom: 8px;">بيانات العميل</h3>
-            <p style="margin: 8px 0; font-size: 13px;"><span style="color: #64748b;">الاسم:</span> <strong>${inspection.customerName || 'زبون بدون حجز'}</strong></p>
-            <p style="margin: 8px 0; font-size: 13px;"><span style="color: #64748b;">الهاتف:</span> <strong style="direction: ltr; display: inline-block;">${inspection.customerPhone || '-'}</strong></p>
-          </div>
-        </div>
-        
-        <!-- Summary Stats -->
-        <div style="display: flex; gap: 15px; margin-bottom: 20px;">
-          <div style="flex: 1; background: #dcfce7; padding: 20px; border-radius: 12px; text-align: center;">
-            <div style="font-size: 32px; font-weight: bold; color: #16a34a;">${passedCount}</div>
-            <div style="font-size: 12px; color: #15803d;">سليم</div>
-          </div>
-          <div style="flex: 1; background: #fef3c7; padding: 20px; border-radius: 12px; text-align: center;">
-            <div style="font-size: 32px; font-weight: bold; color: #d97706;">${warningCount}</div>
-            <div style="font-size: 12px; color: #b45309;">يحتاج متابعة</div>
-          </div>
-          <div style="flex: 1; background: #fee2e2; padding: 20px; border-radius: 12px; text-align: center;">
-            <div style="font-size: 32px; font-weight: bold; color: #dc2626;">${failCount}</div>
-            <div style="font-size: 12px; color: #b91c1c;">يحتاج إصلاح</div>
-          </div>
-        </div>
-        
-        <!-- Findings -->
-        <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
-          <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #1e293b;">نتائج الفحص التفصيلية</h3>
-          ${items.length === 0 ? `
-            <div style="background: #dcfce7; padding: 30px; border-radius: 8px; text-align: center;">
-              <div style="font-size: 18px; font-weight: bold; color: #16a34a;">المركبة بحالة ممتازة</div>
-              <div style="font-size: 13px; color: #15803d; margin-top: 5px;">لم يتم اكتشاف أي ملاحظات</div>
-            </div>
-          ` : CATEGORIES.map(cat => {
-            const catItems = items.filter((i: any) => i.category === cat.id);
-            if (catItems.length === 0) return '';
-            return `
-              <div style="margin-bottom: 15px;">
-                <div style="background: #1e293b; color: white; padding: 10px 15px; border-radius: 8px 8px 0 0; font-weight: bold;">${cat.label} - ${cat.labelEn}</div>
-                <div style="border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; overflow: hidden;">
-                  ${catItems.map((item: any) => `
-                    <div style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0; display: flex; gap: 15px; align-items: flex-start;">
-                      ${item.imageUrl ? `<img src="${item.imageUrl}" style="width: 80px; height: 80px; border-radius: 8px; object-fit: cover;" />` : ''}
-                      <div style="flex: 1;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                          <strong style="font-size: 14px;">${item.faultName.split(' - ')[0]}</strong>
-                          <span style="background: ${item.status === 'fail' ? '#fee2e2' : '#fef3c7'}; color: ${item.status === 'fail' ? '#dc2626' : '#d97706'}; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: bold;">
-                            ${item.status === 'fail' ? 'يحتاج إصلاح' : 'يحتاج متابعة'}
-                          </span>
-                        </div>
-                        <div style="font-size: 11px; color: #64748b; font-family: monospace; margin-bottom: 5px;">${item.faultName.split(' - ')[1] || ''}</div>
-                        <div style="font-size: 12px; color: #475569;">${item.description || ''}</div>
-                      </div>
-                    </div>
-                  `).join('')}
-                </div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-        
-        <!-- Footer -->
-        <div style="margin-top: 20px; padding: 15px; background: #1e293b; color: white; border-radius: 12px; text-align: center; font-size: 11px;">
-          <p style="margin: 0 0 5px 0;">هذا التقرير يعكس حالة المركبة وقت الفحص وقد تتغير مع الاستخدام</p>
-          <p style="margin: 0; opacity: 0.7;">للاستفسارات: واتساب 0542206000 | highsafety2021@gmail.com</p>
-        </div>
-      </div>
-    `;
-    
-    document.body.appendChild(container);
-    
     try {
-      const canvas = await html2canvas(container.firstElementChild as HTMLElement, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        width: 800
-      });
+      // Dynamic import pdfmake and fonts
+      const pdfMakeModule = await import('pdfmake/build/pdfmake');
+      const pdfMake = pdfMakeModule.default || pdfMakeModule;
+      const { amiriFonts } = await import('@/lib/arabic-fonts');
       
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      // Set up fonts
+      (pdfMake as any).vfs = {
+        'Amiri-Regular.ttf': amiriFonts['Amiri-Regular'],
+        'Amiri-Bold.ttf': amiriFonts['Amiri-Bold']
+      };
       
-      let heightLeft = pdfHeight;
-      let position = 0;
+      (pdfMake as any).fonts = {
+        Amiri: {
+          normal: 'Amiri-Regular.ttf',
+          bold: 'Amiri-Bold.ttf',
+          italics: 'Amiri-Regular.ttf',
+          bolditalics: 'Amiri-Bold.ttf'
+        }
+      };
       
-      pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
-      heightLeft -= pdf.internal.pageSize.getHeight();
+      const items = inspection.items || [];
+      const failCount = items.filter((i: any) => i.status === 'fail').length;
+      const warningCount = items.filter((i: any) => i.status === 'warning').length;
+      const passedCount = 12 - (new Set(items.map((i: any) => i.category))).size;
+      const primaryColor = inspection.color?.split(',')[0]?.trim() || 'غير محدد';
       
-      while (heightLeft > 0) {
-        position = heightLeft - pdfHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
-        heightLeft -= pdf.internal.pageSize.getHeight();
+      // Convert logo to base64
+      let logoBase64 = '';
+      try {
+        const response = await fetch(logoPath);
+        const blob = await response.blob();
+        logoBase64 = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(blob);
+        });
+      } catch (e) {
+        console.log('Logo fetch failed');
       }
       
-      pdf.save(`تقرير_فحص_${inspection.vin}.pdf`);
+      // Convert item images to base64
+      const imageCache: { [url: string]: string } = {};
+      const convertImageToBase64 = async (url: string): Promise<string> => {
+        if (imageCache[url]) return imageCache[url];
+        try {
+          const response = await fetch(url);
+          const blob = await response.blob();
+          const base64 = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
+          imageCache[url] = base64;
+          return base64;
+        } catch (e) {
+          console.log('Image conversion failed:', url);
+          return '';
+        }
+      };
+      
+      // Build findings content
+      const findingsContent: any[] = [];
+      
+      if (items.length === 0) {
+        findingsContent.push({
+          text: 'المركبة بحالة ممتازة - لم يتم اكتشاف أي ملاحظات',
+          style: 'success',
+          alignment: 'center',
+          margin: [0, 10, 0, 10]
+        });
+      } else {
+        for (const cat of CATEGORIES) {
+          const catItems = items.filter((i: any) => i.category === cat.id);
+          if (catItems.length === 0) continue;
+          
+          findingsContent.push({
+            text: `${cat.label} - ${cat.labelEn}`,
+            style: 'categoryHeader',
+            margin: [0, 10, 0, 5]
+          });
+          
+          for (const item of catItems) {
+            const faultAr = item.faultName.split(' - ')[0] || item.faultName;
+            const faultEn = item.faultName.split(' - ')[1] || '';
+            const statusText = item.status === 'fail' ? 'يحتاج إصلاح' : 'يحتاج متابعة';
+            const statusColor = item.status === 'fail' ? '#dc2626' : '#d97706';
+            
+            // Convert image to base64 if exists
+            let imageBase64 = '';
+            if (item.imageUrl) {
+              imageBase64 = await convertImageToBase64(item.imageUrl);
+            }
+            
+            const textContent: any[] = [
+              { 
+                columns: [
+                  { text: faultAr, style: 'faultName', width: '*' },
+                  { text: statusText, style: 'statusBadge', color: statusColor, width: 'auto' }
+                ]
+              }
+            ];
+            
+            if (faultEn) {
+              textContent.push({ text: faultEn, style: 'faultNameEn' });
+            }
+            if (item.description) {
+              textContent.push({ text: item.description, style: 'description' });
+            }
+            
+            const rowContent: any[] = [];
+            
+            // Add image if available
+            if (imageBase64) {
+              rowContent.push({
+                columns: [
+                  { image: imageBase64, width: 70, height: 70, margin: [0, 0, 10, 0] },
+                  { stack: textContent, width: '*' }
+                ],
+                margin: [5, 5, 5, 5]
+              });
+            } else {
+              rowContent.push({
+                stack: textContent,
+                margin: [5, 5, 5, 5]
+              });
+            }
+            
+            findingsContent.push({
+              table: {
+                widths: ['*'],
+                body: [[rowContent[0]]]
+              },
+              layout: {
+                hLineWidth: () => 0.5,
+                vLineWidth: () => 0.5,
+                hLineColor: () => '#e2e8f0',
+                vLineColor: () => '#e2e8f0'
+              },
+              margin: [0, 2, 0, 2]
+            });
+          }
+        }
+      }
+      
+      const docDefinition: any = {
+        pageSize: 'A4',
+        pageMargins: [40, 60, 40, 60],
+        defaultStyle: {
+          font: 'Amiri',
+          fontSize: 11,
+          alignment: 'right'
+        },
+        content: [
+          // Header
+          {
+            columns: [
+              logoBase64 ? {
+                image: logoBase64,
+                width: 60,
+                height: 60
+              } : {},
+              {
+                stack: [
+                  { text: 'مركز الأمان العالي الدولي', style: 'header' },
+                  { text: 'HIGH SAFETY INTERNATIONAL', style: 'subheader' },
+                  { text: 'مركز فحص وتسجيل المركبات', style: 'tagline' }
+                ],
+                width: '*',
+                alignment: 'right'
+              }
+            ],
+            margin: [0, 0, 0, 15]
+          },
+          { text: 'واتساب: 0542206000 | highsafety2021@gmail.com | سيتي بلازا الدراري - الشارقة', style: 'contact', alignment: 'center' },
+          { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#1e293b' }], margin: [0, 10, 0, 15] },
+          
+          // Report Title
+          { text: 'تقرير فحص المركبة', style: 'title', alignment: 'center' },
+          { text: `رقم التقرير: HS-${inspection.id}-${new Date().getFullYear()} | التاريخ: ${inspection.createdAt ? new Date(inspection.createdAt).toLocaleDateString('ar-AE') : '-'}`, style: 'reportInfo', alignment: 'center', margin: [0, 5, 0, 20] },
+          
+          // Vehicle & Customer Info
+          {
+            columns: [
+              {
+                width: '55%',
+                stack: [
+                  { text: 'بيانات المركبة', style: 'sectionHeader' },
+                  {
+                    table: {
+                      widths: ['40%', '60%'],
+                      body: [
+                        [{ text: 'الشركة المصنعة:', style: 'label' }, { text: inspection.make || '-', style: 'value' }],
+                        [{ text: 'الموديل:', style: 'label' }, { text: inspection.model || '-', style: 'value' }],
+                        [{ text: 'سنة الصنع:', style: 'label' }, { text: String(inspection.year || '-'), style: 'value' }],
+                        [{ text: 'رقم الشاصي:', style: 'label' }, { text: inspection.vin || '-', style: 'vinValue' }],
+                        [{ text: 'العداد:', style: 'label' }, { text: `${inspection.odometer?.toLocaleString() || '-'} كم`, style: 'value' }],
+                        [{ text: 'اللون:', style: 'label' }, { text: primaryColor, style: 'value' }]
+                      ]
+                    },
+                    layout: 'noBorders'
+                  }
+                ]
+              },
+              {
+                width: '45%',
+                stack: [
+                  { text: 'بيانات العميل', style: 'sectionHeader' },
+                  {
+                    table: {
+                      widths: ['40%', '60%'],
+                      body: [
+                        [{ text: 'الاسم:', style: 'label' }, { text: inspection.customerName || 'زبون بدون حجز', style: 'value' }],
+                        [{ text: 'الهاتف:', style: 'label' }, { text: inspection.customerPhone || '-', style: 'vinValue' }]
+                      ]
+                    },
+                    layout: 'noBorders'
+                  }
+                ]
+              }
+            ],
+            margin: [0, 0, 0, 20]
+          },
+          
+          // Summary Stats
+          {
+            columns: [
+              { stack: [{ text: String(passedCount), style: 'statNumber', color: '#16a34a' }, { text: 'سليم', style: 'statLabel' }], alignment: 'center', width: '*' },
+              { stack: [{ text: String(warningCount), style: 'statNumber', color: '#d97706' }, { text: 'يحتاج متابعة', style: 'statLabel' }], alignment: 'center', width: '*' },
+              { stack: [{ text: String(failCount), style: 'statNumber', color: '#dc2626' }, { text: 'يحتاج إصلاح', style: 'statLabel' }], alignment: 'center', width: '*' }
+            ],
+            margin: [0, 0, 0, 20]
+          },
+          
+          // Findings
+          { text: 'نتائج الفحص التفصيلية', style: 'sectionHeader', margin: [0, 0, 0, 10] },
+          ...findingsContent,
+          
+          // Footer
+          { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, lineColor: '#94a3b8' }], margin: [0, 20, 0, 10] },
+          { text: 'هذا التقرير يعكس حالة المركبة وقت الفحص وقد تتغير مع الاستخدام', style: 'footer', alignment: 'center' },
+          { text: 'للاستفسارات: واتساب 0542206000 | highsafety2021@gmail.com', style: 'footer', alignment: 'center' }
+        ],
+        styles: {
+          header: { fontSize: 22, bold: true, color: '#1e293b' },
+          subheader: { fontSize: 12, color: '#64748b' },
+          tagline: { fontSize: 10, color: '#94a3b8' },
+          contact: { fontSize: 9, color: '#64748b' },
+          title: { fontSize: 18, bold: true, color: '#1e293b' },
+          reportInfo: { fontSize: 10, color: '#64748b' },
+          sectionHeader: { fontSize: 14, bold: true, color: '#1e293b', margin: [0, 0, 0, 8] },
+          label: { fontSize: 10, color: '#64748b' },
+          value: { fontSize: 11, bold: true, color: '#1e293b' },
+          vinValue: { fontSize: 10, bold: true, color: '#1e293b' },
+          statNumber: { fontSize: 28, bold: true },
+          statLabel: { fontSize: 10, color: '#64748b' },
+          categoryHeader: { fontSize: 12, bold: true, color: '#ffffff', fillColor: '#1e293b', margin: [5, 5, 5, 5] },
+          faultName: { fontSize: 12, bold: true, color: '#1e293b' },
+          faultNameEn: { fontSize: 9, color: '#64748b' },
+          statusBadge: { fontSize: 9, bold: true },
+          description: { fontSize: 10, color: '#475569', margin: [0, 3, 0, 0] },
+          success: { fontSize: 14, bold: true, color: '#16a34a' },
+          footer: { fontSize: 8, color: '#94a3b8' }
+        }
+      };
+      
+      pdfMake.createPdf(docDefinition).download(`تقرير_فحص_${inspection.vin}.pdf`);
       toast({ title: "تم بنجاح", description: "تم حفظ التقرير العربي بصيغة PDF" });
     } catch (error) {
       console.error('PDF generation error:', error);
       toast({ title: "خطأ", description: "حدث خطأ أثناء إنشاء ملف PDF", variant: "destructive" });
-    } finally {
-      document.body.removeChild(container);
     }
   };
 
