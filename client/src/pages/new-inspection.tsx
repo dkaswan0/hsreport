@@ -69,6 +69,7 @@ export default function NewInspection() {
       if (vinData.model) form.setValue("model", vinData.model);
       if (vinData.year) form.setValue("year", vinData.year);
       if (vinData.color) form.setValue("color", vinData.color);
+      if (vinData.notes) form.setValue("notes", vinData.notes); // Map decoded specs to notes
     }
   }, [vinData, form]);
 

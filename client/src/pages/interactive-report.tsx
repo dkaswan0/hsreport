@@ -243,16 +243,17 @@ export default function InteractiveReport() {
         </div>
 
         {/* CarsXE Technical Specifications Section */}
-        {(inspection.notes || (inspection as any).specs) && (() => {
+        {(() => {
           let specs = (inspection as any).specs;
           if (!specs && inspection.notes) {
             try {
               specs = JSON.parse(inspection.notes);
             } catch (e) {
-              return null;
+              // Not JSON, skip
             }
           }
-          if (!specs) return null;
+          
+          if (!specs || typeof specs !== 'object') return null;
 
           return (
             <div className="space-y-6">
