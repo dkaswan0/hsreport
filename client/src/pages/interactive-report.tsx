@@ -23,12 +23,30 @@ import { useToast } from "@/hooks/use-toast";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { useState } from "react";
+import logoPath from "@assets/logo_1767706304085.png";
 
-// Mock Logo (in real app, use @assets/logo.png)
-const LogoPlaceholder = () => (
-  <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-primary/20">
-    HS
-  </div>
+// Category mapping for consistent data display
+const CATEGORIES = [
+  { id: "engine", label: "المكينة" },
+  { id: "transmission", label: "ناقل الحركة" },
+  { id: "chassis", label: "الشاصي" },
+  { id: "body", label: "البودي" },
+  { id: "tires", label: "الكوتش" },
+  { id: "brakes", label: "الفرامل" },
+  { id: "electric", label: "الكهرباء" },
+  { id: "wheels", label: "الجنوط" },
+  { id: "suspension", label: "التعليق والتوجيه" },
+  { id: "ac", label: "التبريد والتكييف" },
+  { id: "exhaust", label: "العادم" },
+  { id: "safety", label: "السلامة" },
+];
+
+const Logo = () => (
+  <img 
+    src={logoPath} 
+    alt="High Safety Logo" 
+    className="w-20 h-20 object-contain rounded-2xl shadow-lg"
+  />
 );
 
 const CarVisual = ({ items }: { items: any[] }) => {
@@ -136,7 +154,6 @@ export default function InteractiveReport() {
     }
   };
 
-  const categories = ["المكينة", "البودي", "الكوتش", "الفرامل", "الكهرباء", "التعليق والتوجيه", "التبريد والتكييف", "العادم", "السلامة", "الجنوط", "ناقل الحركة", "الشاصي"];
 
   return (
     <div className="min-h-screen bg-[#f8fafc] pb-12" dir="rtl">
@@ -173,7 +190,7 @@ export default function InteractiveReport() {
                <div className="text-xl font-bold text-slate-700 font-arabic">مركز الأمان العالي الدولي</div>
                <div className="text-xs text-slate-400 font-arabic">لخدمات فحص وتسجيل السيارات | Car Inspection & Registration</div>
              </div>
-             <LogoPlaceholder />
+             <Logo />
            </div>
 
            <div className="hidden md:block w-px h-24 bg-slate-100" />
@@ -284,15 +301,15 @@ export default function InteractiveReport() {
              <div className="w-2 h-8 bg-primary rounded-full" />
           </h2>
 
-          {categories.map(cat => {
-            const items = inspection.items?.filter(i => i.category === cat) || [];
+          {CATEGORIES.map(cat => {
+            const items = inspection.items?.filter(i => i.category === cat.id) || [];
             if (items.length === 0) return null;
             
             return (
-              <div key={cat} className="space-y-4">
+              <div key={cat.id} className="space-y-4">
                 <div className="bg-slate-900 text-white px-6 py-3 rounded-2xl font-bold font-arabic flex justify-between items-center">
                   <span className="text-xs text-white/50">{items.length} ملاحظات</span>
-                  <span>{cat}</span>
+                  <span>{cat.label}</span>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

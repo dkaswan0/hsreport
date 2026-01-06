@@ -13,7 +13,8 @@ import {
   Loader2,
   Camera,
   Sparkles,
-  Wand2
+  Wand2,
+  FileText
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -110,6 +111,14 @@ export default function InspectionDetails() {
             <p className="text-slate-500 font-mono tracking-wider">{inspection.vin}</p>
           </div>
           <div className="flex gap-3">
+            <button 
+              onClick={() => window.location.href = `/reports/${id}`}
+              className="p-3 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
+              title="التقرير التفاعلي"
+              data-testid="button-interactive-report"
+            >
+              <FileText className="w-5 h-5" />
+            </button>
             <button 
               onClick={handlePrint}
               className="p-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
@@ -437,6 +446,10 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
             </div>
             
             <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center gap-2">
+                <Camera className="w-4 h-4 text-primary" />
+                صورة العطل + تحليل ذكي
+              </label>
               <input
                 type="file"
                 ref={fileInputRef}
@@ -444,17 +457,22 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
                 accept="image/*"
                 capture="environment"
                 className="hidden"
+                data-testid="input-photo-capture"
               />
               <button 
                 type="button"
                 className={cn(
-                  "w-full py-3 border-2 border-dashed rounded-xl transition-colors flex items-center justify-center gap-2",
-                  photo ? "border-primary text-primary bg-primary/5" : "border-slate-300 text-slate-500 hover:border-primary hover:text-primary"
+                  "w-full border-2 border-dashed rounded-xl transition-colors flex items-center justify-center gap-2",
+                  photo ? "border-primary text-primary bg-primary/5" : "border-primary/50 text-primary bg-primary/5 hover:border-primary hover:bg-primary/10"
                 )}
                 onClick={() => fileInputRef.current?.click()}
+                data-testid="button-photo-capture"
               >
                 <Camera className="w-5 h-5" />
-                {photo ? "تم إرفاق الصورة" : "إرفاق صورة العطل"}
+                <Sparkles className="w-4 h-4" />
+                <span className="text-sm font-bold">
+                  {photo ? "تم إرفاق الصورة" : "التقط صورة + تحليل ذكي"}
+                </span>
               </button>
               {photo && (
                 <div className="mt-2 relative w-full aspect-video rounded-xl overflow-hidden border border-slate-200">
