@@ -136,6 +136,43 @@ export default function InspectionDetails() {
 
         {/* Category Items */}
         <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col overflow-hidden">
+          {/* Vehicle Data Section (CarsXE Specs) */}
+          {inspection.notes && (() => {
+            let specs: any = null;
+            try {
+              specs = JSON.parse(inspection.notes);
+            } catch (e) {}
+
+            if (!specs || typeof specs !== 'object') return null;
+
+            return (
+              <div className="p-6 bg-slate-50 border-b border-slate-100">
+                <h3 className="text-md font-bold text-slate-900 mb-4 flex items-center gap-2 font-arabic">
+                  <span className="w-1.5 h-4 bg-primary rounded-full" />
+                  بيانات السيارة الفنية | Technical Specs
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-right" dir="rtl">
+                  <div className="bg-white p-3 rounded-xl border border-slate-100">
+                    <div className="text-[10px] text-slate-400 font-arabic">المحرك</div>
+                    <div className="text-xs font-bold truncate">{specs.engine || specs.engine_cylinders || "N/A"}</div>
+                  </div>
+                  <div className="bg-white p-3 rounded-xl border border-slate-100">
+                    <div className="text-[10px] text-slate-400 font-arabic">ناقل الحركة</div>
+                    <div className="text-xs font-bold truncate">{specs.transmission || specs.transmission_type || "N/A"}</div>
+                  </div>
+                  <div className="bg-white p-3 rounded-xl border border-slate-100">
+                    <div className="text-[10px] text-slate-400 font-arabic">نظام الدفع</div>
+                    <div className="text-xs font-bold truncate">{specs.drivetrain || specs.drive_type || "N/A"}</div>
+                  </div>
+                  <div className="bg-white p-3 rounded-xl border border-slate-100">
+                    <div className="text-[10px] text-slate-400 font-arabic">بلد الصنع</div>
+                    <div className="text-xs font-bold truncate">{specs.manufacturer_address || specs.assembly_country || "N/A"}</div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
           <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
             <div>
               <h3 className="text-lg font-bold flex items-center gap-2">

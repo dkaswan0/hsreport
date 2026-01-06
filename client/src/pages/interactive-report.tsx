@@ -242,71 +242,7 @@ export default function InteractiveReport() {
           </Card>
         </div>
 
-        {/* CarsXE Technical Specifications Section */}
-        {(() => {
-          let specs = (inspection as any).specs;
-          if (!specs && inspection.notes) {
-            try {
-              specs = JSON.parse(inspection.notes);
-            } catch (e) {
-              // Not JSON, skip
-            }
-          }
-          
-          if (!specs || typeof specs !== 'object') return null;
-
-          return (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-black text-slate-900 font-arabic px-2 flex items-center gap-3 justify-end">
-                بيانات السيارة من مركز الأمان | Technical Specifications
-                <div className="w-2 h-8 bg-primary rounded-full" />
-              </h2>
-              <Card className="rounded-3xl border-none shadow-sm bg-white border border-slate-100 overflow-hidden">
-                <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x md:divide-x-reverse border-b">
-                  <div className="p-6 text-right">
-                    <div className="text-xs text-slate-400 font-arabic mb-1">المحرك | Engine</div>
-                    <div className="font-bold text-slate-900">{specs.engine || specs.engine_cylinders || "N/A"}</div>
-                  </div>
-                  <div className="p-6 text-right">
-                    <div className="text-xs text-slate-400 font-arabic mb-1">ناقل الحركة | Transmission</div>
-                    <div className="font-bold text-slate-900">{specs.transmission || specs.transmission_type || "N/A"}</div>
-                  </div>
-                  <div className="p-6 text-right">
-                    <div className="text-xs text-slate-400 font-arabic mb-1">نظام الدفع | Drivetrain</div>
-                    <div className="font-bold text-slate-900">{specs.drivetrain || specs.drive_type || "N/A"}</div>
-                  </div>
-                </div>
-                <div className="p-6 bg-slate-50/50">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-right" dir="rtl">
-                    <div>
-                      <div className="text-[10px] text-slate-400 font-arabic uppercase">بلد الصنع | Origin</div>
-                      <div className="text-sm font-bold">{specs.manufacturer_address || specs.assembly_country || "N/A"}</div>
-                    </div>
-                    <div>
-                      <div className="text-[10px] text-slate-400 font-arabic uppercase">نوع الوقود | Fuel</div>
-                      <div className="text-sm font-bold">{specs.fuel_type || "N/A"}</div>
-                    </div>
-                    <div>
-                      <div className="text-[10px] text-slate-400 font-arabic uppercase">سعة المحرك | Displacement</div>
-                      <div className="text-sm font-bold">{specs.displacement || "N/A"}</div>
-                    </div>
-                    <div>
-                      <div className="text-[10px] text-slate-400 font-arabic uppercase">القوة الحصانية | HP</div>
-                      <div className="text-sm font-bold">{specs.horsepower || "N/A"}</div>
-                    </div>
-                    {specs.market_value && (
-                      <div className="col-span-2 md:col-span-4 mt-4 pt-4 border-t border-slate-200">
-                        <div className="text-[10px] text-slate-400 font-arabic uppercase">القيمة السوقية التقريبية | Market Value</div>
-                        <div className="text-lg font-bold text-primary">{specs.market_value}</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </Card>
-            </div>
-          );
-        })()}
-
+        {/* Distribution Section */}
         <div className="space-y-4">
            <h2 className="text-xl font-black text-slate-900 font-arabic px-2 flex items-center gap-3 justify-end">
              توزيع الأعطال على جسم المركبة
