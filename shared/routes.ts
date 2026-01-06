@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import { insertInspectionSchema, insertInspectionItemSchema, inspections, inspectionItems, faultLibrary } from './schema';
 
+export type CreateInspectionRequest = z.infer<typeof insertInspectionSchema>;
+export type UpdateInspectionRequest = Partial<z.infer<typeof insertInspectionSchema>>;
+export type CreateInspectionItemRequest = z.infer<typeof insertInspectionItemSchema>;
+export type UpdateInspectionItemRequest = Partial<z.infer<typeof insertInspectionItemSchema>>;
+
 export const errorSchemas = {
   validation: z.object({
     message: z.string(),

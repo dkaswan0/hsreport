@@ -276,19 +276,60 @@ Respond ONLY in valid JSON format:
         console.log("Recalls fetch failed (optional):", e);
       }
 
+      // Create Arabic summary for display
+      const summaryParts: string[] = [];
+      
+      if (specs.year && specs.make && specs.model) {
+        summaryParts.push(`${specs.year} ${specs.make} ${specs.model}`);
+      }
+      if (specs.trim) {
+        summaryParts.push(`الفئة: ${specs.trim}`);
+      }
+      if (specs.engine) {
+        summaryParts.push(`المحرك: ${specs.engine}`);
+      }
+      if (specs.transmission) {
+        summaryParts.push(`ناقل الحركة: ${specs.transmission}`);
+      }
+      if (specs.drivetrain) {
+        summaryParts.push(`نظام الدفع: ${specs.drivetrain === '4WD' ? 'دفع رباعي' : specs.drivetrain === 'FWD' ? 'دفع أمامي' : specs.drivetrain === 'RWD' ? 'دفع خلفي' : specs.drivetrain}`);
+      }
+      if (specs.fuel_type) {
+        summaryParts.push(`الوقود: ${specs.fuel_type === 'Gasoline' ? 'بنزين' : specs.fuel_type === 'Diesel' ? 'ديزل' : specs.fuel_type}`);
+      }
+      if (specs.made_in) {
+        summaryParts.push(`بلد الصنع: ${specs.made_in}`);
+      }
+      if (specs.city_mileage && specs.highway_mileage) {
+        summaryParts.push(`استهلاك الوقود: ${specs.city_mileage} (مدينة) / ${specs.highway_mileage} (طريق سريع)`);
+      }
+      if (market?.retail) {
+        summaryParts.push(`القيمة السوقية: ${market.retail}`);
+      }
+      if (recalls && recalls.length > 0) {
+        summaryParts.push(`تنبيه: يوجد ${recalls.length} استدعاءات أمان`);
+      }
+
+      const arabicSummary = summaryParts.join(' | ');
+
+      // Store specs as JSON with Arabic summary included
+      const notesData = {
+        ...specs,
+        arabicSummary,
+        msrp: market?.retail || specs.msrp,
+        market_value: market,
+        recalls: recalls
+      };
+
       return res.json({
         make: specs.make || "",
         model: specs.model || "",
         year: parseInt(specs.year) || 2024,
         color: specs.exterior_color || "",
         odometer: specs.mileage || 0,
-        notes: JSON.stringify(specs),
-        specs: {
-          ...specs,
-          msrp: market?.retail || specs.msrp,
-          market_value: market,
-          recalls: recalls
-        }
+        notes: JSON.stringify(notesData),
+        arabicSummary: arabicSummary,
+        specs: notesData
       });
     } catch (error) {
       console.error("CarsXE API Error:", error);

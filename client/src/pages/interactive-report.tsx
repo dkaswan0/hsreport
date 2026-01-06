@@ -120,7 +120,7 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
 
       {/* 3D Car Container */}
       <div 
-        className="relative w-full aspect-[16/10] flex items-center justify-center"
+        className="relative w-full aspect-square md:aspect-[16/10] flex items-center justify-center"
         style={{ perspective: '1500px' }}
       >
         {/* Ground reflection */}
@@ -1046,11 +1046,11 @@ export default function InteractiveReport() {
             هذا التقرير إلكتروني وتفاعلي صادر عن مركز الأمان العالي الدولي لفحص المركبات. 
             النتائج مبنية على حالة المركبة وقت الفحص وقد تتغير مع الاستخدام.
           </p>
-          <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-center gap-6 text-xs text-white/40">
+          <div className="mt-4 pt-4 border-t border-white/10 flex flex-wrap items-center justify-center gap-2 md:gap-6 text-xs text-white/40">
             <span>WhatsApp: 0542206000</span>
-            <span>|</span>
+            <span className="hidden md:inline">|</span>
             <span>highsafety2021@gmail.com</span>
-            <span>|</span>
+            <span className="hidden md:inline">|</span>
             <span>سيتي بلازا الدراري - الشارقة</span>
           </div>
         </div>
