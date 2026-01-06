@@ -189,49 +189,116 @@ Respond ONLY in valid JSON format:
     const apiKey = process.env.CARSXE_API_KEY;
 
     if (!apiKey) {
-      return res.json({
-        make: "Toyota",
-        model: "Camry",
-        year: 2022,
-        color: "White"
+      return res.status(400).json({
+        error: true,
+        message: "مفتاح API غير مضبوط - API key not configured",
+        make: "",
+        model: "",
+        year: 2024,
+        color: ""
       });
     }
 
     try {
-      // 1. Fetch Specs
-      const specsPromise = fetch(`https://api.carsxe.com/specs?key=${apiKey}&vin=${vin}`).then(r => r.json());
-      // 2. Fetch Market Value
-      const marketPromise = fetch(`https://api.carsxe.com/marketvalue?key=${apiKey}&vin=${vin}`).then(r => r.json());
-      // 3. Fetch History/Recalls (Combined if possible or separate)
-      const recallsPromise = fetch(`https://api.carsxe.com/recalls?key=${apiKey}&vin=${vin}`).then(r => r.json());
+      // Fetch Specs first with error handling
+      const specsResponse = await fetch(`https://api.carsxe.com/specs?key=${apiKey}&vin=${vin}`);
+      const specsText = await specsResponse.text();
       
-      const [specsData, marketData, recallsData] = await Promise.all([specsPromise, marketPromise, recallsPromise]);
+      // Check if response is HTML (error page) instead of JSON
+      if (specsText.startsWith('<!DOCTYPE') || specsText.startsWith('<html')) {
+        console.error("CarsXE API returned HTML - likely invalid API key or quota exceeded");
+        return res.status(400).json({
+          error: true,
+          message: "مفتاح CarsXE API غير صالح أو منتهي الصلاحية - Invalid or expired CarsXE API key",
+          make: "",
+          model: "",
+          year: 2024,
+          color: ""
+        });
+      }
 
-      const specs = specsData.success ? specsData.attributes : {};
-      const market = marketData.success ? marketData.market_value : null;
+      let specsData;
+      try {
+        specsData = JSON.parse(specsText);
+      } catch {
+        console.error("CarsXE API returned invalid JSON:", specsText.substring(0, 200));
+        return res.status(400).json({
+          error: true,
+          message: "فشل في فك رموز الشاصي - Failed to decode VIN",
+          make: "",
+          model: "",
+          year: 2024,
+          color: ""
+        });
+      }
+
+      if (!specsData.success) {
+        console.error("CarsXE API error:", specsData.error || specsData.message);
+        return res.status(400).json({
+          error: true,
+          message: specsData.error || specsData.message || "رقم الشاصي غير صالح - Invalid VIN",
+          make: "",
+          model: "",
+          year: 2024,
+          color: ""
+        });
+      }
+
+      const specs = specsData.attributes || {};
+
+      // Try to fetch market value (optional - don't fail if this doesn't work)
+      let market = null;
+      try {
+        const marketResponse = await fetch(`https://api.carsxe.com/marketvalue?key=${apiKey}&vin=${vin}`);
+        const marketText = await marketResponse.text();
+        if (!marketText.startsWith('<!DOCTYPE') && !marketText.startsWith('<html')) {
+          const marketData = JSON.parse(marketText);
+          if (marketData.success) {
+            market = marketData.market_value;
+          }
+        }
+      } catch (e) {
+        console.log("Market value fetch failed (optional):", e);
+      }
+
+      // Try to fetch recalls (optional - don't fail if this doesn't work)
+      let recalls: any[] = [];
+      try {
+        const recallsResponse = await fetch(`https://api.carsxe.com/recalls?key=${apiKey}&vin=${vin}`);
+        const recallsText = await recallsResponse.text();
+        if (!recallsText.startsWith('<!DOCTYPE') && !recallsText.startsWith('<html')) {
+          const recallsData = JSON.parse(recallsText);
+          if (recallsData.success) {
+            recalls = recallsData.recalls || [];
+          }
+        }
+      } catch (e) {
+        console.log("Recalls fetch failed (optional):", e);
+      }
 
       return res.json({
-        make: specs.make || "Unknown",
-        model: specs.model || "Unknown",
+        make: specs.make || "",
+        model: specs.model || "",
         year: parseInt(specs.year) || 2024,
-        color: specs.exterior_color || "أبيض",
+        color: specs.exterior_color || "",
         odometer: specs.mileage || 0,
         notes: JSON.stringify(specs),
         specs: {
           ...specs,
           msrp: market?.retail || specs.msrp,
           market_value: market,
-          recalls: recallsData.success ? recallsData.recalls : []
+          recalls: recalls
         }
       });
     } catch (error) {
       console.error("CarsXE API Error:", error);
-      res.json({
-        make: "Toyota",
-        model: "Camry",
+      res.status(500).json({
+        error: true,
+        message: "فشل الاتصال بخادم CarsXE - Connection to CarsXE failed",
+        make: "",
+        model: "",
         year: 2024,
-        color: "Silver",
-        vin: vin
+        color: ""
       });
     }
   });

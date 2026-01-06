@@ -63,8 +63,17 @@ export default function NewInspection() {
   };
 
   // Auto-fill form when VIN data arrives
+  const [vinError, setVinError] = useState<string | null>(null);
+  
   useEffect(() => {
     if (vinData) {
+      // Check for error in response
+      if ((vinData as any).error) {
+        setVinError((vinData as any).message || "فشل في فك رموز الشاصي");
+        return;
+      }
+      setVinError(null);
+      
       if (vinData.make) form.setValue("make", vinData.make);
       if (vinData.model) form.setValue("model", vinData.model);
       if (vinData.year) form.setValue("year", vinData.year);
@@ -150,6 +159,12 @@ export default function NewInspection() {
                   </div>
                 </div>
                 {isScanning && <p className="text-accent text-xs mt-1 font-arabic">جاري استخراج رقم الشاصي...</p>}
+                {vinError && (
+                  <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-xl">
+                    <p className="text-red-600 text-sm font-arabic">{vinError}</p>
+                    <p className="text-red-500 text-xs mt-1 font-arabic">يرجى إدخال البيانات يدوياً أو التحقق من مفتاح CarsXE API</p>
+                  </div>
+                )}
                 {form.formState.errors.vin && (
                   <p className="text-red-500 text-sm mt-1">{form.formState.errors.vin.message}</p>
                 )}

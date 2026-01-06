@@ -69,7 +69,21 @@ export default function VehicleData() {
         </CardContent>
       </Card>
 
-      {vinData ? (
+      {/* Error State */}
+      {vinData && (vinData as any).error && (
+        <Card className="rounded-3xl border-red-200 shadow-sm bg-red-50">
+          <CardContent className="p-8 text-center">
+            <AlertCircle className="w-16 h-16 mx-auto mb-4 text-red-500" />
+            <h3 className="text-xl font-bold text-red-700 mb-2 font-arabic">فشل في فك رموز الشاصي</h3>
+            <p className="text-red-600 mb-4 font-arabic">{(vinData as any).message}</p>
+            <p className="text-red-500 text-sm font-arabic">
+              يرجى التحقق من صلاحية مفتاح CarsXE API أو التواصل مع الدعم الفني
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {vinData && !(vinData as any).error ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Specifications Section */}
           <Card className="rounded-3xl border-none shadow-sm bg-white border border-slate-100 md:col-span-2">
@@ -83,11 +97,11 @@ export default function VehicleData() {
               <div className="grid grid-cols-2 md:grid-cols-3 gap-6 text-sm">
                 <div className="space-y-1">
                   <p className="text-slate-400 font-arabic">الماركة | Make</p>
-                  <p className="font-bold">{vinData.make}</p>
+                  <p className="font-bold">{vinData.make || "غير متوفر"}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-slate-400 font-arabic">الموديل | Model</p>
-                  <p className="font-bold">{vinData.model}</p>
+                  <p className="font-bold">{vinData.model || "غير متوفر"}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-slate-400 font-arabic">السنة | Year</p>
