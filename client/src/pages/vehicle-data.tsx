@@ -9,9 +9,14 @@ import {
   History,
   ShieldAlert,
   DollarSign,
-  Loader2
+  Loader2,
+  Image as ImageIcon,
+  AlertTriangle,
+  Zap,
+  Globe,
+  MapPin
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -32,8 +37,11 @@ export default function VehicleData() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500 text-right" dir="rtl">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-slate-900 font-arabic">بيانات السيارة الشاملة</h1>
-        <Car className="w-10 h-10 text-primary" />
+        <h1 className="text-3xl font-bold text-slate-900 font-arabic">مركز فك رموز الشاصي (VIN) العالمي</h1>
+        <div className="flex gap-2">
+          <Globe className="w-6 h-6 text-primary" />
+          <Car className="w-10 h-10 text-primary" />
+        </div>
       </div>
 
       <Card className="rounded-3xl border-none shadow-sm bg-white border border-slate-100">
@@ -44,7 +52,7 @@ export default function VehicleData() {
               <Input 
                 value={vin} 
                 onChange={(e) => setVin(e.target.value.toUpperCase())}
-                placeholder="أدخل رقم الشاصي (VIN)..." 
+                placeholder="أدخل رقم الشاصي (VIN) المكون من 17 حرفاً..." 
                 className="pr-10 h-12 rounded-xl text-left font-mono"
                 maxLength={17}
               />
@@ -52,90 +60,68 @@ export default function VehicleData() {
             <Button 
               onClick={handleSearch} 
               disabled={isDecoding || vin.length !== 17}
-              className="h-12 px-8 rounded-xl bg-primary text-white"
+              className="h-12 px-8 rounded-xl bg-primary text-white font-arabic"
             >
               {isDecoding ? <Loader2 className="w-5 h-5 animate-spin ml-2" /> : null}
-              بحث وجلب البيانات
+              تحليل شامل وفك الرموز
             </Button>
           </div>
-          {vin.length > 0 && vin.length < 17 && (
-            <p className="text-amber-600 text-xs mt-2 font-arabic text-right">يرجى إدخال 17 حرفاً لرقم الشاصي</p>
-          )}
         </CardContent>
       </Card>
 
       {vinData ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="rounded-3xl border-none shadow-sm bg-white border border-slate-100">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Specifications Section */}
+          <Card className="rounded-3xl border-none shadow-sm bg-white border border-slate-100 md:col-span-2">
             <CardHeader className="border-b pb-4">
               <CardTitle className="text-lg flex items-center gap-2 font-arabic justify-end">
-                المواصفات الفنية | Specifications
+                المواصفات الفنية الكاملة | Full Specifications
                 <Info className="w-5 h-5 text-primary" />
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
-              <div className="grid grid-cols-2 gap-6 text-sm">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-6 text-sm">
                 <div className="space-y-1">
-                  <p className="text-slate-400 font-arabic">الماركة</p>
+                  <p className="text-slate-400 font-arabic">الماركة | Make</p>
                   <p className="font-bold">{vinData.make}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-slate-400 font-arabic">الموديل</p>
+                  <p className="text-slate-400 font-arabic">الموديل | Model</p>
                   <p className="font-bold">{vinData.model}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-slate-400 font-arabic">السنة</p>
+                  <p className="text-slate-400 font-arabic">السنة | Year</p>
                   <p className="font-bold">{vinData.year}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-slate-400 font-arabic">المحرك</p>
+                  <p className="text-slate-400 font-arabic">المحرك | Engine</p>
                   <p className="font-bold">{specs.engine || specs.engine_displacement || "N/A"}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-slate-400 font-arabic">ناقل الحركة</p>
+                  <p className="text-slate-400 font-arabic">ناقل الحركة | Transmission</p>
                   <p className="font-bold">{specs.transmission || "N/A"}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-slate-400 font-arabic">دفع العجلات</p>
+                  <p className="text-slate-400 font-arabic">دفع العجلات | Drivetrain</p>
                   <p className="font-bold">{specs.drivetrain || "N/A"}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-slate-400 font-arabic">نوع الوقود</p>
+                  <p className="text-slate-400 font-arabic">نوع الوقود | Fuel</p>
                   <p className="font-bold">{specs.fuel_type || "N/A"}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-slate-400 font-arabic">بلد المنشأ</p>
-                  <p className="font-bold">{specs.manufacturer_address || "N/A"}</p>
+                  <p className="text-slate-400 font-arabic">بلد التصنيع | Origin</p>
+                  <p className="font-bold">{specs.manufacturer_address || specs.made_in || "N/A"}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-slate-400 font-arabic">نوع المركبة | Type</p>
+                  <p className="font-bold">{specs.vehicle_type || "N/A"}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="rounded-3xl border-none shadow-sm bg-white border border-slate-100">
-            <CardHeader className="border-b pb-4">
-              <CardTitle className="text-lg flex items-center gap-2 font-arabic justify-end">
-                تاريخ المركبة | History & Alerts
-                <History className="w-5 h-5 text-primary" />
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-               <div className="space-y-4">
-                 <div className="flex items-center justify-between p-3 bg-red-50 rounded-xl border border-red-100">
-                   <span className="text-red-700 font-bold">تحقق من تقرير الحوادث</span>
-                   <ShieldAlert className="w-5 h-5 text-red-600" />
-                 </div>
-                 <div className="flex items-center justify-between p-3 bg-amber-50 rounded-xl border border-amber-100">
-                   <span className="text-amber-700 font-bold">تحقق من الاستدعاءات (Recalls)</span>
-                   <AlertCircle className="w-5 h-5 text-amber-600" />
-                 </div>
-                 <div className="flex items-center justify-between p-3 bg-green-50 rounded-xl border border-green-100">
-                   <span className="text-green-700 font-bold">نظام الأمان مفعل</span>
-                   <SettingsIcon className="w-5 h-5 text-green-600" />
-                 </div>
-               </div>
-            </CardContent>
-          </Card>
-
+          {/* Market Value Section */}
           <Card className="rounded-3xl border-none shadow-sm bg-white border border-slate-100">
             <CardHeader className="border-b pb-4">
               <CardTitle className="text-lg flex items-center gap-2 font-arabic justify-end">
@@ -143,44 +129,102 @@ export default function VehicleData() {
                 <DollarSign className="w-5 h-5 text-primary" />
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
-               <div className="text-center">
-                 <div className="text-4xl font-black text-primary mb-2">
-                   {specs.msrp ? `$${specs.msrp}` : "قيد التقدير"}
-                 </div>
-                 <p className="text-sm text-slate-400 font-arabic">القيمة التقديرية بناءً على البيانات المتوفرة</p>
-               </div>
+            <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+              <div className="text-4xl font-black text-primary mb-2">
+                {specs.msrp ? `$${specs.msrp}` : "قيد التحليل"}
+              </div>
+              <p className="text-sm text-slate-400 font-arabic">تقدير القيمة بناءً على مواصفات CarsXE</p>
             </CardContent>
           </Card>
 
+          {/* History & Recalls Section */}
           <Card className="rounded-3xl border-none shadow-sm bg-white border border-slate-100">
             <CardHeader className="border-b pb-4">
               <CardTitle className="text-lg flex items-center gap-2 font-arabic justify-end">
-                الأبعاد والمواصفات | Dimensions
-                <Car className="w-5 h-5 text-primary" />
+                السجل والاستدعاءات | History & Recalls
+                <History className="w-5 h-5 text-primary" />
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
-               <div className="grid grid-cols-2 gap-4 text-sm">
-                 <div className="space-y-1">
-                   <p className="text-slate-400 font-arabic">الوزن</p>
-                   <p className="font-bold">{specs.curb_weight || "N/A"}</p>
-                 </div>
-                 <div className="space-y-1">
-                   <p className="text-slate-400 font-arabic">قاعدة العجلات</p>
-                   <p className="font-bold">{specs.wheelbase || "N/A"}</p>
-                 </div>
-               </div>
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center justify-between p-3 bg-red-50 rounded-xl border border-red-100">
+                <div className="text-right">
+                  <p className="text-red-700 font-bold text-sm font-arabic">الحوادث والسرقة</p>
+                  <p className="text-[10px] text-red-600">Lien & Theft Check</p>
+                </div>
+                <ShieldAlert className="w-5 h-5 text-red-600" />
+              </div>
+              <div className="flex items-center justify-between p-3 bg-amber-50 rounded-xl border border-amber-100">
+                <div className="text-right">
+                  <p className="text-amber-700 font-bold text-sm font-arabic">استدعاءات الصيانة</p>
+                  <p className="text-[10px] text-amber-600">Safety Recalls</p>
+                </div>
+                <AlertTriangle className="w-5 h-5 text-amber-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Technical Diagnosis Section */}
+          <Card className="rounded-3xl border-none shadow-sm bg-white border border-slate-100">
+            <CardHeader className="border-b pb-4">
+              <CardTitle className="text-lg flex items-center gap-2 font-arabic justify-end">
+                فحص الكمبيوتر | OBD Decoding
+                <Zap className="w-5 h-5 text-primary" />
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 text-center">
+              <p className="text-slate-400 font-arabic text-sm mb-4">نظام تحليل أكواد الأعطال OBD-II متصل بقاعدة بيانات CarsXE</p>
+              <Button variant="outline" className="w-full rounded-xl font-arabic">تحليل الكود التقني</Button>
+            </CardContent>
+          </Card>
+
+          {/* Official Images Section */}
+          <Card className="rounded-3xl border-none shadow-sm bg-white border border-slate-100">
+            <CardHeader className="border-b pb-4">
+              <CardTitle className="text-lg flex items-center gap-2 font-arabic justify-end">
+                الصور الرسمية | Vehicle Images
+                <ImageIcon className="w-5 h-5 text-primary" />
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="aspect-video bg-slate-50 rounded-2xl flex items-center justify-center border-2 border-dashed border-slate-200">
+                <p className="text-slate-400 text-xs font-arabic">بانتظار تحميل الصور من المصدر</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Recognition Section */}
+          <Card className="rounded-3xl border-none shadow-sm bg-white border border-slate-100 md:col-span-3">
+            <CardContent className="p-6 flex items-center justify-between gap-8">
+              <div className="flex-1 space-y-2">
+                <h4 className="font-bold font-arabic text-lg">تقنيات التعرف الذكي | Smart Recognition</h4>
+                <p className="text-slate-500 text-sm font-arabic">نستخدم تقنيات OCR لاستخراج رقم الشاصي من الصور والتعرف على لوحات الأرقام (Plate Recognition) بدقة عالية.</p>
+              </div>
+              <div className="flex gap-4">
+                <div className="p-4 bg-slate-50 rounded-2xl flex flex-col items-center gap-2">
+                  <MapPin className="w-6 h-6 text-slate-400" />
+                  <span className="text-[10px] font-bold">Plate OCR</span>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-2xl flex flex-col items-center gap-2">
+                  <Search className="w-6 h-6 text-slate-400" />
+                  <span className="text-[10px] font-bold">VIN OCR</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
       ) : (
-        <div className="bg-slate-900 text-white rounded-3xl p-8 text-center">
-          <Activity className="w-12 h-12 mx-auto mb-4 text-accent" />
-          <h3 className="text-xl font-bold mb-2 font-arabic">بيانات CarsXE المتكاملة</h3>
-          <p className="text-slate-400 max-w-lg mx-auto font-arabic text-sm">
-            أدخل رقم الشاصي (VIN) المكون من 17 حرفاً للبحث عن بيانات السيارة مباشرة من قواعد البيانات العالمية.
+        <div className="bg-slate-900 text-white rounded-3xl p-12 text-center shadow-xl">
+          <Activity className="w-16 h-16 mx-auto mb-6 text-accent animate-pulse" />
+          <h3 className="text-2xl font-bold mb-4 font-arabic">نظام فك الرموز العالمي المتكامل</h3>
+          <p className="text-slate-400 max-w-2xl mx-auto font-arabic text-lg leading-relaxed">
+            أدخل رقم الشاصي (VIN) للوصول إلى تقارير القيمة السوقية، سجل الحوادث، الاستدعاءات الأمنية، والمواصفات الفنية التفصيلية المزودة من CarsXE.
           </p>
+          <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 text-[10px] text-slate-500">
+            <div className="p-2 border border-slate-800 rounded-lg">Decode worldwide</div>
+            <div className="p-2 border border-slate-800 rounded-lg">Market Value Specs</div>
+            <div className="p-2 border border-slate-800 rounded-lg">Lien & Theft Check</div>
+            <div className="p-2 border border-slate-800 rounded-lg">Recall Information</div>
+          </div>
         </div>
       )}
     </div>
