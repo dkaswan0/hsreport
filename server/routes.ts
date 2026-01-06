@@ -143,13 +143,16 @@ export async function registerRoutes(
       const data = await response.json();
 
       if (data.success && data.attributes) {
+        // Stringify specs and store in notes temporarily or pass back directly
+        const specs = data.attributes;
         return res.json({
-          make: data.attributes.make || "Unknown",
-          model: data.attributes.model || "Unknown",
-          year: parseInt(data.attributes.year) || 2024,
-          color: data.attributes.exterior_color || "أبيض",
-          odometer: data.attributes.mileage || 0,
-          specs: data.attributes // Pass all specs for extended details
+          make: specs.make || "Unknown",
+          model: specs.model || "Unknown",
+          year: parseInt(specs.year) || 2024,
+          color: specs.exterior_color || "أبيض",
+          odometer: specs.mileage || 0,
+          notes: JSON.stringify(specs), // Store full specs as JSON string in notes field
+          specs: specs
         });
       }
       
