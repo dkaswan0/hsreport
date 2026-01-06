@@ -83,7 +83,7 @@ export async function registerRoutes(
       
       // Use OpenAI to generate fault details
       const response = await openai.chat.completions.create({
-        model: "gpt-5.1",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
@@ -113,6 +113,67 @@ export async function registerRoutes(
         description: "AI service unavailable. Please check manually.",
         severity: "medium",
         solution: "Manual inspection required."
+      });
+    }
+  });
+
+  // AI Photo Analysis - Identify car part and suggest faults
+  app.post("/api/analyze-photo", async (req, res) => {
+    try {
+      const { imageBase64 } = req.body;
+      
+      if (!imageBase64) {
+        return res.status(400).json({ error: "No image provided" });
+      }
+
+      const imageUrl = imageBase64.startsWith('data:') ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: `You are an expert automotive inspector for a UAE vehicle inspection center. Analyze the car part in this image and identify:
+1. Which car part is shown (door, hood, bumper, tire, engine bay, etc.)
+2. The corresponding inspection category in Arabic
+3. List of common faults for this specific part
+
+Respond ONLY in valid JSON format:
+{
+  "detectedPart": "English name of part",
+  "detectedPartArabic": "Arabic name",
+  "category": "One of: المكينة, البودي, الكوتش, الفرامل, الكهرباء, الجنوط, التعليق والتوجيه, التبريد والتكييف, العادم, السلامة, ناقل الحركة, الشاصي",
+  "suggestedFaults": [
+    {"faultName": "Arabic - English", "severity": "high/medium/low", "description": "Arabic description"}
+  ]
+}`
+              },
+              {
+                type: "image_url",
+                image_url: { url: imageUrl }
+              }
+            ]
+          }
+        ],
+        max_tokens: 1000
+      });
+
+      const content = response.choices[0].message.content || "{}";
+      // Extract JSON from response (handle markdown code blocks)
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      const result = JSON.parse(jsonMatch ? jsonMatch[0] : "{}");
+      res.json(result);
+    } catch (error) {
+      console.error("Photo Analysis Error:", error);
+      res.status(500).json({ 
+        error: "Failed to analyze image",
+        detectedPart: "Unknown",
+        detectedPartArabic: "غير محدد",
+        category: "البودي",
+        suggestedFaults: []
       });
     }
   });

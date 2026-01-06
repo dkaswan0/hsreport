@@ -181,3 +181,28 @@ export function useFaultSuggestions() {
     }
   });
 }
+
+// AI Photo Analysis - Identify car part and suggest faults
+export function usePhotoAnalysis() {
+  return useMutation({
+    mutationFn: async (imageBase64: string) => {
+      const res = await fetch('/api/analyze-photo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64 }),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error('Failed to analyze photo');
+      return res.json() as Promise<{
+        detectedPart: string;
+        detectedPartArabic: string;
+        category: string;
+        suggestedFaults: Array<{
+          faultName: string;
+          severity: string;
+          description: string;
+        }>;
+      }>;
+    }
+  });
+}

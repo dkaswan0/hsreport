@@ -1,4 +1,4 @@
-import { useInspection, useCreateInspectionItem, useDeleteInspectionItem, useUpdateInspection, useFaultSuggestions } from "@/hooks/use-inspections";
+import { useInspection, useCreateInspectionItem, useDeleteInspectionItem, useUpdateInspection, useFaultSuggestions, usePhotoAnalysis } from "@/hooks/use-inspections";
 import { useRoute } from "wouter";
 import { 
   Car, 
@@ -11,7 +11,9 @@ import {
   Trash2,
   ChevronRight,
   Loader2,
-  Camera
+  Camera,
+  Sparkles,
+  Wand2
 } from "lucide-react";
 import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
@@ -293,14 +295,28 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
 
   const [photo, setPhoto] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [aiSuggestions, setAiSuggestions] = useState<Array<{faultName: string, severity: string, description: string}>>([]);
+  const [detectedPart, setDetectedPart] = useState<string>("");
+  
+  const photoAnalysis = usePhotoAnalysis();
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhoto(reader.result as string);
-        setFormData(prev => ({ ...prev, imageUrl: reader.result as string }));
+      reader.onloadend = async () => {
+        const base64 = reader.result as string;
+        setPhoto(base64);
+        setFormData(prev => ({ ...prev, imageUrl: base64 }));
+        
+        // Trigger AI analysis
+        try {
+          const result = await photoAnalysis.mutateAsync(base64);
+          setDetectedPart(result.detectedPartArabic || result.detectedPart);
+          setAiSuggestions(result.suggestedFaults || []);
+        } catch (err) {
+          console.error("AI analysis failed:", err);
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -435,11 +451,51 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
                   <img src={photo} alt="Preview" className="w-full h-full object-cover" />
                   <button 
                     type="button"
-                    onClick={() => { setPhoto(null); setFormData(prev => ({ ...prev, imageUrl: undefined })); }}
+                    onClick={() => { setPhoto(null); setFormData(prev => ({ ...prev, imageUrl: undefined })); setAiSuggestions([]); setDetectedPart(""); }}
                     className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
+                </div>
+              )}
+              
+              {/* AI Analysis Results */}
+              {photoAnalysis.isPending && (
+                <div className="mt-2 p-3 bg-primary/5 rounded-xl border border-primary/20 flex items-center gap-2 text-primary">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="text-sm font-arabic">جاري تحليل الصورة بالذكاء الاصطناعي...</span>
+                </div>
+              )}
+              
+              {detectedPart && !photoAnalysis.isPending && (
+                <div className="mt-2 p-3 bg-green-50 rounded-xl border border-green-200">
+                  <div className="flex items-center gap-2 text-green-700 mb-2">
+                    <Sparkles className="w-4 h-4" />
+                    <span className="text-sm font-bold font-arabic">تم التعرف على: {detectedPart}</span>
+                  </div>
+                  {aiSuggestions.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-xs text-green-600 font-arabic">الأعطال المقترحة:</p>
+                      {aiSuggestions.map((suggestion, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({
+                              ...prev,
+                              faultName: suggestion.faultName,
+                              description: suggestion.description,
+                              severity: suggestion.severity
+                            }));
+                          }}
+                          className="w-full text-right p-2 bg-white rounded-lg border border-green-100 hover:border-green-300 transition-all text-sm"
+                        >
+                          <div className="font-medium text-slate-800 font-arabic">{suggestion.faultName}</div>
+                          <div className="text-xs text-slate-500 font-arabic">{suggestion.description}</div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

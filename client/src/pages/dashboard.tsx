@@ -1,13 +1,35 @@
-import { useInspections } from "@/hooks/use-inspections";
+import { useInspections, useDeleteInspection } from "@/hooks/use-inspections";
 import { Link } from "wouter";
-import { Plus, ClipboardCheck, Clock, AlertTriangle, Search } from "lucide-react";
+import { Plus, ClipboardCheck, Clock, AlertTriangle, Search, Trash2, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Dashboard() {
   const [search, setSearch] = useState("");
   const { data: inspections, isLoading } = useInspections({ search });
+  const deleteMutation = useDeleteInspection();
+  const { toast } = useToast();
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  const handleDelete = async (id: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (confirm("هل أنت متأكد من حذف هذا الفحص؟")) {
+      setDeletingId(id);
+      deleteMutation.mutate(id, {
+        onSuccess: () => {
+          toast({ title: "تم الحذف", description: "تم حذف الفحص بنجاح" });
+          setDeletingId(null);
+        },
+        onError: () => {
+          toast({ title: "خطأ", description: "فشل حذف الفحص", variant: "destructive" });
+          setDeletingId(null);
+        }
+      });
+    }
+  };
 
   // Simple stats calculation
   const total = inspections?.length || 0;
@@ -113,12 +135,27 @@ export default function Dashboard() {
                       <StatusBadge status={inspection.status || 'draft'} />
                     </td>
                     <td className="px-6 py-4">
-                      <Link 
-                        href={`/inspections/${inspection.id}`}
-                        className="text-primary hover:text-accent font-medium text-sm transition-colors"
-                      >
-                        عرض التفاصيل
-                      </Link>
+                      <div className="flex items-center gap-3">
+                        <Link 
+                          href={`/inspections/${inspection.id}`}
+                          className="text-primary hover:text-accent font-medium text-sm transition-colors"
+                        >
+                          عرض التفاصيل
+                        </Link>
+                        <button
+                          onClick={(e) => handleDelete(inspection.id, e)}
+                          disabled={deletingId === inspection.id}
+                          className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50"
+                          title="حذف الفحص"
+                          data-testid={`button-delete-inspection-${inspection.id}`}
+                        >
+                          {deletingId === inspection.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

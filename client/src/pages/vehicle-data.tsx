@@ -138,41 +138,112 @@ export default function VehicleData() {
           </Card>
 
           {/* History & Recalls Section */}
-          <Card className="rounded-3xl border-none shadow-sm bg-white border border-slate-100">
+          <Card className="rounded-3xl border-none shadow-sm bg-white border border-slate-100 md:col-span-2">
             <CardHeader className="border-b pb-4">
               <CardTitle className="text-lg flex items-center gap-2 font-arabic justify-end">
-                السجل والاستدعاءات | History & Recalls
+                سجل الحوادث والاستدعاءات | Accident History & Recalls
                 <History className="w-5 h-5 text-primary" />
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-4 space-y-3">
-              {specs.recalls && specs.recalls.length > 0 ? (
-                specs.recalls.map((recall: any, idx: number) => (
-                  <div key={idx} className="flex items-center justify-between p-3 bg-red-50 rounded-xl border border-red-100">
-                    <div className="text-right">
-                      <p className="text-red-700 font-bold text-sm font-arabic">{recall.component || "عطل فني"}</p>
-                      <p className="text-[10px] text-red-600">{recall.description?.substring(0, 50)}...</p>
+            <CardContent className="p-4 space-y-4">
+              {/* Accident History */}
+              {specs.history && specs.history.length > 0 ? (
+                <div className="space-y-4">
+                  <h4 className="font-bold text-red-600 font-arabic flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" />
+                    سجل الحوادث المسجلة | Recorded Accidents
+                  </h4>
+                  {specs.history.map((accident: any, idx: number) => (
+                    <div key={idx} className="bg-red-50 rounded-xl border border-red-200 p-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="text-right flex-1">
+                          <p className="text-red-700 font-bold font-arabic">{accident.type || "حادث مروري"}</p>
+                          <p className="text-sm text-red-600 font-arabic">{accident.description}</p>
+                          {accident.date && (
+                            <p className="text-xs text-red-500 mt-1 font-arabic">التاريخ: {accident.date}</p>
+                          )}
+                          {accident.location && (
+                            <p className="text-xs text-red-500 font-arabic flex items-center gap-1 justify-end">
+                              <MapPin className="w-3 h-3" />
+                              الموقع: {accident.location}
+                            </p>
+                          )}
+                        </div>
+                        <AlertTriangle className="w-6 h-6 text-red-600 shrink-0" />
+                      </div>
+                      {/* Accident Photos */}
+                      {accident.photos && accident.photos.length > 0 && (
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-3">
+                          {accident.photos.map((photo: string, pIdx: number) => (
+                            <img 
+                              key={pIdx} 
+                              src={photo} 
+                              alt={`Accident ${idx + 1} Photo ${pIdx + 1}`}
+                              className="rounded-lg w-full h-24 object-cover border border-red-200"
+                            />
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <AlertTriangle className="w-5 h-5 text-red-600" />
-                  </div>
-                ))
+                  ))}
+                </div>
               ) : (
-                <>
-                  <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                    <div className="text-right">
-                      <p className="text-slate-700 font-bold text-sm font-arabic">لا توجد حوادث مسجلة</p>
-                      <p className="text-[10px] text-slate-500">No accidents found</p>
-                    </div>
-                    <ShieldAlert className="w-5 h-5 text-slate-400" />
+                <div className="flex items-center justify-between p-4 bg-green-50 rounded-xl border border-green-100">
+                  <div className="text-right">
+                    <p className="text-green-700 font-bold text-sm font-arabic">لا توجد حوادث مسجلة</p>
+                    <p className="text-[10px] text-green-600">No accidents found in database</p>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-xl border border-green-100">
-                    <div className="text-right">
-                      <p className="text-green-700 font-bold text-sm font-arabic">خالية من الاستدعاءات</p>
-                      <p className="text-[10px] text-green-600">No active recalls</p>
+                  <ShieldAlert className="w-6 h-6 text-green-600" />
+                </div>
+              )}
+
+              {/* Recalls Section */}
+              {specs.recalls && specs.recalls.length > 0 ? (
+                <div className="space-y-3 pt-4 border-t border-slate-100">
+                  <h4 className="font-bold text-amber-600 font-arabic flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" />
+                    استدعاءات الشركة المصنعة | Manufacturer Recalls
+                  </h4>
+                  {specs.recalls.map((recall: any, idx: number) => (
+                    <div key={idx} className="flex items-start gap-3 p-3 bg-amber-50 rounded-xl border border-amber-100">
+                      <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                      <div className="text-right flex-1">
+                        <p className="text-amber-800 font-bold text-sm font-arabic">{recall.component || "استدعاء فني"}</p>
+                        <p className="text-xs text-amber-700 font-arabic mt-1">{recall.description}</p>
+                        {recall.remedy && (
+                          <p className="text-xs text-amber-600 font-arabic mt-1">الحل: {recall.remedy}</p>
+                        )}
+                      </div>
                     </div>
-                    <Activity className="w-5 h-5 text-green-600" />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center justify-between p-3 bg-green-50 rounded-xl border border-green-100">
+                  <div className="text-right">
+                    <p className="text-green-700 font-bold text-sm font-arabic">خالية من الاستدعاءات</p>
+                    <p className="text-[10px] text-green-600">No active recalls</p>
                   </div>
-                </>
+                  <Activity className="w-5 h-5 text-green-600" />
+                </div>
+              )}
+
+              {/* Ownership/Sales History */}
+              {specs.ownership && specs.ownership.length > 0 && (
+                <div className="space-y-3 pt-4 border-t border-slate-100">
+                  <h4 className="font-bold text-blue-600 font-arabic flex items-center gap-2">
+                    <History className="w-4 h-4" />
+                    سجل الملكية والبيع | Ownership History
+                  </h4>
+                  {specs.ownership.map((record: any, idx: number) => (
+                    <div key={idx} className="flex items-center justify-between p-3 bg-blue-50 rounded-xl border border-blue-100">
+                      <div className="text-right">
+                        <p className="text-blue-700 font-bold text-sm font-arabic">{record.type || "انتقال ملكية"}</p>
+                        <p className="text-xs text-blue-600">{record.date} - {record.location}</p>
+                      </div>
+                      <Info className="w-5 h-5 text-blue-600" />
+                    </div>
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>
