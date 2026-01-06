@@ -12,7 +12,8 @@ import {
   ShieldCheck,
   Image as ImageIcon,
   X,
-  Gauge
+  Gauge,
+  Share2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -113,6 +114,28 @@ export default function InteractiveReport() {
     toast({ title: "تم التحميل", description: "تم حفظ التقرير بصيغة PDF" });
   };
 
+  const handleShareReport = async () => {
+    const shareUrl = `${window.location.origin}/reports/${id}`;
+    
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `تقرير فحص مركبة - ${inspection.make} ${inspection.model}`,
+          text: `شاهد تقرير الفحص التفاعلي لسيارة ${inspection.make} ${inspection.model} (${inspection.vin})`,
+          url: shareUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        toast({ 
+          title: "تم نسخ الرابط", 
+          description: "تم نسخ رابط التقرير للمشاركة بنجاح" 
+        });
+      }
+    } catch (err) {
+      console.error("Error sharing:", err);
+    }
+  };
+
   const categories = ["المكينة", "البودي", "الكوتش", "الفرامل", "الكهرباء", "التعليق والتوجيه", "التبريد والتكييف", "العادم", "السلامة", "الجنوط", "ناقل الحركة", "الشاصي"];
 
   return (
@@ -124,6 +147,10 @@ export default function InteractiveReport() {
             <StatusBadge status={inspection.status || 'draft'} />
           </div>
           <div className="flex gap-3">
+            <Button variant="outline" size="sm" onClick={handleShareReport} className="font-arabic border-primary text-primary hover:bg-primary/5">
+              <Share2 className="w-4 h-4 ml-2" />
+              مشاركة التقرير
+            </Button>
             <Button variant="outline" size="sm" onClick={() => window.print()} className="font-arabic">
               <Printer className="w-4 h-4 ml-2" />
               طباعة
