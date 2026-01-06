@@ -71,7 +71,10 @@ export class DatabaseStorage implements IStorage {
 
   // Inspection Items
   async createInspectionItem(item: InsertInspectionItem): Promise<InspectionItem> {
-    const [newItem] = await db.insert(inspectionItems).values(item).returning();
+    const [newItem] = await db.insert(inspectionItems).values({
+      ...item,
+      imageUrl: item.imageUrl // Explicitly ensure imageUrl is mapped
+    }).returning();
     return newItem;
   }
 

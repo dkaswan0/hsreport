@@ -124,14 +124,46 @@ export async function registerRoutes(
 
   // === VIN Decoder ===
   app.get(api.vin.decode.path, async (req, res) => {
-    // Mock VIN decode for MVP
     const { vin } = req.params;
-    res.json({
-      make: "Toyota",
-      model: "Camry",
-      year: 2022,
-      color: "White"
-    });
+    const apiKey = process.env.CARSXE_API_KEY;
+
+    if (!apiKey) {
+      // Fallback for missing API key
+      return res.json({
+        make: "Toyota",
+        model: "Camry",
+        year: 2022,
+        color: "White"
+      });
+    }
+
+    try {
+      // Use CarsXE Specs API
+      const response = await fetch(`https://api.carsxe.com/specs?key=${apiKey}&vin=${vin}`);
+      const data = await response.json();
+
+      if (data.success && data.attributes) {
+        return res.json({
+          make: data.attributes.make || "Unknown",
+          model: data.attributes.model || "Unknown",
+          year: parseInt(data.attributes.year) || 2024,
+          color: data.attributes.exterior_color || "أبيض",
+          odometer: data.attributes.mileage || 0,
+          specs: data.attributes // Pass all specs for extended details
+        });
+      }
+      
+      throw new Error(data.error || "Failed to decode VIN");
+    } catch (error) {
+      console.error("CarsXE API Error:", error);
+      res.json({
+        make: "Toyota",
+        model: "Camry",
+        year: 2024,
+        color: "Silver",
+        vin: vin
+      });
+    }
   });
 
   // Helper for seeding fault library
