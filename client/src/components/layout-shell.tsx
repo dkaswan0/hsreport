@@ -7,7 +7,8 @@ import {
   Menu,
   X,
   Search,
-  Bell
+  Bell,
+  Database
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,7 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
     { href: "/", label: lang === 'ar' ? 'الرئيسية' : 'Dashboard', icon: LayoutDashboard },
     { href: "/inspections", label: lang === 'ar' ? 'الفحوصات' : 'Inspections', icon: ClipboardList },
     { href: "/fault-library", label: lang === 'ar' ? 'مكتبة الأعطال' : 'Fault Library', icon: Car },
+    { href: "/vehicle-data", label: lang === 'ar' ? 'بيانات السيارة' : 'Vehicle Data', icon: Database },
     { href: "/settings", label: lang === 'ar' ? 'الإعدادات' : 'Settings', icon: Settings },
   ];
 
