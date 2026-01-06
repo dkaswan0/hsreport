@@ -246,37 +246,40 @@ export default function InspectionDetails() {
 function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, inspectionId: number }) {
   const deleteMutation = useDeleteInspectionItem();
   
-  const statusColors = {
-    pass: "border-green-200 bg-green-50 text-green-700",
-    fail: "border-red-200 bg-red-50 text-red-700",
-    warning: "border-amber-200 bg-amber-50 text-amber-700",
-  };
-  
-  const statusIcons = {
-    pass: <CheckCircle2 className="w-5 h-5 text-green-600" />,
-    fail: <XCircle className="w-5 h-5 text-red-600" />,
-    warning: <AlertTriangle className="w-5 h-5 text-amber-600" />,
-  };
-
   const [arabic, english] = item.faultName.split(" - ");
+  const isGood = item.status === 'pass';
+  const isWarning = item.status === 'warning';
 
   return (
     <div className="flex flex-col gap-4 p-5 rounded-2xl border bg-white hover:border-primary/20 transition-all group relative shadow-sm">
       <div className="flex items-start gap-4">
-        <div className={cn("p-2.5 rounded-xl shrink-0", statusColors[item.status as keyof typeof statusColors])}>
-          {statusIcons[item.status as keyof typeof statusIcons]}
-        </div>
+        {isGood ? (
+          <div className="p-2.5 rounded-xl shrink-0 border-green-200 bg-green-50">
+            <CheckCircle2 className="w-5 h-5 text-green-600" />
+          </div>
+        ) : isWarning ? (
+          <div className="p-2.5 rounded-xl shrink-0 border-amber-200 bg-amber-50">
+            <AlertTriangle className="w-5 h-5 text-amber-600" />
+          </div>
+        ) : (
+          <div className="p-2.5 rounded-xl shrink-0 border-red-200 bg-red-50">
+            <XCircle className="w-5 h-5 text-red-600" />
+          </div>
+        )}
         
         <div className="flex-1 min-w-0">
           <div className="flex flex-col gap-0.5">
-            <h4 className="font-bold text-lg text-slate-900 leading-tight">{arabic}</h4>
-            {english && <span className="text-sm font-medium text-slate-400 font-mono tracking-tight uppercase">{english}</span>}
+            <h4 className="font-bold text-lg text-slate-900 leading-tight">
+              {isGood ? "جيد" : arabic}
+            </h4>
+            {!isGood && english && <span className="text-sm font-medium text-slate-400 font-mono tracking-tight uppercase">{english}</span>}
           </div>
           
-          <div className="mt-2 bg-slate-50 rounded-xl p-3 border border-slate-100">
-            <p className="text-sm text-slate-700 font-medium">التشخيص / Diagnosis:</p>
-            <p className="text-sm text-slate-600 mt-1">{item.description || "لا يوجد وصف إضافي"}</p>
-          </div>
+          {item.description && (
+            <div className="mt-2 bg-slate-50 rounded-xl p-3 border border-slate-100">
+              <p className="text-sm text-slate-600">{item.description}</p>
+            </div>
+          )}
         </div>
 
         <button 
@@ -433,7 +436,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
                         : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
                     )}
                   >
-                    {status === 'pass' ? 'سليم' : status === 'fail' ? 'معيب' : 'تنبيه'}
+                    {status === 'pass' ? 'جيد' : status === 'fail' ? 'معيب' : 'تنبيه'}
                   </button>
                 ))}
               </div>

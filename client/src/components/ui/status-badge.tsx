@@ -19,7 +19,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
   const labels: Record<string, string> = {
     draft: "مسودة",
     completed: "مكتمل",
-    pass: "سليم",
+    pass: "جيد",
     fail: "معيب",
     warning: "تنبيه",
   };

@@ -573,17 +573,13 @@ const InspectionResults = ({ inspection, highlightedCategory }: { inspection: an
                     </div>
                   )}
                   <div className="flex-1 text-right">
-                    <div className="flex items-start justify-between gap-2 flex-row-reverse mb-2">
-                      <h4 className="font-bold text-slate-900 font-arabic text-lg">{item.faultName.split(' - ')[0]}</h4>
-                      <div className={cn(
-                        "px-3 py-1 rounded-full text-xs font-bold",
-                        item.status === 'fail' ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"
-                      )}>
-                        {item.status === 'fail' ? 'يحتاج إصلاح' : 'يحتاج متابعة'}
-                      </div>
-                    </div>
-                    <p className="text-xs text-slate-400 font-mono mb-2">{item.faultName.split(' - ')[1]}</p>
-                    <p className="text-sm text-slate-600 font-arabic leading-relaxed">{item.description}</p>
+                    <h4 className="font-bold text-slate-900 font-arabic text-lg mb-2">{item.faultName.split(' - ')[0]}</h4>
+                    {item.faultName.split(' - ')[1] && (
+                      <p className="text-xs text-slate-400 font-mono mb-2">{item.faultName.split(' - ')[1]}</p>
+                    )}
+                    {item.description && (
+                      <p className="text-sm text-slate-600 font-arabic leading-relaxed">{item.description}</p>
+                    )}
                   </div>
                 </div>
               ))}
