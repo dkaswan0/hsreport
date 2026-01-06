@@ -15,7 +15,7 @@ import {
   Sparkles,
   Wand2
 } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import * as Dialog from "@radix-ui/react-dialog";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -299,6 +299,16 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
   const [detectedPart, setDetectedPart] = useState<string>("");
   
   const photoAnalysis = usePhotoAnalysis();
+
+  // Reset state when dialog opens/closes or category changes
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({ status: 'fail', severity: 'medium', faultName: '', description: '', category });
+      setPhoto(null);
+      setAiSuggestions([]);
+      setDetectedPart("");
+    }
+  }, [isOpen, category]);
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

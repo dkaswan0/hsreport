@@ -159,8 +159,32 @@ export function useVinDecoder(vin: string) {
       if (vin.length !== 17) return null;
       const url = buildUrl(api.vin.decode.path, { vin });
       const res = await fetch(url, { credentials: "include" });
-      if (!res.ok) return null;
-      return api.vin.decode.responses[200].parse(await res.json());
+      
+      // Try to parse JSON response (may contain error info from server)
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        // Non-JSON response - return error structure
+        return { error: true, message: "فشل في فك رموز الشاصي - VIN decode failed", make: "", model: "", year: 2024, color: "" };
+      }
+      
+      // If response has error flag, return it as-is for frontend to display
+      if (data.error) {
+        return data;
+      }
+      
+      // Success - validate and return parsed data
+      if (res.ok) {
+        try {
+          return api.vin.decode.responses[200].parse(data);
+        } catch {
+          // Validation failed but we have data - return it anyway
+          return data;
+        }
+      }
+      
+      return data;
     },
     enabled: vin.length === 17,
     retry: false,
