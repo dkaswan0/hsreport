@@ -146,20 +146,34 @@ export default function VehicleData() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 space-y-3">
-              <div className="flex items-center justify-between p-3 bg-red-50 rounded-xl border border-red-100">
-                <div className="text-right">
-                  <p className="text-red-700 font-bold text-sm font-arabic">الحوادث والسرقة</p>
-                  <p className="text-[10px] text-red-600">Lien & Theft Check</p>
-                </div>
-                <ShieldAlert className="w-5 h-5 text-red-600" />
-              </div>
-              <div className="flex items-center justify-between p-3 bg-amber-50 rounded-xl border border-amber-100">
-                <div className="text-right">
-                  <p className="text-amber-700 font-bold text-sm font-arabic">استدعاءات الصيانة</p>
-                  <p className="text-[10px] text-amber-600">Safety Recalls</p>
-                </div>
-                <AlertTriangle className="w-5 h-5 text-amber-600" />
-              </div>
+              {specs.recalls && specs.recalls.length > 0 ? (
+                specs.recalls.map((recall: any, idx: number) => (
+                  <div key={idx} className="flex items-center justify-between p-3 bg-red-50 rounded-xl border border-red-100">
+                    <div className="text-right">
+                      <p className="text-red-700 font-bold text-sm font-arabic">{recall.component || "عطل فني"}</p>
+                      <p className="text-[10px] text-red-600">{recall.description?.substring(0, 50)}...</p>
+                    </div>
+                    <AlertTriangle className="w-5 h-5 text-red-600" />
+                  </div>
+                ))
+              ) : (
+                <>
+                  <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <div className="text-right">
+                      <p className="text-slate-700 font-bold text-sm font-arabic">لا توجد حوادث مسجلة</p>
+                      <p className="text-[10px] text-slate-500">No accidents found</p>
+                    </div>
+                    <ShieldAlert className="w-5 h-5 text-slate-400" />
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-xl border border-green-100">
+                    <div className="text-right">
+                      <p className="text-green-700 font-bold text-sm font-arabic">خالية من الاستدعاءات</p>
+                      <p className="text-[10px] text-green-600">No active recalls</p>
+                    </div>
+                    <Activity className="w-5 h-5 text-green-600" />
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
 
@@ -186,8 +200,17 @@ export default function VehicleData() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4">
-              <div className="aspect-video bg-slate-50 rounded-2xl flex items-center justify-center border-2 border-dashed border-slate-200">
-                <p className="text-slate-400 text-xs font-arabic">بانتظار تحميل الصور من المصدر</p>
+              <div className="grid grid-cols-1 gap-4">
+                {specs.images && specs.images.length > 0 ? (
+                  specs.images.map((img: string, idx: number) => (
+                    <img key={idx} src={img} alt="Vehicle" className="rounded-2xl w-full object-cover shadow-sm" />
+                  ))
+                ) : (
+                  <div className="aspect-video bg-slate-50 rounded-2xl flex flex-col items-center justify-center border-2 border-dashed border-slate-200">
+                    <ImageIcon className="w-8 h-8 text-slate-300 mb-2" />
+                    <p className="text-slate-400 text-xs font-arabic">لا توجد صور رسمية متاحة حالياً</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

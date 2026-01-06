@@ -128,7 +128,6 @@ export async function registerRoutes(
     const apiKey = process.env.CARSXE_API_KEY;
 
     if (!apiKey) {
-      // Fallback for missing API key
       return res.json({
         make: "Toyota",
         model: "Camry",
@@ -138,25 +137,32 @@ export async function registerRoutes(
     }
 
     try {
-      // Use CarsXE Specs API
-      const response = await fetch(`https://api.carsxe.com/specs?key=${apiKey}&vin=${vin}`);
-      const data = await response.json();
-
-      if (data.success && data.attributes) {
-        // Stringify specs and store in notes temporarily or pass back directly
-        const specs = data.attributes;
-        return res.json({
-          make: specs.make || "Unknown",
-          model: specs.model || "Unknown",
-          year: parseInt(specs.year) || 2024,
-          color: specs.exterior_color || "أبيض",
-          odometer: specs.mileage || 0,
-          notes: JSON.stringify(specs), // Store full specs as JSON string in notes field
-          specs: specs
-        });
-      }
+      // 1. Fetch Specs
+      const specsPromise = fetch(`https://api.carsxe.com/specs?key=${apiKey}&vin=${vin}`).then(r => r.json());
+      // 2. Fetch Market Value
+      const marketPromise = fetch(`https://api.carsxe.com/marketvalue?key=${apiKey}&vin=${vin}`).then(r => r.json());
+      // 3. Fetch History/Recalls (Combined if possible or separate)
+      const recallsPromise = fetch(`https://api.carsxe.com/recalls?key=${apiKey}&vin=${vin}`).then(r => r.json());
       
-      throw new Error(data.error || "Failed to decode VIN");
+      const [specsData, marketData, recallsData] = await Promise.all([specsPromise, marketPromise, recallsPromise]);
+
+      const specs = specsData.success ? specsData.attributes : {};
+      const market = marketData.success ? marketData.market_value : null;
+
+      return res.json({
+        make: specs.make || "Unknown",
+        model: specs.model || "Unknown",
+        year: parseInt(specs.year) || 2024,
+        color: specs.exterior_color || "أبيض",
+        odometer: specs.mileage || 0,
+        notes: JSON.stringify(specs),
+        specs: {
+          ...specs,
+          msrp: market?.retail || specs.msrp,
+          market_value: market,
+          recalls: recallsData.success ? recallsData.recalls : []
+        }
+      });
     } catch (error) {
       console.error("CarsXE API Error:", error);
       res.json({
