@@ -137,10 +137,16 @@ export default function InspectionDetails() {
         {/* Category Items */}
         <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col overflow-hidden">
           {/* Vehicle Data Section (CarsXE Specs) */}
-          {inspection.notes && (() => {
+          {(() => {
+            const rawNotes = inspection.notes;
+            if (!rawNotes) return null;
+            
             let specs: any = null;
             try {
-              specs = JSON.parse(inspection.notes);
+              // Try to parse if it's a JSON string
+              if (rawNotes.startsWith('{')) {
+                specs = JSON.parse(rawNotes);
+              }
             } catch (e) {}
 
             if (!specs || typeof specs !== 'object') return null;
