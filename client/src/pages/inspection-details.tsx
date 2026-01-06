@@ -26,17 +26,17 @@ import { useQuery } from "@tanstack/react-query";
 
 const CATEGORIES = [
   { id: "engine", label: "المكينة", icon: "⚙️" },
-  { id: "transmission", label: "ناقل الحركة", icon: "🕹️" },
+  { id: "transmission", label: "القير", icon: "🕹️" },
   { id: "chassis", label: "الشاصي", icon: "🔧" },
   { id: "body", label: "البودي", icon: "🚗" },
-  { id: "tires", label: "الكوتش", icon: "🛞" },
-  { id: "brakes", label: "الفرامل", icon: "🛑" },
+  { id: "tires", label: "التواير", icon: "🛞" },
+  { id: "brakes", label: "البريكات", icon: "🛑" },
   { id: "electric", label: "الكهرباء", icon: "⚡" },
   { id: "wheels", label: "الجنوط", icon: "🔘" },
-  { id: "suspension", label: "التعليق والتوجيه", icon: "🛣️" },
-  { id: "ac", label: "التبريد والتكييف", icon: "❄️" },
-  { id: "exhaust", label: "العادم", icon: "💨" },
-  { id: "safety", label: "السلامة", icon: "🛡️" },
+  { id: "suspension", label: "الميزانية", icon: "🛣️" },
+  { id: "ac", label: "المكيف", icon: "❄️" },
+  { id: "exhaust", label: "الشكمان", icon: "💨" },
+  { id: "safety", label: "السيفتي", icon: "🛡️" },
 ];
 
 export default function InspectionDetails() {

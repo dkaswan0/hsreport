@@ -30,17 +30,17 @@ import logoPath from "@assets/logo_1767706304085.png";
 // Category mapping with positions for 3D car visualization
 const CATEGORIES = [
   { id: "engine", label: "المكينة", labelEn: "Engine", position: { top: "8%", left: "50%", transform: "translateX(-50%)" } },
-  { id: "transmission", label: "ناقل الحركة", labelEn: "Transmission", position: { top: "45%", left: "50%", transform: "translateX(-50%)" } },
+  { id: "transmission", label: "القير", labelEn: "Transmission", position: { top: "45%", left: "50%", transform: "translateX(-50%)" } },
   { id: "chassis", label: "الشاصي", labelEn: "Chassis", position: { top: "65%", left: "50%", transform: "translateX(-50%)" } },
   { id: "body", label: "البودي", labelEn: "Body", position: { top: "35%", left: "15%" } },
-  { id: "tires", label: "الكوتش", labelEn: "Tires", position: { top: "75%", left: "20%" } },
-  { id: "brakes", label: "الفرامل", labelEn: "Brakes", position: { top: "75%", left: "80%" } },
+  { id: "tires", label: "التواير", labelEn: "Tires", position: { top: "75%", left: "20%" } },
+  { id: "brakes", label: "البريكات", labelEn: "Brakes", position: { top: "75%", left: "80%" } },
   { id: "electric", label: "الكهرباء", labelEn: "Electrical", position: { top: "25%", left: "85%" } },
   { id: "wheels", label: "الجنوط", labelEn: "Wheels", position: { top: "55%", left: "10%" } },
-  { id: "suspension", label: "التعليق", labelEn: "Suspension", position: { top: "55%", left: "90%" } },
-  { id: "ac", label: "التكييف", labelEn: "A/C", position: { top: "20%", left: "35%" } },
-  { id: "exhaust", label: "العادم", labelEn: "Exhaust", position: { top: "85%", left: "50%", transform: "translateX(-50%)" } },
-  { id: "safety", label: "السلامة", labelEn: "Safety", position: { top: "30%", left: "65%" } },
+  { id: "suspension", label: "الميزانية", labelEn: "Suspension", position: { top: "55%", left: "90%" } },
+  { id: "ac", label: "المكيف", labelEn: "A/C", position: { top: "20%", left: "35%" } },
+  { id: "exhaust", label: "الشكمان", labelEn: "Exhaust", position: { top: "85%", left: "50%", transform: "translateX(-50%)" } },
+  { id: "safety", label: "السيفتي", labelEn: "Safety", position: { top: "30%", left: "65%" } },
 ];
 
 // Realistic 3D Car Component with CSS animations
@@ -660,224 +660,172 @@ export default function InteractiveReport() {
     }
   };
 
-  // Text-only PDF generation (English only for proper rendering)
-  const handleTextPDF = () => {
+  // Arabic PDF generation using html2canvas for proper RTL support
+  const handleTextPDF = async () => {
     if (!inspection) return;
     
-    toast({ title: "جاري التحضير", description: "جاري إنشاء تقرير نصي PDF..." });
-    
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const margin = 15;
-    let y = 20;
-    
-    const addText = (text: string, size: number, align: 'left' | 'center' = 'left') => {
-      pdf.setFontSize(size);
-      const x = align === 'center' ? pageWidth / 2 : margin;
-      pdf.text(text, x, y, { align });
-      y += size * 0.45;
-    };
-    
-    const addBoldText = (text: string, size: number, align: 'left' | 'center' = 'left') => {
-      pdf.setFont('helvetica', 'bold');
-      addText(text, size, align);
-      pdf.setFont('helvetica', 'normal');
-    };
-    
-    const addLine = () => {
-      pdf.setDrawColor(180, 180, 180);
-      pdf.line(margin, y, pageWidth - margin, y);
-      y += 6;
-    };
-    
-    const checkPageBreak = (neededSpace: number) => {
-      if (y + neededSpace > pdf.internal.pageSize.getHeight() - 25) {
-        pdf.addPage();
-        y = 20;
-      }
-    };
-    
-    // ========== HEADER ==========
-    pdf.setFillColor(30, 41, 59);
-    pdf.rect(0, 0, pageWidth, 35, 'F');
-    pdf.setTextColor(255, 255, 255);
-    y = 15;
-    addBoldText('HIGH SAFETY INTERNATIONAL', 20, 'center');
-    y += 2;
-    addText('Vehicle Inspection & Registration Center', 10, 'center');
-    y += 2;
-    addText('CITY PLAZA Al darari, Sharjah | WhatsApp: 0542206000', 9, 'center');
-    
-    pdf.setTextColor(0, 0, 0);
-    y = 45;
-    
-    // ========== REPORT INFO ==========
-    pdf.setFillColor(241, 245, 249);
-    pdf.rect(margin, y - 5, pageWidth - margin * 2, 20, 'F');
-    addBoldText('VEHICLE INSPECTION REPORT', 16, 'center');
-    y += 3;
-    addText(`Report No: HS-${inspection.id}-${new Date().getFullYear()}`, 10, 'center');
-    y += 1;
-    addText(`Inspection Date: ${inspection.createdAt ? new Date(inspection.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : 'N/A'}`, 10, 'center');
-    y += 10;
-    
-    // ========== VEHICLE DETAILS ==========
-    addLine();
-    addBoldText('VEHICLE DETAILS', 13);
-    y += 4;
-    
-    const vehicleData = [
-      ['Make', inspection.make || 'N/A'],
-      ['Model', inspection.model || 'N/A'],
-      ['Year', String(inspection.year || 'N/A')],
-      ['VIN', inspection.vin || 'N/A'],
-      ['Odometer', `${inspection.odometer?.toLocaleString() || 'N/A'} KM`],
-      ['Color', inspection.color?.split(',')[0]?.trim()?.split(' ').slice(0, 3).join(' ') || 'N/A'],
-    ];
-    
-    vehicleData.forEach(([label, value]) => {
-      pdf.setFont('helvetica', 'bold');
-      pdf.text(`${label}:`, margin, y);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text(value, margin + 35, y);
-      y += 5;
-    });
-    y += 5;
-    
-    // ========== CUSTOMER INFO ==========
-    addLine();
-    addBoldText('CUSTOMER INFORMATION', 13);
-    y += 4;
-    
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Name:', margin, y);
-    pdf.setFont('helvetica', 'normal');
-    pdf.text(inspection.customerName || 'Walk-in Customer', margin + 35, y);
-    y += 5;
-    
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Phone:', margin, y);
-    pdf.setFont('helvetica', 'normal');
-    pdf.text(inspection.customerPhone || 'N/A', margin + 35, y);
-    y += 10;
-    
-    // ========== INSPECTION FINDINGS ==========
-    addLine();
-    addBoldText('INSPECTION FINDINGS', 13);
-    y += 6;
+    toast({ title: "جاري التحضير", description: "جاري إنشاء التقرير العربي..." });
     
     const items = inspection.items || [];
-    
-    if (items.length === 0) {
-      pdf.setFillColor(220, 252, 231);
-      pdf.rect(margin, y - 3, pageWidth - margin * 2, 15, 'F');
-      pdf.setTextColor(22, 101, 52);
-      addBoldText('VEHICLE IN EXCELLENT CONDITION', 12, 'center');
-      addText('No issues or defects were found during inspection.', 10, 'center');
-      pdf.setTextColor(0, 0, 0);
-    } else {
-      let itemNum = 1;
-      
-      CATEGORIES.forEach(cat => {
-        const catItems = items.filter((i: any) => i.category === cat.id);
-        if (catItems.length === 0) return;
-        
-        checkPageBreak(25);
-        
-        // Category header
-        pdf.setFillColor(241, 245, 249);
-        pdf.rect(margin, y - 3, pageWidth - margin * 2, 8, 'F');
-        addBoldText(`${cat.labelEn.toUpperCase()}`, 11);
-        y += 3;
-        
-        catItems.forEach((item: any) => {
-          checkPageBreak(20);
-          
-          const statusText = item.status === 'fail' ? 'NEEDS REPAIR' : 'NEEDS ATTENTION';
-          const statusColor = item.status === 'fail' ? [220, 38, 38] : [217, 119, 6];
-          
-          // Get English fault name (after the dash)
-          const faultParts = item.faultName.split(' - ');
-          const faultNameEn = faultParts[1] || faultParts[0];
-          
-          pdf.setFont('helvetica', 'bold');
-          pdf.text(`${itemNum}.`, margin, y);
-          pdf.text(faultNameEn, margin + 8, y);
-          
-          // Status badge
-          pdf.setTextColor(statusColor[0], statusColor[1], statusColor[2]);
-          pdf.setFont('helvetica', 'bold');
-          pdf.text(`[${statusText}]`, pageWidth - margin, y, { align: 'right' });
-          pdf.setTextColor(0, 0, 0);
-          pdf.setFont('helvetica', 'normal');
-          y += 5;
-          
-          if (item.description) {
-            const descLines = pdf.splitTextToSize(item.description, pageWidth - margin * 2 - 10);
-            descLines.forEach((line: string) => {
-              checkPageBreak(6);
-              pdf.text(`   ${line}`, margin + 5, y);
-              y += 4;
-            });
-          }
-          y += 3;
-          itemNum++;
-        });
-        y += 3;
-      });
-    }
-    
-    // ========== SUMMARY ==========
-    checkPageBreak(35);
-    y += 5;
-    addLine();
-    addBoldText('INSPECTION SUMMARY', 13);
-    y += 5;
-    
     const failCount = items.filter((i: any) => i.status === 'fail').length;
     const warningCount = items.filter((i: any) => i.status === 'warning').length;
     const passedCount = 12 - (new Set(items.map((i: any) => i.category))).size;
+    const primaryColor = inspection.color?.split(',')[0]?.trim() || 'غير محدد';
     
-    pdf.setFillColor(241, 245, 249);
-    pdf.rect(margin, y - 3, pageWidth - margin * 2, 25, 'F');
+    // Create hidden Arabic report element
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.top = '0';
+    container.style.width = '800px';
+    container.style.backgroundColor = '#ffffff';
+    container.style.fontFamily = 'Arial, sans-serif';
+    container.dir = 'rtl';
     
-    const col1 = margin + 20;
-    const col2 = pageWidth / 2;
-    const col3 = pageWidth - margin - 40;
+    container.innerHTML = `
+      <div style="padding: 30px; background: white;">
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; padding: 25px; border-radius: 12px; margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="text-align: right;">
+              <h1 style="margin: 0; font-size: 28px; font-weight: bold;">مركز الأمان العالي الدولي</h1>
+              <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.8;">HIGH SAFETY INTERNATIONAL</p>
+              <p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.6;">مركز فحص وتسجيل المركبات</p>
+            </div>
+            <img src="${logoPath}" style="width: 70px; height: 70px; border-radius: 12px; object-fit: contain; background: white; padding: 5px;" />
+          </div>
+          <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2); display: flex; gap: 20px; font-size: 11px; opacity: 0.7;">
+            <span>واتساب: 0542206000</span>
+            <span>|</span>
+            <span>highsafety2021@gmail.com</span>
+            <span>|</span>
+            <span>سيتي بلازا الدراري - الشارقة</span>
+          </div>
+        </div>
+        
+        <!-- Report Title -->
+        <div style="background: #f1f5f9; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
+          <h2 style="margin: 0 0 10px 0; font-size: 22px; color: #1e293b;">تقرير فحص المركبة</h2>
+          <p style="margin: 0; font-size: 13px; color: #64748b;">رقم التقرير: HS-${inspection.id}-${new Date().getFullYear()} | التاريخ: ${inspection.createdAt ? new Date(inspection.createdAt).toLocaleDateString('ar-AE') : '-'}</p>
+        </div>
+        
+        <!-- Vehicle & Customer Info -->
+        <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+          <div style="flex: 1; background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
+            <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #1e293b; border-bottom: 2px solid #0ea5e9; padding-bottom: 8px;">بيانات المركبة</h3>
+            <table style="width: 100%; font-size: 13px;">
+              <tr><td style="padding: 5px 0; color: #64748b;">الشركة المصنعة:</td><td style="padding: 5px 0; font-weight: bold; color: #1e293b;">${inspection.make || '-'}</td></tr>
+              <tr><td style="padding: 5px 0; color: #64748b;">الموديل:</td><td style="padding: 5px 0; font-weight: bold; color: #1e293b;">${inspection.model || '-'}</td></tr>
+              <tr><td style="padding: 5px 0; color: #64748b;">سنة الصنع:</td><td style="padding: 5px 0; font-weight: bold; color: #1e293b;">${inspection.year || '-'}</td></tr>
+              <tr><td style="padding: 5px 0; color: #64748b;">رقم الشاصي:</td><td style="padding: 5px 0; font-weight: bold; color: #1e293b; font-family: monospace; direction: ltr;">${inspection.vin || '-'}</td></tr>
+              <tr><td style="padding: 5px 0; color: #64748b;">العداد:</td><td style="padding: 5px 0; font-weight: bold; color: #1e293b;">${inspection.odometer?.toLocaleString() || '-'} كم</td></tr>
+              <tr><td style="padding: 5px 0; color: #64748b;">اللون:</td><td style="padding: 5px 0; font-weight: bold; color: #1e293b;">${primaryColor}</td></tr>
+            </table>
+          </div>
+          <div style="width: 250px; background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
+            <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #1e293b; border-bottom: 2px solid #0ea5e9; padding-bottom: 8px;">بيانات العميل</h3>
+            <p style="margin: 8px 0; font-size: 13px;"><span style="color: #64748b;">الاسم:</span> <strong>${inspection.customerName || 'زبون بدون حجز'}</strong></p>
+            <p style="margin: 8px 0; font-size: 13px;"><span style="color: #64748b;">الهاتف:</span> <strong style="direction: ltr; display: inline-block;">${inspection.customerPhone || '-'}</strong></p>
+          </div>
+        </div>
+        
+        <!-- Summary Stats -->
+        <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+          <div style="flex: 1; background: #dcfce7; padding: 20px; border-radius: 12px; text-align: center;">
+            <div style="font-size: 32px; font-weight: bold; color: #16a34a;">${passedCount}</div>
+            <div style="font-size: 12px; color: #15803d;">سليم</div>
+          </div>
+          <div style="flex: 1; background: #fef3c7; padding: 20px; border-radius: 12px; text-align: center;">
+            <div style="font-size: 32px; font-weight: bold; color: #d97706;">${warningCount}</div>
+            <div style="font-size: 12px; color: #b45309;">يحتاج متابعة</div>
+          </div>
+          <div style="flex: 1; background: #fee2e2; padding: 20px; border-radius: 12px; text-align: center;">
+            <div style="font-size: 32px; font-weight: bold; color: #dc2626;">${failCount}</div>
+            <div style="font-size: 12px; color: #b91c1c;">يحتاج إصلاح</div>
+          </div>
+        </div>
+        
+        <!-- Findings -->
+        <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
+          <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #1e293b;">نتائج الفحص التفصيلية</h3>
+          ${items.length === 0 ? `
+            <div style="background: #dcfce7; padding: 30px; border-radius: 8px; text-align: center;">
+              <div style="font-size: 18px; font-weight: bold; color: #16a34a;">المركبة بحالة ممتازة</div>
+              <div style="font-size: 13px; color: #15803d; margin-top: 5px;">لم يتم اكتشاف أي ملاحظات</div>
+            </div>
+          ` : CATEGORIES.map(cat => {
+            const catItems = items.filter((i: any) => i.category === cat.id);
+            if (catItems.length === 0) return '';
+            return `
+              <div style="margin-bottom: 15px;">
+                <div style="background: #1e293b; color: white; padding: 10px 15px; border-radius: 8px 8px 0 0; font-weight: bold;">${cat.label} - ${cat.labelEn}</div>
+                <div style="border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; overflow: hidden;">
+                  ${catItems.map((item: any) => `
+                    <div style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0; display: flex; gap: 15px; align-items: flex-start;">
+                      ${item.imageUrl ? `<img src="${item.imageUrl}" style="width: 80px; height: 80px; border-radius: 8px; object-fit: cover;" />` : ''}
+                      <div style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                          <strong style="font-size: 14px;">${item.faultName.split(' - ')[0]}</strong>
+                          <span style="background: ${item.status === 'fail' ? '#fee2e2' : '#fef3c7'}; color: ${item.status === 'fail' ? '#dc2626' : '#d97706'}; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: bold;">
+                            ${item.status === 'fail' ? 'يحتاج إصلاح' : 'يحتاج متابعة'}
+                          </span>
+                        </div>
+                        <div style="font-size: 11px; color: #64748b; font-family: monospace; margin-bottom: 5px;">${item.faultName.split(' - ')[1] || ''}</div>
+                        <div style="font-size: 12px; color: #475569;">${item.description || ''}</div>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        
+        <!-- Footer -->
+        <div style="margin-top: 20px; padding: 15px; background: #1e293b; color: white; border-radius: 12px; text-align: center; font-size: 11px;">
+          <p style="margin: 0 0 5px 0;">هذا التقرير يعكس حالة المركبة وقت الفحص وقد تتغير مع الاستخدام</p>
+          <p style="margin: 0; opacity: 0.7;">للاستفسارات: واتساب 0542206000 | highsafety2021@gmail.com</p>
+        </div>
+      </div>
+    `;
     
-    pdf.setTextColor(22, 163, 74);
-    addBoldText(`${passedCount}`, 18);
-    y -= 5;
-    pdf.setTextColor(0, 0, 0);
-    pdf.text('Categories Passed', margin + 5, y + 8);
+    document.body.appendChild(container);
     
-    y -= 4;
-    pdf.setTextColor(217, 119, 6);
-    pdf.text(String(warningCount), col2, y, { align: 'center' });
-    pdf.setTextColor(0, 0, 0);
-    pdf.setFontSize(9);
-    pdf.text('Needs Attention', col2, y + 5, { align: 'center' });
-    
-    pdf.setTextColor(220, 38, 38);
-    pdf.setFontSize(18);
-    pdf.text(String(failCount), col3, y);
-    pdf.setTextColor(0, 0, 0);
-    pdf.setFontSize(9);
-    pdf.text('Needs Repair', col3 - 5, y + 5);
-    
-    y += 20;
-    
-    // ========== FOOTER ==========
-    y = pdf.internal.pageSize.getHeight() - 20;
-    pdf.setDrawColor(180, 180, 180);
-    pdf.line(margin, y - 5, pageWidth - margin, y - 5);
-    pdf.setFontSize(8);
-    pdf.setTextColor(100, 100, 100);
-    pdf.text('This report reflects the vehicle condition at the time of inspection. Results may change with use.', pageWidth / 2, y, { align: 'center' });
-    pdf.text('For inquiries: WhatsApp 0542206000 | Email: highsafety2021@gmail.com', pageWidth / 2, y + 4, { align: 'center' });
-    
-    pdf.save(`HS_Report_${inspection.vin}.pdf`);
-    toast({ title: "تم بنجاح", description: "تم حفظ التقرير النصي بصيغة PDF" });
+    try {
+      const canvas = await html2canvas(container.firstElementChild as HTMLElement, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        width: 800
+      });
+      
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      let heightLeft = pdfHeight;
+      let position = 0;
+      
+      pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pdf.internal.pageSize.getHeight();
+      
+      while (heightLeft > 0) {
+        position = heightLeft - pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pdf.internal.pageSize.getHeight();
+      }
+      
+      pdf.save(`تقرير_فحص_${inspection.vin}.pdf`);
+      toast({ title: "تم بنجاح", description: "تم حفظ التقرير العربي بصيغة PDF" });
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      toast({ title: "خطأ", description: "حدث خطأ أثناء إنشاء ملف PDF", variant: "destructive" });
+    } finally {
+      document.body.removeChild(container);
+    }
   };
 
   const handleShareReport = async () => {
@@ -944,7 +892,7 @@ export default function InteractiveReport() {
             </Button>
             <Button variant="outline" size="sm" onClick={handleTextPDF} className="font-arabic">
               <Download className="w-4 h-4 ml-1" />
-              <span className="hidden md:inline">نصي</span>
+              <span className="hidden md:inline">عربي</span>
             </Button>
             <Button variant="default" size="sm" onClick={handleDownloadPDF} className="font-arabic">
               <Download className="w-4 h-4 ml-1" />
