@@ -27,7 +27,7 @@ export default function VehicleData() {
     }
   };
 
-  const specs = vinData?.specs || {};
+  const specs = (vinData as any)?.specs || {};
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 text-right" dir="rtl">
