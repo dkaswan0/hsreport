@@ -54,6 +54,25 @@ export async function registerRoutes(
     res.status(204).end();
   });
 
+  // Generate share link for an inspection
+  app.post("/api/inspections/:id/share", async (req, res) => {
+    try {
+      const token = await storage.generateShareToken(Number(req.params.id));
+      res.json({ token, shareUrl: `/view/${token}` });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to generate share link" });
+    }
+  });
+
+  // Get inspection by share token (public endpoint)
+  app.get("/api/public/report/:token", async (req, res) => {
+    const inspection = await storage.getInspectionByToken(req.params.token);
+    if (!inspection) {
+      return res.status(404).json({ message: "Report not found" });
+    }
+    res.json(inspection);
+  });
+
   // === Inspection Items ===
   app.post(api.inspectionItems.create.path, async (req, res) => {
     try {

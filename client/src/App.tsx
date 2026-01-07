@@ -11,10 +11,14 @@ import VehicleData from "@/pages/vehicle-data";
 import NotFound from "@/pages/not-found";
 
 import InteractiveReport from "@/pages/interactive-report";
+import PublicReport from "@/pages/public-report";
 
 function Router() {
   return (
     <Switch>
+      <Route path="/view/:token">
+        {(params) => <PublicReport />}
+      </Route>
       <Route path="/reports/:id">
         {(params) => <InteractiveReport />}
       </Route>

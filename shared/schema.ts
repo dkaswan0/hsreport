@@ -25,6 +25,7 @@ export const inspections = pgTable("inspections", {
   customerPhone: text("customer_phone"),
   status: text("status").default("draft"), // draft, completed
   notes: text("notes"),
+  shareToken: text("share_token"), // Unique token for public sharing
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

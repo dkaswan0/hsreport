@@ -12,6 +12,8 @@ export interface IStorage {
   getInspections(search?: string, status?: string): Promise<Inspection[]>;
   getInspection(id: number): Promise<Inspection | undefined>;
   getInspectionWithItems(id: number): Promise<Inspection & { items: InspectionItem[] } | undefined>;
+  getInspectionByToken(token: string): Promise<Inspection & { items: InspectionItem[] } | undefined>;
+  generateShareToken(id: number): Promise<string>;
   createInspection(inspection: InsertInspection): Promise<Inspection>;
   updateInspection(id: number, updates: UpdateInspectionRequest): Promise<Inspection>;
   deleteInspection(id: number): Promise<void>;
@@ -49,6 +51,25 @@ export class DatabaseStorage implements IStorage {
 
     const items = await db.select().from(inspectionItems).where(eq(inspectionItems.inspectionId, id));
     return { ...inspection, items };
+  }
+
+  async getInspectionByToken(token: string): Promise<Inspection & { items: InspectionItem[] } | undefined> {
+    const [inspection] = await db.select().from(inspections).where(eq(inspections.shareToken, token));
+    if (!inspection) return undefined;
+
+    const items = await db.select().from(inspectionItems).where(eq(inspectionItems.inspectionId, inspection.id));
+    return { ...inspection, items };
+  }
+
+  async generateShareToken(id: number): Promise<string> {
+    // Generate a unique token
+    const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    
+    await db.update(inspections)
+      .set({ shareToken: token, updatedAt: new Date() })
+      .where(eq(inspections.id, id));
+    
+    return token;
   }
 
   async createInspection(inspection: InsertInspection): Promise<Inspection> {
