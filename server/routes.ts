@@ -159,8 +159,9 @@ export async function registerRoutes(
             content: [
               {
                 type: "text",
-                text: `Analyze car part in image. Respond ONLY in JSON:
-{"detectedPart":"English name","detectedPartArabic":"Arabic name","category":"البودي or المكينة or الكوتش or الفرامل or الكهرباء","suggestedFaults":[{"faultName":"Arabic - English","severity":"medium","description":"وصف"}]}`
+                text: `حلل صورة جزء السيارة. اذكر فقط اسم العطل وما قد يسببه (بدون تشخيص مفصل).
+أجب بـ JSON فقط:
+{"detectedPart":"اسم بالإنجليزي","detectedPartArabic":"اسم بالعربي","category":"البودي","suggestedFaults":[{"faultName":"اسم العطل بالعربي","severity":"medium","cause":"قد يسبب: مشكلة محتملة"}]}`
               },
               {
                 type: "image_url",

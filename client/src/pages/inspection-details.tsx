@@ -315,7 +315,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
 
   const [photo, setPhoto] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [aiSuggestions, setAiSuggestions] = useState<Array<{faultName: string, severity: string, description: string}>>([]);
+  const [aiSuggestions, setAiSuggestions] = useState<Array<{faultName: string, severity: string, cause?: string, description?: string}>>([]);
   const [detectedPart, setDetectedPart] = useState<string>("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -633,14 +633,16 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
                             setFormData(prev => ({
                               ...prev,
                               faultName: suggestion.faultName,
-                              description: suggestion.description,
+                              description: suggestion.cause || suggestion.description || '',
                               severity: suggestion.severity
                             }));
                           }}
                           className="w-full text-right p-2 bg-white rounded-lg border border-green-100 hover:border-green-300 transition-all text-sm"
                         >
                           <div className="font-medium text-slate-800 font-arabic">{suggestion.faultName}</div>
-                          <div className="text-xs text-slate-500 font-arabic">{suggestion.description}</div>
+                          {(suggestion.cause || suggestion.description) && (
+                            <div className="text-xs text-slate-500 font-arabic">{suggestion.cause || suggestion.description}</div>
+                          )}
                         </button>
                       ))}
                     </div>
