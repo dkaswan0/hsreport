@@ -4,7 +4,7 @@ import { insertInspectionSchema } from "@shared/schema";
 import { useCreateInspection, useVinDecoder } from "@/hooks/use-inspections";
 import { useLocation } from "wouter";
 import { z } from "zod";
-import { Loader2, ArrowLeft, Search, Camera } from "lucide-react";
+import { Loader2, ArrowLeft, Search, Camera, Car, Fuel, Gauge, Settings, MapPin, CheckCircle2 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import Tesseract from 'tesseract.js';
@@ -64,6 +64,8 @@ export default function NewInspection() {
 
   // Auto-fill form when VIN data arrives
   const [vinError, setVinError] = useState<string | null>(null);
+  const [userNotes, setUserNotes] = useState("");
+  const [vehicleSpecs, setVehicleSpecs] = useState<any>(null);
   
   useEffect(() => {
     if (vinData) {
@@ -78,13 +80,38 @@ export default function NewInspection() {
       if (vinData.model) form.setValue("model", vinData.model);
       if (vinData.year) form.setValue("year", vinData.year);
       if (vinData.color) form.setValue("color", vinData.color);
-      // Ensure notes is set so it persists to database
+      
+      // Parse and store vehicle specs for display
       // @ts-ignore
-      if (vinData.notes) form.setValue("notes", vinData.notes);
+      if (vinData.notes) {
+        try {
+          // @ts-ignore
+          const specs = typeof vinData.notes === 'string' ? JSON.parse(vinData.notes) : vinData.notes;
+          setVehicleSpecs(specs);
+          // Store JSON in notes field for database
+          // @ts-ignore
+          form.setValue("notes", vinData.notes);
+        } catch (e) {
+          // @ts-ignore
+          form.setValue("notes", vinData.notes);
+        }
+      }
     }
   }, [vinData, form]);
-
+  
+  // Combine user notes with vehicle specs for submission
   const onSubmit = (data: FormValues) => {
+    // If user added notes, append them to the stored data
+    if (userNotes.trim()) {
+      try {
+        const existingNotes = data.notes ? JSON.parse(data.notes) : {};
+        existingNotes.userNotes = userNotes;
+        data.notes = JSON.stringify(existingNotes);
+      } catch {
+        data.notes = userNotes;
+      }
+    }
+    
     mutate(data, {
       onSuccess: (newInspection) => {
         setLocation(`/inspections/${newInspection.id}`);
@@ -243,12 +270,86 @@ export default function NewInspection() {
                 />
               </div>
               
+              {/* Vehicle Specs Display - Arabic formatted */}
+              {vehicleSpecs && (
+                <div className="col-span-full">
+                  <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    بيانات المركبة من VIN
+                  </label>
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-4 space-y-3">
+                    {/* Arabic Summary */}
+                    {vehicleSpecs.arabicSummary && (
+                      <p className="text-sm text-green-800 font-arabic leading-relaxed border-b border-green-200 pb-3">
+                        {vehicleSpecs.arabicSummary}
+                      </p>
+                    )}
+                    
+                    {/* Detailed Specs Grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-right" dir="rtl">
+                      {vehicleSpecs.engine && (
+                        <div className="bg-white p-2 rounded-lg border border-green-100">
+                          <div className="text-[10px] text-slate-400 font-arabic">المحرك</div>
+                          <div className="text-xs font-bold text-slate-700 truncate">{vehicleSpecs.engine}</div>
+                        </div>
+                      )}
+                      {vehicleSpecs.transmission && (
+                        <div className="bg-white p-2 rounded-lg border border-green-100">
+                          <div className="text-[10px] text-slate-400 font-arabic">ناقل الحركة</div>
+                          <div className="text-xs font-bold text-slate-700 truncate">{vehicleSpecs.transmission}</div>
+                        </div>
+                      )}
+                      {vehicleSpecs.drivetrain && (
+                        <div className="bg-white p-2 rounded-lg border border-green-100">
+                          <div className="text-[10px] text-slate-400 font-arabic">نظام الدفع</div>
+                          <div className="text-xs font-bold text-slate-700 truncate">{vehicleSpecs.drivetrain}</div>
+                        </div>
+                      )}
+                      {vehicleSpecs.made_in && (
+                        <div className="bg-white p-2 rounded-lg border border-green-100">
+                          <div className="text-[10px] text-slate-400 font-arabic">بلد الصنع</div>
+                          <div className="text-xs font-bold text-slate-700 truncate">{vehicleSpecs.made_in}</div>
+                        </div>
+                      )}
+                      {vehicleSpecs.fuel_capacity && (
+                        <div className="bg-white p-2 rounded-lg border border-green-100">
+                          <div className="text-[10px] text-slate-400 font-arabic">سعة الوقود</div>
+                          <div className="text-xs font-bold text-slate-700 truncate">{vehicleSpecs.fuel_capacity}</div>
+                        </div>
+                      )}
+                      {vehicleSpecs.tires && (
+                        <div className="bg-white p-2 rounded-lg border border-green-100">
+                          <div className="text-[10px] text-slate-400 font-arabic">مقاس الإطارات</div>
+                          <div className="text-xs font-bold text-slate-700 truncate">{vehicleSpecs.tires}</div>
+                        </div>
+                      )}
+                      {vehicleSpecs.curb_weight && (
+                        <div className="bg-white p-2 rounded-lg border border-green-100">
+                          <div className="text-[10px] text-slate-400 font-arabic">الوزن</div>
+                          <div className="text-xs font-bold text-slate-700 truncate">{vehicleSpecs.curb_weight}</div>
+                        </div>
+                      )}
+                      {vehicleSpecs.standard_seating && (
+                        <div className="bg-white p-2 rounded-lg border border-green-100">
+                          <div className="text-[10px] text-slate-400 font-arabic">عدد المقاعد</div>
+                          <div className="text-xs font-bold text-slate-700 truncate">{vehicleSpecs.standard_seating}</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {/* Hidden field to store JSON */}
+                  <input type="hidden" {...form.register("notes")} />
+                </div>
+              )}
+              
+              {/* User Notes - Separate field */}
               <div className="col-span-full">
                 <label className="block text-sm font-medium text-slate-700 mb-2">ملاحظات إضافية</label>
                 <textarea
-                  {...form.register("notes")}
+                  value={userNotes}
+                  onChange={(e) => setUserNotes(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all min-h-[100px]"
-                  placeholder="أي ملاحظات أولية..."
+                  placeholder="أي ملاحظات أولية عن حالة المركبة..."
                 />
               </div>
             </div>
