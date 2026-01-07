@@ -395,12 +395,17 @@ Respond ONLY in valid JSON format:
     }
   });
 
-  // Helper for seeding fault library
+  // Helper for seeding fault library - uses upsert to add new faults without deleting existing
   async function seedFaultLibrary() {
     const { faultLibrary } = await import("@shared/schema");
     const { db } = await import("./db");
-    const existing = await db.select().from(faultLibrary).limit(1);
-    if (existing.length === 0) {
+    const { eq, and } = await import("drizzle-orm");
+    
+    // Get all existing faults
+    const existingFaults = await db.select().from(faultLibrary);
+    const existingSet = new Set(existingFaults.map(f => `${f.category}||${f.faultName}`));
+    
+    // Define all faults (will only insert new ones)
       const faults = [
         // ⚙️ المكينة (Engine)
         { category: "المكينة", faultName: "مكينة تسخن زيادة - Engine Overheating", severity: "high", description: "ارتفاع غير طبيعي في درجة حرارة المحرك" },
@@ -493,8 +498,16 @@ Respond ONLY in valid JSON format:
         // ملاحظات إضافية / Notes
         { category: "الدعامية الأمامية", faultName: "يوجد عليها جلاد - Stickers/Decals Present", severity: "low", description: "يوجد ملصقات أو إضافات خارجية على الدعامية" }
       ];
-      await db.insert(faultLibrary).values(faults);
-    }
+      
+      // Filter out faults that already exist
+      const newFaults = faults.filter(f => !existingSet.has(`${f.category}||${f.faultName}`));
+      
+      if (newFaults.length > 0) {
+        await db.insert(faultLibrary).values(newFaults);
+        console.log(`Seeded ${newFaults.length} new faults to library`);
+      } else {
+        console.log("Fault library already up to date");
+      }
   }
   seedFaultLibrary().catch(console.error);
 
