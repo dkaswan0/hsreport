@@ -389,16 +389,10 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
     interior: ['الداخلية'],
   };
   
-  // Get faults for the current category, or show all if no mapping exists
-  const arabicCategories = categoryToArabicFaultLibrary[category] || [];
+  // Always show ALL faults for selection (user requested this)
   const categoryFaults = useMemo(() => {
-    if (library.length === 0) return [];
-    // If no specific mapping for this category, show all faults for selection
-    if (arabicCategories.length === 0) return library;
-    const filtered = library.filter(f => arabicCategories.includes(f.category));
-    // If filtered list is empty, show all faults as fallback
-    return filtered.length > 0 ? filtered : library;
-  }, [library, arabicCategories]);
+    return library;
+  }, [library]);
 
   // Filter faults based on search query
   const filteredFaults = useMemo(() => {
@@ -457,7 +451,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm animate-in fade-in" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg z-50 animate-in zoom-in-95 duration-200">
+        <Dialog.Content className="fixed inset-2 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 bg-white rounded-2xl shadow-2xl p-4 md:p-6 w-auto md:w-full md:max-w-lg z-50 animate-in zoom-in-95 duration-200 overflow-y-auto max-h-[96vh]">
           <Dialog.Title className="text-xl font-bold mb-4 text-slate-900">إضافة ملاحظة جديدة</Dialog.Title>
           
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -477,15 +471,22 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
                   />
                 </div>
                 {searchOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-50">
-                    <div className="px-3 py-2 text-xs font-medium text-slate-500 border-b">
-                      الأعطال المتاحة ({filteredFaults.length})
+                  <div className="fixed inset-0 md:absolute md:inset-auto md:top-full md:left-0 md:right-0 md:mt-1 bg-white md:border md:border-slate-200 md:rounded-xl md:shadow-lg z-[60]">
+                    <div className="flex items-center justify-between px-3 py-2 border-b bg-slate-50 md:bg-white md:rounded-t-xl">
+                      <span className="text-sm font-medium text-slate-700">الأعطال المتاحة ({filteredFaults.length})</span>
+                      <button
+                        type="button"
+                        onClick={() => setSearchOpen(false)}
+                        className="p-1 text-slate-500 hover:text-slate-700"
+                      >
+                        <XCircle className="w-5 h-5" />
+                      </button>
                     </div>
-                    <div className="max-h-[200px] overflow-y-auto overscroll-contain">
+                    <div className="h-[calc(100vh-100px)] md:max-h-[300px] overflow-y-auto overscroll-contain">
                       {filteredFaults.length === 0 ? (
                         <div className="py-6 text-center text-sm text-slate-500">لا توجد نتائج</div>
                       ) : (
-                        filteredFaults.slice(0, 100).map(fault => (
+                        filteredFaults.map(fault => (
                           <button
                             key={fault.id}
                             type="button"
@@ -494,31 +495,22 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
                               setSearchOpen(false);
                             }}
                             className={cn(
-                              "w-full flex items-center justify-between gap-2 px-3 py-2 text-right hover:bg-slate-100 transition-colors cursor-pointer border-b border-slate-50 last:border-0",
+                              "w-full flex items-center justify-between gap-2 px-3 py-3 text-right hover:bg-slate-100 active:bg-slate-200 transition-colors cursor-pointer border-b border-slate-100",
                               formData.faultName === fault.faultName && "bg-primary/10"
                             )}
                             data-testid={`fault-item-${fault.id}`}
                           >
                             <div className="flex-1 min-w-0">
                               <div className="font-medium text-sm">{fault.faultName}</div>
-                              {fault.description && (
-                                <div className="text-xs text-slate-500 truncate">{fault.description}</div>
-                              )}
+                              <div className="text-xs text-slate-400">{fault.category}</div>
                             </div>
                             {formData.faultName === fault.faultName && (
-                              <Check className="w-4 h-4 text-primary shrink-0" />
+                              <Check className="w-5 h-5 text-primary shrink-0" />
                             )}
                           </button>
                         ))
                       )}
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setSearchOpen(false)}
-                      className="w-full py-2 text-sm text-slate-500 hover:bg-slate-50 border-t"
-                    >
-                      إغلاق
-                    </button>
                   </div>
                 )}
               </div>
