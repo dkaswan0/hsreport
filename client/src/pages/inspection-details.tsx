@@ -273,7 +273,15 @@ export default function InspectionDetails() {
           data-testid="button-add-item-mobile"
         >
           <Plus className="w-5 h-5" />
-          إضافة ملاحظة
+          زيد ملاحظة
+        </button>
+        <button 
+          onClick={() => window.location.href = `/reports/${id}`}
+          className="px-4 py-3 bg-blue-600 text-white rounded-xl flex items-center justify-center gap-2 text-sm font-bold active:scale-95 transition-transform"
+          data-testid="button-report-mobile"
+        >
+          <FileText className="w-5 h-5" />
+          التقرير
         </button>
         {inspection.status === 'draft' && (
           <button 
@@ -282,6 +290,7 @@ export default function InspectionDetails() {
             data-testid="button-complete-mobile"
           >
             <Save className="w-5 h-5" />
+            حفظ
           </button>
         )}
       </div>
