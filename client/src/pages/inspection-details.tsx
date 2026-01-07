@@ -25,7 +25,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { useToast } from "@/hooks/use-toast";
 import type { InspectionItem, CreateInspectionItemRequest, FaultLibrary } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
-import { INSPECTION_CATEGORIES, CATEGORY_GROUPS } from "@shared/categories";
+import { INSPECTION_CATEGORIES, CATEGORY_GROUPS, getCategoryLabel } from "@shared/categories";
 
 export default function InspectionDetails() {
   const [, params] = useRoute("/inspections/:id");
@@ -552,7 +552,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
                           >
                             <div className="flex-1 min-w-0">
                               <div className="font-medium text-sm">{fault.faultName}</div>
-                              <div className="text-xs text-slate-400">{fault.category}</div>
+                              <div className="text-xs text-slate-400">{getCategoryLabel(fault.category) || fault.category}</div>
                             </div>
                             {formData.faultName === fault.faultName && (
                               <Check className="w-5 h-5 text-primary shrink-0" />

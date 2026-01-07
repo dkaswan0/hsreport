@@ -310,42 +310,46 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
           </div>
         </div>
         <div className="text-left">
-          <div className="text-xs text-white/50 font-arabic">رقم التقرير</div>
+          <div className="text-xs text-white/50 font-arabic">رقم التقرير / Report No.</div>
           <div className="font-mono font-bold text-primary-foreground">HS-{inspection.id}-{new Date().getFullYear()}</div>
         </div>
       </div>
 
       <div className="p-6 grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-slate-50 rounded-2xl p-4 text-right">
-          <div className="flex items-center gap-2 justify-end text-slate-400 mb-2">
+          <div className="flex items-center gap-2 justify-end text-slate-400 mb-1">
             <span className="text-xs font-arabic">سنة الصنع</span>
             <Calendar className="w-4 h-4" />
           </div>
+          <div className="text-[10px] text-slate-400 mb-1">Model Year</div>
           <div className="text-xl font-black text-slate-900">{inspection.year}</div>
         </div>
 
         <div className="bg-slate-50 rounded-2xl p-4 text-right">
-          <div className="flex items-center gap-2 justify-end text-slate-400 mb-2">
+          <div className="flex items-center gap-2 justify-end text-slate-400 mb-1">
             <span className="text-xs font-arabic">عداد الكيلومتر</span>
             <Gauge className="w-4 h-4" />
           </div>
-          <div className="text-xl font-black text-slate-900 font-mono">{inspection.odometer?.toLocaleString() || '0'} <span className="text-sm text-slate-400">كم</span></div>
+          <div className="text-[10px] text-slate-400 mb-1">Odometer</div>
+          <div className="text-xl font-black text-slate-900 font-mono">{inspection.odometer?.toLocaleString() || '0'} <span className="text-sm text-slate-400">km</span></div>
         </div>
 
         <div className="bg-slate-50 rounded-2xl p-4 text-right">
-          <div className="flex items-center gap-2 justify-end text-slate-400 mb-2">
+          <div className="flex items-center gap-2 justify-end text-slate-400 mb-1">
             <span className="text-xs font-arabic">اللون</span>
             <div className="w-4 h-4 rounded-full bg-gradient-to-br from-blue-500 to-blue-700" />
           </div>
+          <div className="text-[10px] text-slate-400 mb-1">Color</div>
           <div className="text-sm font-bold text-slate-900 font-arabic">{primaryColor}</div>
         </div>
 
         <div className="bg-slate-50 rounded-2xl p-4 text-right">
-          <div className="flex items-center gap-2 justify-end text-slate-400 mb-2">
+          <div className="flex items-center gap-2 justify-end text-slate-400 mb-1">
             <span className="text-xs font-arabic">نوع الوقود</span>
             <Fuel className="w-4 h-4" />
           </div>
-          <div className="text-sm font-bold text-slate-900">بنزين</div>
+          <div className="text-[10px] text-slate-400 mb-1">Fuel Type</div>
+          <div className="text-sm font-bold text-slate-900">بنزين / Gasoline</div>
         </div>
       </div>
 
@@ -355,7 +359,7 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
           <div className="flex items-center gap-3">
             <ShieldCheck className="w-8 h-8 text-primary" />
             <div className="text-right">
-              <div className="text-xs text-slate-500 font-arabic">رقم الشاصي (VIN)</div>
+              <div className="text-xs text-slate-500 font-arabic">رقم الشاصي / VIN Number</div>
               <div className="font-mono font-black text-lg text-slate-900 tracking-wider">{inspection.vin}</div>
             </div>
           </div>
