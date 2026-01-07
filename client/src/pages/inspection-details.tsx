@@ -26,7 +26,6 @@ import { useToast } from "@/hooks/use-toast";
 import type { InspectionItem, CreateInspectionItemRequest, FaultLibrary } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
 import { INSPECTION_CATEGORIES, CATEGORY_GROUPS } from "@shared/categories";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export default function InspectionDetails() {
   const [, params] = useRoute("/inspections/:id");
@@ -464,47 +463,38 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">اختيار العطل</label>
-              <Popover open={searchOpen} onOpenChange={setSearchOpen}>
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    data-testid="button-fault-selector"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all bg-white text-right flex items-center justify-between gap-2"
-                  >
-                    <span className={cn("flex-1 text-right", !formData.faultName && "text-slate-400")}>
-                      {formData.faultName || "ابحث واختر العطل..."}
-                    </span>
-                    <Search className="w-4 h-4 text-slate-400" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[350px] p-0" align="start" sideOffset={4}>
-                  <div className="flex flex-col">
-                    <div className="flex items-center border-b px-3">
-                      <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      <input
-                        type="text"
-                        placeholder="اكتب للبحث عن العطل..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="flex h-11 w-full bg-transparent py-3 text-sm outline-none placeholder:text-slate-400"
-                        data-testid="input-fault-search"
-                        autoFocus
-                      />
-                    </div>
-                    <div className="px-2 py-1.5 text-xs font-medium text-slate-500">
+              <div className="relative">
+                <div className="flex items-center border border-slate-200 rounded-xl px-3 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10">
+                  <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  <input
+                    type="text"
+                    placeholder="اكتب للبحث عن العطل..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => setSearchOpen(true)}
+                    className="flex h-11 w-full bg-transparent py-3 text-sm outline-none placeholder:text-slate-400 text-right"
+                    data-testid="input-fault-search"
+                  />
+                </div>
+                {searchOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-50">
+                    <div className="px-3 py-2 text-xs font-medium text-slate-500 border-b">
                       الأعطال المتاحة ({filteredFaults.length})
                     </div>
-                    <div className="max-h-[250px] overflow-y-auto">
+                    <div className="max-h-[200px] overflow-y-auto overscroll-contain">
                       {filteredFaults.length === 0 ? (
                         <div className="py-6 text-center text-sm text-slate-500">لا توجد نتائج</div>
                       ) : (
-                        filteredFaults.slice(0, 50).map(fault => (
+                        filteredFaults.slice(0, 100).map(fault => (
                           <button
                             key={fault.id}
                             type="button"
-                            onClick={() => handleFaultSelect(fault.faultName)}
+                            onClick={() => {
+                              handleFaultSelect(fault.faultName);
+                              setSearchOpen(false);
+                            }}
                             className={cn(
-                              "w-full flex items-center justify-between gap-2 px-3 py-2 text-right hover:bg-slate-100 transition-colors cursor-pointer",
+                              "w-full flex items-center justify-between gap-2 px-3 py-2 text-right hover:bg-slate-100 transition-colors cursor-pointer border-b border-slate-50 last:border-0",
                               formData.faultName === fault.faultName && "bg-primary/10"
                             )}
                             data-testid={`fault-item-${fault.id}`}
@@ -522,9 +512,16 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
                         ))
                       )}
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => setSearchOpen(false)}
+                      className="w-full py-2 text-sm text-slate-500 hover:bg-slate-50 border-t"
+                    >
+                      إغلاق
+                    </button>
                   </div>
-                </PopoverContent>
-              </Popover>
+                )}
+              </div>
               {formData.faultName && (
                 <div className="mt-2 p-2 bg-primary/5 rounded-lg border border-primary/20 text-sm text-primary flex items-center gap-2">
                   <Check className="w-4 h-4" />
