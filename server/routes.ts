@@ -395,119 +395,599 @@ Respond ONLY in valid JSON format:
     }
   });
 
-  // Helper for seeding fault library - uses upsert to add new faults without deleting existing
+  // Seed fault library with complete organized structure
   async function seedFaultLibrary() {
     const { faultLibrary } = await import("@shared/schema");
     const { db } = await import("./db");
-    const { eq, and } = await import("drizzle-orm");
     
-    // Get all existing faults
     const existingFaults = await db.select().from(faultLibrary);
-    const existingSet = new Set(existingFaults.map(f => `${f.category}||${f.faultName}`));
+    if (existingFaults.length > 0) {
+      console.log(`Fault library has ${existingFaults.length} faults`);
+      return;
+    }
     
-    // Define all faults (will only insert new ones)
-      const faults = [
-        // ⚙️ المكينة (Engine)
-        { category: "المكينة", faultName: "مكينة تسخن زيادة - Engine Overheating", severity: "high", description: "ارتفاع غير طبيعي في درجة حرارة المحرك" },
-        { category: "المكينة", faultName: "مكينة تسرب زيت - Oil Leak", severity: "high", description: "وجود تهريب زيت من الجوانات أو الكرتير" },
-        { category: "المكينة", faultName: "مكينة تسرب ماي راديتر - Coolant Leak", severity: "high", description: "تهريب سائل التبريد من الراديتر أو الخراطيم" },
-        { category: "المكينة", faultName: "مكينة صوت طرق - Knocking Sound", severity: "high", description: "أصوات معدنية داخلية" },
-        { category: "المكينة", faultName: "مكينة دخان - Engine Smoke (White/Blue/Black)", severity: "high", description: "انبعاث أدخنة ملونة من العادم" },
-        { category: "المكينة", faultName: "مكينة تفتفة - Misfiring", severity: "medium", description: "عدم انتظام احتراق المحرك" },
-        { category: "المكينة", faultName: "مكينة كراسي تالفة - Worn Engine Mounts", severity: "medium", description: "تلف قواعد تثبيت المحرك" },
-        { category: "المكينة", faultName: "مكينة اهتزاز - Engine Vibration", severity: "medium", description: "رجة غير طبيعية أثناء التشغيل" },
+    const faults = [
+      // ═══════════════════════════════════════════════════════════════
+      // الدعامية الأمامية - Front Bumper
+      // ═══════════════════════════════════════════════════════════════
+      // حالة الدعامية
+      { category: "الدعامية الأمامية", faultName: "مبدلة - Replaced", severity: "medium", description: "الدعامية تم استبدالها" },
+      { category: "الدعامية الأمامية", faultName: "مصبوغة - Repainted", severity: "low", description: "الدعامية تم إعادة صبغها" },
+      { category: "الدعامية الأمامية", faultName: "محولة - Modified", severity: "medium", description: "الدعامية تم تعديلها" },
+      { category: "الدعامية الأمامية", faultName: "تزويد - Added Parts", severity: "low", description: "تم إضافة قطع على الدعامية" },
+      // أضرار وإصلاحات
+      { category: "الدعامية الأمامية", faultName: "كسر - Broken", severity: "high", description: "الدعامية مكسورة" },
+      { category: "الدعامية الأمامية", faultName: "خدوش - Scratches", severity: "low", description: "خدوش على الدعامية" },
+      { category: "الدعامية الأمامية", faultName: "ضربة - Impact Damage", severity: "high", description: "ضربة في الدعامية" },
+      { category: "الدعامية الأمامية", faultName: "تصليح و تلحيم - Repaired & Welded", severity: "medium", description: "الدعامية تم تصليحها ولحامها" },
+      { category: "الدعامية الأمامية", faultName: "الصبغ حالة سيئة - Poor Paint", severity: "medium", description: "الطلاء حالته سيئة" },
+      // تركيب وثبات
+      { category: "الدعامية الأمامية", faultName: "نقص كليبات - Missing Clips", severity: "low", description: "كليبات التثبيت ناقصة" },
+      { category: "الدعامية الأمامية", faultName: "نقص براغي - Missing Screws", severity: "low", description: "براغي التثبيت ناقصة" },
+      { category: "الدعامية الأمامية", faultName: "تثبيت سيء - Poor Installation", severity: "medium", description: "التركيب غير مضبوط" },
+      { category: "الدعامية الأمامية", faultName: "اختلاف في الميزانية - Misalignment", severity: "medium", description: "الدعامية غير متوازنة" },
+      // نيكل كروم
+      { category: "الدعامية الأمامية", faultName: "نيكل كروم حالة سيئة - Chrome Poor Condition", severity: "low", description: "الكروم حالته سيئة" },
+      { category: "الدعامية الأمامية", faultName: "نيكل كروم كسر - Chrome Broken", severity: "medium", description: "الكروم مكسور" },
+      { category: "الدعامية الأمامية", faultName: "نيكل كروم لا يوجد - Chrome Missing", severity: "medium", description: "الكروم غير موجود" },
+      // ملاحظات إضافية
+      { category: "الدعامية الأمامية", faultName: "يوجد عليها جلاد - Stickers Present", severity: "low", description: "يوجد ملصقات على الدعامية" },
 
-        // 🚗 البودي (Body & Paint)
-        { category: "البودي", faultName: "خدش سطحي - Surface Scratch", severity: "low", description: "خدش بسيط في الدهان" },
-        { category: "البودي", faultName: "خدش عميق - Deep Scratch", severity: "medium", description: "خدش يصل لطبقة الأساس" },
-        { category: "البودي", faultName: "طعجة خفيفة - Minor Dent", severity: "low", description: "انبعاج بسيط" },
-        { category: "البودي", faultName: "طعجة شديدة - Major Dent", severity: "high", description: "انبعاج كبير يتطلب سمكرة" },
-        { category: "البودي", faultName: "صبغ غير أصلي - Non-Original Paint", severity: "medium", description: "إعادة صبغ القطعة" },
-        { category: "البودي", faultName: "صدأ - Rust", severity: "high", description: "تآكل معدني" },
+      // ═══════════════════════════════════════════════════════════════
+      // الدعامية الخلفية - Rear Bumper (same structure as front)
+      // ═══════════════════════════════════════════════════════════════
+      { category: "الدعامية الخلفية", faultName: "مبدلة - Replaced", severity: "medium", description: "الدعامية تم استبدالها" },
+      { category: "الدعامية الخلفية", faultName: "مصبوغة - Repainted", severity: "low", description: "الدعامية تم إعادة صبغها" },
+      { category: "الدعامية الخلفية", faultName: "محولة - Modified", severity: "medium", description: "الدعامية تم تعديلها" },
+      { category: "الدعامية الخلفية", faultName: "تزويد - Added Parts", severity: "low", description: "تم إضافة قطع على الدعامية" },
+      { category: "الدعامية الخلفية", faultName: "كسر - Broken", severity: "high", description: "الدعامية مكسورة" },
+      { category: "الدعامية الخلفية", faultName: "خدوش - Scratches", severity: "low", description: "خدوش على الدعامية" },
+      { category: "الدعامية الخلفية", faultName: "ضربة - Impact Damage", severity: "high", description: "ضربة في الدعامية" },
+      { category: "الدعامية الخلفية", faultName: "تصليح و تلحيم - Repaired & Welded", severity: "medium", description: "الدعامية تم تصليحها ولحامها" },
+      { category: "الدعامية الخلفية", faultName: "الصبغ حالة سيئة - Poor Paint", severity: "medium", description: "الطلاء حالته سيئة" },
+      { category: "الدعامية الخلفية", faultName: "نقص كليبات - Missing Clips", severity: "low", description: "كليبات التثبيت ناقصة" },
+      { category: "الدعامية الخلفية", faultName: "نقص براغي - Missing Screws", severity: "low", description: "براغي التثبيت ناقصة" },
+      { category: "الدعامية الخلفية", faultName: "تثبيت سيء - Poor Installation", severity: "medium", description: "التركيب غير مضبوط" },
+      { category: "الدعامية الخلفية", faultName: "اختلاف في الميزانية - Misalignment", severity: "medium", description: "الدعامية غير متوازنة" },
+      { category: "الدعامية الخلفية", faultName: "نيكل كروم حالة سيئة - Chrome Poor Condition", severity: "low", description: "الكروم حالته سيئة" },
+      { category: "الدعامية الخلفية", faultName: "نيكل كروم كسر - Chrome Broken", severity: "medium", description: "الكروم مكسور" },
+      { category: "الدعامية الخلفية", faultName: "نيكل كروم لا يوجد - Chrome Missing", severity: "medium", description: "الكروم غير موجود" },
+      { category: "الدعامية الخلفية", faultName: "يوجد عليها جلاد - Stickers Present", severity: "low", description: "يوجد ملصقات على الدعامية" },
 
-        // 🛞 الكوتش (Tires)
-        { category: "الكوتش", faultName: "كوتش بالي - Worn Tire", severity: "high", description: "تآكل سطح الإطار" },
-        { category: "الكوتش", faultName: "كوتش منفوخ - Tire Bulge", severity: "high", description: "انتفاخ جانبي" },
-        { category: "الكوتش", faultName: "كوتش متشقق - Cracked Tire", severity: "high", description: "تشققات جافة" },
+      // ═══════════════════════════════════════════════════════════════
+      // جسر الدعامية الأمامية - Front Bumper Frame
+      // ═══════════════════════════════════════════════════════════════
+      { category: "جسر الدعامية الأمامية", faultName: "مبدل - Replaced", severity: "high", description: "الجسر تم استبداله" },
+      { category: "جسر الدعامية الأمامية", faultName: "كسر - Broken", severity: "high", description: "الجسر مكسور" },
+      { category: "جسر الدعامية الأمامية", faultName: "ضربة - Impact Damage", severity: "high", description: "ضربة في الجسر" },
+      { category: "جسر الدعامية الأمامية", faultName: "استعدال و تصليح - Straightened & Repaired", severity: "medium", description: "الجسر تم استعداله وتصليحه" },
+      { category: "جسر الدعامية الأمامية", faultName: "قطع و لحام - Cut & Welded", severity: "high", description: "الجسر تم قطعه ولحامه" },
+      { category: "جسر الدعامية الأمامية", faultName: "صدا - Rust", severity: "medium", description: "صدأ على الجسر" },
+      { category: "جسر الدعامية الأمامية", faultName: "صدا و تاكل - Rust & Corrosion", severity: "high", description: "صدأ وتآكل شديد" },
+      { category: "جسر الدعامية الأمامية", faultName: "فك في البراغي - Loose Screws", severity: "low", description: "البراغي غير مثبتة جيداً" },
+      { category: "جسر الدعامية الأمامية", faultName: "نقص براغي - Missing Screws", severity: "low", description: "براغي ناقصة" },
+      { category: "جسر الدعامية الأمامية", faultName: "سحب و تسخين - Pulled & Heated", severity: "medium", description: "تم سحب وتسخين الجسر" },
+      { category: "جسر الدعامية الأمامية", faultName: "تثبيت سيئ - Poor Installation", severity: "medium", description: "التثبيت غير مضبوط" },
 
-        // 🛑 الفرامل (Brakes)
-        { category: "الفرامل", faultName: "صوت صرير - Brake Squeal", severity: "medium", description: "تلف السفايف" },
-        { category: "الفرامل", faultName: "اهتزاز عند الكبح - Brake Judder", severity: "medium", description: "اعوجاج الهوبات" },
+      // ═══════════════════════════════════════════════════════════════
+      // جسر الدعامية الخلفية - Rear Bumper Frame (same as front)
+      // ═══════════════════════════════════════════════════════════════
+      { category: "جسر الدعامية الخلفية", faultName: "مبدل - Replaced", severity: "high", description: "الجسر تم استبداله" },
+      { category: "جسر الدعامية الخلفية", faultName: "كسر - Broken", severity: "high", description: "الجسر مكسور" },
+      { category: "جسر الدعامية الخلفية", faultName: "ضربة - Impact Damage", severity: "high", description: "ضربة في الجسر" },
+      { category: "جسر الدعامية الخلفية", faultName: "استعدال و تصليح - Straightened & Repaired", severity: "medium", description: "الجسر تم استعداله وتصليحه" },
+      { category: "جسر الدعامية الخلفية", faultName: "قطع و لحام - Cut & Welded", severity: "high", description: "الجسر تم قطعه ولحامه" },
+      { category: "جسر الدعامية الخلفية", faultName: "صدا - Rust", severity: "medium", description: "صدأ على الجسر" },
+      { category: "جسر الدعامية الخلفية", faultName: "صدا و تاكل - Rust & Corrosion", severity: "high", description: "صدأ وتآكل شديد" },
+      { category: "جسر الدعامية الخلفية", faultName: "فك في البراغي - Loose Screws", severity: "low", description: "البراغي غير مثبتة جيداً" },
+      { category: "جسر الدعامية الخلفية", faultName: "نقص براغي - Missing Screws", severity: "low", description: "براغي ناقصة" },
+      { category: "جسر الدعامية الخلفية", faultName: "سحب و تسخين - Pulled & Heated", severity: "medium", description: "تم سحب وتسخين الجسر" },
+      { category: "جسر الدعامية الخلفية", faultName: "تثبيت سيئ - Poor Installation", severity: "medium", description: "التثبيت غير مضبوط" },
 
-        // ⚡ الكهرباء (Electrical & Electronics)
-        { category: "الكهرباء", faultName: "أعطال البطارية - Battery Failure", severity: "high", description: "ضعف الجهد أو تمليح الأقطاب" },
-        { category: "الكهرباء", faultName: "أعطال الشحن / الدينمو - Alternator Fault", severity: "high", description: "فشل الدينمو في شحن البطارية" },
-        { category: "الكهرباء", faultName: "أعطال الحساسات - Sensor Faults", severity: "medium", description: "خلل في قراءات الحساسات" },
-        { category: "الكهرباء", faultName: "أعطال كمبيوتر السيارة - ECU Faults", severity: "high", description: "خلل في وحدة التحكم المركزية" },
+      // ═══════════════════════════════════════════════════════════════
+      // البونيت - Hood
+      // ═══════════════════════════════════════════════════════════════
+      // حالة البونيت
+      { category: "البونيت", faultName: "مبدل - Replaced", severity: "medium", description: "البونيت تم استبداله" },
+      { category: "البونيت", faultName: "مصبوغ لكر تجميلي - Clear Coat Repaint", severity: "low", description: "صبغ لكر تجميلي" },
+      { category: "البونيت", faultName: "مرشوش صبغ - Spray Painted", severity: "low", description: "مرشوش صبغ" },
+      { category: "البونيت", faultName: "مصبوغ معجون - Painted with Filler", severity: "medium", description: "مصبوغ مع معجون" },
+      { category: "البونيت", faultName: "مصبوغ معجون بعض الأجزاء - Partial Filler", severity: "medium", description: "بعض الأجزاء مصبوغة بمعجون" },
+      { category: "البونيت", faultName: "ملمع بولش - Polished", severity: "low", description: "تم تلميع البونيت" },
+      { category: "البونيت", faultName: "ضربة - Impact Damage", severity: "high", description: "ضربة في البونيت" },
+      { category: "البونيت", faultName: "ضربة و استعدال - Impact & Straightened", severity: "medium", description: "ضربة تم استعدالها" },
+      { category: "البونيت", faultName: "الصبغ حالة سيئة - Poor Paint", severity: "medium", description: "الصبغ حالته سيئة" },
+      // تركيب وثبات
+      { category: "البونيت", faultName: "فك في البراغي - Loose Screws", severity: "low", description: "براغي غير مثبتة" },
+      { category: "البونيت", faultName: "نقص براغي - Missing Screws", severity: "low", description: "براغي ناقصة" },
+      { category: "البونيت", faultName: "كفر البونيت حالة سيئة - Cover Poor Condition", severity: "low", description: "غطاء البونيت حالته سيئة" },
+      { category: "البونيت", faultName: "كفر البونيت لا يوجد - Cover Missing", severity: "low", description: "غطاء البونيت غير موجود" },
+      { category: "البونيت", faultName: "كفر البونيت نقص كليبات - Cover Missing Clips", severity: "low", description: "كليبات الغطاء ناقصة" },
+      { category: "البونيت", faultName: "ربلة البونيت حالة سيئة - Seal Poor Condition", severity: "low", description: "ربلة البونيت حالتها سيئة" },
+      { category: "البونيت", faultName: "ربلة البونيت قطع - Seal Cut", severity: "low", description: "ربلة البونيت مقطوعة" },
+      { category: "البونيت", faultName: "ربلة البونيت لا توجد - Seal Missing", severity: "low", description: "ربلة البونيت غير موجودة" },
+      { category: "البونيت", faultName: "لوك البونيت حالة سيئة - Lock Poor Condition", severity: "medium", description: "قفل البونيت حالته سيئة" },
+      { category: "البونيت", faultName: "لوك البونيت كسر - Lock Broken", severity: "medium", description: "قفل البونيت مكسور" },
+      { category: "البونيت", faultName: "لوك البونيت تثبيت سيئ - Lock Poor Installation", severity: "medium", description: "قفل البونيت تثبيته سيئ" },
+      // أضرار إضافية
+      { category: "البونيت", faultName: "جانبين البونيت حالة سيئة - Sides Poor Condition", severity: "medium", description: "جانبي البونيت حالتهم سيئة" },
+      { category: "البونيت", faultName: "يوجد جلاد على البونيت - Stickers Present", severity: "low", description: "ملصقات على البونيت" },
+      { category: "البونيت", faultName: "البونيت معدل - Modified", severity: "medium", description: "البونيت تم تعديله" },
+      { category: "البونيت", faultName: "خلل في فتح و قفل البونيت - Open/Close Malfunction", severity: "medium", description: "مشكلة في فتح وقفل البونيت" },
 
-        // 🛣️ التعليق والتوجيه (Suspension & Steering)
-        { category: "التعليق والتوجيه", faultName: "اهتزاز أثناء القيادة - Steering Vibration", severity: "medium", description: "رجة في المقود" },
-        { category: "التعليق والتوجيه", faultName: "صعوبة التحكم أو التوجيه - Difficult Steering", severity: "high", description: "ثقل في المقود" },
-        { category: "التعليق والتوجيه", faultName: "ممتص الصدمات تالف - Worn Shock Absorber", severity: "medium", description: "تهريب زيت من المساعد" },
+      // ═══════════════════════════════════════════════════════════════
+      // صدر السيارة الأمامي - Front Frame
+      // ═══════════════════════════════════════════════════════════════
+      { category: "صدر السيارة الأمامي", faultName: "ضربة في صدر السيارة - Frame Impact", severity: "high", description: "ضربة في صدر السيارة" },
+      { category: "صدر السيارة الأمامي", faultName: "تصليح في صدر السيارة - Frame Repaired", severity: "medium", description: "تم تصليح الصدر" },
+      { category: "صدر السيارة الأمامي", faultName: "تصليح و تلحيم في صدر السيارة - Welded Repair", severity: "high", description: "تم تلحيم الصدر" },
+      { category: "صدر السيارة الأمامي", faultName: "صدر السيارة مبدل - Frame Replaced", severity: "high", description: "الصدر تم استبداله" },
+      { category: "صدر السيارة الأمامي", faultName: "صدر السيارة مصبوغ - Frame Repainted", severity: "medium", description: "الصدر تم صبغه" },
+      { category: "صدر السيارة الأمامي", faultName: "صدا - Rust", severity: "medium", description: "صدأ على الصدر" },
+      { category: "صدر السيارة الأمامي", faultName: "صدا و تاكل - Rust & Corrosion", severity: "high", description: "صدأ وتآكل شديد" },
 
-        // ❄️ التبريد والتكييف (Cooling & AC)
-        { category: "التبريد والتكييف", faultName: "مكيف لا يبرد - AC Not Cooling", severity: "medium", description: "عطل في الكومبريسور" },
-        { category: "التبريد والتكييف", faultName: "تسريب ماء التبريد - Coolant Leak", severity: "high", description: "تهريب سائل التبريد" },
+      // ═══════════════════════════════════════════════════════════════
+      // صدر السيارة الخلفي - Rear Frame
+      // ═══════════════════════════════════════════════════════════════
+      { category: "صدر السيارة الخلفي", faultName: "ضربة في صدر السيارة - Frame Impact", severity: "high", description: "ضربة في صدر السيارة" },
+      { category: "صدر السيارة الخلفي", faultName: "تصليح في صدر السيارة - Frame Repaired", severity: "medium", description: "تم تصليح الصدر" },
+      { category: "صدر السيارة الخلفي", faultName: "تصليح و تلحيم في صدر السيارة - Welded Repair", severity: "high", description: "تم تلحيم الصدر" },
+      { category: "صدر السيارة الخلفي", faultName: "صدر السيارة مبدل - Frame Replaced", severity: "high", description: "الصدر تم استبداله" },
+      { category: "صدر السيارة الخلفي", faultName: "صدر السيارة مصبوغ - Frame Repainted", severity: "medium", description: "الصدر تم صبغه" },
+      { category: "صدر السيارة الخلفي", faultName: "صدا - Rust", severity: "medium", description: "صدأ على الصدر" },
+      { category: "صدر السيارة الخلفي", faultName: "صدا و تاكل - Rust & Corrosion", severity: "high", description: "صدأ وتآكل شديد" },
 
-        // 💨 العادم (Exhaust System)
-        { category: "العادم", faultName: "صوت عالي / فرقعة - Loud Exhaust", severity: "medium", description: "ثقب في الشكمان" },
-        { category: "العادم", faultName: "مشاكل دبة الرصاص - Catalytic Converter Issues", severity: "medium", description: "انسداد دبة البيئة" },
+      // ═══════════════════════════════════════════════════════════════
+      // المدقار الأمامي يمين - Front Right Fender
+      // ═══════════════════════════════════════════════════════════════
+      { category: "المدقار الأمامي يمين", faultName: "المدقار مبدل - Replaced", severity: "medium", description: "المدقار تم استبداله" },
+      { category: "المدقار الأمامي يمين", faultName: "مصبوغ لكر تجميلي - Clear Coat Repaint", severity: "low", description: "صبغ لكر تجميلي" },
+      { category: "المدقار الأمامي يمين", faultName: "مصبوغ معجون - Painted with Filler", severity: "medium", description: "مصبوغ مع معجون" },
+      { category: "المدقار الأمامي يمين", faultName: "مصبوغ معجون بعض الأجزاء - Partial Filler", severity: "medium", description: "بعض الأجزاء مصبوغة بمعجون" },
+      { category: "المدقار الأمامي يمين", faultName: "ملمع بولش - Polished", severity: "low", description: "تم تلميعه" },
+      { category: "المدقار الأمامي يمين", faultName: "صبغ حالة سيئة - Poor Paint", severity: "medium", description: "الصبغ حالته سيئة" },
+      { category: "المدقار الأمامي يمين", faultName: "يوجد جلاد - Stickers Present", severity: "low", description: "ملصقات على المدقار" },
+      { category: "المدقار الأمامي يمين", faultName: "تصليح و تلحيم من الداخل - Internal Weld Repair", severity: "medium", description: "تصليح وتلحيم من الداخل" },
+      { category: "المدقار الأمامي يمين", faultName: "تصليح من الداخل - Internal Repair", severity: "medium", description: "تصليح من الداخل" },
+      { category: "المدقار الأمامي يمين", faultName: "صدا - Rust", severity: "medium", description: "صدأ" },
+      { category: "المدقار الأمامي يمين", faultName: "صدا و تاكل - Rust & Corrosion", severity: "high", description: "صدأ وتآكل" },
+      { category: "المدقار الأمامي يمين", faultName: "فك في البراغي - Loose Screws", severity: "low", description: "براغي غير مثبتة" },
+      { category: "المدقار الأمامي يمين", faultName: "نقص براغي - Missing Screws", severity: "low", description: "براغي ناقصة" },
+      { category: "المدقار الأمامي يمين", faultName: "خدوش - Scratches", severity: "low", description: "خدوش" },
+      { category: "المدقار الأمامي يمين", faultName: "نقور - Chips", severity: "low", description: "نقور" },
+      { category: "المدقار الأمامي يمين", faultName: "ضربة - Impact Damage", severity: "high", description: "ضربة" },
+      { category: "المدقار الأمامي يمين", faultName: "سحب على البارد - Cold Pull", severity: "medium", description: "سحب على البارد" },
+      { category: "المدقار الأمامي يمين", faultName: "شحفات - Scratches/Scuffs", severity: "low", description: "شحفات" },
+      { category: "المدقار الأمامي يمين", faultName: "اختلاف في الميزانية - Misalignment", severity: "medium", description: "اختلاف في الميزانية" },
 
-        // 🛡️ السلامة (Safety)
-        { category: "السلامة", faultName: "أعطال أحزمة الأمان - Seatbelt Faults", severity: "high", description: "عدم قفل الحزام" },
-        { category: "السلامة", faultName: "أعطال الوسائد الهوائية - Airbags Faults", severity: "high", description: "خلل في نظام الأرباقات" },
+      // ═══════════════════════════════════════════════════════════════
+      // المدقار الأمامي يسار - Front Left Fender
+      // ═══════════════════════════════════════════════════════════════
+      { category: "المدقار الأمامي يسار", faultName: "المدقار مبدل - Replaced", severity: "medium", description: "المدقار تم استبداله" },
+      { category: "المدقار الأمامي يسار", faultName: "مصبوغ لكر تجميلي - Clear Coat Repaint", severity: "low", description: "صبغ لكر تجميلي" },
+      { category: "المدقار الأمامي يسار", faultName: "مصبوغ معجون - Painted with Filler", severity: "medium", description: "مصبوغ مع معجون" },
+      { category: "المدقار الأمامي يسار", faultName: "مصبوغ معجون بعض الأجزاء - Partial Filler", severity: "medium", description: "بعض الأجزاء مصبوغة بمعجون" },
+      { category: "المدقار الأمامي يسار", faultName: "ملمع بولش - Polished", severity: "low", description: "تم تلميعه" },
+      { category: "المدقار الأمامي يسار", faultName: "صبغ حالة سيئة - Poor Paint", severity: "medium", description: "الصبغ حالته سيئة" },
+      { category: "المدقار الأمامي يسار", faultName: "يوجد جلاد - Stickers Present", severity: "low", description: "ملصقات على المدقار" },
+      { category: "المدقار الأمامي يسار", faultName: "تصليح و تلحيم من الداخل - Internal Weld Repair", severity: "medium", description: "تصليح وتلحيم من الداخل" },
+      { category: "المدقار الأمامي يسار", faultName: "تصليح من الداخل - Internal Repair", severity: "medium", description: "تصليح من الداخل" },
+      { category: "المدقار الأمامي يسار", faultName: "صدا - Rust", severity: "medium", description: "صدأ" },
+      { category: "المدقار الأمامي يسار", faultName: "صدا و تاكل - Rust & Corrosion", severity: "high", description: "صدأ وتآكل" },
+      { category: "المدقار الأمامي يسار", faultName: "فك في البراغي - Loose Screws", severity: "low", description: "براغي غير مثبتة" },
+      { category: "المدقار الأمامي يسار", faultName: "نقص براغي - Missing Screws", severity: "low", description: "براغي ناقصة" },
+      { category: "المدقار الأمامي يسار", faultName: "خدوش - Scratches", severity: "low", description: "خدوش" },
+      { category: "المدقار الأمامي يسار", faultName: "نقور - Chips", severity: "low", description: "نقور" },
+      { category: "المدقار الأمامي يسار", faultName: "ضربة - Impact Damage", severity: "high", description: "ضربة" },
+      { category: "المدقار الأمامي يسار", faultName: "سحب على البارد - Cold Pull", severity: "medium", description: "سحب على البارد" },
+      { category: "المدقار الأمامي يسار", faultName: "شحفات - Scratches/Scuffs", severity: "low", description: "شحفات" },
+      { category: "المدقار الأمامي يسار", faultName: "اختلاف في الميزانية - Misalignment", severity: "medium", description: "اختلاف في الميزانية" },
 
-        // 🔘 الجنوط (Wheels)
-        { category: "الجنوط", faultName: "جنط مضروب - Bent Rim", severity: "high", description: "انبعاج في الحافة" },
-        { category: "الجنوط", faultName: "جنط ملوي - Buckled Wheel", severity: "high", description: "اعوجاج في دوران الجنط" },
+      // ═══════════════════════════════════════════════════════════════
+      // المدقار الخلفي يمين - Rear Right Fender
+      // ═══════════════════════════════════════════════════════════════
+      { category: "المدقار الخلفي يمين", faultName: "المدقار مبدل - Replaced", severity: "medium", description: "المدقار تم استبداله" },
+      { category: "المدقار الخلفي يمين", faultName: "مصبوغ لكر تجميلي - Clear Coat Repaint", severity: "low", description: "صبغ لكر تجميلي" },
+      { category: "المدقار الخلفي يمين", faultName: "مصبوغ معجون - Painted with Filler", severity: "medium", description: "مصبوغ مع معجون" },
+      { category: "المدقار الخلفي يمين", faultName: "مصبوغ معجون بعض الأجزاء - Partial Filler", severity: "medium", description: "بعض الأجزاء مصبوغة بمعجون" },
+      { category: "المدقار الخلفي يمين", faultName: "ملمع بولش - Polished", severity: "low", description: "تم تلميعه" },
+      { category: "المدقار الخلفي يمين", faultName: "صبغ حالة سيئة - Poor Paint", severity: "medium", description: "الصبغ حالته سيئة" },
+      { category: "المدقار الخلفي يمين", faultName: "يوجد جلاد - Stickers Present", severity: "low", description: "ملصقات على المدقار" },
+      { category: "المدقار الخلفي يمين", faultName: "تصليح و تلحيم من الداخل - Internal Weld Repair", severity: "medium", description: "تصليح وتلحيم من الداخل" },
+      { category: "المدقار الخلفي يمين", faultName: "تصليح من الداخل - Internal Repair", severity: "medium", description: "تصليح من الداخل" },
+      { category: "المدقار الخلفي يمين", faultName: "صدا - Rust", severity: "medium", description: "صدأ" },
+      { category: "المدقار الخلفي يمين", faultName: "صدا و تاكل - Rust & Corrosion", severity: "high", description: "صدأ وتآكل" },
+      { category: "المدقار الخلفي يمين", faultName: "فك في البراغي - Loose Screws", severity: "low", description: "براغي غير مثبتة" },
+      { category: "المدقار الخلفي يمين", faultName: "نقص براغي - Missing Screws", severity: "low", description: "براغي ناقصة" },
+      { category: "المدقار الخلفي يمين", faultName: "خدوش - Scratches", severity: "low", description: "خدوش" },
+      { category: "المدقار الخلفي يمين", faultName: "نقور - Chips", severity: "low", description: "نقور" },
+      { category: "المدقار الخلفي يمين", faultName: "ضربة - Impact Damage", severity: "high", description: "ضربة" },
+      { category: "المدقار الخلفي يمين", faultName: "سحب على البارد - Cold Pull", severity: "medium", description: "سحب على البارد" },
+      { category: "المدقار الخلفي يمين", faultName: "شحفات - Scratches/Scuffs", severity: "low", description: "شحفات" },
+      { category: "المدقار الخلفي يمين", faultName: "اختلاف في الميزانية - Misalignment", severity: "medium", description: "اختلاف في الميزانية" },
 
-        // ⚙️ ناقل الحركة (Transmission)
-        { category: "ناقل الحركة", faultName: "صعوبة تغيير السرعات - Hard Shifting", severity: "high", description: "ثقل في التبديلات" },
-        { category: "ناقل الحركة", faultName: "انزلاق القير - Transmission Slipping", severity: "high", description: "ارتفاع دوران المحرك دون سرعة" },
+      // ═══════════════════════════════════════════════════════════════
+      // المدقار الخلفي يسار - Rear Left Fender
+      // ═══════════════════════════════════════════════════════════════
+      { category: "المدقار الخلفي يسار", faultName: "المدقار مبدل - Replaced", severity: "medium", description: "المدقار تم استبداله" },
+      { category: "المدقار الخلفي يسار", faultName: "مصبوغ لكر تجميلي - Clear Coat Repaint", severity: "low", description: "صبغ لكر تجميلي" },
+      { category: "المدقار الخلفي يسار", faultName: "مصبوغ معجون - Painted with Filler", severity: "medium", description: "مصبوغ مع معجون" },
+      { category: "المدقار الخلفي يسار", faultName: "مصبوغ معجون بعض الأجزاء - Partial Filler", severity: "medium", description: "بعض الأجزاء مصبوغة بمعجون" },
+      { category: "المدقار الخلفي يسار", faultName: "ملمع بولش - Polished", severity: "low", description: "تم تلميعه" },
+      { category: "المدقار الخلفي يسار", faultName: "صبغ حالة سيئة - Poor Paint", severity: "medium", description: "الصبغ حالته سيئة" },
+      { category: "المدقار الخلفي يسار", faultName: "يوجد جلاد - Stickers Present", severity: "low", description: "ملصقات على المدقار" },
+      { category: "المدقار الخلفي يسار", faultName: "تصليح و تلحيم من الداخل - Internal Weld Repair", severity: "medium", description: "تصليح وتلحيم من الداخل" },
+      { category: "المدقار الخلفي يسار", faultName: "تصليح من الداخل - Internal Repair", severity: "medium", description: "تصليح من الداخل" },
+      { category: "المدقار الخلفي يسار", faultName: "صدا - Rust", severity: "medium", description: "صدأ" },
+      { category: "المدقار الخلفي يسار", faultName: "صدا و تاكل - Rust & Corrosion", severity: "high", description: "صدأ وتآكل" },
+      { category: "المدقار الخلفي يسار", faultName: "فك في البراغي - Loose Screws", severity: "low", description: "براغي غير مثبتة" },
+      { category: "المدقار الخلفي يسار", faultName: "نقص براغي - Missing Screws", severity: "low", description: "براغي ناقصة" },
+      { category: "المدقار الخلفي يسار", faultName: "خدوش - Scratches", severity: "low", description: "خدوش" },
+      { category: "المدقار الخلفي يسار", faultName: "نقور - Chips", severity: "low", description: "نقور" },
+      { category: "المدقار الخلفي يسار", faultName: "ضربة - Impact Damage", severity: "high", description: "ضربة" },
+      { category: "المدقار الخلفي يسار", faultName: "سحب على البارد - Cold Pull", severity: "medium", description: "سحب على البارد" },
+      { category: "المدقار الخلفي يسار", faultName: "شحفات - Scratches/Scuffs", severity: "low", description: "شحفات" },
+      { category: "المدقار الخلفي يسار", faultName: "اختلاف في الميزانية - Misalignment", severity: "medium", description: "اختلاف في الميزانية" },
 
-        // 🔧 الشاصي (Chassis)
-        { category: "الشاصي", faultName: "تلاعب أو تغيير الشاصي - Chassis Tampering", severity: "high", description: "آثار قص وتلحيم" },
-        { category: "الشاصي", faultName: "رقم الشاصي غير واضح - VIN Not Readable", severity: "high", description: "الرقم مخدوش أو مطلي" },
-        { category: "الشاصي", faultName: "تلف هيكلي نتيجة حادث - Structural Damage", severity: "high", description: "انحناء أو التواء في الشاصي" },
+      // ═══════════════════════════════════════════════════════════════
+      // الباب الأمامي يمين - Front Right Door
+      // ═══════════════════════════════════════════════════════════════
+      { category: "الباب الأمامي يمين", faultName: "الباب مبدل - Replaced", severity: "medium", description: "الباب تم استبداله" },
+      { category: "الباب الأمامي يمين", faultName: "مصبوغ لكر تجميلي - Clear Coat Repaint", severity: "low", description: "صبغ لكر تجميلي" },
+      { category: "الباب الأمامي يمين", faultName: "مصبوغ معجون - Painted with Filler", severity: "medium", description: "مصبوغ مع معجون" },
+      { category: "الباب الأمامي يمين", faultName: "مصبوغ معجون بعض الأجزاء - Partial Filler", severity: "medium", description: "بعض الأجزاء مصبوغة بمعجون" },
+      { category: "الباب الأمامي يمين", faultName: "مرشوش صبغ - Spray Painted", severity: "low", description: "مرشوش صبغ" },
+      { category: "الباب الأمامي يمين", faultName: "ملمع بولش - Polished", severity: "low", description: "تم تلميعه" },
+      { category: "الباب الأمامي يمين", faultName: "يوجد جلاد - Stickers Present", severity: "low", description: "ملصقات" },
+      { category: "الباب الأمامي يمين", faultName: "خدوش - Scratches", severity: "low", description: "خدوش" },
+      { category: "الباب الأمامي يمين", faultName: "نقور - Chips", severity: "low", description: "نقور" },
+      { category: "الباب الأمامي يمين", faultName: "ضربة - Impact Damage", severity: "high", description: "ضربة" },
+      { category: "الباب الأمامي يمين", faultName: "اختلاف في الميزانية - Misalignment", severity: "medium", description: "اختلاف في الميزانية" },
+      { category: "الباب الأمامي يمين", faultName: "فك في براغي - Loose Screws", severity: "low", description: "براغي غير مثبتة" },
+      { category: "الباب الأمامي يمين", faultName: "نقص براغي - Missing Screws", severity: "low", description: "براغي ناقصة" },
+      { category: "الباب الأمامي يمين", faultName: "مفصلة حالة سيئة - Hinge Poor Condition", severity: "medium", description: "المفصلة حالتها سيئة" },
+      { category: "الباب الأمامي يمين", faultName: "مفصلة كسر - Hinge Broken", severity: "high", description: "المفصلة مكسورة" },
+      { category: "الباب الأمامي يمين", faultName: "قبضة حالة سيئة - Handle Poor Condition", severity: "medium", description: "القبضة حالتها سيئة" },
+      { category: "الباب الأمامي يمين", faultName: "قبضة كسر - Handle Broken", severity: "medium", description: "القبضة مكسورة" },
+      { category: "الباب الأمامي يمين", faultName: "قبضة لا توجد - Handle Missing", severity: "medium", description: "القبضة غير موجودة" },
+      { category: "الباب الأمامي يمين", faultName: "قبضة تثبيت سيئ - Handle Poor Installation", severity: "low", description: "تثبيت القبضة سيئ" },
+      { category: "الباب الأمامي يمين", faultName: "كفر الباب من الداخل كسر - Inner Panel Broken", severity: "medium", description: "كفر الباب مكسور" },
+      { category: "الباب الأمامي يمين", faultName: "كفر الباب من الداخل تثبيت سيئ - Inner Panel Poor Install", severity: "low", description: "تثبيت كفر الباب سيئ" },
+      { category: "الباب الأمامي يمين", faultName: "كفر الباب من الداخل منجد - Inner Panel Upholstered", severity: "low", description: "كفر الباب منجد" },
+      { category: "الباب الأمامي يمين", faultName: "ربلة الباب حالة سيئة - Door Seal Poor Condition", severity: "low", description: "ربلة الباب حالتها سيئة" },
+      { category: "الباب الأمامي يمين", faultName: "ربلة الباب قطع - Door Seal Cut", severity: "low", description: "ربلة الباب مقطوعة" },
+      { category: "الباب الأمامي يمين", faultName: "ربلة الباب لا توجد - Door Seal Missing", severity: "medium", description: "ربلة الباب غير موجودة" },
+      { category: "الباب الأمامي يمين", faultName: "جامة الباب لا تعمل - Window Not Working", severity: "medium", description: "جامة الباب لا تعمل" },
+      { category: "الباب الأمامي يمين", faultName: "جامة الباب كسر - Window Broken", severity: "high", description: "جامة الباب مكسورة" },
+      { category: "الباب الأمامي يمين", faultName: "موتور الجامة لا يعمل - Window Motor Not Working", severity: "medium", description: "موتور الجامة لا يعمل" },
+      { category: "الباب الأمامي يمين", faultName: "ازرار تحكم لا تعمل - Controls Not Working", severity: "medium", description: "أزرار التحكم لا تعمل" },
 
-        // 🚘 الدعامية الأمامية (Front Bumper)
-        // حالة الدعامية / Condition
-        { category: "الدعامية الأمامية", faultName: "مبدلة (تم تغييرها) - Replaced", severity: "medium", description: "الدعامية الأمامية تم استبدالها بقطعة غير أصلية" },
-        { category: "الدعامية الأمامية", faultName: "مصبوغة (طلاء جديد) - Repainted", severity: "low", description: "الدعامية الأمامية تم إعادة صبغها" },
-        { category: "الدعامية الأمامية", faultName: "محولة (تم تعديلها) - Modified", severity: "medium", description: "الدعامية الأمامية تم تعديلها عن الأصلي" },
-        { category: "الدعامية الأمامية", faultName: "مضاف لها أجزاء أو تزويد - Added Parts", severity: "low", description: "تم إضافة قطع أو إكسسوارات على الدعامية" },
-        
-        // أضرار وإصلاحات / Damages & Repairs
-        { category: "الدعامية الأمامية", faultName: "كسر - Broken", severity: "high", description: "الدعامية الأمامية مكسورة" },
-        { category: "الدعامية الأمامية", faultName: "ضربة - Impact Damage", severity: "high", description: "الدعامية ضربتها حادث أو صدم" },
-        { category: "الدعامية الأمامية", faultName: "خدوش - Scratches", severity: "low", description: "خدوش بسيطة أو سطحية على الدعامية" },
-        { category: "الدعامية الأمامية", faultName: "تصليح وتلحيم - Repaired & Welded", severity: "medium", description: "الدعامية تم تصليحها ولحامها" },
-        { category: "الدعامية الأمامية", faultName: "الصبغ حالة سيئة - Poor Paint Condition", severity: "medium", description: "الطلاء متعب أو سيئ الجودة" },
-        
-        // التركيب والثبات / Installation & Fit
-        { category: "الدعامية الأمامية", faultName: "نقص كليبات - Missing Clips", severity: "low", description: "قطع تثبيت ناقصة" },
-        { category: "الدعامية الأمامية", faultName: "نقص براغي - Missing Screws", severity: "low", description: "البراغي غير مكتملة" },
-        { category: "الدعامية الأمامية", faultName: "تثبيت سيء - Poor Installation", severity: "medium", description: "التركيب غير مضبوط" },
-        { category: "الدعامية الأمامية", faultName: "اختلاف في الميزانية - Misalignment", severity: "medium", description: "التركيب غير متناسق مع باقي السيارة" },
-        
-        // نيكل كروم / Chrome Parts
-        { category: "الدعامية الأمامية", faultName: "نيكل كروم حالة سيئة - Chrome Poor Condition", severity: "low", description: "الكروم فيه خدوش أو صدأ" },
-        { category: "الدعامية الأمامية", faultName: "نيكل كروم كسر - Chrome Broken", severity: "medium", description: "كروم الدعامية مكسور" },
-        { category: "الدعامية الأمامية", faultName: "نيكل كروم لا يوجد - Chrome Missing", severity: "medium", description: "الكروم غير موجود أصلاً" },
-        
-        // ملاحظات إضافية / Notes
-        { category: "الدعامية الأمامية", faultName: "يوجد عليها جلاد - Stickers/Decals Present", severity: "low", description: "يوجد ملصقات أو إضافات خارجية على الدعامية" }
-      ];
-      
-      // Filter out faults that already exist
-      const newFaults = faults.filter(f => !existingSet.has(`${f.category}||${f.faultName}`));
-      
-      if (newFaults.length > 0) {
-        await db.insert(faultLibrary).values(newFaults);
-        console.log(`Seeded ${newFaults.length} new faults to library`);
-      } else {
-        console.log("Fault library already up to date");
-      }
+      // ═══════════════════════════════════════════════════════════════
+      // الباب الأمامي يسار - Front Left Door
+      // ═══════════════════════════════════════════════════════════════
+      { category: "الباب الأمامي يسار", faultName: "الباب مبدل - Replaced", severity: "medium", description: "الباب تم استبداله" },
+      { category: "الباب الأمامي يسار", faultName: "مصبوغ لكر تجميلي - Clear Coat Repaint", severity: "low", description: "صبغ لكر تجميلي" },
+      { category: "الباب الأمامي يسار", faultName: "مصبوغ معجون - Painted with Filler", severity: "medium", description: "مصبوغ مع معجون" },
+      { category: "الباب الأمامي يسار", faultName: "مصبوغ معجون بعض الأجزاء - Partial Filler", severity: "medium", description: "بعض الأجزاء مصبوغة بمعجون" },
+      { category: "الباب الأمامي يسار", faultName: "مرشوش صبغ - Spray Painted", severity: "low", description: "مرشوش صبغ" },
+      { category: "الباب الأمامي يسار", faultName: "ملمع بولش - Polished", severity: "low", description: "تم تلميعه" },
+      { category: "الباب الأمامي يسار", faultName: "يوجد جلاد - Stickers Present", severity: "low", description: "ملصقات" },
+      { category: "الباب الأمامي يسار", faultName: "خدوش - Scratches", severity: "low", description: "خدوش" },
+      { category: "الباب الأمامي يسار", faultName: "نقور - Chips", severity: "low", description: "نقور" },
+      { category: "الباب الأمامي يسار", faultName: "ضربة - Impact Damage", severity: "high", description: "ضربة" },
+      { category: "الباب الأمامي يسار", faultName: "اختلاف في الميزانية - Misalignment", severity: "medium", description: "اختلاف في الميزانية" },
+      { category: "الباب الأمامي يسار", faultName: "فك في براغي - Loose Screws", severity: "low", description: "براغي غير مثبتة" },
+      { category: "الباب الأمامي يسار", faultName: "نقص براغي - Missing Screws", severity: "low", description: "براغي ناقصة" },
+      { category: "الباب الأمامي يسار", faultName: "مفصلة حالة سيئة - Hinge Poor Condition", severity: "medium", description: "المفصلة حالتها سيئة" },
+      { category: "الباب الأمامي يسار", faultName: "مفصلة كسر - Hinge Broken", severity: "high", description: "المفصلة مكسورة" },
+      { category: "الباب الأمامي يسار", faultName: "قبضة حالة سيئة - Handle Poor Condition", severity: "medium", description: "القبضة حالتها سيئة" },
+      { category: "الباب الأمامي يسار", faultName: "قبضة كسر - Handle Broken", severity: "medium", description: "القبضة مكسورة" },
+      { category: "الباب الأمامي يسار", faultName: "قبضة لا توجد - Handle Missing", severity: "medium", description: "القبضة غير موجودة" },
+      { category: "الباب الأمامي يسار", faultName: "قبضة تثبيت سيئ - Handle Poor Installation", severity: "low", description: "تثبيت القبضة سيئ" },
+      { category: "الباب الأمامي يسار", faultName: "كفر الباب من الداخل كسر - Inner Panel Broken", severity: "medium", description: "كفر الباب مكسور" },
+      { category: "الباب الأمامي يسار", faultName: "كفر الباب من الداخل تثبيت سيئ - Inner Panel Poor Install", severity: "low", description: "تثبيت كفر الباب سيئ" },
+      { category: "الباب الأمامي يسار", faultName: "كفر الباب من الداخل منجد - Inner Panel Upholstered", severity: "low", description: "كفر الباب منجد" },
+      { category: "الباب الأمامي يسار", faultName: "ربلة الباب حالة سيئة - Door Seal Poor Condition", severity: "low", description: "ربلة الباب حالتها سيئة" },
+      { category: "الباب الأمامي يسار", faultName: "ربلة الباب قطع - Door Seal Cut", severity: "low", description: "ربلة الباب مقطوعة" },
+      { category: "الباب الأمامي يسار", faultName: "ربلة الباب لا توجد - Door Seal Missing", severity: "medium", description: "ربلة الباب غير موجودة" },
+      { category: "الباب الأمامي يسار", faultName: "جامة الباب لا تعمل - Window Not Working", severity: "medium", description: "جامة الباب لا تعمل" },
+      { category: "الباب الأمامي يسار", faultName: "جامة الباب كسر - Window Broken", severity: "high", description: "جامة الباب مكسورة" },
+      { category: "الباب الأمامي يسار", faultName: "موتور الجامة لا يعمل - Window Motor Not Working", severity: "medium", description: "موتور الجامة لا يعمل" },
+      { category: "الباب الأمامي يسار", faultName: "ازرار تحكم لا تعمل - Controls Not Working", severity: "medium", description: "أزرار التحكم لا تعمل" },
+
+      // ═══════════════════════════════════════════════════════════════
+      // الباب الخلفي يمين - Rear Right Door
+      // ═══════════════════════════════════════════════════════════════
+      { category: "الباب الخلفي يمين", faultName: "الباب مبدل - Replaced", severity: "medium", description: "الباب تم استبداله" },
+      { category: "الباب الخلفي يمين", faultName: "مصبوغ لكر تجميلي - Clear Coat Repaint", severity: "low", description: "صبغ لكر تجميلي" },
+      { category: "الباب الخلفي يمين", faultName: "مصبوغ معجون - Painted with Filler", severity: "medium", description: "مصبوغ مع معجون" },
+      { category: "الباب الخلفي يمين", faultName: "مصبوغ معجون بعض الأجزاء - Partial Filler", severity: "medium", description: "بعض الأجزاء مصبوغة بمعجون" },
+      { category: "الباب الخلفي يمين", faultName: "مرشوش صبغ - Spray Painted", severity: "low", description: "مرشوش صبغ" },
+      { category: "الباب الخلفي يمين", faultName: "ملمع بولش - Polished", severity: "low", description: "تم تلميعه" },
+      { category: "الباب الخلفي يمين", faultName: "يوجد جلاد - Stickers Present", severity: "low", description: "ملصقات" },
+      { category: "الباب الخلفي يمين", faultName: "خدوش - Scratches", severity: "low", description: "خدوش" },
+      { category: "الباب الخلفي يمين", faultName: "نقور - Chips", severity: "low", description: "نقور" },
+      { category: "الباب الخلفي يمين", faultName: "ضربة - Impact Damage", severity: "high", description: "ضربة" },
+      { category: "الباب الخلفي يمين", faultName: "اختلاف في الميزانية - Misalignment", severity: "medium", description: "اختلاف في الميزانية" },
+      { category: "الباب الخلفي يمين", faultName: "فك في براغي - Loose Screws", severity: "low", description: "براغي غير مثبتة" },
+      { category: "الباب الخلفي يمين", faultName: "نقص براغي - Missing Screws", severity: "low", description: "براغي ناقصة" },
+      { category: "الباب الخلفي يمين", faultName: "مفصلة حالة سيئة - Hinge Poor Condition", severity: "medium", description: "المفصلة حالتها سيئة" },
+      { category: "الباب الخلفي يمين", faultName: "مفصلة كسر - Hinge Broken", severity: "high", description: "المفصلة مكسورة" },
+      { category: "الباب الخلفي يمين", faultName: "قبضة حالة سيئة - Handle Poor Condition", severity: "medium", description: "القبضة حالتها سيئة" },
+      { category: "الباب الخلفي يمين", faultName: "قبضة كسر - Handle Broken", severity: "medium", description: "القبضة مكسورة" },
+      { category: "الباب الخلفي يمين", faultName: "قبضة لا توجد - Handle Missing", severity: "medium", description: "القبضة غير موجودة" },
+      { category: "الباب الخلفي يمين", faultName: "قبضة تثبيت سيئ - Handle Poor Installation", severity: "low", description: "تثبيت القبضة سيئ" },
+      { category: "الباب الخلفي يمين", faultName: "كفر الباب من الداخل كسر - Inner Panel Broken", severity: "medium", description: "كفر الباب مكسور" },
+      { category: "الباب الخلفي يمين", faultName: "كفر الباب من الداخل تثبيت سيئ - Inner Panel Poor Install", severity: "low", description: "تثبيت كفر الباب سيئ" },
+      { category: "الباب الخلفي يمين", faultName: "كفر الباب من الداخل منجد - Inner Panel Upholstered", severity: "low", description: "كفر الباب منجد" },
+      { category: "الباب الخلفي يمين", faultName: "ربلة الباب حالة سيئة - Door Seal Poor Condition", severity: "low", description: "ربلة الباب حالتها سيئة" },
+      { category: "الباب الخلفي يمين", faultName: "ربلة الباب قطع - Door Seal Cut", severity: "low", description: "ربلة الباب مقطوعة" },
+      { category: "الباب الخلفي يمين", faultName: "ربلة الباب لا توجد - Door Seal Missing", severity: "medium", description: "ربلة الباب غير موجودة" },
+      { category: "الباب الخلفي يمين", faultName: "جامة الباب لا تعمل - Window Not Working", severity: "medium", description: "جامة الباب لا تعمل" },
+      { category: "الباب الخلفي يمين", faultName: "جامة الباب كسر - Window Broken", severity: "high", description: "جامة الباب مكسورة" },
+      { category: "الباب الخلفي يمين", faultName: "موتور الجامة لا يعمل - Window Motor Not Working", severity: "medium", description: "موتور الجامة لا يعمل" },
+      { category: "الباب الخلفي يمين", faultName: "ازرار تحكم لا تعمل - Controls Not Working", severity: "medium", description: "أزرار التحكم لا تعمل" },
+
+      // ═══════════════════════════════════════════════════════════════
+      // الباب الخلفي يسار - Rear Left Door
+      // ═══════════════════════════════════════════════════════════════
+      { category: "الباب الخلفي يسار", faultName: "الباب مبدل - Replaced", severity: "medium", description: "الباب تم استبداله" },
+      { category: "الباب الخلفي يسار", faultName: "مصبوغ لكر تجميلي - Clear Coat Repaint", severity: "low", description: "صبغ لكر تجميلي" },
+      { category: "الباب الخلفي يسار", faultName: "مصبوغ معجون - Painted with Filler", severity: "medium", description: "مصبوغ مع معجون" },
+      { category: "الباب الخلفي يسار", faultName: "مصبوغ معجون بعض الأجزاء - Partial Filler", severity: "medium", description: "بعض الأجزاء مصبوغة بمعجون" },
+      { category: "الباب الخلفي يسار", faultName: "مرشوش صبغ - Spray Painted", severity: "low", description: "مرشوش صبغ" },
+      { category: "الباب الخلفي يسار", faultName: "ملمع بولش - Polished", severity: "low", description: "تم تلميعه" },
+      { category: "الباب الخلفي يسار", faultName: "يوجد جلاد - Stickers Present", severity: "low", description: "ملصقات" },
+      { category: "الباب الخلفي يسار", faultName: "خدوش - Scratches", severity: "low", description: "خدوش" },
+      { category: "الباب الخلفي يسار", faultName: "نقور - Chips", severity: "low", description: "نقور" },
+      { category: "الباب الخلفي يسار", faultName: "ضربة - Impact Damage", severity: "high", description: "ضربة" },
+      { category: "الباب الخلفي يسار", faultName: "اختلاف في الميزانية - Misalignment", severity: "medium", description: "اختلاف في الميزانية" },
+      { category: "الباب الخلفي يسار", faultName: "فك في براغي - Loose Screws", severity: "low", description: "براغي غير مثبتة" },
+      { category: "الباب الخلفي يسار", faultName: "نقص براغي - Missing Screws", severity: "low", description: "براغي ناقصة" },
+      { category: "الباب الخلفي يسار", faultName: "مفصلة حالة سيئة - Hinge Poor Condition", severity: "medium", description: "المفصلة حالتها سيئة" },
+      { category: "الباب الخلفي يسار", faultName: "مفصلة كسر - Hinge Broken", severity: "high", description: "المفصلة مكسورة" },
+      { category: "الباب الخلفي يسار", faultName: "قبضة حالة سيئة - Handle Poor Condition", severity: "medium", description: "القبضة حالتها سيئة" },
+      { category: "الباب الخلفي يسار", faultName: "قبضة كسر - Handle Broken", severity: "medium", description: "القبضة مكسورة" },
+      { category: "الباب الخلفي يسار", faultName: "قبضة لا توجد - Handle Missing", severity: "medium", description: "القبضة غير موجودة" },
+      { category: "الباب الخلفي يسار", faultName: "قبضة تثبيت سيئ - Handle Poor Installation", severity: "low", description: "تثبيت القبضة سيئ" },
+      { category: "الباب الخلفي يسار", faultName: "كفر الباب من الداخل كسر - Inner Panel Broken", severity: "medium", description: "كفر الباب مكسور" },
+      { category: "الباب الخلفي يسار", faultName: "كفر الباب من الداخل تثبيت سيئ - Inner Panel Poor Install", severity: "low", description: "تثبيت كفر الباب سيئ" },
+      { category: "الباب الخلفي يسار", faultName: "كفر الباب من الداخل منجد - Inner Panel Upholstered", severity: "low", description: "كفر الباب منجد" },
+      { category: "الباب الخلفي يسار", faultName: "ربلة الباب حالة سيئة - Door Seal Poor Condition", severity: "low", description: "ربلة الباب حالتها سيئة" },
+      { category: "الباب الخلفي يسار", faultName: "ربلة الباب قطع - Door Seal Cut", severity: "low", description: "ربلة الباب مقطوعة" },
+      { category: "الباب الخلفي يسار", faultName: "ربلة الباب لا توجد - Door Seal Missing", severity: "medium", description: "ربلة الباب غير موجودة" },
+      { category: "الباب الخلفي يسار", faultName: "جامة الباب لا تعمل - Window Not Working", severity: "medium", description: "جامة الباب لا تعمل" },
+      { category: "الباب الخلفي يسار", faultName: "جامة الباب كسر - Window Broken", severity: "high", description: "جامة الباب مكسورة" },
+      { category: "الباب الخلفي يسار", faultName: "موتور الجامة لا يعمل - Window Motor Not Working", severity: "medium", description: "موتور الجامة لا يعمل" },
+      { category: "الباب الخلفي يسار", faultName: "ازرار تحكم لا تعمل - Controls Not Working", severity: "medium", description: "أزرار التحكم لا تعمل" },
+
+      // ═══════════════════════════════════════════════════════════════
+      // الدبة - Trunk
+      // ═══════════════════════════════════════════════════════════════
+      { category: "الدبة", faultName: "مبدلة - Replaced", severity: "medium", description: "الدبة تم استبدالها" },
+      { category: "الدبة", faultName: "مصبوغة معجون - Painted with Filler", severity: "medium", description: "مصبوغة مع معجون" },
+      { category: "الدبة", faultName: "مصبوغة معجون بعض الأجزاء - Partial Filler", severity: "medium", description: "بعض الأجزاء مصبوغة بمعجون" },
+      { category: "الدبة", faultName: "مصبوغة لكر - Clear Coat Repaint", severity: "low", description: "مصبوغة لكر" },
+      { category: "الدبة", faultName: "عليها جلاد - Stickers Present", severity: "low", description: "ملصقات على الدبة" },
+      { category: "الدبة", faultName: "بولش - Polished", severity: "low", description: "تم تلميعها" },
+      { category: "الدبة", faultName: "خدوش - Scratches", severity: "low", description: "خدوش" },
+      { category: "الدبة", faultName: "نقور - Chips", severity: "low", description: "نقور" },
+      { category: "الدبة", faultName: "ضربة - Impact Damage", severity: "high", description: "ضربة" },
+      { category: "الدبة", faultName: "مرشوشة من الداخل و الخارج - Inside & Outside Spray", severity: "medium", description: "مرشوشة صبغ من الداخل والخارج" },
+      { category: "الدبة", faultName: "تصليح و تلحيم من الداخل - Internal Weld Repair", severity: "medium", description: "تصليح وتلحيم من الداخل" },
+      { category: "الدبة", faultName: "تصليح و تلحيم أعلى - Top Weld Repair", severity: "medium", description: "تصليح وتلحيم من أعلى" },
+      { category: "الدبة", faultName: "تصليح و تلحيم أسفل - Bottom Weld Repair", severity: "medium", description: "تصليح وتلحيم من أسفل" },
+      { category: "الدبة", faultName: "صدا - Rust", severity: "medium", description: "صدأ" },
+      { category: "الدبة", faultName: "جانبين حالة سيئة - Sides Poor Condition", severity: "medium", description: "الجانبين حالتهم سيئة" },
+      { category: "الدبة", faultName: "كفر حالة سيئة - Cover Poor Condition", severity: "low", description: "الغطاء حالته سيئة" },
+      { category: "الدبة", faultName: "كفر لا يوجد - Cover Missing", severity: "low", description: "الغطاء غير موجود" },
+      { category: "الدبة", faultName: "كفر قطع - Cover Cut", severity: "low", description: "الغطاء مقطوع" },
+      { category: "الدبة", faultName: "كفر نقص كليبات - Cover Missing Clips", severity: "low", description: "كليبات الغطاء ناقصة" },
+      { category: "الدبة", faultName: "ربلات حالة سيئة - Seals Poor Condition", severity: "low", description: "الربلات حالتها سيئة" },
+      { category: "الدبة", faultName: "ربلات لا توجد - Seals Missing", severity: "medium", description: "الربلات غير موجودة" },
+      { category: "الدبة", faultName: "ربلات قطع - Seals Cut", severity: "low", description: "الربلات مقطوعة" },
+      { category: "الدبة", faultName: "اختلاف في الميزانية - Misalignment", severity: "medium", description: "اختلاف في الميزانية" },
+      { category: "الدبة", faultName: "ضربة في حوض الدبة من الداخل - Internal Floor Impact", severity: "high", description: "ضربة في حوض الدبة من الداخل" },
+      { category: "الدبة", faultName: "ضربة في حوض الدبة أسفل - Floor Bottom Impact", severity: "high", description: "ضربة في حوض الدبة من أسفل" },
+      { category: "الدبة", faultName: "حوض الدبة مبدل - Floor Replaced", severity: "high", description: "حوض الدبة تم استبداله" },
+      { category: "الدبة", faultName: "حوض الدبة مصبوغ - Floor Repainted", severity: "medium", description: "حوض الدبة تم صبغه" },
+      { category: "الدبة", faultName: "حوض الدبة صدا - Floor Rust", severity: "medium", description: "حوض الدبة فيه صدأ" },
+      { category: "الدبة", faultName: "حوض الدبة صدا و تاكل - Floor Rust & Corrosion", severity: "high", description: "حوض الدبة فيه صدأ وتآكل" },
+      { category: "الدبة", faultName: "لوك لا يعمل - Lock Not Working", severity: "medium", description: "القفل لا يعمل" },
+      { category: "الدبة", faultName: "لوك حالة سيئة - Lock Poor Condition", severity: "medium", description: "القفل حالته سيئة" },
+      { category: "الدبة", faultName: "لوك ضربة - Lock Impact", severity: "medium", description: "القفل فيه ضربة" },
+      { category: "الدبة", faultName: "موتور فتح و قفل لا يعمل - Motor Not Working", severity: "medium", description: "موتور الفتح والقفل لا يعمل" },
+
+      // ═══════════════════════════════════════════════════════════════
+      // الفخد - Quarter Panel
+      // ═══════════════════════════════════════════════════════════════
+      { category: "الفخد", faultName: "ضربة من الداخل - Internal Impact", severity: "high", description: "ضربة من الداخل" },
+      { category: "الفخد", faultName: "ضربة أمامي - Front Impact", severity: "high", description: "ضربة من الأمام" },
+      { category: "الفخد", faultName: "ضربة خلفي - Rear Impact", severity: "high", description: "ضربة من الخلف" },
+      { category: "الفخد", faultName: "ضربة يمين - Right Impact", severity: "high", description: "ضربة من اليمين" },
+      { category: "الفخد", faultName: "ضربة يسار - Left Impact", severity: "high", description: "ضربة من اليسار" },
+      { category: "الفخد", faultName: "تصليح و تلحيم من الداخل - Internal Weld Repair", severity: "medium", description: "تصليح وتلحيم من الداخل" },
+      { category: "الفخد", faultName: "صدا - Rust", severity: "medium", description: "صدأ" },
+      { category: "الفخد", faultName: "صدا و تاكل - Rust & Corrosion", severity: "high", description: "صدأ وتآكل" },
+      { category: "الفخد", faultName: "ضربة و استعدال من الداخل - Internal Impact & Straightened", severity: "medium", description: "ضربة واستعدال من الداخل" },
+      { category: "الفخد", faultName: "مبدل - Replaced", severity: "high", description: "تم استبداله" },
+      { category: "الفخد", faultName: "مصبوغ - Repainted", severity: "medium", description: "تم صبغه" },
+
+      // ═══════════════════════════════════════════════════════════════
+      // السقف - Roof
+      // ═══════════════════════════════════════════════════════════════
+      { category: "السقف", faultName: "السقف مبدل - Replaced", severity: "high", description: "السقف تم استبداله" },
+      { category: "السقف", faultName: "مصبوغ معجون كامل - Full Filler Paint", severity: "medium", description: "مصبوغ معجون كامل" },
+      { category: "السقف", faultName: "مصبوغ معجون بعض الأجزاء - Partial Filler Paint", severity: "medium", description: "مصبوغ معجون بعض الأجزاء" },
+      { category: "السقف", faultName: "مصبوغ لكر - Clear Coat Repaint", severity: "low", description: "مصبوغ لكر" },
+      { category: "السقف", faultName: "مرشوش صبغ - Spray Painted", severity: "low", description: "مرشوش صبغ" },
+      { category: "السقف", faultName: "ضربات - Dents", severity: "high", description: "ضربات" },
+      { category: "السقف", faultName: "صبغ حالة سيئة - Poor Paint", severity: "medium", description: "الصبغ حالته سيئة" },
+      { category: "السقف", faultName: "نقور - Chips", severity: "low", description: "نقور" },
+      { category: "السقف", faultName: "ملمع بولش - Polished", severity: "low", description: "تم تلميعه" },
+      { category: "السقف", faultName: "يوجد جلاد - Stickers Present", severity: "low", description: "ملصقات" },
+      { category: "السقف", faultName: "تصليح - Repaired", severity: "medium", description: "تم تصليحه" },
+      { category: "السقف", faultName: "قطع و لحام - Cut & Welded", severity: "high", description: "قطع ولحام" },
+      { category: "السقف", faultName: "صدا - Rust", severity: "medium", description: "صدأ" },
+      { category: "السقف", faultName: "صدا و تاكل - Rust & Corrosion", severity: "high", description: "صدأ وتآكل" },
+      { category: "السقف", faultName: "بانوراما لا يعمل - Panorama Not Working", severity: "medium", description: "البانوراما لا تعمل" },
+      { category: "السقف", faultName: "قماش بانوراما حالة سيئة - Panorama Fabric Poor", severity: "low", description: "قماش البانوراما حالته سيئة" },
+      { category: "السقف", faultName: "قماش بانوراما قطع - Panorama Fabric Cut", severity: "medium", description: "قماش البانوراما مقطوع" },
+      { category: "السقف", faultName: "فتحة السقف مبدلة - Sunroof Replaced", severity: "medium", description: "فتحة السقف تم استبدالها" },
+      { category: "السقف", faultName: "فتحة السقف لا تعمل - Sunroof Not Working", severity: "medium", description: "فتحة السقف لا تعمل" },
+      { category: "السقف", faultName: "فتحة السقف كسر - Sunroof Broken", severity: "high", description: "فتحة السقف مكسورة" },
+      { category: "السقف", faultName: "موتور فتحة السقف لا يوجد - Sunroof Motor Missing", severity: "medium", description: "موتور فتحة السقف غير موجود" },
+      { category: "السقف", faultName: "فتحة السقف مجيمة - Sunroof Stuck", severity: "medium", description: "فتحة السقف مجيمة" },
+      { category: "السقف", faultName: "ربلة فتحة حالة سيئة - Sunroof Seal Poor", severity: "low", description: "ربلة فتحة السقف حالتها سيئة" },
+      { category: "السقف", faultName: "ربلة فتحة قطع - Sunroof Seal Cut", severity: "low", description: "ربلة فتحة السقف مقطوعة" },
+      { category: "السقف", faultName: "نيكل كروم كسر - Chrome Broken", severity: "medium", description: "الكروم مكسور" },
+      { category: "السقف", faultName: "نيكل كروم لا يوجد - Chrome Missing", severity: "medium", description: "الكروم غير موجود" },
+      { category: "السقف", faultName: "نيكل كروم تثبيت سيئ - Chrome Poor Installation", severity: "low", description: "تثبيت الكروم سيئ" },
+
+      // ═══════════════════════════════════════════════════════════════
+      // القوائم - Pillars
+      // ═══════════════════════════════════════════════════════════════
+      { category: "القوائم", faultName: "القائم مبدل - Pillar Replaced", severity: "high", description: "القائم تم استبداله" },
+      { category: "القوائم", faultName: "قطع و لحام - Cut & Welded", severity: "high", description: "قطع ولحام" },
+      { category: "القوائم", faultName: "مصبوغ معجون - Painted with Filler", severity: "medium", description: "مصبوغ معجون" },
+      { category: "القوائم", faultName: "مصبوغ لكر - Clear Coat Repaint", severity: "low", description: "مصبوغ لكر" },
+      { category: "القوائم", faultName: "ضربات - Dents", severity: "high", description: "ضربات" },
+      { category: "القوائم", faultName: "صدا - Rust", severity: "medium", description: "صدأ" },
+      { category: "القوائم", faultName: "صدا و تاكل - Rust & Corrosion", severity: "high", description: "صدأ وتآكل" },
+      { category: "القوائم", faultName: "يوجد جلاد - Stickers Present", severity: "low", description: "ملصقات" },
+      { category: "القوائم", faultName: "نقور - Chips", severity: "low", description: "نقور" },
+      { category: "القوائم", faultName: "خدوش - Scratches", severity: "low", description: "خدوش" },
+      { category: "القوائم", faultName: "صبغ حالة سيئة - Poor Paint", severity: "medium", description: "الصبغ حالته سيئة" },
+      { category: "القوائم", faultName: "مرشوش - Spray Painted", severity: "low", description: "مرشوش صبغ" },
+      { category: "القوائم", faultName: "تصليح من الداخل - Internal Repair", severity: "medium", description: "تصليح من الداخل" },
+      { category: "القوائم", faultName: "ملمع بولش - Polished", severity: "low", description: "تم تلميعه" },
+
+      // ═══════════════════════════════════════════════════════════════
+      // الجامات - Windows
+      // ═══════════════════════════════════════════════════════════════
+      { category: "الجامات", faultName: "الجامة مبدلة - Window Replaced", severity: "medium", description: "الجامة تم استبدالها" },
+      { category: "الجامات", faultName: "كسر - Broken", severity: "high", description: "مكسورة" },
+      { category: "الجامات", faultName: "خدوش - Scratches", severity: "low", description: "خدوش" },
+      { category: "الجامات", faultName: "نقور - Chips", severity: "low", description: "نقور" },
+      { category: "الجامات", faultName: "جامة الباب لا تعمل - Door Window Not Working", severity: "medium", description: "جامة الباب لا تعمل" },
+      { category: "الجامات", faultName: "ربلة حالة سيئة - Seal Poor Condition", severity: "low", description: "ربلة حالتها سيئة" },
+      { category: "الجامات", faultName: "ربلة قطع - Seal Cut", severity: "low", description: "ربلة مقطوعة" },
+      { category: "الجامات", faultName: "ربلة لا توجد - Seal Missing", severity: "medium", description: "ربلة غير موجودة" },
+      { category: "الجامات", faultName: "موتور لا يعمل - Motor Not Working", severity: "medium", description: "الموتور لا يعمل" },
+      { category: "الجامات", faultName: "زرار تحكم لا يعمل - Control Button Not Working", severity: "medium", description: "زر التحكم لا يعمل" },
+      { category: "الجامات", faultName: "زرار تحكم لا يوجد - Control Button Missing", severity: "medium", description: "زر التحكم غير موجود" },
+      { category: "الجامات", faultName: "زرار تحكم كسر - Control Button Broken", severity: "medium", description: "زر التحكم مكسور" },
+      { category: "الجامات", faultName: "ازرار تحكم جامات الابواب تثبيت سيئ - Button Poor Install", severity: "low", description: "تثبيت أزرار التحكم سيئ" },
+      { category: "الجامات", faultName: "المراية كسر - Mirror Broken", severity: "medium", description: "المراية مكسورة" },
+      { category: "الجامات", faultName: "جامة المراية كسر - Mirror Glass Broken", severity: "medium", description: "جامة المراية مكسورة" },
+      { category: "الجامات", faultName: "المراية تثبيت سيئ - Mirror Poor Installation", severity: "low", description: "تثبيت المراية سيئ" },
+      { category: "الجامات", faultName: "المراية لا توجد - Mirror Missing", severity: "medium", description: "المراية غير موجودة" },
+
+      // ═══════════════════════════════════════════════════════════════
+      // الليتات الأمامية - Front Lights
+      // ═══════════════════════════════════════════════════════════════
+      { category: "الليتات الأمامية", faultName: "الليت مبدل - Light Replaced", severity: "medium", description: "الليت تم استبداله" },
+      { category: "الليتات الأمامية", faultName: "كسر في لمبة - Bulb Broken", severity: "medium", description: "اللمبة مكسورة" },
+      { category: "الليتات الأمامية", faultName: "تلحيم - Welded", severity: "medium", description: "تم تلحيمه" },
+      { category: "الليتات الأمامية", faultName: "كسر في كفر - Cover Broken", severity: "medium", description: "الكفر مكسور" },
+      { category: "الليتات الأمامية", faultName: "كسر في القاعدة - Base Broken", severity: "medium", description: "القاعدة مكسورة" },
+      { category: "الليتات الأمامية", faultName: "الليت لا يعمل - Light Not Working", severity: "medium", description: "الليت لا يعمل" },
+      { category: "الليتات الأمامية", faultName: "حالة سيئة - Poor Condition", severity: "medium", description: "حالة سيئة" },
+      { category: "الليتات الأمامية", faultName: "خدوش - Scratches", severity: "low", description: "خدوش" },
+      { category: "الليتات الأمامية", faultName: "نقص براغي - Missing Screws", severity: "low", description: "براغي ناقصة" },
+      { category: "الليتات الأمامية", faultName: "وايرات حالة سيئة - Wiring Poor Condition", severity: "medium", description: "الأسلاك حالتها سيئة" },
+      { category: "الليتات الأمامية", faultName: "وايرات تعديل - Wiring Modified", severity: "medium", description: "الأسلاك تم تعديلها" },
+      { category: "الليتات الأمامية", faultName: "وايرات قطع - Wiring Cut", severity: "medium", description: "الأسلاك مقطوعة" },
+      { category: "الليتات الأمامية", faultName: "براغي تثبيت سيئ - Screws Poor Installation", severity: "low", description: "تثبيت البراغي سيئ" },
+
+      // ═══════════════════════════════════════════════════════════════
+      // الليتات الخلفية - Rear Lights
+      // ═══════════════════════════════════════════════════════════════
+      { category: "الليتات الخلفية", faultName: "الليت مبدل - Light Replaced", severity: "medium", description: "الليت تم استبداله" },
+      { category: "الليتات الخلفية", faultName: "كسر في لمبة - Bulb Broken", severity: "medium", description: "اللمبة مكسورة" },
+      { category: "الليتات الخلفية", faultName: "تلحيم - Welded", severity: "medium", description: "تم تلحيمه" },
+      { category: "الليتات الخلفية", faultName: "كسر في كفر - Cover Broken", severity: "medium", description: "الكفر مكسور" },
+      { category: "الليتات الخلفية", faultName: "كسر في القاعدة - Base Broken", severity: "medium", description: "القاعدة مكسورة" },
+      { category: "الليتات الخلفية", faultName: "الليت لا يعمل - Light Not Working", severity: "medium", description: "الليت لا يعمل" },
+      { category: "الليتات الخلفية", faultName: "حالة سيئة - Poor Condition", severity: "medium", description: "حالة سيئة" },
+      { category: "الليتات الخلفية", faultName: "خدوش - Scratches", severity: "low", description: "خدوش" },
+      { category: "الليتات الخلفية", faultName: "نقص براغي - Missing Screws", severity: "low", description: "براغي ناقصة" },
+      { category: "الليتات الخلفية", faultName: "ليت البرك لا يعمل - Brake Light Not Working", severity: "high", description: "ليت البرك لا يعمل" },
+      { category: "الليتات الخلفية", faultName: "ليت البرك كسر - Brake Light Broken", severity: "high", description: "ليت البرك مكسور" },
+      { category: "الليتات الخلفية", faultName: "ليت اللوحة لا يعمل - Plate Light Not Working", severity: "medium", description: "ليت اللوحة لا يعمل" },
+      { category: "الليتات الخلفية", faultName: "ليت اللوحة كسر - Plate Light Broken", severity: "medium", description: "ليت اللوحة مكسور" },
+      { category: "الليتات الخلفية", faultName: "ليت اللوحة لا يوجد - Plate Light Missing", severity: "medium", description: "ليت اللوحة غير موجود" },
+      { category: "الليتات الخلفية", faultName: "وايرات حالة سيئة - Wiring Poor Condition", severity: "medium", description: "الأسلاك حالتها سيئة" },
+      { category: "الليتات الخلفية", faultName: "وايرات تعديل - Wiring Modified", severity: "medium", description: "الأسلاك تم تعديلها" },
+      { category: "الليتات الخلفية", faultName: "براغي تثبيت سيئ - Screws Poor Installation", severity: "low", description: "تثبيت البراغي سيئ" },
+
+      // ═══════════════════════════════════════════════════════════════
+      // الداخلية - Interior
+      // ═══════════════════════════════════════════════════════════════
+      { category: "الداخلية", faultName: "فرش السقف من الداخل منجد - Headliner Upholstered", severity: "low", description: "فرش السقف منجد" },
+      { category: "الداخلية", faultName: "فرش السقف حالة سيئة - Headliner Poor Condition", severity: "medium", description: "فرش السقف حالته سيئة" },
+      { category: "الداخلية", faultName: "فرش السقف قطع - Headliner Cut", severity: "medium", description: "فرش السقف مقطوع" },
+      { category: "الداخلية", faultName: "فرش السقف تثبيت سيئ - Headliner Poor Installation", severity: "low", description: "تثبيت فرش السقف سيئ" },
+      { category: "الداخلية", faultName: "ليت السقف لا يعمل - Dome Light Not Working", severity: "low", description: "ليت السقف لا يعمل" },
+      { category: "الداخلية", faultName: "ليت السقف لا يوجد - Dome Light Missing", severity: "low", description: "ليت السقف غير موجود" },
+      { category: "الداخلية", faultName: "ليت السقف كسر - Dome Light Broken", severity: "low", description: "ليت السقف مكسور" },
+      { category: "الداخلية", faultName: "الكراسي مبدلة - Seats Replaced", severity: "medium", description: "الكراسي تم استبدالها" },
+      { category: "الداخلية", faultName: "الكراسي منجدة - Seats Upholstered", severity: "low", description: "الكراسي منجدة" },
+      { category: "الداخلية", faultName: "الكراسي ملبسة - Seats Covered", severity: "low", description: "الكراسي ملبسة" },
+      { category: "الداخلية", faultName: "الكراسي حالة سيئة - Seats Poor Condition", severity: "medium", description: "الكراسي حالتها سيئة" },
+      { category: "الداخلية", faultName: "الكراسي قطع - Seats Cut", severity: "medium", description: "الكراسي مقطوعة" },
+      { category: "الداخلية", faultName: "الكراسي استهلاك - Seats Worn", severity: "medium", description: "الكراسي مستهلكة" },
+      { category: "الداخلية", faultName: "فك في براغي الكراسي - Seats Loose Screws", severity: "low", description: "براغي الكراسي غير مثبتة" },
+      { category: "الداخلية", faultName: "ازرار تحكم الكراسي لا تعمل - Seat Controls Not Working", severity: "medium", description: "أزرار تحكم الكراسي لا تعمل" },
+      { category: "الداخلية", faultName: "ازرار تحكم الكراسي كسر - Seat Controls Broken", severity: "medium", description: "أزرار تحكم الكراسي مكسورة" },
+      { category: "الداخلية", faultName: "حزام الأمان لا يعمل - Seatbelt Not Working", severity: "high", description: "حزام الأمان لا يعمل" },
+      { category: "الداخلية", faultName: "حزام الأمان قطع - Seatbelt Cut", severity: "high", description: "حزام الأمان مقطوع" },
+      { category: "الداخلية", faultName: "حزام الأمان حالة سيئة - Seatbelt Poor Condition", severity: "medium", description: "حزام الأمان حالته سيئة" },
+      { category: "الداخلية", faultName: "حزام الأمان لا يوجد - Seatbelt Missing", severity: "high", description: "حزام الأمان غير موجود" },
+      { category: "الداخلية", faultName: "كفر حزام الأمان كسر - Seatbelt Cover Broken", severity: "low", description: "كفر حزام الأمان مكسور" },
+      { category: "الداخلية", faultName: "ايرباق مبدل - Airbag Replaced", severity: "medium", description: "الإيرباق تم استبداله" },
+      { category: "الداخلية", faultName: "ايرباق حالة سيئة - Airbag Poor Condition", severity: "high", description: "الإيرباق حالته سيئة" },
+      { category: "الداخلية", faultName: "ايرباق لا يوجد - Airbag Missing", severity: "high", description: "الإيرباق غير موجود" },
+      { category: "الداخلية", faultName: "الداشبورد مبدل - Dashboard Replaced", severity: "medium", description: "الداشبورد تم استبداله" },
+      { category: "الداخلية", faultName: "الداشبورد منجد - Dashboard Upholstered", severity: "low", description: "الداشبورد منجد" },
+      { category: "الداخلية", faultName: "الداشبورد حالة سيئة - Dashboard Poor Condition", severity: "medium", description: "الداشبورد حالته سيئة" },
+      { category: "الداخلية", faultName: "الداشبورد كسر - Dashboard Broken", severity: "medium", description: "الداشبورد مكسور" },
+      { category: "الداخلية", faultName: "كفر الداشبورد كسر - Dashboard Cover Broken", severity: "low", description: "كفر الداشبورد مكسور" },
+      { category: "الداخلية", faultName: "السكان مبدل - Steering Replaced", severity: "medium", description: "السكان تم استبداله" },
+      { category: "الداخلية", faultName: "السكان حالة سيئة - Steering Poor Condition", severity: "medium", description: "السكان حالته سيئة" },
+      { category: "الداخلية", faultName: "السكان صدا أسفل - Steering Rust Underneath", severity: "medium", description: "صدأ أسفل السكان" },
+      { category: "الداخلية", faultName: "السكان توجد تلبيسة - Steering Cover Present", severity: "low", description: "السكان فيه تلبيسة" },
+      { category: "الداخلية", faultName: "الكنصولة مبدلة - Console Replaced", severity: "medium", description: "الكنصولة تم استبدالها" },
+      { category: "الداخلية", faultName: "الكنصولة منجدة - Console Upholstered", severity: "low", description: "الكنصولة منجدة" },
+      { category: "الداخلية", faultName: "الكنصولة تثبيت سيئ - Console Poor Installation", severity: "low", description: "تثبيت الكنصولة سيئ" },
+      { category: "الداخلية", faultName: "الكنصولة فك - Console Loose", severity: "low", description: "الكنصولة غير مثبتة" },
+      { category: "الداخلية", faultName: "الكنصولة نقص براغي - Console Missing Screws", severity: "low", description: "براغي الكنصولة ناقصة" },
+      { category: "الداخلية", faultName: "ازرار التحكم الداخلية حالة سيئة - Interior Controls Poor", severity: "medium", description: "أزرار التحكم الداخلية حالتها سيئة" },
+      { category: "الداخلية", faultName: "ازرار التحكم الداخلية نقص - Interior Controls Missing", severity: "medium", description: "أزرار التحكم الداخلية ناقصة" },
+      { category: "الداخلية", faultName: "ازرار التحكم الداخلية لا تعمل - Interior Controls Not Working", severity: "medium", description: "أزرار التحكم الداخلية لا تعمل" },
+      { category: "الداخلية", faultName: "ازرار التحكم الداخلية كسر - Interior Controls Broken", severity: "medium", description: "أزرار التحكم الداخلية مكسورة" },
+      { category: "الداخلية", faultName: "فتحات التكيف حالة سيئة - AC Vents Poor Condition", severity: "low", description: "فتحات التكييف حالتها سيئة" },
+      { category: "الداخلية", faultName: "فلتر المكيف حالة سيئة - AC Filter Poor Condition", severity: "low", description: "فلتر المكيف حالته سيئة" },
+      { category: "الداخلية", faultName: "مروحة المكيف لا تعمل - AC Fan Not Working", severity: "medium", description: "مروحة المكيف لا تعمل" },
+      { category: "الداخلية", faultName: "موتور المكيف لا يعمل - AC Motor Not Working", severity: "medium", description: "موتور المكيف لا يعمل" },
+      { category: "الداخلية", faultName: "غاز المكيف ضعيف - AC Gas Low", severity: "medium", description: "غاز المكيف ضعيف" },
+      { category: "الداخلية", faultName: "ثلاجة داخلية لا تعمل - Interior Fridge Not Working", severity: "low", description: "الثلاجة الداخلية لا تعمل" },
+      { category: "الداخلية", faultName: "مرايا داخلية حالة سيئة - Interior Mirror Poor", severity: "low", description: "المرايا الداخلية حالتها سيئة" },
+      { category: "الداخلية", faultName: "شمسية حالة سيئة - Sun Visor Poor Condition", severity: "low", description: "الشمسية حالتها سيئة" },
+      { category: "الداخلية", faultName: "مساحات لا تعمل - Wipers Not Working", severity: "medium", description: "المساحات لا تعمل" },
+      { category: "الداخلية", faultName: "دبة المساحات لا تعمل - Wiper Washer Not Working", severity: "low", description: "دبة المساحات لا تعمل" },
+      { category: "الداخلية", faultName: "شاشة العداد حالة سيئة - Cluster Screen Poor", severity: "medium", description: "شاشة العداد حالتها سيئة" },
+      { category: "الداخلية", faultName: "شاشة الداشبورد لا تعمل - Dashboard Screen Not Working", severity: "medium", description: "شاشة الداشبورد لا تعمل" },
+      { category: "الداخلية", faultName: "الراديو لا يعمل - Radio Not Working", severity: "low", description: "الراديو لا يعمل" },
+      { category: "الداخلية", faultName: "السماعات لا تعمل - Speakers Not Working", severity: "low", description: "السماعات لا تعمل" },
+      { category: "الداخلية", faultName: "ليتات السقف لا تعمل - Roof Lights Not Working", severity: "low", description: "ليتات السقف لا تعمل" },
+      { category: "الداخلية", faultName: "مقابض حالة سيئة - Handles Poor Condition", severity: "low", description: "المقابض حالتها سيئة" },
+      { category: "الداخلية", faultName: "ولاعة لا تعمل - Lighter Not Working", severity: "low", description: "الولاعة لا تعمل" },
+      { category: "الداخلية", faultName: "شاحن لا يعمل - Charger Not Working", severity: "low", description: "الشاحن لا يعمل" },
+    ];
+
+    await db.insert(faultLibrary).values(faults);
+    console.log(`Seeded ${faults.length} faults to library`);
   }
   seedFaultLibrary().catch(console.error);
 
