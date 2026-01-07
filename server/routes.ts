@@ -463,7 +463,35 @@ Respond ONLY in valid JSON format:
         // 🔧 الشاصي (Chassis)
         { category: "الشاصي", faultName: "تلاعب أو تغيير الشاصي - Chassis Tampering", severity: "high", description: "آثار قص وتلحيم" },
         { category: "الشاصي", faultName: "رقم الشاصي غير واضح - VIN Not Readable", severity: "high", description: "الرقم مخدوش أو مطلي" },
-        { category: "الشاصي", faultName: "تلف هيكلي نتيجة حادث - Structural Damage", severity: "high", description: "انحناء أو التواء في الشاصي" }
+        { category: "الشاصي", faultName: "تلف هيكلي نتيجة حادث - Structural Damage", severity: "high", description: "انحناء أو التواء في الشاصي" },
+
+        // 🚘 الدعامية الأمامية (Front Bumper)
+        // حالة الدعامية / Condition
+        { category: "الدعامية الأمامية", faultName: "مبدلة (تم تغييرها) - Replaced", severity: "medium", description: "الدعامية الأمامية تم استبدالها بقطعة غير أصلية" },
+        { category: "الدعامية الأمامية", faultName: "مصبوغة (طلاء جديد) - Repainted", severity: "low", description: "الدعامية الأمامية تم إعادة صبغها" },
+        { category: "الدعامية الأمامية", faultName: "محولة (تم تعديلها) - Modified", severity: "medium", description: "الدعامية الأمامية تم تعديلها عن الأصلي" },
+        { category: "الدعامية الأمامية", faultName: "مضاف لها أجزاء أو تزويد - Added Parts", severity: "low", description: "تم إضافة قطع أو إكسسوارات على الدعامية" },
+        
+        // أضرار وإصلاحات / Damages & Repairs
+        { category: "الدعامية الأمامية", faultName: "كسر - Broken", severity: "high", description: "الدعامية الأمامية مكسورة" },
+        { category: "الدعامية الأمامية", faultName: "ضربة - Impact Damage", severity: "high", description: "الدعامية ضربتها حادث أو صدم" },
+        { category: "الدعامية الأمامية", faultName: "خدوش - Scratches", severity: "low", description: "خدوش بسيطة أو سطحية على الدعامية" },
+        { category: "الدعامية الأمامية", faultName: "تصليح وتلحيم - Repaired & Welded", severity: "medium", description: "الدعامية تم تصليحها ولحامها" },
+        { category: "الدعامية الأمامية", faultName: "الصبغ حالة سيئة - Poor Paint Condition", severity: "medium", description: "الطلاء متعب أو سيئ الجودة" },
+        
+        // التركيب والثبات / Installation & Fit
+        { category: "الدعامية الأمامية", faultName: "نقص كليبات - Missing Clips", severity: "low", description: "قطع تثبيت ناقصة" },
+        { category: "الدعامية الأمامية", faultName: "نقص براغي - Missing Screws", severity: "low", description: "البراغي غير مكتملة" },
+        { category: "الدعامية الأمامية", faultName: "تثبيت سيء - Poor Installation", severity: "medium", description: "التركيب غير مضبوط" },
+        { category: "الدعامية الأمامية", faultName: "اختلاف في الميزانية - Misalignment", severity: "medium", description: "التركيب غير متناسق مع باقي السيارة" },
+        
+        // نيكل كروم / Chrome Parts
+        { category: "الدعامية الأمامية", faultName: "نيكل كروم حالة سيئة - Chrome Poor Condition", severity: "low", description: "الكروم فيه خدوش أو صدأ" },
+        { category: "الدعامية الأمامية", faultName: "نيكل كروم كسر - Chrome Broken", severity: "medium", description: "كروم الدعامية مكسور" },
+        { category: "الدعامية الأمامية", faultName: "نيكل كروم لا يوجد - Chrome Missing", severity: "medium", description: "الكروم غير موجود أصلاً" },
+        
+        // ملاحظات إضافية / Notes
+        { category: "الدعامية الأمامية", faultName: "يوجد عليها جلاد - Stickers/Decals Present", severity: "low", description: "يوجد ملصقات أو إضافات خارجية على الدعامية" }
       ];
       await db.insert(faultLibrary).values(faults);
     }
