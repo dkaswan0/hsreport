@@ -150,27 +150,40 @@ export async function registerRoutes(
 
       const imageUrl = imageBase64.startsWith('data:') ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`;
 
-      // Use gpt-4o-mini for faster responses
+      // Use gpt-4o for accurate fault detection
       const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4o",
         messages: [
+          {
+            role: "system",
+            content: `أنت خبير فحص سيارات محترف. مهمتك تحديد الأعطال بدقة من الصور.
+اذكر العطل بشكل مباشر وواضح مثل: "الزيت ناقص"، "البطارية ضعيفة"، "الفرامل متآكلة"، "تسريب زيت"، "شمعات احتراق تالفة".
+لا تستخدم عبارات عامة مثل "قد يسبب" أو "ربما يؤدي". اذكر المشكلة الفعلية المرئية في الصورة.`
+          },
           {
             role: "user",
             content: [
               {
                 type: "text",
-                text: `حلل صورة جزء السيارة. اذكر فقط اسم العطل وما قد يسببه (بدون تشخيص مفصل).
+                text: `حلل هذه الصورة وحدد العطل الموجود بدقة.
+
+مثال على إجابة صحيحة:
+- إذا رأيت مستوى زيت منخفض: "الزيت ناقص - يحتاج تعبئة"
+- إذا رأيت تآكل: "الفرامل متآكلة - تحتاج تبديل"
+- إذا رأيت تسريب: "تسريب زيت من المحرك"
+- إذا رأيت صدأ: "صدأ في الهيكل السفلي"
+
 أجب بـ JSON فقط:
-{"detectedPart":"اسم بالإنجليزي","detectedPartArabic":"اسم بالعربي","category":"البودي","suggestedFaults":[{"faultName":"اسم العطل بالعربي","severity":"medium","cause":"قد يسبب: مشكلة محتملة"}]}`
+{"detectedPart":"Engine Oil","detectedPartArabic":"زيت المحرك","category":"المحرك","suggestedFaults":[{"faultName":"العطل المحدد بالضبط","severity":"high/medium/low","description":"وصف دقيق للمشكلة المرئية"}]}`
               },
               {
                 type: "image_url",
-                image_url: { url: imageUrl, detail: "low" }
+                image_url: { url: imageUrl, detail: "high" }
               }
             ]
           }
         ],
-        max_tokens: 500
+        max_tokens: 800
       });
 
       const content = response.choices[0].message.content || "{}";
