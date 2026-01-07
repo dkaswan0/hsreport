@@ -48,6 +48,20 @@ export const INSPECTION_CATEGORIES = [
   { id: "fuel_pump", label: "الفيول بمب", labelEn: "Fuel Pump" },
   { id: "tie_rod", label: "التايررود", labelEn: "Tie Rod" },
   { id: "stabilizer_link", label: "الاستبلايزرلينك", labelEn: "Stabilizer Link" },
+  // Electrical System Categories
+  { id: "battery", label: "البطارية", labelEn: "Battery" },
+  { id: "charging_system", label: "نظام الشحن", labelEn: "Charging System" },
+  { id: "starting_system", label: "نظام التشغيل", labelEn: "Starting System" },
+  { id: "ignition_system", label: "نظام الاشتعال", labelEn: "Ignition System" },
+  { id: "ecu_computers", label: "الكمبيوتر والتحكم", labelEn: "ECU & Computers" },
+  { id: "sensors", label: "الحساسات", labelEn: "Sensors" },
+  { id: "lighting", label: "نظام الإضاءة", labelEn: "Lighting System" },
+  { id: "wiring", label: "التوصيلات والحماية", labelEn: "Wiring & Protection" },
+  { id: "interior_electrical", label: "الكهرباء الداخلية", labelEn: "Interior Electrical" },
+  { id: "ac_electrical", label: "كهرباء المكيف", labelEn: "AC Electrical" },
+  { id: "entertainment", label: "الترفيه والمعلومات", labelEn: "Entertainment & Info" },
+  { id: "safety_systems", label: "أنظمة الأمان", labelEn: "Safety Systems" },
+  { id: "driver_assist", label: "أنظمة مساعدة القيادة", labelEn: "Driver Assistance" },
 ];
 
 export const CATEGORY_GROUPS = [
@@ -95,6 +109,11 @@ export const CATEGORY_GROUPS = [
     group: "نظام الوقود والتوجيه",
     groupEn: "Fuel & Steering",
     categories: ["fuel_tank", "power_steering", "fuel_pump"]
+  },
+  {
+    group: "النظام الكهربائي",
+    groupEn: "Electrical System",
+    categories: ["battery", "charging_system", "starting_system", "ignition_system", "ecu_computers", "sensors", "lighting", "wiring", "interior_electrical", "ac_electrical", "entertainment", "safety_systems", "driver_assist"]
   }
 ];
 
