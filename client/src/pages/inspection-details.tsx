@@ -519,7 +519,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm animate-in fade-in" />
-        <Dialog.Content className="fixed inset-2 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 bg-white rounded-2xl shadow-2xl p-4 md:p-6 w-auto md:w-full md:max-w-lg z-50 animate-in zoom-in-95 duration-200 overflow-y-auto max-h-[96vh]">
+        <Dialog.Content className="fixed bottom-0 left-0 right-0 md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 bg-white rounded-t-3xl md:rounded-2xl shadow-2xl p-4 md:p-6 w-full md:max-w-lg z-50 animate-in slide-in-from-bottom md:zoom-in-95 duration-200 overflow-y-auto max-h-[85vh] md:max-h-[90vh]">
           <Dialog.Title className="text-xl font-bold mb-4 text-slate-900">زيد ملاحظة يديدة</Dialog.Title>
           
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -539,8 +539,8 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
                   />
                 </div>
                 {searchOpen && (
-                  <div className="fixed inset-0 md:absolute md:inset-auto md:top-full md:left-0 md:right-0 md:mt-1 bg-white md:border md:border-slate-200 md:rounded-xl md:shadow-lg z-[60]">
-                    <div className="flex items-center justify-between px-3 py-2 border-b bg-slate-50 md:bg-white md:rounded-t-xl">
+                  <div className="absolute inset-x-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-[100] max-h-[200px] overflow-y-auto">
+                    <div className="sticky top-0 flex items-center justify-between px-3 py-2 border-b bg-white rounded-t-xl z-10">
                       <span className="text-sm font-medium text-slate-700">الأعطال ({filteredFaults.length})</span>
                       <button
                         type="button"
@@ -550,35 +550,33 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
                         <XCircle className="w-5 h-5" />
                       </button>
                     </div>
-                    <div className="h-[calc(100vh-100px)] md:max-h-[300px] overflow-y-auto overscroll-contain">
-                      {filteredFaults.length === 0 ? (
-                        <div className="py-6 text-center text-sm text-slate-500">ما لقينا شي</div>
-                      ) : (
-                        filteredFaults.map(fault => (
-                          <button
-                            key={fault.id}
-                            type="button"
-                            onClick={() => {
-                              handleFaultSelect(fault.faultName);
-                              setSearchOpen(false);
-                            }}
-                            className={cn(
-                              "w-full flex items-center justify-between gap-2 px-3 py-3 text-right hover:bg-slate-100 active:bg-slate-200 transition-colors cursor-pointer border-b border-slate-100",
-                              formData.faultName === fault.faultName && "bg-primary/10"
-                            )}
-                            data-testid={`fault-item-${fault.id}`}
-                          >
-                            <div className="flex-1 min-w-0">
-                              <div className="font-medium text-sm">{fault.faultName}</div>
-                              <div className="text-xs text-slate-400">{getCategoryLabel(fault.category) || fault.category}</div>
-                            </div>
-                            {formData.faultName === fault.faultName && (
-                              <Check className="w-5 h-5 text-primary shrink-0" />
-                            )}
-                          </button>
-                        ))
-                      )}
-                    </div>
+                    {filteredFaults.length === 0 ? (
+                      <div className="py-4 text-center text-sm text-slate-500">ما لقينا شي</div>
+                    ) : (
+                      filteredFaults.slice(0, 50).map(fault => (
+                        <button
+                          key={fault.id}
+                          type="button"
+                          onClick={() => {
+                            handleFaultSelect(fault.faultName);
+                            setSearchOpen(false);
+                          }}
+                          className={cn(
+                            "w-full flex items-center justify-between gap-2 px-3 py-2 text-right hover:bg-slate-100 active:bg-slate-200 transition-colors cursor-pointer border-b border-slate-100",
+                            formData.faultName === fault.faultName && "bg-primary/10"
+                          )}
+                          data-testid={`fault-item-${fault.id}`}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm">{fault.faultName}</div>
+                            <div className="text-xs text-slate-400">{getCategoryLabel(fault.category) || fault.category}</div>
+                          </div>
+                          {formData.faultName === fault.faultName && (
+                            <Check className="w-5 h-5 text-primary shrink-0" />
+                          )}
+                        </button>
+                      ))
+                    )}
                   </div>
                 )}
               </div>
@@ -618,7 +616,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
               <textarea 
                 value={formData.description || ''}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all min-h-[80px]"
+                className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all min-h-[60px] md:min-h-[80px]"
                 placeholder="زيد تفاصيل..."
               />
             </div>
@@ -683,7 +681,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
                 </button>
               </div>
               {photo && (
-                <div className="mt-2 relative w-full aspect-video rounded-xl overflow-hidden border border-slate-200">
+                <div className="mt-2 relative w-full h-32 md:h-40 rounded-xl overflow-hidden border border-slate-200">
                   <img src={photo} alt="Preview" className="w-full h-full object-cover" />
                   <button 
                     type="button"
@@ -704,15 +702,14 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
               )}
               
               {detectedPart && !photoAnalysis.isPending && (
-                <div className="mt-2 p-3 bg-green-50 rounded-xl border border-green-200">
-                  <div className="flex items-center gap-2 text-green-700 mb-2">
+                <div className="mt-2 p-2 bg-green-50 rounded-xl border border-green-200">
+                  <div className="flex items-center gap-2 text-green-700">
                     <Sparkles className="w-4 h-4" />
                     <span className="text-sm font-bold font-arabic">لقينا: {detectedPart}</span>
                   </div>
                   {aiSuggestions.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="text-xs text-green-600 font-arabic">الأعطال اللي شفناها:</p>
-                      {aiSuggestions.map((suggestion, idx) => (
+                    <div className="mt-2 space-y-1 max-h-[120px] overflow-y-auto">
+                      {aiSuggestions.slice(0, 3).map((suggestion, idx) => (
                         <button
                           key={idx}
                           type="button"
@@ -726,10 +723,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
                           }}
                           className="w-full text-right p-2 bg-white rounded-lg border border-green-100 hover:border-green-300 transition-all text-sm"
                         >
-                          <div className="font-medium text-slate-800 font-arabic">{suggestion.faultName}</div>
-                          {(suggestion.cause || suggestion.description) && (
-                            <div className="text-xs text-slate-500 font-arabic">{suggestion.cause || suggestion.description}</div>
-                          )}
+                          <div className="font-medium text-slate-800 font-arabic text-xs">{suggestion.faultName}</div>
                         </button>
                       ))}
                     </div>
