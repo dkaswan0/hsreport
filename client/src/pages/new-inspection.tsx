@@ -4,10 +4,11 @@ import { insertInspectionSchema } from "@shared/schema";
 import { useCreateInspection, useVinDecoder } from "@/hooks/use-inspections";
 import { useLocation } from "wouter";
 import { z } from "zod";
-import { Loader2, ArrowLeft, Search, Camera, Car, Fuel, Gauge, Settings, MapPin, CheckCircle2 } from "lucide-react";
+import { Loader2, ArrowLeft, Search, Camera, Car, Fuel, Gauge, Settings, MapPin, CheckCircle2, ScanLine } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
-import Tesseract from 'tesseract.js';
+import { VinScannerModal } from "@/components/vin-scanner-modal";
+import { Button } from "@/components/ui/button";
 
 const formSchema = insertInspectionSchema.extend({
   vin: z.string().min(17, "رقم الشاصي يجب أن يكون 17 حرفاً").max(17),
@@ -21,8 +22,7 @@ export default function NewInspection() {
   const [, setLocation] = useLocation();
   const { mutate, isPending } = useCreateInspection();
   const [vinQuery, setVinQuery] = useState("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isScanning, setIsScanning] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
   
   const { data: vinData, isFetching: isDecoding } = useVinDecoder(vinQuery);
 
@@ -42,24 +42,9 @@ export default function NewInspection() {
     }
   });
 
-  const handleScanVin = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsScanning(true);
-    try {
-      const { data: { text } } = await Tesseract.recognize(file, 'eng');
-      const vinMatch = text.replace(/[^A-Z0-9]/g, '').match(/[A-HJ-NPR-Z0-9]{17}/);
-      if (vinMatch) {
-        const vin = vinMatch[0];
-        form.setValue("vin", vin);
-        setVinQuery(vin);
-      }
-    } catch (err) {
-      console.error("Scanning failed:", err);
-    } finally {
-      setIsScanning(false);
-    }
+  const handleVinScanned = (vin: string) => {
+    form.setValue("vin", vin);
+    setVinQuery(vin);
   };
 
   // Auto-fill form when VIN data arrives
@@ -153,22 +138,17 @@ export default function NewInspection() {
               <div className="col-span-full">
                 <div className="flex justify-between items-end mb-2">
                   <label className="block text-sm font-medium text-slate-700 font-arabic">رقم الشاصي (VIN)</label>
-                  <button
+                  <Button
                     type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-arabic"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowScanner(true)}
+                    className="flex items-center gap-2"
+                    data-testid="button-open-scanner"
                   >
-                    <Camera className="w-4 h-4" />
-                    مسح رقم الشاصي (Scan)
-                  </button>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleScanVin}
-                    accept="image/*"
-                    capture="environment"
-                    className="hidden"
-                  />
+                    <ScanLine className="w-4 h-4" />
+                    مسح بالكاميرا
+                  </Button>
                 </div>
                 <div className="relative">
                   <input
@@ -180,16 +160,17 @@ export default function NewInspection() {
                     )}
                     placeholder="WBA..."
                     maxLength={17}
+                    data-testid="input-vin"
                   />
                   <div className="absolute left-3 top-1/2 -translate-y-1/2 rtl:right-auto rtl:left-3">
-                    {isDecoding || isScanning ? <Loader2 className="w-5 h-5 animate-spin text-accent" /> : <Search className="w-5 h-5 text-slate-400" />}
+                    {isDecoding ? <Loader2 className="w-5 h-5 animate-spin text-accent" /> : <Search className="w-5 h-5 text-slate-400" />}
                   </div>
                 </div>
-                {isScanning && <p className="text-accent text-xs mt-1 font-arabic">جاري استخراج رقم الشاصي...</p>}
+                {isDecoding && <p className="text-accent text-xs mt-1 font-arabic">جاري جلب بيانات المركبة...</p>}
                 {vinError && (
                   <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-xl">
                     <p className="text-red-600 text-sm font-arabic">{vinError}</p>
-                    <p className="text-red-500 text-xs mt-1 font-arabic">يرجى إدخال البيانات يدوياً أو التحقق من مفتاح CarsXE API</p>
+                    <p className="text-red-500 text-xs mt-1 font-arabic">يرجى إدخال البيانات يدوياً أو التحقق من رقم الشاصي</p>
                   </div>
                 )}
                 {form.formState.errors.vin && (
@@ -372,6 +353,12 @@ export default function NewInspection() {
           </div>
         </form>
       </div>
+
+      <VinScannerModal
+        isOpen={showScanner}
+        onClose={() => setShowScanner(false)}
+        onVinScanned={handleVinScanned}
+      />
     </div>
   );
 }
