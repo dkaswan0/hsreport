@@ -96,27 +96,27 @@ export default function PublicReport() {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
-          <div className="bg-white rounded-2xl p-4 text-center shadow-sm border border-slate-100">
-            <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center mx-auto mb-2">
-              <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+        <div className="grid grid-cols-3 gap-2 md:gap-4">
+          <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-4 text-center shadow-sm border border-slate-100">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-emerald-100 flex items-center justify-center mx-auto mb-2">
+              <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6 text-emerald-600" />
             </div>
-            <div className="text-2xl font-black text-emerald-600">{passCount}</div>
-            <div className="text-sm text-slate-600 font-arabic font-semibold">سليم</div>
+            <div className="text-xl md:text-2xl font-black text-emerald-600">{passCount}</div>
+            <div className="text-xs md:text-sm text-slate-600 font-arabic font-semibold">سليم</div>
           </div>
-          <div className="bg-white rounded-2xl p-4 text-center shadow-sm border border-slate-100">
-            <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center mx-auto mb-2">
-              <AlertCircle className="w-6 h-6 text-amber-600" />
+          <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-4 text-center shadow-sm border border-slate-100">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-amber-100 flex items-center justify-center mx-auto mb-2">
+              <AlertCircle className="w-5 h-5 md:w-6 md:h-6 text-amber-600" />
             </div>
-            <div className="text-2xl font-black text-amber-600">{warningCount}</div>
-            <div className="text-sm text-slate-600 font-arabic font-semibold">تحذير</div>
+            <div className="text-xl md:text-2xl font-black text-amber-600">{warningCount}</div>
+            <div className="text-xs md:text-sm text-slate-600 font-arabic font-semibold">تحذير</div>
           </div>
-          <div className="bg-white rounded-2xl p-4 text-center shadow-sm border border-slate-100">
-            <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center mx-auto mb-2">
-              <XCircle className="w-6 h-6 text-red-600" />
+          <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-4 text-center shadow-sm border border-slate-100">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-red-100 flex items-center justify-center mx-auto mb-2">
+              <XCircle className="w-5 h-5 md:w-6 md:h-6 text-red-600" />
             </div>
-            <div className="text-2xl font-black text-red-600">{failCount}</div>
-            <div className="text-sm text-slate-600 font-arabic font-semibold">خطير</div>
+            <div className="text-xl md:text-2xl font-black text-red-600">{failCount}</div>
+            <div className="text-xs md:text-sm text-slate-600 font-arabic font-semibold">خطير</div>
           </div>
         </div>
 
@@ -125,40 +125,40 @@ export default function PublicReport() {
             <Car className="w-6 h-6 text-primary" />
             معلومات السيارة
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-slate-50 rounded-xl p-3">
-              <div className="text-sm text-slate-500 font-arabic mb-1">الشركة المصنعة</div>
-              <div className="font-bold text-lg text-slate-800">{inspection.make || '-'}</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+            <div className="bg-slate-50 rounded-lg md:rounded-xl p-2 md:p-3">
+              <div className="text-xs md:text-sm text-slate-500 font-arabic mb-1">الشركة المصنعة</div>
+              <div className="font-bold text-base md:text-lg text-slate-800 truncate">{inspection.make || '-'}</div>
             </div>
-            <div className="bg-slate-50 rounded-xl p-3">
-              <div className="text-sm text-slate-500 font-arabic mb-1">الموديل</div>
-              <div className="font-bold text-lg text-slate-800">{inspection.model || '-'}</div>
+            <div className="bg-slate-50 rounded-lg md:rounded-xl p-2 md:p-3">
+              <div className="text-xs md:text-sm text-slate-500 font-arabic mb-1">الموديل</div>
+              <div className="font-bold text-base md:text-lg text-slate-800 truncate">{inspection.model || '-'}</div>
             </div>
-            <div className="bg-slate-50 rounded-xl p-3">
-              <div className="text-sm text-slate-500 font-arabic mb-1">سنة الصنع</div>
-              <div className="font-bold text-lg text-slate-800">{inspection.year || '-'}</div>
+            <div className="bg-slate-50 rounded-lg md:rounded-xl p-2 md:p-3">
+              <div className="text-xs md:text-sm text-slate-500 font-arabic mb-1">سنة الصنع</div>
+              <div className="font-bold text-base md:text-lg text-slate-800">{inspection.year || '-'}</div>
             </div>
-            <div className="bg-slate-50 rounded-xl p-3">
-              <div className="text-sm text-slate-500 font-arabic mb-1">عداد الكيلومترات</div>
-              <div className="font-bold text-lg text-slate-800">{inspection.odometer?.toLocaleString() || '0'} كم</div>
+            <div className="bg-slate-50 rounded-lg md:rounded-xl p-2 md:p-3">
+              <div className="text-xs md:text-sm text-slate-500 font-arabic mb-1">عداد الكيلومترات</div>
+              <div className="font-bold text-base md:text-lg text-slate-800">{inspection.odometer?.toLocaleString() || '0'} كم</div>
             </div>
           </div>
           {inspection.customerName && (
-            <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-2 gap-4">
-              <div className="bg-slate-50 rounded-xl p-3">
-                <div className="text-sm text-slate-500 font-arabic mb-1 flex items-center gap-2">
+            <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
+              <div className="bg-slate-50 rounded-lg md:rounded-xl p-2 md:p-3">
+                <div className="text-xs md:text-sm text-slate-500 font-arabic mb-1 flex items-center gap-2">
                   <User className="w-4 h-4" />
                   اسم العميل
                 </div>
-                <div className="font-bold text-lg text-slate-800">{inspection.customerName}</div>
+                <div className="font-bold text-base md:text-lg text-slate-800">{inspection.customerName}</div>
               </div>
               {inspection.customerPhone && (
-                <div className="bg-slate-50 rounded-xl p-3">
-                  <div className="text-sm text-slate-500 font-arabic mb-1 flex items-center gap-2">
+                <div className="bg-slate-50 rounded-lg md:rounded-xl p-2 md:p-3">
+                  <div className="text-xs md:text-sm text-slate-500 font-arabic mb-1 flex items-center gap-2">
                     <Phone className="w-4 h-4" />
                     رقم الهاتف
                   </div>
-                  <div className="font-bold text-lg text-slate-800 font-mono">{inspection.customerPhone}</div>
+                  <div className="font-bold text-base md:text-lg text-slate-800 font-mono">{inspection.customerPhone}</div>
                 </div>
               )}
             </div>

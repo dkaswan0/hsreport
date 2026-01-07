@@ -62,8 +62,11 @@ export default function InspectionDetails() {
       onSuccess: () => {
         toast({ title: "تم التحديث", description: "تم تحديث حالة الفحص بنجاح" });
         if (status === 'completed') {
-          window.location.href = `/reports/${id}`;
+          window.location.assign(`/reports/${id}`);
         }
+      },
+      onError: () => {
+        toast({ title: "خطأ", description: "فشل في تحديث حالة الفحص، حاول مرة أخرى", variant: "destructive" });
       }
     });
   };
