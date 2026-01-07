@@ -63,9 +63,9 @@ export default function PublicReport() {
   const passCount = items.filter(i => i.status === 'pass').length;
 
   const getOverallStatus = () => {
-    if (failCount > 0) return { label: 'يحتاج إصلاح', color: 'text-red-400', bg: 'bg-red-500/20', icon: XCircle };
+    if (failCount > 0) return { label: 'يحتاج إصلاح عاجل', color: 'text-red-400', bg: 'bg-red-500/20', icon: XCircle };
     if (warningCount > 0) return { label: 'يحتاج متابعة', color: 'text-amber-400', bg: 'bg-amber-500/20', icon: AlertCircle };
-    return { label: 'جيدة', color: 'text-emerald-400', bg: 'bg-emerald-500/20', icon: CheckCircle2 };
+    return { label: 'حالة ممتازة', color: 'text-emerald-400', bg: 'bg-emerald-500/20', icon: CheckCircle2 };
   };
 
   const status = getOverallStatus();
@@ -102,56 +102,77 @@ export default function PublicReport() {
               <CheckCircle2 className="w-6 h-6 text-emerald-600" />
             </div>
             <div className="text-2xl font-black text-emerald-600">{passCount}</div>
-            <div className="text-xs text-slate-500 font-arabic">جيد</div>
+            <div className="text-sm text-slate-600 font-arabic font-semibold">سليم</div>
           </div>
           <div className="bg-white rounded-2xl p-4 text-center shadow-sm border border-slate-100">
             <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center mx-auto mb-2">
               <AlertCircle className="w-6 h-6 text-amber-600" />
             </div>
             <div className="text-2xl font-black text-amber-600">{warningCount}</div>
-            <div className="text-xs text-slate-500 font-arabic">تنبيه</div>
+            <div className="text-sm text-slate-600 font-arabic font-semibold">تحذير</div>
           </div>
           <div className="bg-white rounded-2xl p-4 text-center shadow-sm border border-slate-100">
             <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center mx-auto mb-2">
               <XCircle className="w-6 h-6 text-red-600" />
             </div>
             <div className="text-2xl font-black text-red-600">{failCount}</div>
-            <div className="text-xs text-slate-500 font-arabic">يحتاج إصلاح</div>
+            <div className="text-sm text-slate-600 font-arabic font-semibold">خطير</div>
           </div>
         </div>
 
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-          <h2 className="text-lg font-bold mb-4 flex items-center gap-2 font-arabic">
-            <Car className="w-5 h-5 text-primary" />
-            بيانات المركبة
+          <h2 className="text-xl font-bold mb-4 flex items-center gap-2 font-arabic text-slate-800">
+            <Car className="w-6 h-6 text-primary" />
+            معلومات السيارة
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <div className="text-xs text-slate-400 font-arabic">الشركة</div>
-              <div className="font-bold">{inspection.make || '-'}</div>
+            <div className="bg-slate-50 rounded-xl p-3">
+              <div className="text-sm text-slate-500 font-arabic mb-1">الشركة المصنعة</div>
+              <div className="font-bold text-lg text-slate-800">{inspection.make || '-'}</div>
             </div>
-            <div>
-              <div className="text-xs text-slate-400 font-arabic">الموديل</div>
-              <div className="font-bold">{inspection.model || '-'}</div>
+            <div className="bg-slate-50 rounded-xl p-3">
+              <div className="text-sm text-slate-500 font-arabic mb-1">الموديل</div>
+              <div className="font-bold text-lg text-slate-800">{inspection.model || '-'}</div>
             </div>
-            <div>
-              <div className="text-xs text-slate-400 font-arabic">سنة الصنع</div>
-              <div className="font-bold">{inspection.year || '-'}</div>
+            <div className="bg-slate-50 rounded-xl p-3">
+              <div className="text-sm text-slate-500 font-arabic mb-1">سنة الصنع</div>
+              <div className="font-bold text-lg text-slate-800">{inspection.year || '-'}</div>
             </div>
-            <div>
-              <div className="text-xs text-slate-400 font-arabic">العداد</div>
-              <div className="font-bold">{inspection.odometer?.toLocaleString() || '-'} كم</div>
+            <div className="bg-slate-50 rounded-xl p-3">
+              <div className="text-sm text-slate-500 font-arabic mb-1">عداد الكيلومترات</div>
+              <div className="font-bold text-lg text-slate-800">{inspection.odometer?.toLocaleString() || '0'} كم</div>
             </div>
           </div>
+          {inspection.customerName && (
+            <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-2 gap-4">
+              <div className="bg-slate-50 rounded-xl p-3">
+                <div className="text-sm text-slate-500 font-arabic mb-1 flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  اسم العميل
+                </div>
+                <div className="font-bold text-lg text-slate-800">{inspection.customerName}</div>
+              </div>
+              {inspection.customerPhone && (
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <div className="text-sm text-slate-500 font-arabic mb-1 flex items-center gap-2">
+                    <Phone className="w-4 h-4" />
+                    رقم الهاتف
+                  </div>
+                  <div className="font-bold text-lg text-slate-800 font-mono">{inspection.customerPhone}</div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {items.length > 0 && (
           <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100">
             <div className="p-6 border-b border-slate-100">
-              <h2 className="text-lg font-bold flex items-center gap-2 font-arabic">
-                <AlertTriangle className="w-5 h-5 text-amber-500" />
-                نتائج الفحص التفصيلية
+              <h2 className="text-xl font-bold flex items-center gap-2 font-arabic text-slate-800">
+                <AlertTriangle className="w-6 h-6 text-amber-500" />
+                تفاصيل الفحص الكامل
               </h2>
+              <p className="text-slate-500 text-sm mt-1 font-arabic">جميع الملاحظات والأعطال المكتشفة أثناء الفحص</p>
             </div>
             
             <div className="divide-y divide-slate-100">
@@ -201,17 +222,22 @@ export default function PublicReport() {
           </div>
         )}
 
-        <div className="bg-slate-900 rounded-2xl p-6 text-center text-white">
-          <img src={logoPath} alt="High Safety" className="h-12 mx-auto mb-3 opacity-80" />
+        <div className="bg-slate-900 rounded-2xl p-8 text-center text-white">
+          <img src={logoPath} alt="High Safety" className="h-14 mx-auto mb-4" />
+          <h3 className="text-lg font-bold font-arabic mb-2">
+            هاي سيفتي انترناشيونال
+          </h3>
           <p className="text-white/60 text-sm font-arabic">
-            هاي سيفتي انترناشيونال - الشارقة
+            مركز فحص السيارات المعتمد - الشارقة، الإمارات
           </p>
-          <p className="text-white/40 text-xs mt-2 font-arabic">
-            تم إنشاء هذا التقرير بواسطة نظام الفحص الإلكتروني
-          </p>
-          <p className="text-white/30 text-xs mt-1">
-            {new Date().toLocaleDateString('ar-AE', { year: 'numeric', month: 'long', day: 'numeric' })}
-          </p>
+          <div className="mt-4 pt-4 border-t border-white/10">
+            <p className="text-white/50 text-sm font-arabic">
+              تقرير فحص رسمي صادر من نظام الفحص الإلكتروني
+            </p>
+            <p className="text-white/40 text-sm mt-2 font-arabic">
+              تاريخ التقرير: {new Date().toLocaleDateString('ar-AE', { year: 'numeric', month: 'long', day: 'numeric' })}
+            </p>
+          </div>
         </div>
 
       </div>
