@@ -40,7 +40,20 @@ export default function InspectionDetails() {
   const { toast } = useToast();
 
   if (isLoading) return <div className="flex justify-center items-center h-96"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>;
-  if (error || !inspection) return <div className="text-center p-12 text-red-500">حدث خطأ أثناء تحميل الفحص</div>;
+  if (error) return (
+    <div className="text-center p-12">
+      <div className="text-red-500 text-xl mb-4">حدث خطأ أثناء تحميل الفحص</div>
+      <p className="text-slate-500 mb-4">تأكد من اتصالك بالإنترنت وحاول مرة أخرى</p>
+      <button onClick={() => window.location.reload()} className="px-4 py-2 bg-primary text-white rounded-lg">إعادة المحاولة</button>
+    </div>
+  );
+  if (!inspection) return (
+    <div className="text-center p-12">
+      <div className="text-amber-500 text-xl mb-4">الفحص غير موجود</div>
+      <p className="text-slate-500 mb-4">قد يكون تم حذف هذا الفحص أو الرابط غير صحيح</p>
+      <a href="/" className="px-4 py-2 bg-primary text-white rounded-lg inline-block">العودة للرئيسية</a>
+    </div>
+  );
 
   const filteredItems = inspection.items?.filter(item => item.category === activeCategory) || [];
 
