@@ -26,6 +26,7 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { useState, useMemo, useCallback } from "react";
 import logoPath from "@assets/logo_1767706304085.png";
+import carVisualizationPath from "@assets/car-visualization.png";
 import { INSPECTION_CATEGORIES, CATEGORY_GROUPS } from "@shared/categories";
 
 // Category position mapping for car visualization - organized by car part location
@@ -178,186 +179,12 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
             transform: `rotateY(${rotateY}deg) rotateX(5deg)`
           }}
         >
-          {/* Realistic Sedan Car SVG */}
-          <svg viewBox="0 0 500 200" className="w-full h-full drop-shadow-2xl">
-            <defs>
-              {/* Main body gradient - metallic blue */}
-              <linearGradient id="bodyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#60a5fa" />
-                <stop offset="30%" stopColor="#3b82f6" />
-                <stop offset="60%" stopColor="#2563eb" />
-                <stop offset="100%" stopColor="#1d4ed8" />
-              </linearGradient>
-              
-              {/* Roof highlight */}
-              <linearGradient id="roofHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#93c5fd" />
-                <stop offset="100%" stopColor="#3b82f6" />
-              </linearGradient>
-              
-              {/* Window gradient */}
-              <linearGradient id="glassGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#1e3a5f" />
-                <stop offset="50%" stopColor="#0f172a" />
-                <stop offset="100%" stopColor="#1e293b" />
-              </linearGradient>
-              
-              {/* Chrome/metal effect */}
-              <linearGradient id="chromeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#e2e8f0" />
-                <stop offset="50%" stopColor="#94a3b8" />
-                <stop offset="100%" stopColor="#64748b" />
-              </linearGradient>
-              
-              {/* Wheel gradient */}
-              <radialGradient id="wheelGradient" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#475569" />
-                <stop offset="70%" stopColor="#1e293b" />
-                <stop offset="100%" stopColor="#0f172a" />
-              </radialGradient>
-              
-              {/* Rim gradient */}
-              <radialGradient id="rimGradient" cx="30%" cy="30%" r="70%">
-                <stop offset="0%" stopColor="#cbd5e1" />
-                <stop offset="100%" stopColor="#64748b" />
-              </radialGradient>
-              
-              {/* Headlight glow */}
-              <radialGradient id="headlightGlow" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#fef3c7" />
-                <stop offset="60%" stopColor="#fde68a" />
-                <stop offset="100%" stopColor="#fbbf24" />
-              </radialGradient>
-            </defs>
-            
-            {/* Ground shadow */}
-            <ellipse cx="250" cy="188" rx="200" ry="10" fill="rgba(0,0,0,0.4)" />
-            
-            {/* Lower body / rocker panel */}
-            <path 
-              d="M55,145 L55,125 Q55,118 65,115 L435,115 Q445,118 445,125 L445,145 Q445,152 435,155 L65,155 Q55,152 55,145 Z" 
-              fill="url(#bodyGradient)"
-            />
-            
-            {/* Main body */}
-            <path 
-              d="M50,115 L65,80 Q75,65 100,60 L400,60 Q425,65 435,80 L450,115 Q455,120 450,125 L50,125 Q45,120 50,115 Z" 
-              fill="url(#bodyGradient)"
-              stroke="rgba(255,255,255,0.3)"
-              strokeWidth="0.5"
-            />
-            
-            {/* Upper body / cabin */}
-            <path 
-              d="M115,60 L140,30 Q150,18 175,18 L325,18 Q350,18 360,30 L385,60" 
-              fill="url(#roofHighlight)"
-              stroke="rgba(255,255,255,0.4)"
-              strokeWidth="0.5"
-            />
-            
-            {/* Roof panel */}
-            <path 
-              d="M145,28 Q155,20 175,20 L325,20 Q345,20 355,28 L360,30 L140,30 Z" 
-              fill="url(#roofHighlight)"
-            />
-            
-            {/* Front windshield */}
-            <path 
-              d="M122,58 L145,30 Q152,23 172,23 L200,23 L200,58 Z" 
-              fill="url(#glassGradient)"
-              stroke="rgba(100,116,139,0.5)"
-              strokeWidth="1"
-            />
-            
-            {/* Rear window */}
-            <path 
-              d="M300,23 L328,23 Q348,23 355,30 L378,58 L300,58 Z" 
-              fill="url(#glassGradient)"
-              stroke="rgba(100,116,139,0.5)"
-              strokeWidth="1"
-            />
-            
-            {/* Side windows */}
-            <rect x="205" y="23" width="90" height="35" rx="2" fill="url(#glassGradient)" stroke="rgba(100,116,139,0.5)" strokeWidth="1" />
-            
-            {/* Window pillar dividers */}
-            <rect x="200" y="23" width="4" height="35" fill="url(#bodyGradient)" />
-            <rect x="248" y="23" width="3" height="35" fill="url(#bodyGradient)" />
-            <rect x="296" y="23" width="4" height="35" fill="url(#bodyGradient)" />
-            
-            {/* Door lines */}
-            <line x1="200" y1="60" x2="200" y2="120" stroke="rgba(0,0,0,0.2)" strokeWidth="1" />
-            <line x1="300" y1="60" x2="300" y2="120" stroke="rgba(0,0,0,0.2)" strokeWidth="1" />
-            
-            {/* Door handles */}
-            <rect x="165" y="85" width="20" height="5" rx="2" fill="url(#chromeGradient)" />
-            <rect x="315" y="85" width="20" height="5" rx="2" fill="url(#chromeGradient)" />
-            
-            {/* Front grille */}
-            <rect x="48" y="95" width="15" height="25" rx="3" fill="#1e293b" />
-            <rect x="50" y="98" width="11" height="4" fill="#374151" />
-            <rect x="50" y="104" width="11" height="4" fill="#374151" />
-            <rect x="50" y="110" width="11" height="4" fill="#374151" />
-            
-            {/* Front headlights */}
-            <ellipse cx="55" cy="85" rx="8" ry="10" fill="url(#headlightGlow)" />
-            <ellipse cx="55" cy="85" rx="5" ry="6" fill="#fef3c7" />
-            
-            {/* Rear taillights */}
-            <rect x="443" y="80" width="8" height="25" rx="2" fill="#dc2626" />
-            <rect x="445" y="82" width="4" height="8" fill="#ef4444" />
-            <rect x="445" y="93" width="4" height="10" fill="#fbbf24" />
-            
-            {/* Side mirror */}
-            <ellipse cx="118" cy="55" rx="8" ry="5" fill="url(#bodyGradient)" stroke="rgba(255,255,255,0.3)" strokeWidth="0.5" />
-            
-            {/* Chrome trim line */}
-            <line x1="60" y1="110" x2="440" y2="110" stroke="url(#chromeGradient)" strokeWidth="2" />
-            
-            {/* Front wheel */}
-            <circle cx="120" cy="155" r="32" fill="url(#wheelGradient)" />
-            <circle cx="120" cy="155" r="28" fill="#1e293b" stroke="#374151" strokeWidth="3" />
-            <circle cx="120" cy="155" r="18" fill="url(#rimGradient)" />
-            <circle cx="120" cy="155" r="6" fill="#475569" />
-            {/* Wheel spokes */}
-            <g stroke="#94a3b8" strokeWidth="3">
-              <line x1="120" y1="140" x2="120" y2="148" />
-              <line x1="133" y1="148" x2="128" y2="152" />
-              <line x1="133" y1="162" x2="128" y2="158" />
-              <line x1="120" y1="170" x2="120" y2="162" />
-              <line x1="107" y1="162" x2="112" y2="158" />
-              <line x1="107" y1="148" x2="112" y2="152" />
-            </g>
-            
-            {/* Rear wheel */}
-            <circle cx="380" cy="155" r="32" fill="url(#wheelGradient)" />
-            <circle cx="380" cy="155" r="28" fill="#1e293b" stroke="#374151" strokeWidth="3" />
-            <circle cx="380" cy="155" r="18" fill="url(#rimGradient)" />
-            <circle cx="380" cy="155" r="6" fill="#475569" />
-            {/* Wheel spokes */}
-            <g stroke="#94a3b8" strokeWidth="3">
-              <line x1="380" y1="140" x2="380" y2="148" />
-              <line x1="393" y1="148" x2="388" y2="152" />
-              <line x1="393" y1="162" x2="388" y2="158" />
-              <line x1="380" y1="170" x2="380" y2="162" />
-              <line x1="367" y1="162" x2="372" y2="158" />
-              <line x1="367" y1="148" x2="372" y2="152" />
-            </g>
-            
-            {/* Body reflection highlights */}
-            <path 
-              d="M70,75 Q150,70 250,72 Q350,74 430,78" 
-              fill="none" 
-              stroke="rgba(255,255,255,0.3)" 
-              strokeWidth="2"
-            />
-            <path 
-              d="M60,105 Q150,102 250,103 Q350,104 440,107" 
-              fill="none" 
-              stroke="rgba(255,255,255,0.15)" 
-              strokeWidth="1"
-            />
-          </svg>
+          {/* Sports Car Image */}
+          <img 
+            src={carVisualizationPath} 
+            alt="Vehicle Visualization" 
+            className="w-full h-full object-contain drop-shadow-2xl"
+          />
 
           {/* Category indicators overlaid on car - only show categories with issues */}
           {INSPECTION_CATEGORIES.map(cat => {
