@@ -14,9 +14,11 @@ import {
   Camera,
   Sparkles,
   Wand2,
-  FileText
+  FileText,
+  Search,
+  Check
 } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import * as Dialog from "@radix-ui/react-dialog";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -24,6 +26,8 @@ import { useToast } from "@/hooks/use-toast";
 import type { InspectionItem, CreateInspectionItemRequest, FaultLibrary } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
 import { INSPECTION_CATEGORIES, CATEGORY_GROUPS } from "@shared/categories";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export default function InspectionDetails() {
   const [, params] = useRoute("/inspections/:id");
@@ -298,6 +302,8 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [aiSuggestions, setAiSuggestions] = useState<Array<{faultName: string, severity: string, description: string}>>([]);
   const [detectedPart, setDetectedPart] = useState<string>("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   
   const photoAnalysis = usePhotoAnalysis();
 
@@ -308,6 +314,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
       setPhoto(null);
       setAiSuggestions([]);
       setDetectedPart("");
+      setSearchQuery("");
     }
   }, [isOpen, category]);
 
@@ -341,77 +348,58 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
 
   const { toast } = useToast();
 
-  // Map new granular categories to old fault library categories
-  const categoryToFaultLibrary: Record<string, string[]> = {
-    // Tires & Wheels
-    tires: ['tires'],
-    rims: ['wheels', 'tires'],
-    // Brakes
-    brake_pads: ['brakes'],
-    brake_drums: ['brakes'],
-    brakes: ['brakes'],
-    // Suspension
-    suspension_arms: ['suspension'],
-    axles: ['suspension'],
-    stabilizer_link: ['suspension'],
-    tie_rod: ['suspension'],
-    control_arms: ['suspension', 'exhaust'],
-    // Engine & Drivetrain
-    engine: ['engine'],
-    turbo: ['engine'],
-    transmission: ['transmission'],
-    transfer_case: ['transmission'],
-    differential: ['transmission'],
-    driveshaft: ['transmission'],
-    // Cooling System
-    condenser: ['ac'],
-    radiator: ['ac'],
-    cooling_fan: ['ac'],
-    water_pump: ['ac'],
-    thermostat: ['ac'],
-    // Exhaust
-    exhaust: ['exhaust'],
-    // Chassis & Frame
-    chassis: ['chassis'],
-    front_chest: ['chassis'],
-    rear_chest: ['chassis'],
-    // Body Parts
-    front_bumper: ['body'],
-    rear_bumper: ['body'],
-    bumper_frame_front: ['body', 'chassis'],
-    bumper_frame_rear: ['body', 'chassis'],
-    hood: ['body'],
-    fender_front_right: ['body'],
-    fender_front_left: ['body'],
-    fender_rear_right: ['body'],
-    fender_rear_left: ['body'],
-    door_front_right: ['body'],
-    door_front_left: ['body'],
-    door_rear_right: ['body'],
-    door_rear_left: ['body'],
-    trunk: ['body'],
-    quarter_panel: ['body'],
-    roof: ['body'],
-    pillars: ['body'],
-    windows: ['body'],
-    lights_front: ['electric', 'body'],
-    lights_rear: ['electric', 'body'],
-    interior: ['body', 'electric', 'safety'],
-    // Fuel & Steering
-    fuel_tank: ['engine'],
-    fuel_pump: ['engine'],
-    power_steering: ['suspension'],
+  // Map category IDs to Arabic fault library categories (23 categories in fault library)
+  const categoryToArabicFaultLibrary: Record<string, string[]> = {
+    front_bumper: ['الدعامية الأمامية'],
+    rear_bumper: ['الدعامية الخلفية'],
+    bumper_frame_front: ['جسر الدعامية الأمامية'],
+    bumper_frame_rear: ['جسر الدعامية الخلفية'],
+    hood: ['البونيت'],
+    front_chest: ['صدر السيارة الأمامي'],
+    rear_chest: ['صدر السيارة الخلفي'],
+    fender_front_right: ['المدقار الأمامي يمين'],
+    fender_front_left: ['المدقار الأمامي يسار'],
+    fender_rear_right: ['المدقار الخلفي يمين'],
+    fender_rear_left: ['المدقار الخلفي يسار'],
+    door_front_right: ['الباب الأمامي يمين'],
+    door_front_left: ['الباب الأمامي يسار'],
+    door_rear_right: ['الباب الخلفي يمين'],
+    door_rear_left: ['الباب الخلفي يسار'],
+    trunk: ['الدبة'],
+    quarter_panel: ['الفخد'],
+    roof: ['السقف'],
+    pillars: ['القوائم'],
+    windows: ['الجامات'],
+    lights_front: ['الليتات الأمامية'],
+    lights_rear: ['الليتات الخلفية'],
+    interior: ['الداخلية'],
   };
   
-  const relatedCategories = categoryToFaultLibrary[category] || [category];
-  // Show all faults for now, allowing user to pick any fault
-  const categoryFaults = library.length > 0 ? library : [];
+  // Get faults for the current category, or show all if no mapping exists
+  const arabicCategories = categoryToArabicFaultLibrary[category] || [];
+  const categoryFaults = useMemo(() => {
+    if (library.length === 0) return [];
+    // If no specific mapping for this category, show all faults for selection
+    if (arabicCategories.length === 0) return library;
+    const filtered = library.filter(f => arabicCategories.includes(f.category));
+    // If filtered list is empty, show all faults as fallback
+    return filtered.length > 0 ? filtered : library;
+  }, [library, arabicCategories]);
+
+  // Filter faults based on search query
+  const filteredFaults = useMemo(() => {
+    if (!searchQuery.trim()) return categoryFaults;
+    const query = searchQuery.toLowerCase();
+    return categoryFaults.filter(f => 
+      f.faultName.toLowerCase().includes(query) || 
+      f.description?.toLowerCase().includes(query)
+    );
+  }, [categoryFaults, searchQuery]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.faultName) return;
 
-    // Fix: Pass the base64 image data directly to the mutation
     createMutation.mutate({
       inspectionId,
       category,
@@ -419,7 +407,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
       status: formData.status as any,
       description: formData.description,
       severity: formData.severity,
-      imageUrl: formData.imageUrl || photo || undefined // Ensure photo is passed if imageUrl is not set
+      imageUrl: formData.imageUrl || photo || undefined
     }, {
       onSuccess: () => {
         toast({ title: "تمت الإضافة", description: "تمت إضافة الملاحظة بنجاح" });
@@ -439,6 +427,11 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
         description: fault.description || '',
         severity: (fault.severity as any) || 'medium'
       }));
+      setSearchOpen(false);
+      // Auto-open camera after fault selection
+      setTimeout(() => {
+        fileInputRef.current?.click();
+      }, 300);
     } else {
       setFormData(prev => ({ ...prev, faultName: name }));
     }
@@ -456,16 +449,60 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">اختيار العطل</label>
-              <select
-                value={formData.faultName}
-                onChange={(e) => handleFaultSelect(e.target.value)}
-                className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all bg-white"
-              >
-                <option value="">اختر العطل من القائمة...</option>
-                {categoryFaults.map(f => (
-                  <option key={f.id} value={f.faultName}>{f.faultName}</option>
-                ))}
-              </select>
+              <Popover open={searchOpen} onOpenChange={setSearchOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    data-testid="button-fault-selector"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all bg-white text-right flex items-center justify-between gap-2"
+                  >
+                    <span className={cn("flex-1 text-right", !formData.faultName && "text-slate-400")}>
+                      {formData.faultName || "ابحث واختر العطل..."}
+                    </span>
+                    <Search className="w-4 h-4 text-slate-400" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-0" align="start">
+                  <Command shouldFilter={false}>
+                    <CommandInput 
+                      placeholder="اكتب للبحث عن العطل..." 
+                      value={searchQuery}
+                      onValueChange={setSearchQuery}
+                      data-testid="input-fault-search"
+                    />
+                    <CommandList className="max-h-[300px]">
+                      <CommandEmpty>لا توجد نتائج</CommandEmpty>
+                      <CommandGroup heading={`الأعطال المتاحة (${filteredFaults.length})`}>
+                        {filteredFaults.map(fault => (
+                          <CommandItem
+                            key={fault.id}
+                            value={fault.faultName}
+                            onSelect={() => handleFaultSelect(fault.faultName)}
+                            className="flex items-center justify-between gap-2 cursor-pointer"
+                            data-testid={`fault-item-${fault.id}`}
+                          >
+                            <div className="flex-1 text-right">
+                              <div className="font-medium">{fault.faultName}</div>
+                              {fault.description && (
+                                <div className="text-xs text-slate-500 truncate max-w-[300px]">{fault.description}</div>
+                              )}
+                            </div>
+                            {formData.faultName === fault.faultName && (
+                              <Check className="w-4 h-4 text-primary" />
+                            )}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              {formData.faultName && (
+                <div className="mt-2 p-2 bg-primary/5 rounded-lg border border-primary/20 text-sm text-primary flex items-center gap-2">
+                  <Check className="w-4 h-4" />
+                  <span>تم اختيار: {formData.faultName}</span>
+                </div>
+              )}
             </div>
 
             <div>
