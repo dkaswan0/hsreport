@@ -74,7 +74,7 @@ export default function FaultLibrary() {
   const [selectedSeverity, setSelectedSeverity] = useState<string | null>(null);
 
   const { data: faults = [], isLoading } = useQuery<FaultLibrary[]>({
-    queryKey: ['/api/faults'],
+    queryKey: ['/api/fault-library'],
   });
 
   const categories = Array.from(new Set(faults.map(f => f.category))).sort();
