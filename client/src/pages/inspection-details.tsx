@@ -341,7 +341,74 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
 
   const { toast } = useToast();
 
-  const categoryFaults = library.filter(f => f.category === INSPECTION_CATEGORIES.find(c => c.id === category)?.label || f.category === category);
+  // Map new granular categories to old fault library categories
+  const categoryToFaultLibrary: Record<string, string[]> = {
+    // Tires & Wheels
+    tires: ['tires'],
+    rims: ['wheels', 'tires'],
+    // Brakes
+    brake_pads: ['brakes'],
+    brake_drums: ['brakes'],
+    brakes: ['brakes'],
+    // Suspension
+    suspension_arms: ['suspension'],
+    axles: ['suspension'],
+    stabilizer_link: ['suspension'],
+    tie_rod: ['suspension'],
+    control_arms: ['suspension', 'exhaust'],
+    // Engine & Drivetrain
+    engine: ['engine'],
+    turbo: ['engine'],
+    transmission: ['transmission'],
+    transfer_case: ['transmission'],
+    differential: ['transmission'],
+    driveshaft: ['transmission'],
+    // Cooling System
+    condenser: ['ac'],
+    radiator: ['ac'],
+    cooling_fan: ['ac'],
+    water_pump: ['ac'],
+    thermostat: ['ac'],
+    // Exhaust
+    exhaust: ['exhaust'],
+    // Chassis & Frame
+    chassis: ['chassis'],
+    front_chest: ['chassis'],
+    rear_chest: ['chassis'],
+    // Body Parts
+    front_bumper: ['body'],
+    rear_bumper: ['body'],
+    bumper_frame_front: ['body', 'chassis'],
+    bumper_frame_rear: ['body', 'chassis'],
+    hood: ['body'],
+    fender_front_right: ['body'],
+    fender_front_left: ['body'],
+    fender_rear_right: ['body'],
+    fender_rear_left: ['body'],
+    door_front_right: ['body'],
+    door_front_left: ['body'],
+    door_rear_right: ['body'],
+    door_rear_left: ['body'],
+    trunk: ['body'],
+    quarter_panel: ['body'],
+    roof: ['body'],
+    pillars: ['body'],
+    windows: ['body'],
+    lights_front: ['electric', 'body'],
+    lights_rear: ['electric', 'body'],
+    interior: ['body', 'electric', 'safety'],
+    // Fuel & Steering
+    fuel_tank: ['engine'],
+    fuel_pump: ['engine'],
+    power_steering: ['suspension'],
+  };
+  
+  const relatedCategories = categoryToFaultLibrary[category] || [category];
+  const categoryFaults = library.filter(f => 
+    relatedCategories.includes(f.category) || 
+    f.category === INSPECTION_CATEGORIES.find(c => c.id === category)?.label || 
+    f.category === category
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
