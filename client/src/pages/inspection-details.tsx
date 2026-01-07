@@ -382,6 +382,22 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
     }
   }, [isOpen, category]);
 
+  // Simple photo upload without AI analysis
+  const handleSimplePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        setPhoto(base64);
+        setFormData(prev => ({ ...prev, imageUrl: base64 }));
+        // No AI analysis - just attach the photo
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Photo upload with AI analysis
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -403,6 +419,8 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
       reader.readAsDataURL(file);
     }
   };
+
+  const simplePhotoInputRef = useRef<HTMLInputElement>(null);
 
   const createMutation = useCreateInspectionItem();
   const { data: library = [] } = useQuery<FaultLibrary[]>({ 
@@ -468,7 +486,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
       imageUrl: formData.imageUrl || photo || undefined
     }, {
       onSuccess: () => {
-        toast({ title: "تمت الإضافة", description: "تمت إضافة الملاحظة بنجاح" });
+        toast({ title: "تم", description: "انضافت الملاحظة بنجاح" });
         setFormData({ status: 'fail', severity: 'medium', faultName: '', description: '', category });
         setPhoto(null);
         onClose();
@@ -486,9 +504,9 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
         severity: (fault.severity as any) || 'medium'
       }));
       setSearchOpen(false);
-      // Auto-open camera after fault selection
+      // Auto-open simple camera after fault selection (no AI analysis needed)
       setTimeout(() => {
-        fileInputRef.current?.click();
+        simplePhotoInputRef.current?.click();
       }, 300);
     } else {
       setFormData(prev => ({ ...prev, faultName: name }));
@@ -502,17 +520,17 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm animate-in fade-in" />
         <Dialog.Content className="fixed inset-2 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 bg-white rounded-2xl shadow-2xl p-4 md:p-6 w-auto md:w-full md:max-w-lg z-50 animate-in zoom-in-95 duration-200 overflow-y-auto max-h-[96vh]">
-          <Dialog.Title className="text-xl font-bold mb-4 text-slate-900">إضافة ملاحظة جديدة</Dialog.Title>
+          <Dialog.Title className="text-xl font-bold mb-4 text-slate-900">زيد ملاحظة يديدة</Dialog.Title>
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">اختيار العطل</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">اختار العطل</label>
               <div className="relative">
                 <div className="flex items-center border border-slate-200 rounded-xl px-3 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10">
                   <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   <input
                     type="text"
-                    placeholder="اكتب للبحث عن العطل..."
+                    placeholder="دور على العطل..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onFocus={() => setSearchOpen(true)}
@@ -523,7 +541,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
                 {searchOpen && (
                   <div className="fixed inset-0 md:absolute md:inset-auto md:top-full md:left-0 md:right-0 md:mt-1 bg-white md:border md:border-slate-200 md:rounded-xl md:shadow-lg z-[60]">
                     <div className="flex items-center justify-between px-3 py-2 border-b bg-slate-50 md:bg-white md:rounded-t-xl">
-                      <span className="text-sm font-medium text-slate-700">الأعطال المتاحة ({filteredFaults.length})</span>
+                      <span className="text-sm font-medium text-slate-700">الأعطال ({filteredFaults.length})</span>
                       <button
                         type="button"
                         onClick={() => setSearchOpen(false)}
@@ -534,7 +552,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
                     </div>
                     <div className="h-[calc(100vh-100px)] md:max-h-[300px] overflow-y-auto overscroll-contain">
                       {filteredFaults.length === 0 ? (
-                        <div className="py-6 text-center text-sm text-slate-500">لا توجد نتائج</div>
+                        <div className="py-6 text-center text-sm text-slate-500">ما لقينا شي</div>
                       ) : (
                         filteredFaults.map(fault => (
                           <button
@@ -567,7 +585,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
               {formData.faultName && (
                 <div className="mt-2 p-2 bg-primary/5 rounded-lg border border-primary/20 text-sm text-primary flex items-center gap-2">
                   <Check className="w-4 h-4" />
-                  <span>تم اختيار: {formData.faultName}</span>
+                  <span>تم الاختيار: {formData.faultName}</span>
                 </div>
               )}
             </div>
@@ -596,20 +614,31 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">الوصف</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">التفاصيل</label>
               <textarea 
                 value={formData.description || ''}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all min-h-[80px]"
-                placeholder="تفاصيل إضافية..."
+                placeholder="زيد تفاصيل..."
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center gap-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
                 <Camera className="w-4 h-4 text-primary" />
-                صورة العطل + تحليل ذكي
+                صورة العطل
               </label>
+              
+              {/* Hidden inputs for both photo types */}
+              <input
+                type="file"
+                ref={simplePhotoInputRef}
+                onChange={handleSimplePhotoUpload}
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                data-testid="input-simple-photo"
+              />
               <input
                 type="file"
                 ref={fileInputRef}
@@ -617,23 +646,42 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
                 accept="image/*"
                 capture="environment"
                 className="hidden"
-                data-testid="input-photo-capture"
+                data-testid="input-ai-photo"
               />
-              <button 
-                type="button"
-                className={cn(
-                  "w-full border-2 border-dashed rounded-xl transition-colors flex items-center justify-center gap-2",
-                  photo ? "border-primary text-primary bg-primary/5" : "border-primary/50 text-primary bg-primary/5 hover:border-primary hover:bg-primary/10"
-                )}
-                onClick={() => fileInputRef.current?.click()}
-                data-testid="button-photo-capture"
-              >
-                <Camera className="w-5 h-5" />
-                <Sparkles className="w-4 h-4" />
-                <span className="text-sm font-bold">
-                  {photo ? "تم إرفاق الصورة" : "التقط صورة + تحليل ذكي"}
-                </span>
-              </button>
+              
+              {/* Two buttons: Simple photo (left) and AI analysis (right) */}
+              <div className="grid grid-cols-2 gap-2">
+                <button 
+                  type="button"
+                  className={cn(
+                    "border-2 border-dashed rounded-xl py-3 transition-colors flex flex-col items-center justify-center gap-1",
+                    photo && !detectedPart ? "border-primary text-primary bg-primary/5" : "border-slate-300 text-slate-600 bg-slate-50 hover:border-slate-400 hover:bg-slate-100"
+                  )}
+                  onClick={() => simplePhotoInputRef.current?.click()}
+                  data-testid="button-simple-photo"
+                >
+                  <Camera className="w-5 h-5" />
+                  <span className="text-xs font-medium">صورة بس</span>
+                  <span className="text-[10px] text-slate-400">بدون تحليل</span>
+                </button>
+                
+                <button 
+                  type="button"
+                  className={cn(
+                    "border-2 border-dashed rounded-xl py-3 transition-colors flex flex-col items-center justify-center gap-1",
+                    photo && detectedPart ? "border-amber-500 text-amber-600 bg-amber-50" : "border-amber-300 text-amber-600 bg-amber-50 hover:border-amber-400 hover:bg-amber-100"
+                  )}
+                  onClick={() => fileInputRef.current?.click()}
+                  data-testid="button-ai-photo"
+                >
+                  <div className="flex items-center gap-1">
+                    <Camera className="w-5 h-5" />
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <span className="text-xs font-medium">تحليل ذكي</span>
+                  <span className="text-[10px] text-amber-500">يكتشف العطل</span>
+                </button>
+              </div>
               {photo && (
                 <div className="mt-2 relative w-full aspect-video rounded-xl overflow-hidden border border-slate-200">
                   <img src={photo} alt="Preview" className="w-full h-full object-cover" />
@@ -649,9 +697,9 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
               
               {/* AI Analysis Results */}
               {photoAnalysis.isPending && (
-                <div className="mt-2 p-3 bg-primary/5 rounded-xl border border-primary/20 flex items-center gap-2 text-primary">
+                <div className="mt-2 p-3 bg-amber-50 rounded-xl border border-amber-200 flex items-center gap-2 text-amber-700">
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="text-sm font-arabic">جاري تحليل الصورة بالذكاء الاصطناعي...</span>
+                  <span className="text-sm font-arabic">يحلل الصورة... لحظة</span>
                 </div>
               )}
               
@@ -659,11 +707,11 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
                 <div className="mt-2 p-3 bg-green-50 rounded-xl border border-green-200">
                   <div className="flex items-center gap-2 text-green-700 mb-2">
                     <Sparkles className="w-4 h-4" />
-                    <span className="text-sm font-bold font-arabic">تم التعرف على: {detectedPart}</span>
+                    <span className="text-sm font-bold font-arabic">لقينا: {detectedPart}</span>
                   </div>
                   {aiSuggestions.length > 0 && (
                     <div className="space-y-2">
-                      <p className="text-xs text-green-600 font-arabic">الأعطال المقترحة:</p>
+                      <p className="text-xs text-green-600 font-arabic">الأعطال اللي شفناها:</p>
                       {aiSuggestions.map((suggestion, idx) => (
                         <button
                           key={idx}
@@ -696,7 +744,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
                 onClick={onClose}
                 className="flex-1 py-3 rounded-xl font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
               >
-                إلغاء
+                لا خلاص
               </button>
               <button 
                 type="submit"
