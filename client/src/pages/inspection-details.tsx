@@ -23,27 +23,13 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { useToast } from "@/hooks/use-toast";
 import type { InspectionItem, CreateInspectionItemRequest, FaultLibrary } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
-
-const CATEGORIES = [
-  { id: "engine", label: "المكينة", icon: "⚙️" },
-  { id: "transmission", label: "القير", icon: "🕹️" },
-  { id: "chassis", label: "الشاصي", icon: "🔧" },
-  { id: "body", label: "البودي", icon: "🚗" },
-  { id: "tires", label: "التواير", icon: "🛞" },
-  { id: "brakes", label: "البريكات", icon: "🛑" },
-  { id: "electric", label: "الكهرباء", icon: "⚡" },
-  { id: "wheels", label: "الجنوط", icon: "🔘" },
-  { id: "suspension", label: "الميزانية", icon: "🛣️" },
-  { id: "ac", label: "المكيف", icon: "❄️" },
-  { id: "exhaust", label: "الشكمان", icon: "💨" },
-  { id: "safety", label: "السيفتي", icon: "🛡️" },
-];
+import { INSPECTION_CATEGORIES, CATEGORY_GROUPS } from "@shared/categories";
 
 export default function InspectionDetails() {
   const [, params] = useRoute("/inspections/:id");
   const id = Number(params?.id);
   const { data: inspection, isLoading, error } = useInspection(id);
-  const [activeCategory, setActiveCategory] = useState("engine");
+  const [activeCategory, setActiveCategory] = useState("front_bumper");
   const [isAddItemOpen, setIsAddItemOpen] = useState(false);
   const updateInspection = useUpdateInspection();
   
@@ -77,7 +63,7 @@ export default function InspectionDetails() {
       <div className="w-full md:w-64 flex-shrink-0 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col">
         <div className="p-4 bg-slate-50 border-b border-slate-100 font-bold text-slate-700">أقسام الفحص</div>
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
-          {CATEGORIES.map(cat => (
+          {INSPECTION_CATEGORIES.map(cat => (
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
@@ -89,7 +75,6 @@ export default function InspectionDetails() {
               )}
             >
               <div className="flex items-center gap-3">
-                <span>{cat.icon}</span>
                 <span className="font-medium">{cat.label}</span>
               </div>
               <ChevronRight className={cn("w-4 h-4 transition-transform rtl:rotate-180", activeCategory === cat.id ? "text-white" : "text-slate-300")} />
@@ -197,7 +182,7 @@ export default function InspectionDetails() {
           <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
             <div>
               <h3 className="text-lg font-bold flex items-center gap-2">
-                {CATEGORIES.find(c => c.id === activeCategory)?.label}
+                {INSPECTION_CATEGORIES.find(c => c.id === activeCategory)?.label}
                 <span className="text-sm font-normal text-slate-400 bg-white px-2 py-0.5 rounded-full border">
                   {filteredItems.length} عنصر
                 </span>
@@ -356,7 +341,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
 
   const { toast } = useToast();
 
-  const categoryFaults = library.filter(f => f.category === CATEGORIES.find(c => c.id === category)?.label || f.category === category);
+  const categoryFaults = library.filter(f => f.category === INSPECTION_CATEGORIES.find(c => c.id === category)?.label || f.category === category);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

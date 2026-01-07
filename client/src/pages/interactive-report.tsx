@@ -24,24 +24,62 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import logoPath from "@assets/logo_1767706304085.png";
+import { INSPECTION_CATEGORIES, CATEGORY_GROUPS } from "@shared/categories";
 
-// Category mapping with positions for 3D car visualization
-const CATEGORIES = [
-  { id: "engine", label: "المكينة", labelEn: "Engine", position: { top: "8%", left: "50%", transform: "translateX(-50%)" } },
-  { id: "transmission", label: "القير", labelEn: "Transmission", position: { top: "45%", left: "50%", transform: "translateX(-50%)" } },
-  { id: "chassis", label: "الشاصي", labelEn: "Chassis", position: { top: "65%", left: "50%", transform: "translateX(-50%)" } },
-  { id: "body", label: "البودي", labelEn: "Body", position: { top: "35%", left: "15%" } },
-  { id: "tires", label: "التواير", labelEn: "Tires", position: { top: "75%", left: "20%" } },
-  { id: "brakes", label: "البريكات", labelEn: "Brakes", position: { top: "75%", left: "80%" } },
-  { id: "electric", label: "الكهرباء", labelEn: "Electrical", position: { top: "25%", left: "85%" } },
-  { id: "wheels", label: "الجنوط", labelEn: "Wheels", position: { top: "55%", left: "10%" } },
-  { id: "suspension", label: "الميزانية", labelEn: "Suspension", position: { top: "55%", left: "90%" } },
-  { id: "ac", label: "المكيف", labelEn: "A/C", position: { top: "20%", left: "35%" } },
-  { id: "exhaust", label: "الشكمان", labelEn: "Exhaust", position: { top: "85%", left: "50%", transform: "translateX(-50%)" } },
-  { id: "safety", label: "السيفتي", labelEn: "Safety", position: { top: "30%", left: "65%" } },
-];
+// Category position mapping for car visualization - organized by car part location
+const CATEGORY_POSITIONS: Record<string, { top: string; left: string; transform?: string }> = {
+  front_bumper: { top: "42%", left: "8%" },
+  rear_bumper: { top: "42%", left: "92%" },
+  bumper_frame_front: { top: "52%", left: "5%" },
+  bumper_frame_rear: { top: "52%", left: "95%" },
+  hood: { top: "25%", left: "15%" },
+  front_chest: { top: "60%", left: "12%" },
+  rear_chest: { top: "60%", left: "88%" },
+  fender_front_right: { top: "35%", left: "20%" },
+  fender_front_left: { top: "65%", left: "20%" },
+  fender_rear_right: { top: "35%", left: "80%" },
+  fender_rear_left: { top: "65%", left: "80%" },
+  door_front_right: { top: "30%", left: "35%" },
+  door_front_left: { top: "70%", left: "35%" },
+  door_rear_right: { top: "30%", left: "55%" },
+  door_rear_left: { top: "70%", left: "55%" },
+  trunk: { top: "25%", left: "85%" },
+  quarter_panel: { top: "45%", left: "75%" },
+  roof: { top: "15%", left: "50%", transform: "translateX(-50%)" },
+  pillars: { top: "20%", left: "45%" },
+  windows: { top: "22%", left: "55%" },
+  lights_front: { top: "38%", left: "5%" },
+  lights_rear: { top: "38%", left: "95%" },
+  interior: { top: "45%", left: "50%", transform: "translateX(-50%)" },
+  chassis: { top: "85%", left: "50%", transform: "translateX(-50%)" },
+  engine: { top: "55%", left: "18%" },
+  transmission: { top: "65%", left: "35%" },
+  transfer_case: { top: "75%", left: "45%" },
+  differential: { top: "75%", left: "70%" },
+  driveshaft: { top: "80%", left: "55%" },
+  condenser: { top: "48%", left: "10%" },
+  radiator: { top: "50%", left: "15%" },
+  cooling_fan: { top: "55%", left: "12%" },
+  turbo: { top: "58%", left: "22%" },
+  water_pump: { top: "62%", left: "18%" },
+  thermostat: { top: "52%", left: "20%" },
+  control_arms: { top: "78%", left: "28%" },
+  exhaust: { top: "88%", left: "65%" },
+  tires: { top: "92%", left: "25%" },
+  rims: { top: "92%", left: "75%" },
+  brake_pads: { top: "88%", left: "30%" },
+  brake_drums: { top: "88%", left: "70%" },
+  brakes: { top: "85%", left: "35%" },
+  suspension_arms: { top: "82%", left: "40%" },
+  axles: { top: "82%", left: "60%" },
+  fuel_tank: { top: "78%", left: "80%" },
+  power_steering: { top: "68%", left: "25%" },
+  fuel_pump: { top: "72%", left: "78%" },
+  tie_rod: { top: "90%", left: "40%" },
+  stabilizer_link: { top: "90%", left: "60%" },
+};
 
 // Realistic 3D Car Component with CSS animations
 const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCategoryClick: (cat: string) => void }) => {
@@ -78,16 +116,22 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
     setTimeout(() => setIsAnimating(false), 600);
   };
 
-  // Calculate summary stats
+  // Calculate summary stats based on items that exist
   const stats = useMemo(() => {
     let good = 0, warning = 0, fail = 0;
-    CATEGORIES.forEach(cat => {
-      const status = getCategoryStatus(cat.id);
-      if (status === 'good') good++;
-      else if (status === 'warning') warning++;
-      else fail++;
+    const categoriesWithItems = new Set(items.map(i => i.category));
+    INSPECTION_CATEGORIES.forEach(cat => {
+      if (categoriesWithItems.has(cat.id)) {
+        const status = getCategoryStatus(cat.id);
+        if (status === 'good') good++;
+        else if (status === 'warning') warning++;
+        else fail++;
+      }
     });
-    return { good, warning, fail, total: CATEGORIES.length };
+    // Count categories without items as good
+    const emptyCategories = INSPECTION_CATEGORIES.length - categoriesWithItems.size;
+    good += emptyCategories;
+    return { good, warning, fail, total: INSPECTION_CATEGORIES.length };
   }, [items]);
 
   return (
@@ -315,10 +359,17 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
             />
           </svg>
 
-          {/* Category indicators overlaid on car */}
-          {CATEGORIES.map(cat => {
+          {/* Category indicators overlaid on car - only show categories with issues */}
+          {INSPECTION_CATEGORIES.map(cat => {
+            const position = CATEGORY_POSITIONS[cat.id];
+            if (!position) return null;
+            
             const status = getCategoryStatus(cat.id);
             const hasIssues = status !== 'good';
+            
+            // Only show categories that have issues to avoid cluttering
+            if (!hasIssues) return null;
+            
             return (
               <button
                 key={cat.id}
@@ -327,12 +378,12 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
                   "absolute flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold text-white transition-all duration-300 cursor-pointer z-10",
                   getStatusColor(status),
                   "shadow-lg hover:scale-110",
-                  hasIssues && "animate-pulse"
+                  "animate-pulse"
                 )}
-                style={cat.position as any}
+                style={position as any}
               >
                 {getStatusIcon(status)}
-                <span className="hidden md:inline">{cat.label}</span>
+                <span className="hidden md:inline truncate max-w-[80px]">{cat.label}</span>
               </button>
             );
           })}
@@ -343,7 +394,7 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
       <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-6 text-xs font-bold font-arabic text-white/80">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50" />
-          <span>سليم</span>
+          <span>جيد</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-amber-500 shadow-lg shadow-amber-500/50" />
@@ -538,7 +589,7 @@ const InspectionResults = ({ inspection, highlightedCategory }: { inspection: an
         </div>
       </div>
 
-      {CATEGORIES.map(cat => {
+      {INSPECTION_CATEGORIES.map(cat => {
         const catItems = items.filter((i: any) => i.category === cat.id);
         if (catItems.length === 0) return null;
         
@@ -734,7 +785,7 @@ export default function InteractiveReport() {
           margin: [0, 10, 0, 10]
         });
       } else {
-        for (const cat of CATEGORIES) {
+        for (const cat of INSPECTION_CATEGORIES) {
           const catItems = items.filter((i: any) => i.category === cat.id);
           if (catItems.length === 0) continue;
           
