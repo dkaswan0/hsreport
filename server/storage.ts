@@ -62,8 +62,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async generateShareToken(id: number): Promise<string> {
-    // Generate a unique token
-    const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    // Check if inspection exists
+    const existing = await this.getInspection(id);
+    if (!existing) {
+      throw new Error('Inspection not found');
+    }
+    
+    // Return existing token if already generated
+    if (existing.shareToken) {
+      return existing.shareToken;
+    }
+    
+    // Generate cryptographically secure token using crypto.randomUUID
+    const token = crypto.randomUUID().replace(/-/g, '');
     
     await db.update(inspections)
       .set({ shareToken: token, updatedAt: new Date() })

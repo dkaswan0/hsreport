@@ -988,9 +988,14 @@ export default function InteractiveReport() {
   };
 
   const handleShareReport = async () => {
-    const shareUrl = `${window.location.origin}/reports/${id}`;
-    
     try {
+      // Generate a public share token
+      const response = await fetch(`/api/inspections/${id}/share`, { method: 'POST' });
+      if (!response.ok) throw new Error('Failed to generate share link');
+      
+      const { token } = await response.json();
+      const shareUrl = `${window.location.origin}/view/${token}`;
+      
       if (navigator.share) {
         await navigator.share({
           title: `تقرير فحص - ${inspection?.make} ${inspection?.model}`,
@@ -1001,11 +1006,16 @@ export default function InteractiveReport() {
         await navigator.clipboard.writeText(shareUrl);
         toast({ 
           title: "تم نسخ الرابط", 
-          description: "يمكنك الآن مشاركة رابط التقرير" 
+          description: "رابط عام للتقرير - يمكن للعميل مشاهدته بدون تسجيل دخول" 
         });
       }
     } catch (err) {
       console.error("Error sharing:", err);
+      toast({ 
+        title: "خطأ", 
+        description: "تعذر إنشاء رابط المشاركة",
+        variant: "destructive"
+      });
     }
   };
 

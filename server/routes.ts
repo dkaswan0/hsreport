@@ -59,7 +59,10 @@ export async function registerRoutes(
     try {
       const token = await storage.generateShareToken(Number(req.params.id));
       res.json({ token, shareUrl: `/view/${token}` });
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.message === 'Inspection not found') {
+        return res.status(404).json({ message: "Inspection not found" });
+      }
       res.status(500).json({ message: "Failed to generate share link" });
     }
   });
