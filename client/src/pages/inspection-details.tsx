@@ -26,7 +26,6 @@ import { useToast } from "@/hooks/use-toast";
 import type { InspectionItem, CreateInspectionItemRequest, FaultLibrary } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
 import { INSPECTION_CATEGORIES, CATEGORY_GROUPS } from "@shared/categories";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export default function InspectionDetails() {
@@ -40,7 +39,7 @@ export default function InspectionDetails() {
   const { toast } = useToast();
 
   if (isLoading) return <div className="flex justify-center items-center h-96"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>;
-  if (error) return (
+  if (!inspection && error) return (
     <div className="text-center p-12">
       <div className="text-red-500 text-xl mb-4">حدث خطأ أثناء تحميل الفحص</div>
       <p className="text-slate-500 mb-4">تأكد من اتصالك بالإنترنت وحاول مرة أخرى</p>
@@ -478,39 +477,52 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
                     <Search className="w-4 h-4 text-slate-400" />
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[400px] p-0" align="start">
-                  <Command shouldFilter={false}>
-                    <CommandInput 
-                      placeholder="اكتب للبحث عن العطل..." 
-                      value={searchQuery}
-                      onValueChange={setSearchQuery}
-                      data-testid="input-fault-search"
-                    />
-                    <CommandList className="max-h-[300px]">
-                      <CommandEmpty>لا توجد نتائج</CommandEmpty>
-                      <CommandGroup heading={`الأعطال المتاحة (${filteredFaults.length})`}>
-                        {filteredFaults.map(fault => (
-                          <CommandItem
+                <PopoverContent className="w-[350px] p-0" align="start" sideOffset={4}>
+                  <div className="flex flex-col">
+                    <div className="flex items-center border-b px-3">
+                      <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      <input
+                        type="text"
+                        placeholder="اكتب للبحث عن العطل..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="flex h-11 w-full bg-transparent py-3 text-sm outline-none placeholder:text-slate-400"
+                        data-testid="input-fault-search"
+                        autoFocus
+                      />
+                    </div>
+                    <div className="px-2 py-1.5 text-xs font-medium text-slate-500">
+                      الأعطال المتاحة ({filteredFaults.length})
+                    </div>
+                    <div className="max-h-[250px] overflow-y-auto">
+                      {filteredFaults.length === 0 ? (
+                        <div className="py-6 text-center text-sm text-slate-500">لا توجد نتائج</div>
+                      ) : (
+                        filteredFaults.slice(0, 50).map(fault => (
+                          <button
                             key={fault.id}
-                            value={fault.faultName}
-                            onSelect={() => handleFaultSelect(fault.faultName)}
-                            className="flex items-center justify-between gap-2 cursor-pointer"
+                            type="button"
+                            onClick={() => handleFaultSelect(fault.faultName)}
+                            className={cn(
+                              "w-full flex items-center justify-between gap-2 px-3 py-2 text-right hover:bg-slate-100 transition-colors cursor-pointer",
+                              formData.faultName === fault.faultName && "bg-primary/10"
+                            )}
                             data-testid={`fault-item-${fault.id}`}
                           >
-                            <div className="flex-1 text-right">
-                              <div className="font-medium">{fault.faultName}</div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm">{fault.faultName}</div>
                               {fault.description && (
-                                <div className="text-xs text-slate-500 truncate max-w-[300px]">{fault.description}</div>
+                                <div className="text-xs text-slate-500 truncate">{fault.description}</div>
                               )}
                             </div>
                             {formData.faultName === fault.faultName && (
-                              <Check className="w-4 h-4 text-primary" />
+                              <Check className="w-4 h-4 text-primary shrink-0" />
                             )}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
                 </PopoverContent>
               </Popover>
               {formData.faultName && (
