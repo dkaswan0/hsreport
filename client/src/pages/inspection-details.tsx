@@ -404,11 +404,8 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
   };
   
   const relatedCategories = categoryToFaultLibrary[category] || [category];
-  const categoryFaults = library.filter(f => 
-    relatedCategories.includes(f.category) || 
-    f.category === INSPECTION_CATEGORIES.find(c => c.id === category)?.label || 
-    f.category === category
-  );
+  // Show all faults for now, allowing user to pick any fault
+  const categoryFaults = library.length > 0 ? library : [];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
