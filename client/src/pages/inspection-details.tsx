@@ -382,18 +382,48 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
     }
   }, [isOpen, category]);
 
+  // Compress image to reduce size
+  const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<string> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        const compressed = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressed);
+      };
+      
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   // Simple photo upload without AI analysis
-  const handleSimplePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSimplePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        setPhoto(base64);
-        setFormData(prev => ({ ...prev, imageUrl: base64 }));
-        // No AI analysis - just attach the photo
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressed = await compressImage(file);
+        setPhoto(compressed);
+        setFormData(prev => ({ ...prev, imageUrl: compressed }));
+      } catch (err) {
+        console.error("Photo compression failed:", err);
+        toast({ title: "خطأ", description: "ما قدرنا نحمل الصورة، جرب مرة ثانية", variant: "destructive" });
+      }
+      // Reset input to allow re-selection
+      e.target.value = '';
     }
   };
 
@@ -401,22 +431,26 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64 = reader.result as string;
-        setPhoto(base64);
-        setFormData(prev => ({ ...prev, imageUrl: base64 }));
+      try {
+        const compressed = await compressImage(file);
+        setPhoto(compressed);
+        setFormData(prev => ({ ...prev, imageUrl: compressed }));
         
         // Trigger AI analysis
         try {
-          const result = await photoAnalysis.mutateAsync(base64);
+          const result = await photoAnalysis.mutateAsync(compressed);
           setDetectedPart(result.detectedPartArabic || result.detectedPart);
           setAiSuggestions(result.suggestedFaults || []);
         } catch (err) {
           console.error("AI analysis failed:", err);
+          toast({ title: "تنبيه", description: "ما قدرنا نحلل الصورة، لكن الصورة انحفظت", variant: "default" });
         }
-      };
-      reader.readAsDataURL(file);
+      } catch (err) {
+        console.error("Photo compression failed:", err);
+        toast({ title: "خطأ", description: "ما قدرنا نحمل الصورة، جرب مرة ثانية", variant: "destructive" });
+      }
+      // Reset input to allow re-selection
+      e.target.value = '';
     }
   };
 
@@ -489,7 +523,13 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
         toast({ title: "تم", description: "انضافت الملاحظة بنجاح" });
         setFormData({ status: 'fail', severity: 'medium', faultName: '', description: '', category });
         setPhoto(null);
+        setAiSuggestions([]);
+        setDetectedPart("");
         onClose();
+      },
+      onError: (error) => {
+        console.error("Failed to add item:", error);
+        toast({ title: "خطأ", description: "ما قدرنا نضيف الملاحظة، جرب مرة ثانية", variant: "destructive" });
       }
     });
   };
