@@ -26,7 +26,7 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { useState, useMemo, useCallback } from "react";
 import logoPath from "@assets/logo_1767706304085.png";
-import carVisualizationPath from "@assets/car-visualization.png";
+import carVisualizationPath from "@assets/generated_images/professional_car_anatomy_diagram.png";
 import { INSPECTION_CATEGORIES, CATEGORY_GROUPS } from "@shared/categories";
 
 // Category position mapping for car visualization - organized by car part location
