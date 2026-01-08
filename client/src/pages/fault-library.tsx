@@ -9,16 +9,20 @@ import {
   Loader2,
   Car,
   Filter,
-  RefreshCw
+  RefreshCw,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { FaultLibrary } from "@shared/schema";
+import { CATEGORY_GROUPS, MAIN_SECTIONS, INSPECTION_CATEGORIES } from "@shared/categories";
 
 const CATEGORY_LABELS: Record<string, { ar: string; en: string }> = {
   // الفئات الأساسية - لهجة إماراتية
@@ -143,7 +147,16 @@ export default function FaultLibrary() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSeverity, setSelectedSeverity] = useState<string | null>(null);
+  const [selectedSection, setSelectedSection] = useState<string | null>(null);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
+  
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId]
+    }));
+  };
 
   const { data: faults = [], isLoading } = useQuery<FaultLibrary[]>({
     queryKey: ['/api/fault-library'],
@@ -173,9 +186,24 @@ export default function FaultLibrary() {
     const matchesCategory = !selectedCategory || fault.category === selectedCategory;
     const matchesSeverity = !selectedSeverity || fault.severity === selectedSeverity;
     
-    return matchesSearch && matchesCategory && matchesSeverity;
+    // Filter by section
+    let matchesSection = true;
+    if (selectedSection) {
+      const group = CATEGORY_GROUPS.find(g => g.sectionId === selectedSection);
+      if (group) {
+        // Check if fault category matches any category label in this section
+        const sectionCategoryLabels = group.categories.map(catId => {
+          const cat = CATEGORY_GROUPS.flatMap(g => g.categories).find(c => c === catId);
+          return cat;
+        });
+        matchesSection = sectionCategoryLabels.some(label => fault.category.includes(label || ''));
+      }
+    }
+    
+    return matchesSearch && matchesCategory && matchesSeverity && matchesSection;
   });
 
+  // Group faults by category, then organize by section
   const groupedFaults = filteredFaults.reduce((acc, fault) => {
     if (!acc[fault.category]) {
       acc[fault.category] = [];
@@ -183,6 +211,29 @@ export default function FaultLibrary() {
     acc[fault.category].push(fault);
     return acc;
   }, {} as Record<string, FaultLibrary[]>);
+  
+  // Organize categories by their main section
+  const getSectionForCategory = (categoryName: string): string => {
+    for (const group of CATEGORY_GROUPS) {
+      for (const catId of group.categories) {
+        const catInfo = INSPECTION_CATEGORIES.find(c => c.id === catId);
+        if (catInfo && categoryName === catInfo.label) {
+          return group.sectionId;
+        }
+      }
+    }
+    return 'other';
+  };
+  
+  // Group categories by section for display
+  const categoriesBySection = Object.keys(groupedFaults).reduce((acc, categoryName) => {
+    const sectionId = getSectionForCategory(categoryName);
+    if (!acc[sectionId]) {
+      acc[sectionId] = [];
+    }
+    acc[sectionId].push(categoryName);
+    return acc;
+  }, {} as Record<string, string[]>);
 
   const stats = {
     total: faults.length,
@@ -310,24 +361,27 @@ export default function FaultLibrary() {
             
             <div className="flex gap-2 flex-wrap">
               <Button
-                variant={selectedCategory === null ? "default" : "outline"}
+                variant={selectedSection === null ? "default" : "outline"}
                 size="sm"
-                onClick={() => setSelectedCategory(null)}
+                onClick={() => { setSelectedSection(null); setSelectedCategory(null); }}
                 className="font-arabic"
-                data-testid="button-filter-all-categories"
+                data-testid="button-filter-all-sections"
               >
                 الكل
               </Button>
-              {categories.slice(0, 5).map(cat => (
+              {MAIN_SECTIONS.map(section => (
                 <Button
-                  key={cat}
-                  variant={selectedCategory === cat ? "default" : "outline"}
+                  key={section.id}
+                  variant={selectedSection === section.id ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setSelectedCategory(cat === selectedCategory ? null : cat)}
+                  onClick={() => { 
+                    setSelectedSection(section.id === selectedSection ? null : section.id);
+                    setSelectedCategory(null);
+                  }}
                   className="font-arabic"
-                  data-testid={`button-filter-category-${cat}`}
+                  data-testid={`button-filter-section-${section.id}`}
                 >
-                  {CATEGORY_LABELS[cat]?.ar || cat}
+                  {section.label}
                 </Button>
               ))}
             </div>
@@ -383,57 +437,108 @@ export default function FaultLibrary() {
       </div>
 
       <div className="space-y-6">
-        {Object.entries(groupedFaults).sort().map(([category, categoryFaults]) => (
-          <Card key={category}>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center justify-between">
-                <span className="font-arabic">{CATEGORY_LABELS[category]?.ar || category}</span>
-                <span className="text-sm font-normal text-muted-foreground">
-                  {CATEGORY_LABELS[category]?.en || category}
-                </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="divide-y divide-border">
-                {categoryFaults.map(fault => {
-                  const severityInfo = getSeverityInfo(fault.severity);
-                  const SeverityIcon = severityInfo.icon;
-                  
-                  return (
-                    <div 
-                      key={fault.id} 
-                      className="p-4 flex items-start gap-4 hover-elevate"
-                      data-testid={`fault-item-${fault.id}`}
-                    >
-                      <div className={cn(
-                        "w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
-                        severityInfo.color
-                      )}>
-                        <SeverityIcon className="w-5 h-5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-bold text-foreground font-arabic">
-                          {fault.faultName}
-                        </div>
-                        {fault.description && (
-                          <p className="text-sm text-muted-foreground mt-1 font-arabic">
-                            {fault.description}
-                          </p>
+        {MAIN_SECTIONS.map(section => {
+          const sectionCategories = categoriesBySection[section.id] || [];
+          if (sectionCategories.length === 0) return null;
+          
+          const sectionFaultCount = sectionCategories.reduce(
+            (sum, cat) => sum + (groupedFaults[cat]?.length || 0), 0
+          );
+          const isExpanded = expandedSections[section.id] !== false;
+          
+          return (
+            <Collapsible 
+              key={section.id} 
+              open={isExpanded} 
+              onOpenChange={() => toggleSection(section.id)}
+            >
+              <Card>
+                <CollapsibleTrigger className="w-full">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-3">
+                        {isExpanded ? (
+                          <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5 text-muted-foreground" />
                         )}
+                        <span className="font-arabic text-lg">{section.label}</span>
+                        <Badge variant="secondary" className="font-arabic">
+                          {sectionFaultCount} عطل
+                        </Badge>
                       </div>
-                      <Badge 
-                        variant="outline" 
-                        className={cn("shrink-0", severityInfo.color)}
-                      >
-                        {severityInfo.label}
-                      </Badge>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                      <span className="text-sm font-normal text-muted-foreground">
+                        {section.labelEn}
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent>
+                  <CardContent className="p-0">
+                    {sectionCategories.sort().map(categoryName => {
+                      const categoryFaults = groupedFaults[categoryName] || [];
+                      const catInfo = INSPECTION_CATEGORIES.find(c => c.label === categoryName);
+                      
+                      return (
+                        <div key={categoryName} className="border-t">
+                          <div className="px-4 py-3 bg-muted/50 flex items-center justify-between gap-2">
+                            <span className="font-semibold font-arabic">{categoryName}</span>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-xs">
+                                {categoryFaults.length}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">
+                                {catInfo?.labelEn || ''}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="divide-y divide-border">
+                            {categoryFaults.map(fault => {
+                              const severityInfo = getSeverityInfo(fault.severity);
+                              const SeverityIcon = severityInfo.icon;
+                              
+                              return (
+                                <div 
+                                  key={fault.id} 
+                                  className="p-4 flex items-start gap-4 hover-elevate"
+                                  data-testid={`fault-item-${fault.id}`}
+                                >
+                                  <div className={cn(
+                                    "w-10 h-10 rounded-lg flex items-center justify-center shrink-0",
+                                    severityInfo.color
+                                  )}>
+                                    <SeverityIcon className="w-5 h-5" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-bold text-foreground font-arabic">
+                                      {fault.faultName}
+                                    </div>
+                                    {fault.description && (
+                                      <p className="text-sm text-muted-foreground mt-1 font-arabic">
+                                        {fault.description}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <Badge 
+                                    variant="outline" 
+                                    className={cn("shrink-0", severityInfo.color)}
+                                  >
+                                    {severityInfo.label}
+                                  </Badge>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
+          );
+        })}
       </div>
 
       {filteredFaults.length === 0 && (

@@ -1642,6 +1642,7 @@ export async function registerRoutes(
       { category: "أعطال متنوعة", faultName: "بطء استجابة الدعسة - Throttle Response Delay", severity: "medium", description: "بطء استجابة دواسة البنزين" },
       { category: "أعطال متنوعة", faultName: "صفير عند التشغيل - Squeal on Startup", severity: "medium", description: "صوت صفير عند التشغيل" },
       { category: "أعطال متنوعة", faultName: "تنقيط زيت تحت السيارة - Oil Drip Under Car", severity: "medium", description: "تنقيط زيت تحت السيارة" },
+      { category: "أعطال متنوعة", faultName: "دخان من الماكينة - Engine Smoke", severity: "high", description: "دخان يطلع من الماكينة" },
     ];
 
     await db.insert(faultLibrary).values(faults);
