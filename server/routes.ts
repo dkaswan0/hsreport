@@ -426,7 +426,7 @@ export async function registerRoutes(
     const { db } = await import("./db");
     const { sql } = await import("drizzle-orm");
     
-    const EXPECTED_FAULT_COUNT = 1220;
+    const EXPECTED_FAULT_COUNT = 1400;
     const existingFaults = await db.select().from(faultLibrary);
     
     // Always reseed if count doesn't match expected (handles production with stale 1039 faults)
@@ -1835,6 +1835,222 @@ export async function registerRoutes(
       { category: "سائل التبريد", faultName: "فقاعات في سائل التبريد - Coolant Bubbles", severity: "high", description: "فقاعات في سائل التبريد" },
       { category: "سائل التبريد", faultName: "ضغط التبريد مرتفع - High Coolant Pressure", severity: "high", description: "ضغط نظام التبريد مرتفع" },
       { category: "سائل التبريد", faultName: "ضغط التبريد منخفض - Low Coolant Pressure", severity: "medium", description: "ضغط نظام التبريد منخفض" },
+
+      // ═══════════════════════════════════════════════════════════════
+      // زيت الفرامل - Brake Fluid
+      // ═══════════════════════════════════════════════════════════════
+      { category: "زيت الفرامل", faultName: "زيت الفرامل فاضي - Brake Fluid Empty", severity: "high", description: "خزان زيت الفرامل فارغ" },
+      { category: "زيت الفرامل", faultName: "زيت الفرامل منخفض جداً - Brake Fluid Very Low", severity: "high", description: "مستوى زيت الفرامل منخفض جداً" },
+      { category: "زيت الفرامل", faultName: "زيت الفرامل منخفض - Brake Fluid Low", severity: "medium", description: "مستوى زيت الفرامل منخفض" },
+      { category: "زيت الفرامل", faultName: "زيت الفرامل تحت الحد الأدنى - Brake Fluid Below Min", severity: "medium", description: "زيت الفرامل تحت الحد الأدنى" },
+      { category: "زيت الفرامل", faultName: "زيت الفرامل متوسط - Brake Fluid Medium", severity: "low", description: "مستوى زيت الفرامل متوسط" },
+      { category: "زيت الفرامل", faultName: "زيت الفرامل جيد - Brake Fluid Good", severity: "low", description: "مستوى زيت الفرامل جيد" },
+      { category: "زيت الفرامل", faultName: "زيت الفرامل ممتلئ - Brake Fluid Full", severity: "low", description: "زيت الفرامل ممتلئ" },
+      { category: "زيت الفرامل", faultName: "زيت الفرامل قديم - Brake Fluid Old", severity: "medium", description: "زيت الفرامل قديم يحتاج تغيير" },
+      { category: "زيت الفرامل", faultName: "زيت الفرامل ملوث - Brake Fluid Contaminated", severity: "high", description: "زيت الفرامل ملوث" },
+      { category: "زيت الفرامل", faultName: "زيت الفرامل لونه غامق - Brake Fluid Dark", severity: "medium", description: "لون زيت الفرامل غامق" },
+      { category: "زيت الفرامل", faultName: "تسريب زيت الفرامل - Brake Fluid Leak", severity: "high", description: "تسريب في زيت الفرامل" },
+      { category: "زيت الفرامل", faultName: "غطاء زيت الفرامل مفقود - Brake Fluid Cap Missing", severity: "medium", description: "غطاء خزان زيت الفرامل مفقود" },
+      { category: "زيت الفرامل", faultName: "غطاء زيت الفرامل تالف - Brake Fluid Cap Damaged", severity: "medium", description: "غطاء خزان زيت الفرامل تالف" },
+      { category: "زيت الفرامل", faultName: "خزان زيت الفرامل متشقق - Brake Fluid Reservoir Cracked", severity: "high", description: "خزان زيت الفرامل متشقق" },
+      { category: "زيت الفرامل", faultName: "خزان زيت الفرامل متسخ - Brake Fluid Reservoir Dirty", severity: "low", description: "خزان زيت الفرامل متسخ" },
+
+      // ═══════════════════════════════════════════════════════════════
+      // زيت القير - Transmission Fluid
+      // ═══════════════════════════════════════════════════════════════
+      { category: "زيت القير", faultName: "زيت القير فاضي - Trans Fluid Empty", severity: "high", description: "زيت القير فارغ" },
+      { category: "زيت القير", faultName: "زيت القير منخفض جداً - Trans Fluid Very Low", severity: "high", description: "مستوى زيت القير منخفض جداً" },
+      { category: "زيت القير", faultName: "زيت القير منخفض - Trans Fluid Low", severity: "medium", description: "مستوى زيت القير منخفض" },
+      { category: "زيت القير", faultName: "زيت القير تحت الحد الأدنى - Trans Fluid Below Min", severity: "medium", description: "زيت القير تحت الحد الأدنى" },
+      { category: "زيت القير", faultName: "زيت القير متوسط - Trans Fluid Medium", severity: "low", description: "مستوى زيت القير متوسط" },
+      { category: "زيت القير", faultName: "زيت القير جيد - Trans Fluid Good", severity: "low", description: "مستوى زيت القير جيد" },
+      { category: "زيت القير", faultName: "زيت القير ممتلئ - Trans Fluid Full", severity: "low", description: "زيت القير ممتلئ" },
+      { category: "زيت القير", faultName: "زيت القير قديم - Trans Fluid Old", severity: "medium", description: "زيت القير قديم يحتاج تغيير" },
+      { category: "زيت القير", faultName: "زيت القير محروق - Trans Fluid Burnt", severity: "high", description: "زيت القير محروق" },
+      { category: "زيت القير", faultName: "زيت القير لونه غامق - Trans Fluid Dark", severity: "medium", description: "لون زيت القير غامق" },
+      { category: "زيت القير", faultName: "زيت القير رائحته محروقة - Trans Fluid Burnt Smell", severity: "high", description: "رائحة زيت القير محروقة" },
+      { category: "زيت القير", faultName: "تسريب زيت القير - Trans Fluid Leak", severity: "high", description: "تسريب في زيت القير" },
+      { category: "زيت القير", faultName: "زيت القير ملوث بالماء - Trans Fluid Water Contaminated", severity: "high", description: "زيت القير ملوث بالماء" },
+      { category: "زيت القير", faultName: "زيت القير فيه برادة - Trans Fluid Metal Particles", severity: "high", description: "برادة معدنية في زيت القير" },
+      { category: "زيت القير", faultName: "زيت القير يحتاج تغيير - Trans Fluid Needs Change", severity: "medium", description: "زيت القير يحتاج تغيير" },
+
+      // ═══════════════════════════════════════════════════════════════
+      // زيت الباور - Power Steering Fluid
+      // ═══════════════════════════════════════════════════════════════
+      { category: "زيت الباور", faultName: "زيت الباور فاضي - PS Fluid Empty", severity: "high", description: "زيت الباور فارغ" },
+      { category: "زيت الباور", faultName: "زيت الباور منخفض جداً - PS Fluid Very Low", severity: "high", description: "مستوى زيت الباور منخفض جداً" },
+      { category: "زيت الباور", faultName: "زيت الباور منخفض - PS Fluid Low", severity: "medium", description: "مستوى زيت الباور منخفض" },
+      { category: "زيت الباور", faultName: "زيت الباور تحت الحد الأدنى - PS Fluid Below Min", severity: "medium", description: "زيت الباور تحت الحد الأدنى" },
+      { category: "زيت الباور", faultName: "زيت الباور متوسط - PS Fluid Medium", severity: "low", description: "مستوى زيت الباور متوسط" },
+      { category: "زيت الباور", faultName: "زيت الباور جيد - PS Fluid Good", severity: "low", description: "مستوى زيت الباور جيد" },
+      { category: "زيت الباور", faultName: "زيت الباور ممتلئ - PS Fluid Full", severity: "low", description: "زيت الباور ممتلئ" },
+      { category: "زيت الباور", faultName: "زيت الباور قديم - PS Fluid Old", severity: "medium", description: "زيت الباور قديم يحتاج تغيير" },
+      { category: "زيت الباور", faultName: "زيت الباور ملوث - PS Fluid Contaminated", severity: "high", description: "زيت الباور ملوث" },
+      { category: "زيت الباور", faultName: "زيت الباور لونه غامق - PS Fluid Dark", severity: "medium", description: "لون زيت الباور غامق" },
+      { category: "زيت الباور", faultName: "تسريب زيت الباور - PS Fluid Leak", severity: "high", description: "تسريب في زيت الباور" },
+      { category: "زيت الباور", faultName: "غطاء زيت الباور مفقود - PS Fluid Cap Missing", severity: "medium", description: "غطاء خزان زيت الباور مفقود" },
+      { category: "زيت الباور", faultName: "غطاء زيت الباور تالف - PS Fluid Cap Damaged", severity: "medium", description: "غطاء خزان زيت الباور تالف" },
+      { category: "زيت الباور", faultName: "خزان زيت الباور متشقق - PS Fluid Reservoir Cracked", severity: "high", description: "خزان زيت الباور متشقق" },
+      { category: "زيت الباور", faultName: "زيت الباور يرغي - PS Fluid Foamy", severity: "medium", description: "زيت الباور يرغي" },
+
+      // ═══════════════════════════════════════════════════════════════
+      // سائل المساحات - Washer Fluid
+      // ═══════════════════════════════════════════════════════════════
+      { category: "سائل المساحات", faultName: "سائل المساحات فاضي - Washer Fluid Empty", severity: "low", description: "سائل المساحات فارغ" },
+      { category: "سائل المساحات", faultName: "سائل المساحات منخفض - Washer Fluid Low", severity: "low", description: "مستوى سائل المساحات منخفض" },
+      { category: "سائل المساحات", faultName: "سائل المساحات متوسط - Washer Fluid Medium", severity: "low", description: "مستوى سائل المساحات متوسط" },
+      { category: "سائل المساحات", faultName: "سائل المساحات ممتلئ - Washer Fluid Full", severity: "low", description: "سائل المساحات ممتلئ" },
+      { category: "سائل المساحات", faultName: "سائل المساحات ملوث - Washer Fluid Contaminated", severity: "low", description: "سائل المساحات ملوث" },
+      { category: "سائل المساحات", faultName: "خزان المساحات متشقق - Washer Reservoir Cracked", severity: "medium", description: "خزان سائل المساحات متشقق" },
+      { category: "سائل المساحات", faultName: "طرمبة المساحات لا تعمل - Washer Pump Not Working", severity: "medium", description: "طرمبة سائل المساحات لا تعمل" },
+      { category: "سائل المساحات", faultName: "بخاخ المساحات مسدود - Washer Nozzle Blocked", severity: "low", description: "بخاخ سائل المساحات مسدود" },
+      { category: "سائل المساحات", faultName: "بخاخ المساحات مكسور - Washer Nozzle Broken", severity: "low", description: "بخاخ سائل المساحات مكسور" },
+      { category: "سائل المساحات", faultName: "خراطيم المساحات تالفة - Washer Hoses Damaged", severity: "low", description: "خراطيم سائل المساحات تالفة" },
+
+      // ═══════════════════════════════════════════════════════════════
+      // سوائل إضافية - Additional Fluids
+      // ═══════════════════════════════════════════════════════════════
+      { category: "سوائل إضافية", faultName: "سائل الدفرنس منخفض - Diff Fluid Low", severity: "medium", description: "سائل الدفرنس منخفض" },
+      { category: "سوائل إضافية", faultName: "سائل الدفرنس قديم - Diff Fluid Old", severity: "medium", description: "سائل الدفرنس قديم" },
+      { category: "سوائل إضافية", faultName: "سائل الدفرنس ملوث - Diff Fluid Contaminated", severity: "high", description: "سائل الدفرنس ملوث" },
+      { category: "سوائل إضافية", faultName: "تسريب سائل الدفرنس - Diff Fluid Leak", severity: "high", description: "تسريب في سائل الدفرنس" },
+      { category: "سوائل إضافية", faultName: "سائل الترانسفير منخفض - Transfer Case Fluid Low", severity: "medium", description: "سائل صندوق التحويل منخفض" },
+      { category: "سوائل إضافية", faultName: "سائل الترانسفير قديم - Transfer Case Fluid Old", severity: "medium", description: "سائل صندوق التحويل قديم" },
+      { category: "سوائل إضافية", faultName: "تسريب سائل الترانسفير - Transfer Case Fluid Leak", severity: "high", description: "تسريب في سائل صندوق التحويل" },
+      { category: "سوائل إضافية", faultName: "سائل التكييف منخفض - AC Refrigerant Low", severity: "medium", description: "سائل التكييف منخفض" },
+      { category: "سوائل إضافية", faultName: "سائل التكييف فاضي - AC Refrigerant Empty", severity: "high", description: "سائل التكييف فارغ" },
+      { category: "سوائل إضافية", faultName: "تسريب سائل التكييف - AC Refrigerant Leak", severity: "high", description: "تسريب في سائل التكييف" },
+
+      // ═══════════════════════════════════════════════════════════════
+      // أعطال المحرك الإضافية - Additional Engine Faults
+      // ═══════════════════════════════════════════════════════════════
+      { category: "المحرك", faultName: "فلتر الهواء متسخ - Air Filter Dirty", severity: "low", description: "فلتر الهواء متسخ" },
+      { category: "المحرك", faultName: "فلتر الهواء مسدود - Air Filter Clogged", severity: "medium", description: "فلتر الهواء مسدود" },
+      { category: "المحرك", faultName: "فلتر الزيت قديم - Oil Filter Old", severity: "low", description: "فلتر الزيت قديم" },
+      { category: "المحرك", faultName: "فلتر الزيت مسدود - Oil Filter Clogged", severity: "medium", description: "فلتر الزيت مسدود" },
+      { category: "المحرك", faultName: "فلتر البنزين متسخ - Fuel Filter Dirty", severity: "medium", description: "فلتر البنزين متسخ" },
+      { category: "المحرك", faultName: "فلتر البنزين مسدود - Fuel Filter Clogged", severity: "high", description: "فلتر البنزين مسدود" },
+      { category: "المحرك", faultName: "سير المحرك متشقق - Engine Belt Cracked", severity: "medium", description: "سير المحرك متشقق" },
+      { category: "المحرك", faultName: "سير المحرك مرتخي - Engine Belt Loose", severity: "medium", description: "سير المحرك مرتخي" },
+      { category: "المحرك", faultName: "سير المحرك يصفر - Engine Belt Squealing", severity: "medium", description: "سير المحرك يصفر" },
+      { category: "المحرك", faultName: "سير التايمنق متآكل - Timing Belt Worn", severity: "high", description: "سير التايمنق متآكل" },
+      { category: "المحرك", faultName: "سير التايمنق يحتاج تغيير - Timing Belt Needs Change", severity: "high", description: "سير التايمنق يحتاج تغيير" },
+      { category: "المحرك", faultName: "جنزير التايمنق متآكل - Timing Chain Worn", severity: "high", description: "جنزير التايمنق متآكل" },
+      { category: "المحرك", faultName: "جنزير التايمنق صوت - Timing Chain Noise", severity: "high", description: "صوت من جنزير التايمنق" },
+      { category: "المحرك", faultName: "شمعات الاحتراق تالفة - Spark Plugs Faulty", severity: "medium", description: "شمعات الاحتراق تالفة" },
+      { category: "المحرك", faultName: "شمعات الاحتراق قديمة - Spark Plugs Old", severity: "low", description: "شمعات الاحتراق قديمة" },
+      { category: "المحرك", faultName: "كويلات الاشتعال تالفة - Ignition Coils Faulty", severity: "medium", description: "كويلات الاشتعال تالفة" },
+      { category: "المحرك", faultName: "أسلاك الشمعات تالفة - Spark Plug Wires Faulty", severity: "medium", description: "أسلاك الشمعات تالفة" },
+      { category: "المحرك", faultName: "حساس الأكسجين تالف - O2 Sensor Faulty", severity: "medium", description: "حساس الأكسجين تالف" },
+      { category: "المحرك", faultName: "حساس الهواء تالف - MAF Sensor Faulty", severity: "medium", description: "حساس كتلة الهواء تالف" },
+      { category: "المحرك", faultName: "حساس الحرارة تالف - Temp Sensor Faulty", severity: "medium", description: "حساس الحرارة تالف" },
+      { category: "المحرك", faultName: "حساس الضغط تالف - MAP Sensor Faulty", severity: "medium", description: "حساس ضغط المانيفولد تالف" },
+      { category: "المحرك", faultName: "حساس الكرنك تالف - Crank Sensor Faulty", severity: "high", description: "حساس الكرنك تالف" },
+      { category: "المحرك", faultName: "حساس الكام تالف - Cam Sensor Faulty", severity: "high", description: "حساس الكام تالف" },
+      { category: "المحرك", faultName: "ثروتل بودي متسخ - Throttle Body Dirty", severity: "medium", description: "ثروتل بودي متسخ" },
+      { category: "المحرك", faultName: "ثروتل بودي تالف - Throttle Body Faulty", severity: "high", description: "ثروتل بودي تالف" },
+      { category: "المحرك", faultName: "صمام EGR متسخ - EGR Valve Dirty", severity: "medium", description: "صمام EGR متسخ" },
+      { category: "المحرك", faultName: "صمام EGR تالف - EGR Valve Faulty", severity: "medium", description: "صمام EGR تالف" },
+      { category: "المحرك", faultName: "صمام PCV تالف - PCV Valve Faulty", severity: "low", description: "صمام PCV تالف" },
+      { category: "المحرك", faultName: "بخاخات البنزين متسخة - Fuel Injectors Dirty", severity: "medium", description: "بخاخات البنزين متسخة" },
+      { category: "المحرك", faultName: "بخاخات البنزين تالفة - Fuel Injectors Faulty", severity: "high", description: "بخاخات البنزين تالفة" },
+      { category: "المحرك", faultName: "طرمبة البنزين ضعيفة - Fuel Pump Weak", severity: "medium", description: "طرمبة البنزين ضعيفة" },
+      { category: "المحرك", faultName: "طرمبة البنزين تالفة - Fuel Pump Faulty", severity: "high", description: "طرمبة البنزين تالفة" },
+      { category: "المحرك", faultName: "منظم الضغط تالف - Fuel Pressure Regulator Faulty", severity: "medium", description: "منظم ضغط البنزين تالف" },
+
+      // ═══════════════════════════════════════════════════════════════
+      // أعطال الكهرباء الإضافية - Additional Electrical Faults
+      // ═══════════════════════════════════════════════════════════════
+      { category: "النظام الكهربائي", faultName: "فيوز محروق - Blown Fuse", severity: "low", description: "فيوز محروق" },
+      { category: "النظام الكهربائي", faultName: "فيوزات متعددة محروقة - Multiple Blown Fuses", severity: "medium", description: "فيوزات متعددة محروقة" },
+      { category: "النظام الكهربائي", faultName: "صندوق الفيوزات تالف - Fuse Box Damaged", severity: "medium", description: "صندوق الفيوزات تالف" },
+      { category: "النظام الكهربائي", faultName: "ريليه تالف - Faulty Relay", severity: "medium", description: "ريليه تالف" },
+      { category: "النظام الكهربائي", faultName: "أسلاك متآكلة - Corroded Wires", severity: "medium", description: "أسلاك كهربائية متآكلة" },
+      { category: "النظام الكهربائي", faultName: "أسلاك مقطوعة - Cut Wires", severity: "high", description: "أسلاك كهربائية مقطوعة" },
+      { category: "النظام الكهربائي", faultName: "توصيلات سيئة - Poor Connections", severity: "medium", description: "توصيلات كهربائية سيئة" },
+      { category: "النظام الكهربائي", faultName: "تأريض سيء - Bad Ground", severity: "medium", description: "تأريض كهربائي سيء" },
+      { category: "النظام الكهربائي", faultName: "شورت في الأسلاك - Wire Short Circuit", severity: "high", description: "شورت في الأسلاك الكهربائية" },
+      { category: "النظام الكهربائي", faultName: "ضعف في الكهرباء - Weak Electrical System", severity: "medium", description: "ضعف عام في النظام الكهربائي" },
+      { category: "النظام الكهربائي", faultName: "استهلاك كهرباء زيادة - Parasitic Draw", severity: "medium", description: "استهلاك كهرباء زيادة عن الطبيعي" },
+      { category: "النظام الكهربائي", faultName: "دينمو ضعيف - Weak Alternator", severity: "medium", description: "الدينمو ضعيف" },
+      { category: "النظام الكهربائي", faultName: "دينمو لا يشحن - Alternator Not Charging", severity: "high", description: "الدينمو لا يشحن" },
+      { category: "النظام الكهربائي", faultName: "سير الدينمو متشقق - Alternator Belt Cracked", severity: "medium", description: "سير الدينمو متشقق" },
+      { category: "النظام الكهربائي", faultName: "سير الدينمو مرتخي - Alternator Belt Loose", severity: "medium", description: "سير الدينمو مرتخي" },
+
+      // ═══════════════════════════════════════════════════════════════
+      // أعطال الفرامل الإضافية - Additional Brake Faults
+      // ═══════════════════════════════════════════════════════════════
+      { category: "نظام الفرامل", faultName: "تيل الفرامل الأمامي متآكل - Front Brake Pads Worn", severity: "medium", description: "تيل الفرامل الأمامي متآكل" },
+      { category: "نظام الفرامل", faultName: "تيل الفرامل الخلفي متآكل - Rear Brake Pads Worn", severity: "medium", description: "تيل الفرامل الخلفي متآكل" },
+      { category: "نظام الفرامل", faultName: "تيل الفرامل منتهي - Brake Pads Finished", severity: "high", description: "تيل الفرامل منتهي" },
+      { category: "نظام الفرامل", faultName: "هوبات الفرامل الأمامية متآكلة - Front Rotors Worn", severity: "medium", description: "هوبات الفرامل الأمامية متآكلة" },
+      { category: "نظام الفرامل", faultName: "هوبات الفرامل الخلفية متآكلة - Rear Rotors Worn", severity: "medium", description: "هوبات الفرامل الخلفية متآكلة" },
+      { category: "نظام الفرامل", faultName: "هوبات الفرامل معوجة - Warped Rotors", severity: "medium", description: "هوبات الفرامل معوجة" },
+      { category: "نظام الفرامل", faultName: "هوبات الفرامل مخددة - Grooved Rotors", severity: "medium", description: "هوبات الفرامل مخددة" },
+      { category: "نظام الفرامل", faultName: "سماكرات الفرامل تالفة - Brake Caliper Faulty", severity: "high", description: "سماكرات الفرامل تالفة" },
+      { category: "نظام الفرامل", faultName: "سماكرات الفرامل معلقة - Brake Caliper Stuck", severity: "high", description: "سماكرات الفرامل معلقة" },
+      { category: "نظام الفرامل", faultName: "خراطيم الفرامل تالفة - Brake Hoses Damaged", severity: "high", description: "خراطيم الفرامل تالفة" },
+      { category: "نظام الفرامل", faultName: "خراطيم الفرامل منتفخة - Brake Hoses Swollen", severity: "high", description: "خراطيم الفرامل منتفخة" },
+      { category: "نظام الفرامل", faultName: "ماستر الفرامل تالف - Brake Master Cylinder Faulty", severity: "high", description: "ماستر الفرامل تالف" },
+      { category: "نظام الفرامل", faultName: "بوستر الفرامل ضعيف - Brake Booster Weak", severity: "high", description: "بوستر الفرامل ضعيف" },
+      { category: "نظام الفرامل", faultName: "بوستر الفرامل تالف - Brake Booster Faulty", severity: "high", description: "بوستر الفرامل تالف" },
+      { category: "نظام الفرامل", faultName: "صوت صرير من الفرامل - Brake Squeal", severity: "low", description: "صوت صرير من الفرامل" },
+      { category: "نظام الفرامل", faultName: "صوت طقطقة من الفرامل - Brake Click", severity: "medium", description: "صوت طقطقة من الفرامل" },
+      { category: "نظام الفرامل", faultName: "اهتزاز عند الفرملة - Vibration When Braking", severity: "medium", description: "اهتزاز عند الفرملة" },
+      { category: "نظام الفرامل", faultName: "السيارة تميل عند الفرملة - Car Pulls When Braking", severity: "medium", description: "السيارة تميل عند الفرملة" },
+      { category: "نظام الفرامل", faultName: "دواسة الفرامل لينة - Soft Brake Pedal", severity: "high", description: "دواسة الفرامل لينة" },
+      { category: "نظام الفرامل", faultName: "دواسة الفرامل صلبة - Hard Brake Pedal", severity: "high", description: "دواسة الفرامل صلبة" },
+
+      // ═══════════════════════════════════════════════════════════════
+      // أعطال إضافية للوصول لـ 1400 - Additional Faults to reach 1400
+      // ═══════════════════════════════════════════════════════════════
+      { category: "ناقل الحركة", faultName: "قير يعلق - Transmission Sticks", severity: "high", description: "القير يعلق" },
+      { category: "ناقل الحركة", faultName: "قير يتأخر - Transmission Delay", severity: "medium", description: "تأخر في استجابة القير" },
+      { category: "ناقل الحركة", faultName: "قير ينط - Transmission Jerks", severity: "high", description: "القير ينط عند التغيير" },
+      { category: "ناقل الحركة", faultName: "قير ينزلق - Transmission Slips", severity: "high", description: "القير ينزلق" },
+      { category: "ناقل الحركة", faultName: "صوت من القير - Transmission Noise", severity: "medium", description: "صوت من ناقل الحركة" },
+      { category: "ناقل الحركة", faultName: "قير يرفض الدخول - Transmission Won't Engage", severity: "high", description: "القير يرفض الدخول" },
+      { category: "ناقل الحركة", faultName: "لمبة القير مضاءة - Trans Warning Light", severity: "high", description: "لمبة تحذير القير مضاءة" },
+      { category: "نظام التعليق", faultName: "مساعد أمامي يمين ضعيف - FR Shock Weak", severity: "medium", description: "المساعد الأمامي الأيمن ضعيف" },
+      { category: "نظام التعليق", faultName: "مساعد أمامي يسار ضعيف - FL Shock Weak", severity: "medium", description: "المساعد الأمامي الأيسر ضعيف" },
+      { category: "نظام التعليق", faultName: "مساعد خلفي يمين ضعيف - RR Shock Weak", severity: "medium", description: "المساعد الخلفي الأيمن ضعيف" },
+      { category: "نظام التعليق", faultName: "مساعد خلفي يسار ضعيف - RL Shock Weak", severity: "medium", description: "المساعد الخلفي الأيسر ضعيف" },
+      { category: "نظام التعليق", faultName: "مساعد يسرب زيت - Shock Leaking", severity: "high", description: "المساعد يسرب زيت" },
+      { category: "نظام التعليق", faultName: "ياي أمامي مكسور - Front Spring Broken", severity: "high", description: "الياي الأمامي مكسور" },
+      { category: "نظام التعليق", faultName: "ياي خلفي مكسور - Rear Spring Broken", severity: "high", description: "الياي الخلفي مكسور" },
+      { category: "نظام التعليق", faultName: "ياي ضعيف - Spring Weak", severity: "medium", description: "الياي ضعيف" },
+      { category: "نظام التعليق", faultName: "طقم بلي العجل تالف - Wheel Bearing Faulty", severity: "high", description: "طقم بلي العجل تالف" },
+      { category: "نظام التعليق", faultName: "صوت من بلي العجل - Wheel Bearing Noise", severity: "medium", description: "صوت من بلي العجل" },
+      { category: "نظام التعليق", faultName: "مقص أمامي تالف - Front Control Arm Faulty", severity: "high", description: "المقص الأمامي تالف" },
+      { category: "نظام التعليق", faultName: "مقص خلفي تالف - Rear Control Arm Faulty", severity: "high", description: "المقص الخلفي تالف" },
+      { category: "نظام التعليق", faultName: "بوش المقص تالف - Control Arm Bushing Worn", severity: "medium", description: "بوش المقص تالف" },
+      { category: "نظام التعليق", faultName: "كرة التعليق تالفة - Ball Joint Worn", severity: "high", description: "كرة التعليق تالفة" },
+      { category: "نظام التعليق", faultName: "وصلة المكينة تالفة - Engine Mount Faulty", severity: "medium", description: "وصلة المحرك تالفة" },
+      { category: "نظام التعليق", faultName: "وصلة القير تالفة - Trans Mount Faulty", severity: "medium", description: "وصلة ناقل الحركة تالفة" },
+      { category: "الإطارات والجنوط", faultName: "إطار أمامي يمين بالون - FR Tire Bald", severity: "high", description: "الإطار الأمامي الأيمن بالون" },
+      { category: "الإطارات والجنوط", faultName: "إطار أمامي يسار بالون - FL Tire Bald", severity: "high", description: "الإطار الأمامي الأيسر بالون" },
+      { category: "الإطارات والجنوط", faultName: "إطار خلفي يمين بالون - RR Tire Bald", severity: "high", description: "الإطار الخلفي الأيمن بالون" },
+      { category: "الإطارات والجنوط", faultName: "إطار خلفي يسار بالون - RL Tire Bald", severity: "high", description: "الإطار الخلفي الأيسر بالون" },
+      { category: "الإطارات والجنوط", faultName: "إطار متشقق - Tire Cracked", severity: "high", description: "الإطار متشقق" },
+      { category: "الإطارات والجنوط", faultName: "إطار منتفخ - Tire Bulge", severity: "high", description: "انتفاخ في الإطار" },
+      { category: "الإطارات والجنوط", faultName: "إطار مرقع - Tire Patched", severity: "low", description: "الإطار مرقع" },
+      { category: "الإطارات والجنوط", faultName: "إطار مختلف المقاس - Tire Size Mismatch", severity: "medium", description: "إطار مختلف المقاس" },
+      { category: "الإطارات والجنوط", faultName: "جنط معوج - Bent Wheel", severity: "medium", description: "الجنط معوج" },
+      { category: "الإطارات والجنوط", faultName: "جنط متآكل - Corroded Wheel", severity: "low", description: "الجنط متآكل" },
+      { category: "الإطارات والجنوط", faultName: "جنط مخدوش - Scratched Wheel", severity: "low", description: "الجنط مخدوش" },
+      { category: "الإطارات والجنوط", faultName: "غطاء الجنط مفقود - Wheel Cap Missing", severity: "low", description: "غطاء الجنط مفقود" },
+      { category: "الإطارات والجنوط", faultName: "صامولة العجل مفقودة - Lug Nut Missing", severity: "high", description: "صامولة العجل مفقودة" },
+      { category: "الإطارات والجنوط", faultName: "صامولة العجل مرتخية - Lug Nut Loose", severity: "high", description: "صامولة العجل مرتخية" },
+      { category: "نظام التكييف", faultName: "كمبروسر التكييف ضعيف - AC Compressor Weak", severity: "medium", description: "كمبروسر التكييف ضعيف" },
+      { category: "نظام التكييف", faultName: "كمبروسر التكييف تالف - AC Compressor Faulty", severity: "high", description: "كمبروسر التكييف تالف" },
+      { category: "نظام التكييف", faultName: "كلتش الكمبروسر لا يعمل - AC Clutch Not Engaging", severity: "high", description: "كلتش كمبروسر التكييف لا يعمل" },
+      { category: "نظام التكييف", faultName: "مبخر التكييف متسخ - AC Evaporator Dirty", severity: "medium", description: "مبخر التكييف متسخ" },
+      { category: "نظام التكييف", faultName: "مكثف التكييف متسخ - AC Condenser Dirty", severity: "medium", description: "مكثف التكييف متسخ" },
+      { category: "نظام التكييف", faultName: "مكثف التكييف تالف - AC Condenser Damaged", severity: "high", description: "مكثف التكييف تالف" },
+      { category: "نظام التكييف", faultName: "فلتر المكيف متسخ - Cabin Filter Dirty", severity: "low", description: "فلتر المكيف متسخ" },
+      { category: "نظام التكييف", faultName: "فلتر المكيف مسدود - Cabin Filter Clogged", severity: "medium", description: "فلتر المكيف مسدود" },
+      { category: "نظام التكييف", faultName: "مروحة التكييف لا تعمل - AC Fan Not Working", severity: "high", description: "مروحة التكييف لا تعمل" },
+      { category: "نظام التكييف", faultName: "ريليه المكيف تالف - AC Relay Faulty", severity: "medium", description: "ريليه المكيف تالف" },
     ];
 
     await db.insert(faultLibrary).values(faults);
