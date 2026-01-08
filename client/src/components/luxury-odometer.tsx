@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
+import odometerBg from "@assets/generated_images/mercedes_maybach_digital_odometer_display.png";
 
 interface LuxuryOdometerProps {
   odometer: number;
@@ -33,72 +34,55 @@ export function LuxuryOdometer({ odometer, odometerPhoto, className }: LuxuryOdo
         aria-label={odometerPhoto ? "اضغط لعرض صورة العداد" : "عداد السيارة"}
         data-testid="button-odometer-reveal"
       >
-        <div className="relative overflow-hidden rounded-xl bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 p-5 shadow-2xl border border-neutral-800">
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-900/5 via-transparent to-amber-900/5 pointer-events-none" />
+        <div className="relative overflow-hidden rounded-xl shadow-2xl">
+          <img 
+            src={odometerBg} 
+            alt="Mercedes Maybach Dashboard" 
+            className="w-full h-auto object-cover"
+          />
           
-          <div className="relative z-10">
-            <div className="bg-gradient-to-b from-neutral-900 to-black rounded-lg p-4 border border-neutral-800 shadow-inner">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50 animate-pulse" />
-                  <span className="text-neutral-500 text-[10px] font-medium tracking-[0.2em] uppercase">ODO</span>
-                </div>
-                <span className="text-neutral-600 text-[10px] tracking-wider">km</span>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="relative text-center">
+              <div className="flex items-baseline justify-center gap-1">
+                {displayNumber.split('').map((digit, index) => (
+                  <span 
+                    key={index}
+                    className="text-4xl md:text-5xl lg:text-6xl font-light text-white drop-shadow-lg"
+                    style={{ 
+                      fontFamily: "'SF Pro Display', 'Helvetica Neue', system-ui, sans-serif",
+                      textShadow: '0 0 20px rgba(255,255,255,0.3), 0 0 40px rgba(255,255,255,0.1)'
+                    }}
+                  >
+                    {digit}
+                  </span>
+                ))}
+                <span 
+                  className="text-lg md:text-xl text-white/60 ml-2 font-light"
+                  style={{ fontFamily: "'SF Pro Display', 'Helvetica Neue', system-ui, sans-serif" }}
+                >
+                  km
+                </span>
               </div>
               
-              <div className="relative bg-gradient-to-b from-black via-neutral-950 to-black rounded-md p-3 border border-neutral-800/50">
-                <div className="absolute inset-0 bg-gradient-to-t from-white/[0.02] to-transparent pointer-events-none rounded-md" />
-                
-                <div className="flex items-center justify-end gap-0.5">
-                  {displayNumber.padStart(7, ' ').split('').map((char, index) => (
-                    <div 
-                      key={index}
-                      className={cn(
-                        "relative flex items-center justify-center",
-                        char === ' ' ? "w-5" : "w-7 h-10"
-                      )}
-                    >
-                      {char !== ' ' && (
-                        <>
-                          <div className="absolute inset-0 bg-gradient-to-b from-neutral-900/50 to-transparent rounded-sm" />
-                          <span 
-                            className="relative text-2xl font-light tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-white via-neutral-200 to-neutral-400"
-                            style={{ fontFamily: "'SF Pro Display', 'Segoe UI', system-ui, sans-serif" }}
-                          >
-                            {char}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="absolute bottom-1 right-3 text-neutral-600 text-[8px] tracking-widest">TOTAL</div>
-              </div>
-              
-              <div className="mt-3 flex items-center justify-between">
-                <div className="flex gap-1">
-                  <div className="w-1 h-1 rounded-full bg-neutral-700" />
-                  <div className="w-1 h-1 rounded-full bg-neutral-700" />
-                  <div className="w-1 h-1 rounded-full bg-neutral-700" />
-                </div>
-                <div className="h-px flex-1 mx-3 bg-gradient-to-r from-neutral-800 via-neutral-700 to-neutral-800" />
-                <span className="text-amber-500/80 text-[9px] tracking-wider font-medium">MAYBACH</span>
+              <div className="mt-2 text-white/40 text-xs tracking-[0.3em] uppercase">
+                ODO
               </div>
             </div>
-            
-            {odometerPhoto && (
-              <div className="mt-4 pt-3 border-t border-neutral-800">
-                <div className="flex items-center justify-center gap-2 text-amber-500/80 group-hover:text-amber-400 transition-colors">
-                  <Eye className="w-4 h-4" />
-                  <span className="text-xs font-arabic">اضغط لكشف عداد سيارتك</span>
-                </div>
-                <div className="mt-2 flex justify-center">
-                  <div className="h-0.5 w-12 bg-gradient-to-r from-transparent via-amber-500/40 to-transparent rounded-full animate-pulse" />
-                </div>
-              </div>
-            )}
           </div>
+          
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
+          
+          {odometerPhoto && (
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4">
+              <div className="flex items-center justify-center gap-2 text-amber-400 group-hover:text-amber-300 transition-colors">
+                <Eye className="w-4 h-4" />
+                <span className="text-sm font-arabic">اضغط لكشف عداد سيارتك</span>
+              </div>
+              <div className="mt-2 flex justify-center">
+                <div className="h-0.5 w-16 bg-gradient-to-r from-transparent via-amber-500/60 to-transparent rounded-full animate-pulse" />
+              </div>
+            </div>
+          )}
         </div>
       </button>
 
