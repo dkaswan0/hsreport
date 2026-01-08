@@ -689,7 +689,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
                   />
                 </div>
                 {searchOpen && (
-                  <div className="absolute inset-x-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-[100] max-h-[200px] overflow-y-auto">
+                  <div className="absolute inset-x-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-[100] max-h-[300px] md:max-h-[350px] overflow-y-auto">
                     <div className="sticky top-0 flex items-center justify-between px-3 py-2 border-b bg-white rounded-t-xl z-10">
                       <span className="text-sm font-medium text-slate-700">الأعطال ({filteredFaults.length})</span>
                       <button
@@ -703,7 +703,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
                     {filteredFaults.length === 0 ? (
                       <div className="py-4 text-center text-sm text-slate-500">ما لقينا شي</div>
                     ) : (
-                      filteredFaults.slice(0, 50).map(fault => (
+                      filteredFaults.slice(0, 200).map(fault => (
                         <button
                           key={fault.id}
                           type="button"
