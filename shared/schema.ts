@@ -21,6 +21,7 @@ export const inspections = pgTable("inspections", {
   year: integer("year"),
   color: text("color"),
   odometer: integer("odometer"),
+  odometerPhoto: text("odometer_photo"), // Photo URL of odometer
   customerName: text("customer_name"),
   customerPhone: text("customer_phone"),
   status: text("status").default("draft"), // draft, completed
