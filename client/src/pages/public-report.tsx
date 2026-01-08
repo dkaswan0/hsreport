@@ -326,25 +326,42 @@ export default function PublicReport() {
       
       <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-6">
         
-        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-6 md:p-8 text-white shadow-2xl">
-          <div className="flex items-center justify-between mb-6">
-            <img src={logoPath} alt="High Safety" className="h-16 md:h-20" />
-            <div className="text-left">
-              <div className="text-xs text-white/50 font-arabic">رقم التقرير</div>
-              <div className="text-lg font-mono font-bold">HS-{inspection.id}-{new Date().getFullYear()}</div>
-            </div>
-          </div>
+        <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-6 md:p-8 text-white shadow-2xl overflow-hidden">
+          <img 
+            src={logoPath} 
+            alt="" 
+            className="absolute inset-0 w-full h-full object-contain opacity-5 pointer-events-none mix-blend-luminosity scale-150"
+            aria-hidden="true"
+          />
           
-          <div className="text-center mb-6">
-            <h1 className="text-2xl md:text-4xl font-black mb-2 font-arabic">
-              {inspection.make} {inspection.model} {inspection.year}
-            </h1>
-            <p className="text-white/60 font-mono tracking-widest">{inspection.vin}</p>
-          </div>
+          <div className="relative z-10">
+            <div className="text-center mb-6">
+              <div className="flex items-center justify-center gap-4 mb-4">
+                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-500/60 to-transparent" />
+                <ShieldCheck className="w-10 h-10 text-amber-500" />
+                <div className="h-px flex-1 bg-gradient-to-l from-transparent via-amber-500/60 to-transparent" />
+              </div>
+              
+              <h1 className="text-2xl md:text-3xl font-black mb-2 font-arabic text-white">
+                مركز فحص الأمان العالي الدولي
+              </h1>
+              <p className="text-amber-400 text-sm md:text-base font-bold tracking-widest mb-4">
+                HIGH SAFETY INTERNATIONAL INSPECTION CENTER
+              </p>
+              
+              <div className="flex items-center justify-center gap-3 mb-6">
+                <div className="w-2 h-2 rounded-full bg-amber-500" />
+                <div className="w-2 h-2 rounded-full bg-amber-500" />
+                <div className="w-2 h-2 rounded-full bg-amber-500" />
+              </div>
+              
+              <p className="text-white/50 text-sm font-arabic">تقرير الفحص التفاعلي</p>
+            </div>
 
-          <div className={cn("flex items-center justify-center gap-3 py-4 rounded-2xl", status.bg)}>
-            <status.icon className={cn("w-8 h-8", status.color)} />
-            <span className={cn("text-2xl font-black font-arabic", status.color)}>{status.label}</span>
+            <div className={cn("flex items-center justify-center gap-3 py-4 rounded-2xl", status.bg)}>
+              <status.icon className={cn("w-8 h-8", status.color)} />
+              <span className={cn("text-2xl font-black font-arabic", status.color)}>{status.label}</span>
+            </div>
           </div>
         </div>
 
@@ -392,30 +409,26 @@ export default function PublicReport() {
             odometerPhoto={inspection.odometerPhoto}
           />
           
-          <div className="mt-6 pt-4 border-t border-slate-200">
-            <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-xl p-4 text-center">
-              <div className="flex items-center justify-center gap-3 mb-2">
-                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
-                <ShieldCheck className="w-6 h-6 text-amber-500" />
-                <div className="h-px flex-1 bg-gradient-to-l from-transparent via-amber-500/50 to-transparent" />
-              </div>
-              <h3 className="text-lg font-bold text-white font-arabic mb-1">
-                مركز فحص الأمان العالي الدولي
-              </h3>
-              <p className="text-amber-400 text-sm font-semibold tracking-wide">
-                HIGH SAFETY INTERNATIONAL INSPECTION CENTER
-              </p>
-              <div className="flex items-center justify-center gap-3 mt-2">
-                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
-                <div className="flex gap-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+          {inspection.customerName && (
+            <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
+              <div className="bg-slate-50 rounded-lg md:rounded-xl p-2 md:p-3">
+                <div className="text-xs md:text-sm text-slate-500 font-arabic mb-1 flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  اسم العميل
                 </div>
-                <div className="h-px flex-1 bg-gradient-to-l from-transparent via-amber-500/50 to-transparent" />
+                <div className="font-bold text-base md:text-lg text-slate-800">{inspection.customerName}</div>
               </div>
+              {inspection.customerPhone && (
+                <div className="bg-slate-50 rounded-lg md:rounded-xl p-2 md:p-3">
+                  <div className="text-xs md:text-sm text-slate-500 font-arabic mb-1 flex items-center gap-2">
+                    <Phone className="w-4 h-4" />
+                    رقم الهاتف
+                  </div>
+                  <div className="font-bold text-base md:text-lg text-slate-800 font-mono">{inspection.customerPhone}</div>
+                </div>
+              )}
             </div>
-          </div>
+          )}
         </div>
 
         {issueItems.length > 0 && (
