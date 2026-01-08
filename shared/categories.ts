@@ -41,6 +41,7 @@ export const INSPECTION_CATEGORIES = [
   
   // ==================== ELECTRIC (الأجزاء الكهربائية) ====================
   { id: "electrical_system", label: "النظام الكهربائي", labelEn: "Electrical System", section: "electric" },
+  { id: "battery", label: "البطارية", labelEn: "Battery", section: "electric" },
   { id: "lights_rear", label: "الليتات الخلفية", labelEn: "Rear Lights", section: "electric" },
   { id: "exterior_lighting", label: "الإضاءة الخارجية", labelEn: "Exterior Lighting", section: "electric" },
   
@@ -77,7 +78,7 @@ export const CATEGORY_GROUPS = [
     group: "الأجزاء الكهربائية",
     groupEn: "ELECTRIC",
     sectionId: "electric",
-    categories: ["electrical_system", "lights_rear", "exterior_lighting"]
+    categories: ["electrical_system", "battery", "lights_rear", "exterior_lighting"]
   },
   {
     group: "ناقل الحركة",
