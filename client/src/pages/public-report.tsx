@@ -24,6 +24,7 @@ import logoPath from "@assets/logo_1767706304085.png";
 import carVisualizationPath from "@assets/generated_images/professional_car_anatomy_diagram.png";
 import type { Inspection, InspectionItem } from "@shared/schema";
 import { INSPECTION_CATEGORIES, CATEGORY_GROUPS } from "@shared/categories";
+import { LuxuryOdometer } from "@/components/luxury-odometer";
 
 type InspectionWithItems = Inspection & { items: InspectionItem[] };
 
@@ -371,7 +372,7 @@ export default function PublicReport() {
             <Car className="w-6 h-6 text-primary" />
             معلومات السيارة
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4 mb-4">
             <div className="bg-slate-50 rounded-lg md:rounded-xl p-2 md:p-3">
               <div className="text-xs md:text-sm text-slate-500 font-arabic mb-1">الشركة المصنعة</div>
               <div className="font-bold text-base md:text-lg text-slate-800 truncate">{inspection.make || '-'}</div>
@@ -384,11 +385,12 @@ export default function PublicReport() {
               <div className="text-xs md:text-sm text-slate-500 font-arabic mb-1">سنة الصنع</div>
               <div className="font-bold text-base md:text-lg text-slate-800">{inspection.year || '-'}</div>
             </div>
-            <div className="bg-slate-50 rounded-lg md:rounded-xl p-2 md:p-3">
-              <div className="text-xs md:text-sm text-slate-500 font-arabic mb-1">عداد الكيلومترات</div>
-              <div className="font-bold text-base md:text-lg text-slate-800">{inspection.odometer?.toLocaleString() || '0'} كم</div>
-            </div>
           </div>
+          
+          <LuxuryOdometer 
+            odometer={inspection.odometer || 0} 
+            odometerPhoto={inspection.odometerPhoto}
+          />
           {inspection.customerName && (
             <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
               <div className="bg-slate-50 rounded-lg md:rounded-xl p-2 md:p-3">

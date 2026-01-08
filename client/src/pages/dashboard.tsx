@@ -1,6 +1,6 @@
 import { useInspections, useDeleteInspection } from "@/hooks/use-inspections";
 import { Link } from "wouter";
-import { Plus, ClipboardCheck, Clock, AlertTriangle, Search, Trash2, Loader2 } from "lucide-react";
+import { Plus, ClipboardCheck, Clock, AlertTriangle, Search, Trash2, Loader2, User, Phone, Gauge } from "lucide-react";
 import { format } from "date-fns";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useState } from "react";
@@ -125,8 +125,20 @@ export default function Dashboard() {
                       <div className="text-xs text-slate-500 font-mono">{inspection.vin}</div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm font-medium">{inspection.customerName || '-'}</div>
-                      <div className="text-xs text-slate-500">{inspection.customerPhone}</div>
+                      <div className="flex items-center gap-2">
+                        <div className="p-1.5 bg-primary/10 rounded-lg">
+                          <User className="w-4 h-4 text-primary" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold text-slate-900">{inspection.customerName || '-'}</div>
+                          {inspection.customerPhone && (
+                            <div className="flex items-center gap-1 text-xs text-slate-500">
+                              <Phone className="w-3 h-3" />
+                              {inspection.customerPhone}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">
                       {inspection.createdAt && format(new Date(inspection.createdAt), 'yyyy/MM/dd')}

@@ -4,7 +4,7 @@ import { insertInspectionSchema } from "@shared/schema";
 import { useCreateInspection, useVinDecoder } from "@/hooks/use-inspections";
 import { useLocation } from "wouter";
 import { z } from "zod";
-import { Loader2, ArrowLeft, Search, Camera, Car, Fuel, Gauge, Settings, MapPin, CheckCircle2, ScanLine } from "lucide-react";
+import { Loader2, ArrowLeft, Search, Camera, Car, Fuel, Gauge, Settings, MapPin, CheckCircle2, ScanLine, Upload, X, Image } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { VinScannerModal } from "@/components/vin-scanner-modal";
@@ -23,6 +23,9 @@ export default function NewInspection() {
   const { mutate, isPending } = useCreateInspection();
   const [vinQuery, setVinQuery] = useState("");
   const [showScanner, setShowScanner] = useState(false);
+  const [odometerPhoto, setOdometerPhoto] = useState<string | null>(null);
+  const [odometerPhotoPreview, setOdometerPhotoPreview] = useState<string | null>(null);
+  const odometerPhotoRef = useRef<HTMLInputElement>(null);
   
   const { data: vinData, isFetching: isDecoding } = useVinDecoder(vinQuery);
 
@@ -45,6 +48,27 @@ export default function NewInspection() {
   const handleVinScanned = (vin: string) => {
     form.setValue("vin", vin);
     setVinQuery(vin);
+  };
+
+  const handleOdometerPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = event.target?.result as string;
+      setOdometerPhoto(result);
+      setOdometerPhotoPreview(result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeOdometerPhoto = () => {
+    setOdometerPhoto(null);
+    setOdometerPhotoPreview(null);
+    if (odometerPhotoRef.current) {
+      odometerPhotoRef.current.value = "";
+    }
   };
 
   // Auto-fill form when VIN data arrives
@@ -97,7 +121,13 @@ export default function NewInspection() {
       }
     }
     
-    mutate(data, {
+    // Add odometer photo to submission
+    const submissionData = {
+      ...data,
+      odometerPhoto: odometerPhoto || undefined
+    };
+    
+    mutate(submissionData as any, {
       onSuccess: (newInspection) => {
         setLocation(`/inspections/${newInspection.id}`);
       }
@@ -220,7 +250,53 @@ export default function NewInspection() {
                   type="number"
                   {...form.register("odometer")}
                   className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all"
+                  data-testid="input-odometer"
                 />
+              </div>
+
+              {/* Odometer Photo Upload */}
+              <div className="col-span-full">
+                <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
+                  <Camera className="w-4 h-4 text-primary" />
+                  صورة العداد
+                </label>
+                <div className="space-y-3">
+                  {odometerPhotoPreview ? (
+                    <div className="relative inline-block">
+                      <img 
+                        src={odometerPhotoPreview} 
+                        alt="صورة العداد" 
+                        className="w-full max-w-md h-48 object-cover rounded-xl border-2 border-primary/20"
+                      />
+                      <button
+                        type="button"
+                        onClick={removeOdometerPhoto}
+                        className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full shadow-lg"
+                        data-testid="button-remove-odometer-photo"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors">
+                      <div className="flex flex-col items-center justify-center py-6">
+                        <div className="p-3 bg-primary/10 rounded-full mb-3">
+                          <Upload className="w-8 h-8 text-primary" />
+                        </div>
+                        <p className="text-sm text-slate-600 font-arabic mb-1">اضغط لرفع صورة العداد</p>
+                        <p className="text-xs text-slate-400">PNG, JPG حتى 10MB</p>
+                      </div>
+                      <input 
+                        ref={odometerPhotoRef}
+                        type="file" 
+                        accept="image/*"
+                        className="hidden" 
+                        onChange={handleOdometerPhotoChange}
+                        data-testid="input-odometer-photo"
+                      />
+                    </label>
+                  )}
+                </div>
               </div>
             </div>
           </div>
