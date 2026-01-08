@@ -207,6 +207,21 @@ export async function registerRoutes(
     res.json(list);
   });
 
+  // Add new fault to library
+  app.post("/api/fault-library", async (req, res) => {
+    try {
+      const { category, faultName, description, severity } = req.body;
+      if (!category || !faultName) {
+        return res.status(400).json({ error: "القسم واسم العطل مطلوبان" });
+      }
+      const fault = await storage.createFault({ category, faultName, description, severity });
+      res.json(fault);
+    } catch (error: any) {
+      console.error("Add fault error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Force reseed fault library endpoint
   app.post("/api/fault-library/reseed", async (req, res) => {
     try {

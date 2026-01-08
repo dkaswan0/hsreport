@@ -8,6 +8,7 @@ import NewInspection from "@/pages/new-inspection";
 import InspectionDetails from "@/pages/inspection-details";
 import FaultLibrary from "@/pages/fault-library";
 import VehicleData from "@/pages/vehicle-data";
+import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 
 import InteractiveReport from "@/pages/interactive-report";
@@ -31,6 +32,7 @@ function Router() {
             <Route path="/inspections/:id" component={InspectionDetails} />
             <Route path="/fault-library" component={FaultLibrary} />
             <Route path="/vehicle-data" component={VehicleData} />
+            <Route path="/settings" component={Settings} />
             <Route component={NotFound} />
           </Switch>
         </LayoutShell>

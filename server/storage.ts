@@ -3,7 +3,7 @@ import {
   inspections, inspectionItems, faultLibrary,
   type Inspection, type InsertInspection, type UpdateInspectionRequest,
   type InspectionItem, type InsertInspectionItem, type UpdateInspectionItemRequest,
-  type FaultLibrary
+  type FaultLibrary, type InsertFaultLibrary
 } from "@shared/schema";
 import { eq, ilike, desc } from "drizzle-orm";
 
@@ -25,6 +25,7 @@ export interface IStorage {
 
   // Fault Library
   getFaultLibrary(search?: string): Promise<FaultLibrary[]>;
+  createFault(fault: InsertFaultLibrary): Promise<FaultLibrary>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -128,6 +129,11 @@ export class DatabaseStorage implements IStorage {
       return await db.select().from(faultLibrary).where(ilike(faultLibrary.faultName, `%${search}%`));
     }
     return await db.select().from(faultLibrary);
+  }
+
+  async createFault(fault: InsertFaultLibrary): Promise<FaultLibrary> {
+    const [newFault] = await db.insert(faultLibrary).values(fault).returning();
+    return newFault;
   }
 }
 
