@@ -207,6 +207,29 @@ export async function registerRoutes(
     res.json(list);
   });
 
+  // Force reseed fault library endpoint
+  app.post("/api/fault-library/reseed", async (req, res) => {
+    try {
+      const { faultLibrary } = await import("@shared/schema");
+      const { db } = await import("./db");
+      const { sql } = await import("drizzle-orm");
+      
+      // Delete all existing faults
+      await db.execute(sql`DELETE FROM fault_library`);
+      console.log("Cleared fault library for reseed...");
+      
+      // Now call seed which will insert since we cleared
+      await seedFaultLibrary();
+      
+      // Get new count
+      const newFaults = await db.select().from(faultLibrary);
+      res.json({ success: true, count: newFaults.length, message: `تم إعادة تحميل ${newFaults.length} عطل` });
+    } catch (error: any) {
+      console.error("Reseed error:", error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
   // === VIN Decoder using FREE NHTSA VPIC API ===
   app.get(api.vin.decode.path, async (req, res) => {
     const { vin } = req.params;
@@ -999,6 +1022,7 @@ export async function registerRoutes(
     await db.insert(faultLibrary).values(faults);
     console.log(`Seeded ${faults.length} faults to library`);
   }
+  
   seedFaultLibrary().catch(console.error);
 
   return httpServer;

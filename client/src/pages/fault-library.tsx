@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { 
   Search, 
@@ -8,13 +8,16 @@ import {
   XCircle,
   Loader2,
   Car,
-  Filter
+  Filter,
+  RefreshCw
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { FaultLibrary } from "@shared/schema";
 
 const CATEGORY_LABELS: Record<string, { ar: string; en: string }> = {
@@ -140,9 +143,24 @@ export default function FaultLibrary() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSeverity, setSelectedSeverity] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const { data: faults = [], isLoading } = useQuery<FaultLibrary[]>({
     queryKey: ['/api/fault-library'],
+  });
+
+  const reseedMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/fault-library/reseed");
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({ title: "تم!", description: data.message || `تم تحميل ${data.count} عطل` });
+      queryClient.invalidateQueries({ queryKey: ['/api/fault-library'] });
+    },
+    onError: (error: any) => {
+      toast({ title: "خطأ", description: error.message || "فشل تحميل الأعطال", variant: "destructive" });
+    }
   });
 
   const categories = Array.from(new Set(faults.map(f => f.category))).sort();
@@ -204,6 +222,26 @@ export default function FaultLibrary() {
           <p className="text-muted-foreground font-arabic">قاعدة بيانات شاملة لجميع أعطال المركبات</p>
         </div>
         <div className="flex items-center gap-2">
+          {stats.total < 1000 && (
+            <Button 
+              onClick={() => reseedMutation.mutate()}
+              disabled={reseedMutation.isPending}
+              className="font-arabic"
+              data-testid="button-reseed-faults"
+            >
+              {reseedMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                  جاري التحميل...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="w-4 h-4 ml-2" />
+                  تحميل كل الأعطال (1040)
+                </>
+              )}
+            </Button>
+          )}
           <Badge variant="secondary" className="font-arabic">
             {stats.total} عطل
           </Badge>
