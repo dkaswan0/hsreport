@@ -426,18 +426,18 @@ export async function registerRoutes(
     const { db } = await import("./db");
     const { sql } = await import("drizzle-orm");
     
+    const EXPECTED_FAULT_COUNT = 1400;
     const existingFaults = await db.select().from(faultLibrary);
-    // If we have less than 1000 faults, clear and reseed with the complete library
-    if (existingFaults.length >= 1000) {
-      console.log(`Fault library has ${existingFaults.length} faults`);
+    
+    // Always reseed if count doesn't match expected (handles production with stale 1039 faults)
+    if (existingFaults.length === EXPECTED_FAULT_COUNT) {
+      console.log(`Fault library complete: ${existingFaults.length} faults`);
       return;
     }
     
-    // Clear old incomplete fault library
-    if (existingFaults.length > 0) {
-      console.log(`Clearing ${existingFaults.length} old faults and reseeding with complete library...`);
-      await db.execute(sql`DELETE FROM fault_library`);
-    }
+    // Clear and reseed with complete library
+    console.log(`Reseeding fault library: found ${existingFaults.length}, expected ${EXPECTED_FAULT_COUNT}`);
+    await db.execute(sql`DELETE FROM fault_library`);
     
     const faults = [
       // ═══════════════════════════════════════════════════════════════
