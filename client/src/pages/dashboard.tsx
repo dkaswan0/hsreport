@@ -16,7 +16,7 @@ export default function Dashboard() {
   const handleDelete = async (id: number, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (confirm("هل أنت متأكد من حذف هذا الفحص؟")) {
+    if (confirm("متأكد تبي تمسح هالفحص؟")) {
       setDeletingId(id);
       deleteMutation.mutate(id, {
         onSuccess: () => {
@@ -40,12 +40,12 @@ export default function Dashboard() {
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">لوحة التحكم</h1>
-          <p className="text-slate-500 mt-1">نظرة عامة على عمليات الفحص الأخيرة</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">الرئيسية</h1>
+          <p className="text-slate-500 mt-1">شوف آخر الفحوصات</p>
         </div>
         <Link href="/inspections/new" className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl flex items-center gap-2 font-semibold shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5">
           <Plus className="w-5 h-5" />
-          <span>فحص جديد</span>
+          <span>فحص يديد</span>
         </Link>
       </div>
 
@@ -56,7 +56,7 @@ export default function Dashboard() {
             <ClipboardCheck className="w-8 h-8" />
           </div>
           <div>
-            <p className="text-slate-500 text-sm font-medium">إجمالي الفحوصات</p>
+            <p className="text-slate-500 text-sm font-medium">كل الفحوصات</p>
             <h3 className="text-3xl font-bold text-slate-900">{total}</h3>
           </div>
         </div>
@@ -65,7 +65,7 @@ export default function Dashboard() {
             <Clock className="w-8 h-8" />
           </div>
           <div>
-            <p className="text-slate-500 text-sm font-medium">مكتملة</p>
+            <p className="text-slate-500 text-sm font-medium">خلصت</p>
             <h3 className="text-3xl font-bold text-slate-900">{completed}</h3>
           </div>
         </div>
@@ -74,7 +74,7 @@ export default function Dashboard() {
             <AlertTriangle className="w-8 h-8" />
           </div>
           <div>
-            <p className="text-slate-500 text-sm font-medium">قيد الانتظار</p>
+            <p className="text-slate-500 text-sm font-medium">ما خلصت</p>
             <h3 className="text-3xl font-bold text-slate-900">{drafts}</h3>
           </div>
         </div>
@@ -83,13 +83,13 @@ export default function Dashboard() {
       {/* Recent Inspections Table */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="p-4 md:p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <h3 className="text-xl font-bold">آخر الفحوصات</h3>
+          <h3 className="text-xl font-bold">الفحوصات الأخيرة</h3>
           <div className="relative w-full md:w-64">
              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 rtl:left-3 rtl:right-auto" />
              <input 
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="بحث برقم الشاصي أو العميل..."
+                placeholder="ابحث بالشاصي أو اسم الكستمر..."
                 className="w-full pl-4 pr-10 py-2 rounded-lg bg-slate-50 border border-slate-200 focus:border-accent focus:ring-0 text-sm rtl:pr-4 rtl:pl-10"
              />
           </div>
@@ -100,21 +100,21 @@ export default function Dashboard() {
             <thead className="bg-slate-50 text-slate-500 text-xs uppercase font-semibold">
               <tr>
                 <th className="px-6 py-4 text-right">رقم الفحص</th>
-                <th className="px-6 py-4 text-right">المركبة</th>
-                <th className="px-6 py-4 text-right">العميل</th>
+                <th className="px-6 py-4 text-right">السيارة</th>
+                <th className="px-6 py-4 text-right">الكستمر</th>
                 <th className="px-6 py-4 text-right">التاريخ</th>
                 <th className="px-6 py-4 text-right">الحالة</th>
-                <th className="px-6 py-4 text-right">الإجراءات</th>
+                <th className="px-6 py-4 text-right">-</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-slate-400">جاري التحميل...</td>
+                  <td colSpan={6} className="px-6 py-8 text-center text-slate-400">يحمل...</td>
                 </tr>
               ) : inspections?.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-slate-400">لا توجد فحوصات بعد</td>
+                  <td colSpan={6} className="px-6 py-8 text-center text-slate-400">ما في فحوصات</td>
                 </tr>
               ) : (
                 inspections?.map((inspection) => (
@@ -140,13 +140,13 @@ export default function Dashboard() {
                           href={`/inspections/${inspection.id}`}
                           className="text-primary hover:text-accent font-medium text-sm transition-colors"
                         >
-                          عرض التفاصيل
+                          شوف
                         </Link>
                         <button
                           onClick={(e) => handleDelete(inspection.id, e)}
                           disabled={deletingId === inspection.id}
                           className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50"
-                          title="حذف الفحص"
+                          title="امسح"
                           data-testid={`button-delete-inspection-${inspection.id}`}
                         >
                           {deletingId === inspection.id ? (

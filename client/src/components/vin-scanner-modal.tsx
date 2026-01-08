@@ -79,7 +79,7 @@ export function VinScannerModal({ isOpen, onClose, onVinScanned }: VinScannerMod
       setError(null);
     } catch (err) {
       console.error('Camera access error:', err);
-      setError('لا يمكن الوصول للكاميرا - يرجى السماح بالوصول أو استخدام رفع الصورة');
+      setError('ما قدر يفتح الكاميرا - سمح بالوصول أو ارفع صورة');
       setMode('upload');
     }
   }, []);
@@ -112,11 +112,11 @@ export function VinScannerModal({ isOpen, onClose, onVinScanned }: VinScannerMod
         setScannedVin(vin);
         setError(null);
       } else {
-        setError('لم يتم العثور على رقم شاصي صالح - حاول مرة أخرى');
+        setError('ما لقينا رقم شاصي - جرب مرة ثانية');
       }
     } catch (err) {
       console.error('OCR error:', err);
-      setError('فشل في قراءة الصورة');
+      setError('ما قدر يقرأ الصورة');
     } finally {
       setIsScanning(false);
     }
@@ -199,10 +199,10 @@ export function VinScannerModal({ isOpen, onClose, onVinScanned }: VinScannerMod
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white">
             <Dialog.Title className="text-xl font-bold flex items-center gap-2">
               <ScanLine className="w-6 h-6" />
-              مسح رقم الشاصي
+              سكان رقم الشاصي
             </Dialog.Title>
             <p className="text-blue-100 text-sm mt-1">
-              وجه الكاميرا نحو رقم الشاصي أو ارفع صورة
+              صوب الكاميرا على رقم الشاصي أو ارفع صورة
             </p>
           </div>
 
@@ -238,14 +238,14 @@ export function VinScannerModal({ isOpen, onClose, onVinScanned }: VinScannerMod
             {scannedVin ? (
               <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-6 text-center">
                 <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                <p className="text-sm text-green-600 dark:text-green-400 mb-2">تم العثور على رقم الشاصي</p>
+                <p className="text-sm text-green-600 dark:text-green-400 mb-2">لقينا رقم الشاصي</p>
                 <p className="text-2xl font-mono font-bold text-green-700 dark:text-green-300 tracking-wider" dir="ltr">
                   {scannedVin}
                 </p>
                 <div className="flex gap-2 mt-4">
                   <Button variant="outline" onClick={handleRetry} className="flex-1" data-testid="button-retry-scan">
                     <RefreshCw className="w-4 h-4 ml-2" />
-                    إعادة المسح
+                    سكان مرة ثانية
                   </Button>
                   <Button onClick={handleConfirm} className="flex-1 bg-green-600 hover:bg-green-700" data-testid="button-confirm-vin">
                     <CheckCircle2 className="w-4 h-4 ml-2" />
@@ -290,7 +290,7 @@ export function VinScannerModal({ isOpen, onClose, onVinScanned }: VinScannerMod
                 {isScanning && (
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-600 dark:text-slate-400">جاري المسح...</span>
+                      <span className="text-slate-600 dark:text-slate-400">يسكن...</span>
                       <span className="font-medium">{progress}%</span>
                     </div>
                     <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -317,12 +317,12 @@ export function VinScannerModal({ isOpen, onClose, onVinScanned }: VinScannerMod
                   {isScanning ? (
                     <>
                       <Loader2 className="w-5 h-5 ml-2 animate-spin" />
-                      جاري المسح...
+                      يسكن...
                     </>
                   ) : (
                     <>
                       <Camera className="w-5 h-5 ml-2" />
-                      التقاط ومسح
+                      صور وسكان
                     </>
                   )}
                 </Button>
@@ -345,13 +345,13 @@ export function VinScannerModal({ isOpen, onClose, onVinScanned }: VinScannerMod
                   data-testid="button-select-image"
                 >
                   <Upload className="w-12 h-12 text-slate-400" />
-                  <span className="text-slate-600 dark:text-slate-400">اضغط لاختيار صورة</span>
+                  <span className="text-slate-600 dark:text-slate-400">اضغط عشان تختار صورة</span>
                 </button>
 
                 {isScanning && (
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-600 dark:text-slate-400">جاري المسح...</span>
+                      <span className="text-slate-600 dark:text-slate-400">يسكن...</span>
                       <span className="font-medium">{progress}%</span>
                     </div>
                     <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">

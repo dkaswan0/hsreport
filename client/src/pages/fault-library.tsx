@@ -21,37 +21,37 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { FaultLibrary } from "@shared/schema";
 
 const CATEGORY_LABELS: Record<string, { ar: string; en: string }> = {
-  // English categories
-  engine: { ar: "المحرك", en: "Engine" },
-  transmission: { ar: "ناقل الحركة", en: "Transmission" },
+  // الفئات الأساسية - لهجة إماراتية
+  engine: { ar: "الماكينة", en: "Engine" },
+  transmission: { ar: "القير", en: "Transmission" },
   chassis: { ar: "الشاصي", en: "Chassis" },
-  body: { ar: "الهيكل", en: "Body" },
-  tires: { ar: "الإطارات", en: "Tires" },
-  brakes: { ar: "الفرامل", en: "Brakes" },
+  body: { ar: "البودي", en: "Body" },
+  tires: { ar: "التواير", en: "Tires" },
+  brakes: { ar: "البريك", en: "Brakes" },
   electric: { ar: "الكهرباء", en: "Electrical" },
-  wheels: { ar: "العجلات", en: "Wheels" },
-  suspension: { ar: "التعليق", en: "Suspension" },
-  ac: { ar: "التكييف", en: "AC/Cooling" },
-  exhaust: { ar: "العادم", en: "Exhaust" },
-  safety: { ar: "السلامة", en: "Safety" },
+  wheels: { ar: "الرنقات", en: "Wheels" },
+  suspension: { ar: "السسبنشن", en: "Suspension" },
+  ac: { ar: "المكيف", en: "AC/Cooling" },
+  exhaust: { ar: "الاكزوز", en: "Exhaust" },
+  safety: { ar: "السيفتي", en: "Safety" },
   interior: { ar: "الداخلية", en: "Interior" },
-  steering: { ar: "التوجيه", en: "Steering" },
-  fuel: { ar: "الوقود", en: "Fuel" },
-  // Electrical subcategories
-  "ac_electrical": { ar: "كهرباء التكييف", en: "AC Electrical" },
+  steering: { ar: "الستيرنق", en: "Steering" },
+  fuel: { ar: "البترول", en: "Fuel" },
+  // الكهرباء - فئات فرعية
+  "ac_electrical": { ar: "كهرباء المكيف", en: "AC Electrical" },
   "battery": { ar: "البطارية", en: "Battery" },
-  "charging_system": { ar: "نظام الشحن", en: "Charging System" },
-  "driver_assist": { ar: "مساعد السائق", en: "Driver Assist" },
-  "ecu_computers": { ar: "كمبيوترات السيارة", en: "ECU & Computers" },
-  "entertainment": { ar: "الترفيه", en: "Entertainment" },
-  "ignition_system": { ar: "نظام الإشعال", en: "Ignition System" },
+  "charging_system": { ar: "الشارجنق سيستم", en: "Charging System" },
+  "driver_assist": { ar: "مساعدات السواقة", en: "Driver Assist" },
+  "ecu_computers": { ar: "الكمبيوتر", en: "ECU & Computers" },
+  "entertainment": { ar: "السيستم والشاشة", en: "Entertainment" },
+  "ignition_system": { ar: "الاشتعال", en: "Ignition System" },
   "interior_electrical": { ar: "كهرباء الداخلية", en: "Interior Electrical" },
-  "lighting": { ar: "الإضاءة", en: "Lighting" },
-  "safety_systems": { ar: "أنظمة السلامة", en: "Safety Systems" },
-  "sensors": { ar: "الحساسات", en: "Sensors" },
-  "starting_system": { ar: "نظام التشغيل", en: "Starting System" },
-  "wiring": { ar: "الأسلاك", en: "Wiring" },
-  // Arabic categories (car parts)
+  "lighting": { ar: "الليتات", en: "Lighting" },
+  "safety_systems": { ar: "السيفتي سيستم", en: "Safety Systems" },
+  "sensors": { ar: "السنسرات", en: "Sensors" },
+  "starting_system": { ar: "السلف", en: "Starting System" },
+  "wiring": { ar: "الوايرات", en: "Wiring" },
+  // قطع السيارة - لهجة إماراتية
   "الدعامية الأمامية": { ar: "الدعامية الأمامية", en: "Front Bumper" },
   "الدعامية الخلفية": { ar: "الدعامية الخلفية", en: "Rear Bumper" },
   "جسر الدعامية الأمامية": { ar: "جسر الدعامية الأمامية", en: "Front Bumper Frame" },
@@ -85,25 +85,25 @@ const CATEGORY_LABELS: Record<string, { ar: string; en: string }> = {
   "الليتات": { ar: "الليتات", en: "Lights" },
   "الليتات الأمامية": { ar: "الليتات الأمامية", en: "Front Lights" },
   "الليتات الخلفية": { ar: "الليتات الخلفية", en: "Rear Lights" },
-  "الرينقات": { ar: "الرينقات", en: "Rims" },
+  "الرينقات": { ar: "الرنقات", en: "Rims" },
   "التواير": { ar: "التواير", en: "Tires" },
   "الدبل": { ar: "الدبل", en: "Control Arms" },
   "التايررود": { ar: "التايررود", en: "Tie Rods" },
-  "الاستبلايزرلينك رود": { ar: "الاستبلايزرلينك رود", en: "Stabilizer Link Rod" },
+  "الاستبلايزرلينك رود": { ar: "الاستبلايزر لينك", en: "Stabilizer Link Rod" },
   "البورستيرنق": { ar: "البورستيرنق", en: "Power Steering" },
   "السفايف": { ar: "السفايف", en: "Belts" },
   "الردياتر": { ar: "الردياتر", en: "Radiator" },
   "المروحة": { ar: "المروحة", en: "Fan" },
   "الوتربمب": { ar: "الوتربمب", en: "Water Pump" },
   "الترموستات": { ar: "الترموستات", en: "Thermostat" },
-  "الكوندنسيور": { ar: "الكوندنسيور", en: "Condenser" },
+  "الكوندنسيور": { ar: "الكوندنسر", en: "Condenser" },
   "الاكزوز": { ar: "الاكزوز", en: "Exhaust" },
   "الدبة": { ar: "الدبة", en: "Muffler" },
   "التيربو": { ar: "التيربو", en: "Turbo" },
-  "الفيول بمب": { ar: "الفيول بمب", en: "Fuel Pump" },
-  "تانك البترول": { ar: "تانك البترول", en: "Fuel Tank" },
+  "الفيول بمب": { ar: "طرمبة البترول", en: "Fuel Pump" },
+  "تانك البترول": { ar: "تانكي البترول", en: "Fuel Tank" },
   "الداخلية": { ar: "الداخلية", en: "Interior" },
-  "داخلية السيارة": { ar: "داخلية السيارة", en: "Car Interior" },
+  "داخلية السيارة": { ar: "الداخلية", en: "Car Interior" },
 };
 
 const getSeverityInfo = (severity: string | null) => {
@@ -195,7 +195,7 @@ export default function FaultLibrary() {
     return (
       <div className="flex flex-col items-center justify-center h-96" dir="rtl">
         <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
-        <p className="text-muted-foreground font-arabic">جاري تحميل مكتبة الأعطال...</p>
+        <p className="text-muted-foreground font-arabic">يحمل الأعطال...</p>
       </div>
     );
   }
@@ -206,9 +206,9 @@ export default function FaultLibrary() {
         <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6">
           <Car className="w-10 h-10 text-slate-400" />
         </div>
-        <h2 className="text-2xl font-bold text-foreground mb-2 font-arabic">مكتبة الأعطال فارغة</h2>
+        <h2 className="text-2xl font-bold text-foreground mb-2 font-arabic">ما في أعطال</h2>
         <p className="text-muted-foreground max-w-md mb-6 font-arabic">
-          اضغط الزر لتحميل كل الأعطال (1040 عطل)
+          اضغط الزر عشان تحمل كل الأعطال (1040 عطل)
         </p>
         <Button 
           onClick={() => reseedMutation.mutate()}
@@ -220,12 +220,12 @@ export default function FaultLibrary() {
           {reseedMutation.isPending ? (
             <>
               <Loader2 className="w-5 h-5 ml-2 animate-spin" />
-              جاري تحميل الأعطال...
+              يحمل الأعطال...
             </>
           ) : (
             <>
               <RefreshCw className="w-5 h-5 ml-2" />
-              تحميل كل الأعطال (1040)
+              حمل كل الأعطال (1040)
             </>
           )}
         </Button>
@@ -237,8 +237,8 @@ export default function FaultLibrary() {
     <div className="space-y-6 p-4 md:p-6" dir="rtl">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold font-arabic">مكتبة الأعطال</h1>
-          <p className="text-muted-foreground font-arabic">قاعدة بيانات شاملة لجميع أعطال المركبات</p>
+          <h1 className="text-2xl font-bold font-arabic">الأعطال</h1>
+          <p className="text-muted-foreground font-arabic">كل أعطال السيارات في مكان واحد</p>
         </div>
         <div className="flex items-center gap-2">
           {stats.total < 1000 && (
@@ -251,12 +251,12 @@ export default function FaultLibrary() {
               {reseedMutation.isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                  جاري التحميل...
+                  يحمل...
                 </>
               ) : (
                 <>
                   <RefreshCw className="w-4 h-4 ml-2" />
-                  تحميل كل الأعطال (1040)
+                  حمل كل الأعطال (1040)
                 </>
               )}
             </Button>
@@ -271,7 +271,7 @@ export default function FaultLibrary() {
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-3xl font-bold text-foreground">{stats.total}</div>
-            <div className="text-sm text-muted-foreground font-arabic">إجمالي الأعطال</div>
+            <div className="text-sm text-muted-foreground font-arabic">كل الأعطال</div>
           </CardContent>
         </Card>
         <Card>
@@ -342,7 +342,7 @@ export default function FaultLibrary() {
               data-testid="button-filter-all-severity"
             >
               <Filter className="w-3 h-3 ml-1" />
-              كل الخطورة
+              الكل
             </Button>
             <Button
               variant={selectedSeverity === 'high' ? "destructive" : "ghost"}
@@ -439,8 +439,8 @@ export default function FaultLibrary() {
       {filteredFaults.length === 0 && (
         <div className="text-center py-12">
           <AlertTriangle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-bold font-arabic">لا توجد نتائج</h3>
-          <p className="text-muted-foreground font-arabic">جرب تغيير معايير البحث</p>
+          <h3 className="text-lg font-bold font-arabic">ما لقينا شي</h3>
+          <p className="text-muted-foreground font-arabic">جرب تغير البحث</p>
         </div>
       )}
     </div>

@@ -473,8 +473,8 @@ const InspectionResults = ({ inspection, highlightedCategory }: { inspection: an
       {items.length === 0 && (
         <div className="bg-emerald-50 border border-emerald-200 rounded-3xl p-8 text-center">
           <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-emerald-800 font-arabic mb-2">المركبة بحالة ممتازة</h3>
-          <p className="text-emerald-600 font-arabic">لم يتم اكتشاف أي أعطال أو ملاحظات تستوجب الاهتمام</p>
+          <h3 className="text-xl font-bold text-emerald-800 font-arabic mb-2">السيارة حالتها ممتازة</h3>
+          <p className="text-emerald-600 font-arabic">ما لقينا أي أعطال أو ملاحظات</p>
         </div>
       )}
     </div>
@@ -502,7 +502,7 @@ export default function InteractiveReport() {
     const element = document.getElementById('report-content');
     if (!element) return;
     
-    toast({ title: "جاري التحضير", description: "جاري إنشاء نسخة PDF من التقرير..." });
+    toast({ title: "يجهز", description: "يسوي نسخة PDF من التقرير..." });
     
     try {
       const canvas = await html2canvas(element, { 
@@ -532,9 +532,9 @@ export default function InteractiveReport() {
       }
       
       pdf.save(`تقرير_الفحص_${inspection?.vin || 'HS'}.pdf`);
-      toast({ title: "تم بنجاح", description: "تم حفظ التقرير بصيغة PDF" });
+      toast({ title: "تم", description: "انحفظ التقرير PDF" });
     } catch (error) {
-      toast({ title: "خطأ", description: "حدث خطأ أثناء إنشاء ملف PDF", variant: "destructive" });
+      toast({ title: "خطأ", description: "صار خطأ في سوي ملف PDF", variant: "destructive" });
     }
   };
 
@@ -542,7 +542,7 @@ export default function InteractiveReport() {
   const handleTextPDF = async () => {
     if (!inspection) return;
     
-    toast({ title: "جاري التحضير", description: "جاري إنشاء التقرير العربي..." });
+    toast({ title: "يجهز", description: "يسوي التقرير العربي..." });
     
     try {
       // Dynamic import pdfmake and fonts
@@ -814,7 +814,7 @@ export default function InteractiveReport() {
       toast({ title: "تم بنجاح", description: "تم حفظ التقرير العربي بصيغة PDF" });
     } catch (error) {
       console.error('PDF generation error:', error);
-      toast({ title: "خطأ", description: "حدث خطأ أثناء إنشاء ملف PDF", variant: "destructive" });
+      toast({ title: "خطأ", description: "صار خطأ في سوي ملف PDF", variant: "destructive" });
     }
   };
 
@@ -830,21 +830,21 @@ export default function InteractiveReport() {
       if (navigator.share) {
         await navigator.share({
           title: `تقرير فحص - ${inspection?.make} ${inspection?.model}`,
-          text: `تقرير فحص مركبة من مركز الأمان العالي الدولي`,
+          text: `تقرير فحص سيارة من High Safety`,
           url: shareUrl,
         });
       } else {
         await navigator.clipboard.writeText(shareUrl);
         toast({ 
-          title: "تم نسخ الرابط", 
-          description: "رابط عام للتقرير - يمكن للعميل مشاهدته بدون تسجيل دخول" 
+          title: "انسخ اللينك", 
+          description: "لينك للتقرير - الكستمر يقدر يشوفه بدون تسجيل" 
         });
       }
     } catch (err) {
       console.error("Error sharing:", err);
       toast({ 
         title: "خطأ", 
-        description: "تعذر إنشاء رابط المشاركة",
+        description: "ما قدر يسوي لينك المشاركة",
         variant: "destructive"
       });
     }
@@ -854,7 +854,7 @@ export default function InteractiveReport() {
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-slate-50 font-arabic">
         <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-        <span className="text-primary font-bold">جاري تحميل التقرير...</span>
+        <span className="text-primary font-bold">يحمل التقرير...</span>
       </div>
     );
   }
@@ -863,8 +863,8 @@ export default function InteractiveReport() {
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-slate-50">
         <AlertTriangle className="w-16 h-16 text-red-500 mb-4" />
-        <h2 className="text-xl font-bold text-slate-900 font-arabic">التقرير غير موجود</h2>
-        <p className="text-slate-500 font-arabic mt-2">تأكد من صحة رابط التقرير</p>
+        <h2 className="text-xl font-bold text-slate-900 font-arabic">التقرير مو موجود</h2>
+        <p className="text-slate-500 font-arabic mt-2">تأكد من اللينك</p>
       </div>
     );
   }

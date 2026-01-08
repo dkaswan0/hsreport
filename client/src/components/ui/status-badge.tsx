@@ -17,11 +17,11 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
   };
 
   const labels: Record<string, string> = {
-    draft: "مسودة",
-    completed: "مكتمل",
-    pass: "جيد",
-    fail: "معيب",
-    warning: "تنبيه",
+    draft: "ما خلص",
+    completed: "خلص",
+    pass: "ناجح",
+    fail: "فاشل",
+    warning: "تحذير",
   };
   
   // Fallback for English logic if needed, or stick to Arabic default per requirements

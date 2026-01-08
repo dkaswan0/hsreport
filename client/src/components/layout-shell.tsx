@@ -21,9 +21,9 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   const navItems = [
     { href: "/", label: lang === 'ar' ? 'الرئيسية' : 'Dashboard', icon: LayoutDashboard },
     { href: "/inspections", label: lang === 'ar' ? 'الفحوصات' : 'Inspections', icon: ClipboardList },
-    { href: "/fault-library", label: lang === 'ar' ? 'مكتبة الأعطال' : 'Fault Library', icon: Car },
+    { href: "/fault-library", label: lang === 'ar' ? 'الأعطال' : 'Fault Library', icon: Car },
     { href: "/vehicle-data", label: lang === 'ar' ? 'بيانات السيارة' : 'Vehicle Data', icon: Database },
-    { href: "/settings", label: lang === 'ar' ? 'الإعدادات' : 'Settings', icon: Settings },
+    { href: "/settings", label: lang === 'ar' ? 'الاعدادات' : 'Settings', icon: Settings },
   ];
 
   const toggleLang = () => {
@@ -87,7 +87,7 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 rtl:left-3 rtl:right-auto" />
             <input 
               className="w-full pl-4 pr-10 py-2 rounded-lg bg-slate-100 dark:bg-slate-900 border-transparent focus:bg-white focus:border-accent focus:ring-0 transition-all text-sm rtl:pr-4 rtl:pl-10"
-              placeholder={lang === 'ar' ? 'بحث في الفحوصات...' : 'Search inspections...'}
+              placeholder={lang === 'ar' ? 'ابحث هني...' : 'Search inspections...'}
             />
           </div>
 

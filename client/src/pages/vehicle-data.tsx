@@ -37,7 +37,7 @@ export default function VehicleData() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500 text-right" dir="rtl">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-slate-900 font-arabic">مركز فك رموز الشاصي (VIN) العالمي</h1>
+        <h1 className="text-3xl font-bold text-slate-900 font-arabic">فك رموز الشاصي</h1>
         <div className="flex gap-2">
           <Globe className="w-6 h-6 text-primary" />
           <Car className="w-10 h-10 text-primary" />
@@ -52,7 +52,7 @@ export default function VehicleData() {
               <Input 
                 value={vin} 
                 onChange={(e) => setVin(e.target.value.toUpperCase())}
-                placeholder="أدخل رقم الشاصي (VIN) المكون من 17 حرفاً..." 
+                placeholder="حط رقم الشاصي (17 حرف)..." 
                 className="pr-10 h-12 rounded-xl text-left font-mono"
                 maxLength={17}
               />
@@ -63,7 +63,7 @@ export default function VehicleData() {
               className="h-12 px-8 rounded-xl bg-primary text-white font-arabic"
             >
               {isDecoding ? <Loader2 className="w-5 h-5 animate-spin ml-2" /> : null}
-              تحليل شامل وفك الرموز
+              حلل وفك الرموز
             </Button>
           </div>
         </CardContent>
@@ -74,10 +74,10 @@ export default function VehicleData() {
         <Card className="rounded-3xl border-red-200 shadow-sm bg-red-50">
           <CardContent className="p-8 text-center">
             <AlertCircle className="w-16 h-16 mx-auto mb-4 text-red-500" />
-            <h3 className="text-xl font-bold text-red-700 mb-2 font-arabic">فشل في فك رموز الشاصي</h3>
+            <h3 className="text-xl font-bold text-red-700 mb-2 font-arabic">ما قدر يفك رموز الشاصي</h3>
             <p className="text-red-600 mb-4 font-arabic">{(vinData as any).message}</p>
             <p className="text-red-500 text-sm font-arabic">
-              يرجى التحقق من صلاحية مفتاح CarsXE API أو التواصل مع الدعم الفني
+              تأكد من API Key أو تواصل مع الدعم
             </p>
           </CardContent>
         </Card>
@@ -108,19 +108,19 @@ export default function VehicleData() {
                   <p className="font-bold">{vinData.year}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-slate-400 font-arabic">المحرك | Engine</p>
+                  <p className="text-slate-400 font-arabic">الماكينة | Engine</p>
                   <p className="font-bold">{specs.engine || specs.engine_displacement || "N/A"}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-slate-400 font-arabic">ناقل الحركة | Transmission</p>
+                  <p className="text-slate-400 font-arabic">القير | Transmission</p>
                   <p className="font-bold">{specs.transmission || "N/A"}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-slate-400 font-arabic">دفع العجلات | Drivetrain</p>
+                  <p className="text-slate-400 font-arabic">الدفع | Drivetrain</p>
                   <p className="font-bold">{specs.drivetrain || "N/A"}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-slate-400 font-arabic">نوع الوقود | Fuel</p>
+                  <p className="text-slate-400 font-arabic">البترول | Fuel</p>
                   <p className="font-bold">{specs.fuel_type || "N/A"}</p>
                 </div>
                 <div className="space-y-1">
@@ -128,7 +128,7 @@ export default function VehicleData() {
                   <p className="font-bold">{specs.manufacturer_address || specs.made_in || "N/A"}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-slate-400 font-arabic">نوع المركبة | Type</p>
+                  <p className="text-slate-400 font-arabic">نوع السيارة | Type</p>
                   <p className="font-bold">{specs.vehicle_type || "N/A"}</p>
                 </div>
               </div>

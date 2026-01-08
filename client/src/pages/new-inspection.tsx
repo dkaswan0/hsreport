@@ -56,7 +56,7 @@ export default function NewInspection() {
     if (vinData) {
       // Check for error in response
       if ((vinData as any).error) {
-        setVinError((vinData as any).message || "فشل في فك رموز الشاصي");
+        setVinError((vinData as any).message || "ما قدر يقرأ الشاصي");
         return;
       }
       setVinError(null);
@@ -119,8 +119,8 @@ export default function NewInspection() {
           <ArrowLeft className="w-6 h-6 text-slate-500 rtl:rotate-180" />
         </button>
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 font-arabic">فحص جديد</h1>
-          <p className="text-slate-500 font-arabic">أدخل بيانات المركبة والعميل للبدء</p>
+          <h1 className="text-3xl font-bold text-slate-900 font-arabic">فحص يديد</h1>
+          <p className="text-slate-500 font-arabic">حط بيانات السيارة والكستمر</p>
         </div>
       </div>
 
@@ -131,7 +131,7 @@ export default function NewInspection() {
           <div>
             <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-primary border-b pb-2 font-arabic">
               <span className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center text-sm">1</span>
-              بيانات المركبة
+              بيانات السيارة
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -147,7 +147,7 @@ export default function NewInspection() {
                     data-testid="button-open-scanner"
                   >
                     <ScanLine className="w-4 h-4" />
-                    مسح بالكاميرا
+                    سكان بالكاميرا
                   </Button>
                 </div>
                 <div className="relative">
@@ -166,11 +166,11 @@ export default function NewInspection() {
                     {isDecoding ? <Loader2 className="w-5 h-5 animate-spin text-accent" /> : <Search className="w-5 h-5 text-slate-400" />}
                   </div>
                 </div>
-                {isDecoding && <p className="text-accent text-xs mt-1 font-arabic">جاري جلب بيانات المركبة...</p>}
+                {isDecoding && <p className="text-accent text-xs mt-1 font-arabic">يحمل بيانات السيارة...</p>}
                 {vinError && (
                   <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-xl">
                     <p className="text-red-600 text-sm font-arabic">{vinError}</p>
-                    <p className="text-red-500 text-xs mt-1 font-arabic">يرجى إدخال البيانات يدوياً أو التحقق من رقم الشاصي</p>
+                    <p className="text-red-500 text-xs mt-1 font-arabic">حط البيانات يدوي أو تأكد من رقم الشاصي</p>
                   </div>
                 )}
                 {form.formState.errors.vin && (
@@ -179,7 +179,7 @@ export default function NewInspection() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">الشركة المصنعة</label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">الماركة</label>
                 <input
                   {...form.register("make")}
                   className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all"
@@ -197,7 +197,7 @@ export default function NewInspection() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">سنة الصنع</label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">السنة</label>
                 <input
                   type="number"
                   {...form.register("year")}
@@ -215,7 +215,7 @@ export default function NewInspection() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">المسافة المقطوعة (كم)</label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">العداد (كم)</label>
                 <input
                   type="number"
                   {...form.register("odometer")}
@@ -229,12 +229,12 @@ export default function NewInspection() {
           <div>
             <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-primary border-b pb-2">
               <span className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center text-sm">2</span>
-              بيانات العميل
+              بيانات الكستمر
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">اسم العميل</label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">اسم الكستمر</label>
                 <input
                   {...form.register("customerName")}
                   className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all"
@@ -256,7 +256,7 @@ export default function NewInspection() {
                 <div className="col-span-full">
                   <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-green-500" />
-                    بيانات المركبة من VIN
+                    بيانات السيارة من الشاصي
                   </label>
                   <div className="bg-green-50 border border-green-200 rounded-xl p-4 space-y-3">
                     {/* Arabic Summary */}
@@ -270,19 +270,19 @@ export default function NewInspection() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-right" dir="rtl">
                       {vehicleSpecs.engine && (
                         <div className="bg-white p-2 rounded-lg border border-green-100">
-                          <div className="text-[10px] text-slate-400 font-arabic">المحرك</div>
+                          <div className="text-[10px] text-slate-400 font-arabic">الماكينة</div>
                           <div className="text-xs font-bold text-slate-700 truncate">{vehicleSpecs.engine}</div>
                         </div>
                       )}
                       {vehicleSpecs.transmission && (
                         <div className="bg-white p-2 rounded-lg border border-green-100">
-                          <div className="text-[10px] text-slate-400 font-arabic">ناقل الحركة</div>
+                          <div className="text-[10px] text-slate-400 font-arabic">القير</div>
                           <div className="text-xs font-bold text-slate-700 truncate">{vehicleSpecs.transmission}</div>
                         </div>
                       )}
                       {vehicleSpecs.drivetrain && (
                         <div className="bg-white p-2 rounded-lg border border-green-100">
-                          <div className="text-[10px] text-slate-400 font-arabic">نظام الدفع</div>
+                          <div className="text-[10px] text-slate-400 font-arabic">الدفع</div>
                           <div className="text-xs font-bold text-slate-700 truncate">{vehicleSpecs.drivetrain}</div>
                         </div>
                       )}
@@ -294,13 +294,13 @@ export default function NewInspection() {
                       )}
                       {vehicleSpecs.fuel_capacity && (
                         <div className="bg-white p-2 rounded-lg border border-green-100">
-                          <div className="text-[10px] text-slate-400 font-arabic">سعة الوقود</div>
+                          <div className="text-[10px] text-slate-400 font-arabic">تانكي البترول</div>
                           <div className="text-xs font-bold text-slate-700 truncate">{vehicleSpecs.fuel_capacity}</div>
                         </div>
                       )}
                       {vehicleSpecs.tires && (
                         <div className="bg-white p-2 rounded-lg border border-green-100">
-                          <div className="text-[10px] text-slate-400 font-arabic">مقاس الإطارات</div>
+                          <div className="text-[10px] text-slate-400 font-arabic">مقاس التواير</div>
                           <div className="text-xs font-bold text-slate-700 truncate">{vehicleSpecs.tires}</div>
                         </div>
                       )}
@@ -325,12 +325,12 @@ export default function NewInspection() {
               
               {/* User Notes - Separate field */}
               <div className="col-span-full">
-                <label className="block text-sm font-medium text-slate-700 mb-2">ملاحظات إضافية</label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">ملاحظات</label>
                 <textarea
                   value={userNotes}
                   onChange={(e) => setUserNotes(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all min-h-[100px]"
-                  placeholder="أي ملاحظات أولية عن حالة المركبة..."
+                  placeholder="أي ملاحظات عن حالة السيارة..."
                 />
               </div>
             </div>
@@ -344,7 +344,7 @@ export default function NewInspection() {
             >
               {isPending ? (
                 <span className="flex items-center gap-2">
-                  <Loader2 className="w-5 h-5 animate-spin" /> جاري الإنشاء...
+                  <Loader2 className="w-5 h-5 animate-spin" /> يحفظ...
                 </span>
               ) : (
                 "بدء الفحص"

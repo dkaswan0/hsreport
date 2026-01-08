@@ -21,14 +21,14 @@ export const INSPECTION_CATEGORIES = [
   { id: "windows", label: "الجامات", labelEn: "Windows" },
   { id: "lights_front", label: "الليتات الأمامية", labelEn: "Front Lights" },
   { id: "lights_rear", label: "الليتات الخلفية", labelEn: "Rear Lights" },
-  { id: "interior", label: "داخلية السيارة", labelEn: "Interior" },
+  { id: "interior", label: "الداخلية", labelEn: "Interior" },
   { id: "chassis", label: "الشاصي", labelEn: "Chassis" },
   { id: "engine", label: "الماكينة", labelEn: "Engine" },
   { id: "transmission", label: "القير", labelEn: "Transmission" },
   { id: "transfer_case", label: "الدبل", labelEn: "Transfer Case" },
   { id: "differential", label: "الديفرايشن", labelEn: "Differential" },
   { id: "driveshaft", label: "الشافت", labelEn: "Driveshaft" },
-  { id: "condenser", label: "الكوندنسيور", labelEn: "Condenser" },
+  { id: "condenser", label: "الكوندنسر", labelEn: "Condenser" },
   { id: "radiator", label: "الردياتر", labelEn: "Radiator" },
   { id: "cooling_fan", label: "المروحة", labelEn: "Cooling Fan" },
   { id: "turbo", label: "التيربو", labelEn: "Turbo" },
@@ -37,36 +37,36 @@ export const INSPECTION_CATEGORIES = [
   { id: "control_arms", label: "الجانبينات", labelEn: "Control Arms" },
   { id: "exhaust", label: "الاكزوز", labelEn: "Exhaust" },
   { id: "tires", label: "التواير", labelEn: "Tires" },
-  { id: "rims", label: "الرينقات", labelEn: "Rims" },
+  { id: "rims", label: "الرنقات", labelEn: "Rims" },
   { id: "brake_pads", label: "السفايف", labelEn: "Brake Pads" },
   { id: "brake_drums", label: "الدرامات", labelEn: "Brake Drums" },
   { id: "brakes", label: "البريك", labelEn: "Brakes" },
   { id: "suspension_arms", label: "الشيالات", labelEn: "Suspension Arms" },
-  { id: "axles", label: "الأكسلات", labelEn: "Axles" },
-  { id: "fuel_tank", label: "تانك البترول", labelEn: "Fuel Tank" },
-  { id: "power_steering", label: "الباور ستيرنج", labelEn: "Power Steering" },
-  { id: "fuel_pump", label: "الفيول بمب", labelEn: "Fuel Pump" },
+  { id: "axles", label: "الاكسلات", labelEn: "Axles" },
+  { id: "fuel_tank", label: "تانكي البترول", labelEn: "Fuel Tank" },
+  { id: "power_steering", label: "البورستيرنق", labelEn: "Power Steering" },
+  { id: "fuel_pump", label: "طرمبة البترول", labelEn: "Fuel Pump" },
   { id: "tie_rod", label: "التايررود", labelEn: "Tie Rod" },
-  { id: "stabilizer_link", label: "الاستبلايزرلينك", labelEn: "Stabilizer Link" },
-  // Electrical System Categories
+  { id: "stabilizer_link", label: "الاستبلايزر لينك", labelEn: "Stabilizer Link" },
+  // النظام الكهربائي
   { id: "battery", label: "البطارية", labelEn: "Battery" },
-  { id: "charging_system", label: "نظام الشحن", labelEn: "Charging System" },
-  { id: "starting_system", label: "نظام التشغيل", labelEn: "Starting System" },
-  { id: "ignition_system", label: "نظام الاشتعال", labelEn: "Ignition System" },
-  { id: "ecu_computers", label: "الكمبيوتر والتحكم", labelEn: "ECU & Computers" },
-  { id: "sensors", label: "الحساسات", labelEn: "Sensors" },
-  { id: "lighting", label: "نظام الإضاءة", labelEn: "Lighting System" },
-  { id: "wiring", label: "التوصيلات والحماية", labelEn: "Wiring & Protection" },
-  { id: "interior_electrical", label: "الكهرباء الداخلية", labelEn: "Interior Electrical" },
+  { id: "charging_system", label: "الشارجنق سيستم", labelEn: "Charging System" },
+  { id: "starting_system", label: "السلف", labelEn: "Starting System" },
+  { id: "ignition_system", label: "الاشتعال", labelEn: "Ignition System" },
+  { id: "ecu_computers", label: "الكمبيوتر", labelEn: "ECU & Computers" },
+  { id: "sensors", label: "السنسرات", labelEn: "Sensors" },
+  { id: "lighting", label: "الليتات", labelEn: "Lighting System" },
+  { id: "wiring", label: "الوايرات", labelEn: "Wiring & Protection" },
+  { id: "interior_electrical", label: "كهرباء الداخلية", labelEn: "Interior Electrical" },
   { id: "ac_electrical", label: "كهرباء المكيف", labelEn: "AC Electrical" },
-  { id: "entertainment", label: "الترفيه والمعلومات", labelEn: "Entertainment & Info" },
-  { id: "safety_systems", label: "أنظمة الأمان", labelEn: "Safety Systems" },
-  { id: "driver_assist", label: "أنظمة مساعدة القيادة", labelEn: "Driver Assistance" },
+  { id: "entertainment", label: "السيستم والشاشة", labelEn: "Entertainment & Info" },
+  { id: "safety_systems", label: "السيفتي سيستم", labelEn: "Safety Systems" },
+  { id: "driver_assist", label: "مساعدات السواقة", labelEn: "Driver Assistance" },
 ];
 
 export const CATEGORY_GROUPS = [
   {
-    group: "البودي الخارجي",
+    group: "البودي",
     groupEn: "Exterior Body",
     categories: ["front_bumper", "rear_bumper", "bumper_frame_front", "bumper_frame_rear", "hood", "front_chest", "rear_chest", "fender_front_right", "fender_front_left", "fender_rear_right", "fender_rear_left", "door_front_right", "door_front_left", "door_rear_right", "door_rear_left", "trunk", "quarter_panel", "roof", "pillars", "windows", "lights_front", "lights_rear"]
   },
@@ -76,42 +76,42 @@ export const CATEGORY_GROUPS = [
     categories: ["interior"]
   },
   {
-    group: "الهيكل والشاصي",
+    group: "الشاصي",
     groupEn: "Frame & Chassis",
     categories: ["chassis"]
   },
   {
-    group: "المحرك وناقل الحركة",
+    group: "الماكينة والقير",
     groupEn: "Engine & Drivetrain",
     categories: ["engine", "transmission", "transfer_case", "differential", "driveshaft"]
   },
   {
-    group: "نظام التبريد",
+    group: "التبريد",
     groupEn: "Cooling System",
     categories: ["condenser", "radiator", "cooling_fan", "turbo", "water_pump", "thermostat"]
   },
   {
-    group: "العادم",
+    group: "الاكزوز",
     groupEn: "Exhaust",
     categories: ["exhaust", "control_arms"]
   },
   {
-    group: "العجلات والفرامل",
+    group: "التواير والبريك",
     groupEn: "Wheels & Brakes",
     categories: ["tires", "rims", "brake_pads", "brake_drums", "brakes"]
   },
   {
-    group: "نظام التعليق",
+    group: "السسبنشن",
     groupEn: "Suspension",
     categories: ["suspension_arms", "axles", "tie_rod", "stabilizer_link"]
   },
   {
-    group: "نظام الوقود والتوجيه",
+    group: "البترول والستيرنق",
     groupEn: "Fuel & Steering",
     categories: ["fuel_tank", "power_steering", "fuel_pump"]
   },
   {
-    group: "النظام الكهربائي",
+    group: "الكهرباء",
     groupEn: "Electrical System",
     categories: ["battery", "charging_system", "starting_system", "ignition_system", "ecu_computers", "sensors", "lighting", "wiring", "interior_electrical", "ac_electrical", "entertainment", "safety_systems", "driver_assist"]
   }

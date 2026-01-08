@@ -39,7 +39,7 @@ export default function PublicReport() {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-white/70 font-arabic">جاري تحميل التقرير...</p>
+          <p className="text-white/70 font-arabic">يحمل التقرير...</p>
         </div>
       </div>
     );
@@ -50,8 +50,8 @@ export default function PublicReport() {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-center bg-white/10 backdrop-blur-lg rounded-3xl p-12">
           <XCircle className="w-20 h-20 text-red-400 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-white mb-2 font-arabic">التقرير غير موجود</h1>
-          <p className="text-white/60 font-arabic">الرابط غير صحيح أو انتهت صلاحيته</p>
+          <h1 className="text-2xl font-bold text-white mb-2 font-arabic">التقرير مو موجود</h1>
+          <p className="text-white/60 font-arabic">اللينك غلط أو انتهت صلاحيته</p>
         </div>
       </div>
     );
@@ -63,9 +63,9 @@ export default function PublicReport() {
   const passCount = items.filter(i => i.status === 'pass').length;
 
   const getOverallStatus = () => {
-    if (failCount > 0) return { label: 'يحتاج إصلاح عاجل', color: 'text-red-400', bg: 'bg-red-500/20', icon: XCircle };
-    if (warningCount > 0) return { label: 'يحتاج متابعة', color: 'text-amber-400', bg: 'bg-amber-500/20', icon: AlertCircle };
-    return { label: 'حالة ممتازة', color: 'text-emerald-400', bg: 'bg-emerald-500/20', icon: CheckCircle2 };
+    if (failCount > 0) return { label: 'يبي تصليح عاجل', color: 'text-red-400', bg: 'bg-red-500/20', icon: XCircle };
+    if (warningCount > 0) return { label: 'يبي متابعة', color: 'text-amber-400', bg: 'bg-amber-500/20', icon: AlertCircle };
+    return { label: 'ممتازة', color: 'text-emerald-400', bg: 'bg-emerald-500/20', icon: CheckCircle2 };
   };
 
   const status = getOverallStatus();

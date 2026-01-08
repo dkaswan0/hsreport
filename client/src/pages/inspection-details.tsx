@@ -40,16 +40,16 @@ export default function InspectionDetails() {
   if (isLoading) return <div className="flex justify-center items-center h-96"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>;
   if (!inspection && error) return (
     <div className="text-center p-12">
-      <div className="text-red-500 text-xl mb-4">حدث خطأ أثناء تحميل الفحص</div>
-      <p className="text-slate-500 mb-4">تأكد من اتصالك بالإنترنت وحاول مرة أخرى</p>
-      <button onClick={() => window.location.reload()} className="px-4 py-2 bg-primary text-white rounded-lg">إعادة المحاولة</button>
+      <div className="text-red-500 text-xl mb-4">صار خطأ في التحميل</div>
+      <p className="text-slate-500 mb-4">تأكد من النت وجرب مرة ثانية</p>
+      <button onClick={() => window.location.reload()} className="px-4 py-2 bg-primary text-white rounded-lg">جرب مرة ثانية</button>
     </div>
   );
   if (!inspection) return (
     <div className="text-center p-12">
-      <div className="text-amber-500 text-xl mb-4">الفحص غير موجود</div>
-      <p className="text-slate-500 mb-4">قد يكون تم حذف هذا الفحص أو الرابط غير صحيح</p>
-      <a href="/" className="px-4 py-2 bg-primary text-white rounded-lg inline-block">العودة للرئيسية</a>
+      <div className="text-amber-500 text-xl mb-4">الفحص مو موجود</div>
+      <p className="text-slate-500 mb-4">يمكن انمسح أو اللينك غلط</p>
+      <a href="/" className="px-4 py-2 bg-primary text-white rounded-lg inline-block">رجع للرئيسية</a>
     </div>
   );
 
@@ -58,13 +58,13 @@ export default function InspectionDetails() {
   const handleStatusUpdate = (status: 'completed' | 'draft') => {
     updateInspection.mutate({ id, status }, {
       onSuccess: () => {
-        toast({ title: "تم التحديث", description: "تم تحديث حالة الفحص بنجاح" });
+        toast({ title: "تم", description: "تم تحديث حالة الفحص" });
         if (status === 'completed') {
           window.location.assign(`/reports/${id}`);
         }
       },
       onError: () => {
-        toast({ title: "خطأ", description: "فشل في تحديث حالة الفحص، حاول مرة أخرى", variant: "destructive" });
+        toast({ title: "خطأ", description: "ما قدر يحدث الفحص، جرب مرة ثانية", variant: "destructive" });
       }
     });
   };
@@ -79,7 +79,7 @@ export default function InspectionDetails() {
       
       {/* Mobile Horizontal Categories - Scrollable */}
       <div className="md:hidden bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 font-bold text-slate-700 text-sm">أقسام الفحص</div>
+        <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 font-bold text-slate-700 text-sm">الأقسام</div>
         <div className="overflow-x-auto overscroll-x-contain">
           <div className="flex gap-2 p-3 min-w-max">
             {INSPECTION_CATEGORIES.map(cat => (
@@ -104,7 +104,7 @@ export default function InspectionDetails() {
       <div className="flex flex-col md:flex-row gap-4 flex-1">
         {/* Desktop Sidebar Categories */}
         <div className="hidden md:flex w-64 flex-shrink-0 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex-col">
-          <div className="p-4 bg-slate-50 border-b border-slate-100 font-bold text-slate-700">أقسام الفحص</div>
+          <div className="p-4 bg-slate-50 border-b border-slate-100 font-bold text-slate-700">الأقسام</div>
           <div className="flex-1 overflow-y-auto p-2 space-y-1">
             {INSPECTION_CATEGORIES.map(cat => (
               <button
@@ -144,7 +144,7 @@ export default function InspectionDetails() {
               <button 
                 onClick={() => window.location.href = `/reports/${id}`}
                 className="p-3 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
-                title="التقرير التفاعلي"
+                title="التقرير"
                 data-testid="button-interactive-report"
               >
                 <FileText className="w-5 h-5" />
@@ -152,7 +152,7 @@ export default function InspectionDetails() {
               <button 
                 onClick={handlePrint}
                 className="p-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
-                title="طباعة التقرير"
+                title="برنت"
               >
                 <Printer className="w-5 h-5" />
               </button>
@@ -162,14 +162,14 @@ export default function InspectionDetails() {
                   className="px-6 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold shadow-lg shadow-green-600/20 transition-all flex items-center gap-2"
                 >
                   <Save className="w-5 h-5" />
-                  <span>إنهاء الفحص</span>
+                  <span>خلص الفحص</span>
                 </button>
               ) : (
                 <button 
                   onClick={() => handleStatusUpdate('draft')}
                   className="px-6 py-3 rounded-xl bg-slate-600 hover:bg-slate-700 text-white font-semibold shadow-lg transition-all"
                 >
-                  إعادة للعمل
+                  رجعه للعمل
                 </button>
               )}
             </div>
@@ -205,15 +205,15 @@ export default function InspectionDetails() {
                 )}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-right" dir="rtl">
                   <div className="bg-white p-3 rounded-xl border border-slate-100">
-                    <div className="text-[10px] text-slate-400 font-arabic">المحرك</div>
+                    <div className="text-[10px] text-slate-400 font-arabic">الماكينة</div>
                     <div className="text-xs font-bold truncate">{specs.engine || "N/A"}</div>
                   </div>
                   <div className="bg-white p-3 rounded-xl border border-slate-100">
-                    <div className="text-[10px] text-slate-400 font-arabic">ناقل الحركة</div>
+                    <div className="text-[10px] text-slate-400 font-arabic">القير</div>
                     <div className="text-xs font-bold truncate">{specs.transmission || "N/A"}</div>
                   </div>
                   <div className="bg-white p-3 rounded-xl border border-slate-100">
-                    <div className="text-[10px] text-slate-400 font-arabic">نظام الدفع</div>
+                    <div className="text-[10px] text-slate-400 font-arabic">الدفع</div>
                     <div className="text-xs font-bold truncate">{specs.drivetrain || "N/A"}</div>
                   </div>
                   <div className="bg-white p-3 rounded-xl border border-slate-100">
@@ -239,7 +239,7 @@ export default function InspectionDetails() {
               className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 text-sm font-medium"
             >
               <Plus className="w-4 h-4" />
-              إضافة ملاحظة
+              زيد ملاحظة
             </button>
           </div>
 
@@ -247,12 +247,12 @@ export default function InspectionDetails() {
             {filteredItems.length === 0 ? (
               <div className="text-center py-20 text-slate-400">
                 <Car className="w-16 h-16 mx-auto mb-4 opacity-20" />
-                <p>لا توجد ملاحظات مسجلة في هذا القسم</p>
+                <p>ما في ملاحظات في هذا القسم</p>
                 <button 
                   onClick={() => setIsAddItemOpen(true)}
                   className="mt-4 text-primary hover:underline"
                 >
-                  إضافة ملاحظة جديدة
+                  زيد ملاحظة
                 </button>
               </div>
             ) : (
@@ -794,7 +794,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
                 disabled={createMutation.isPending || !formData.faultName}
                 className="flex-1 py-3 rounded-xl font-medium bg-primary text-white shadow-lg shadow-primary/25 hover:bg-primary/90 transition-colors disabled:opacity-50"
               >
-                {createMutation.isPending ? "جاري الحفظ..." : "حفظ الملاحظة"}
+                {createMutation.isPending ? "يحفظ..." : "احفظ"}
               </button>
             </div>
           </form>
