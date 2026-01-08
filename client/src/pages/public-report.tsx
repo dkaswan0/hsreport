@@ -106,6 +106,7 @@ const ImageModal = ({ imageUrl, faultName, onClose }: { imageUrl: string; faultN
 const Car3DVisualization = ({ items, onCategoryClick }: { items: InspectionItem[], onCategoryClick: (cat: string) => void }) => {
   const [rotateY, setRotateY] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
 
   const getCategoryStatus = (catId: string) => {
     const catItems = items.filter(i => i.category === catId);
@@ -115,19 +116,12 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: InspectionItem[
     return 'none';
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusStyles = (status: string, isHovered: boolean) => {
+    const base = isHovered ? 'scale-110' : '';
     switch (status) {
-      case 'fail': return 'bg-red-500 shadow-red-500/50';
-      case 'warning': return 'bg-amber-500 shadow-amber-500/50';
+      case 'fail': return `bg-red-500 border-red-300 shadow-red-500/60 ${base}`;
+      case 'warning': return `bg-amber-500 border-amber-300 shadow-amber-500/60 ${base}`;
       default: return '';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'fail': return <XCircle className="w-3 h-3" />;
-      case 'warning': return <AlertCircle className="w-3 h-3" />;
-      default: return null;
     }
   };
 
@@ -150,6 +144,15 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: InspectionItem[
     return { warning, fail };
   }, [items]);
 
+  const categoriesWithIssues = useMemo(() => {
+    return INSPECTION_CATEGORIES.filter(cat => {
+      const position = CATEGORY_POSITIONS[cat.id];
+      if (!position) return false;
+      const status = getCategoryStatus(cat.id);
+      return status !== 'none';
+    });
+  }, [items]);
+
   return (
     <div className="relative w-full bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 rounded-3xl overflow-hidden">
       <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-20">
@@ -160,14 +163,18 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: InspectionItem[
           <RotateCcw className={cn("w-5 h-5", isAnimating && "animate-spin")} />
         </button>
         <div className="flex gap-2">
-          <div className="flex items-center gap-1.5 bg-amber-500/20 text-amber-400 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm">
-            <AlertCircle className="w-3.5 h-3.5" />
-            <span>{stats.warning} تحذير</span>
-          </div>
-          <div className="flex items-center gap-1.5 bg-red-500/20 text-red-400 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm">
-            <XCircle className="w-3.5 h-3.5" />
-            <span>{stats.fail} خطير</span>
-          </div>
+          {stats.warning > 0 && (
+            <div className="flex items-center gap-1.5 bg-amber-500/20 text-amber-400 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm">
+              <AlertCircle className="w-3.5 h-3.5" />
+              <span>{stats.warning} تحذير</span>
+            </div>
+          )}
+          {stats.fail > 0 && (
+            <div className="flex items-center gap-1.5 bg-red-500/20 text-red-400 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm">
+              <XCircle className="w-3.5 h-3.5" />
+              <span>{stats.fail} خطير</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -190,42 +197,56 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: InspectionItem[
             className="w-full h-full object-contain drop-shadow-2xl"
           />
 
-          {INSPECTION_CATEGORIES.map(cat => {
+          {categoriesWithIssues.map(cat => {
             const position = CATEGORY_POSITIONS[cat.id];
-            if (!position) return null;
-            
             const status = getCategoryStatus(cat.id);
-            if (status === 'none') return null;
+            const isHovered = hoveredCategory === cat.id;
             
             return (
               <button
                 key={cat.id}
                 onClick={() => onCategoryClick(cat.id)}
+                onMouseEnter={() => setHoveredCategory(cat.id)}
+                onMouseLeave={() => setHoveredCategory(null)}
+                onTouchStart={() => setHoveredCategory(cat.id)}
                 className={cn(
-                  "absolute flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold text-white transition-all duration-300 cursor-pointer z-10",
-                  getStatusColor(status),
-                  "shadow-lg hover:scale-110",
-                  "animate-pulse"
+                  "absolute flex flex-col items-center justify-center rounded-xl text-white transition-all duration-300 cursor-pointer z-10 border-2",
+                  getStatusStyles(status, isHovered),
+                  "shadow-lg min-w-[32px] min-h-[32px] p-1.5",
+                  !isHovered && "animate-pulse"
                 )}
                 style={position as any}
               >
-                {getStatusIcon(status)}
-                <span className="hidden md:inline truncate max-w-[80px]">{cat.label}</span>
+                {status === 'fail' ? <XCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                {isHovered && (
+                  <div className="absolute top-full mt-2 bg-slate-900/95 backdrop-blur-sm text-white px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap z-50 border border-white/20 shadow-xl">
+                    <div className="font-arabic mb-1">{cat.label}</div>
+                    <div className="text-[10px] text-white/70 font-arabic">اضغط لمعرفة العطل</div>
+                  </div>
+                )}
               </button>
             );
           })}
         </div>
       </div>
 
-      <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-6 text-xs font-bold font-arabic text-white/80">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-amber-500 shadow-lg shadow-amber-500/50" />
-          <span>تحذير</span>
+      <div className="p-4 text-center space-y-3">
+        <div className="flex justify-center gap-4 text-xs font-bold font-arabic text-white/80">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-amber-500 shadow-lg shadow-amber-500/50 border border-amber-300" />
+            <span>تحذير</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-red-500 shadow-lg shadow-red-500/50 border border-red-300" />
+            <span>خطير</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-red-500 shadow-lg shadow-red-500/50" />
-          <span>خطير</span>
-        </div>
+        {categoriesWithIssues.length > 0 && (
+          <div className="text-white/50 text-xs font-arabic flex items-center justify-center gap-2">
+            <AlertTriangle className="w-3.5 h-3.5" />
+            <span>اضغط على أي علامة لمعرفة تفاصيل العطل</span>
+          </div>
+        )}
       </div>
     </div>
   );
