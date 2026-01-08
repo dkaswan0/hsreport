@@ -391,26 +391,31 @@ export default function PublicReport() {
             odometer={inspection.odometer || 0} 
             odometerPhoto={inspection.odometerPhoto}
           />
-          {inspection.customerName && (
-            <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
-              <div className="bg-slate-50 rounded-lg md:rounded-xl p-2 md:p-3">
-                <div className="text-xs md:text-sm text-slate-500 font-arabic mb-1 flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  اسم العميل
-                </div>
-                <div className="font-bold text-base md:text-lg text-slate-800">{inspection.customerName}</div>
+          
+          <div className="mt-6 pt-4 border-t border-slate-200">
+            <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-xl p-4 text-center">
+              <div className="flex items-center justify-center gap-3 mb-2">
+                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
+                <ShieldCheck className="w-6 h-6 text-amber-500" />
+                <div className="h-px flex-1 bg-gradient-to-l from-transparent via-amber-500/50 to-transparent" />
               </div>
-              {inspection.customerPhone && (
-                <div className="bg-slate-50 rounded-lg md:rounded-xl p-2 md:p-3">
-                  <div className="text-xs md:text-sm text-slate-500 font-arabic mb-1 flex items-center gap-2">
-                    <Phone className="w-4 h-4" />
-                    رقم الهاتف
-                  </div>
-                  <div className="font-bold text-base md:text-lg text-slate-800 font-mono">{inspection.customerPhone}</div>
+              <h3 className="text-lg font-bold text-white font-arabic mb-1">
+                مركز فحص الأمان العالي الدولي
+              </h3>
+              <p className="text-amber-400 text-sm font-semibold tracking-wide">
+                HIGH SAFETY INTERNATIONAL INSPECTION CENTER
+              </p>
+              <div className="flex items-center justify-center gap-3 mt-2">
+                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
+                <div className="flex gap-1">
+                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                 </div>
-              )}
+                <div className="h-px flex-1 bg-gradient-to-l from-transparent via-amber-500/50 to-transparent" />
+              </div>
             </div>
-          )}
+          </div>
         </div>
 
         {issueItems.length > 0 && (
