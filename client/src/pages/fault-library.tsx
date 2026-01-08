@@ -203,13 +203,32 @@ export default function FaultLibrary() {
   if (faults.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-96 text-center" dir="rtl">
-        <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6">
+        <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6">
           <Car className="w-10 h-10 text-slate-400" />
         </div>
-        <h2 className="text-2xl font-bold text-slate-900 mb-2 font-arabic">مكتبة الأعطال فارغة</h2>
-        <p className="text-slate-500 max-w-md font-arabic">
-          لم يتم إضافة أي أعطال بعد. ستظهر الأعطال هنا بعد إجراء عمليات الفحص.
+        <h2 className="text-2xl font-bold text-foreground mb-2 font-arabic">مكتبة الأعطال فارغة</h2>
+        <p className="text-muted-foreground max-w-md mb-6 font-arabic">
+          اضغط الزر لتحميل كل الأعطال (1040 عطل)
         </p>
+        <Button 
+          onClick={() => reseedMutation.mutate()}
+          disabled={reseedMutation.isPending}
+          className="font-arabic"
+          size="lg"
+          data-testid="button-reseed-faults-empty"
+        >
+          {reseedMutation.isPending ? (
+            <>
+              <Loader2 className="w-5 h-5 ml-2 animate-spin" />
+              جاري تحميل الأعطال...
+            </>
+          ) : (
+            <>
+              <RefreshCw className="w-5 h-5 ml-2" />
+              تحميل كل الأعطال (1040)
+            </>
+          )}
+        </Button>
       </div>
     );
   }
