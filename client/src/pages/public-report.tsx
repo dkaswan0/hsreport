@@ -326,13 +326,16 @@ export default function PublicReport() {
       
       <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-6">
         
-        <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-6 md:p-8 text-white shadow-2xl overflow-hidden">
-          <img 
-            src={logoPath} 
-            alt="" 
-            className="absolute inset-0 w-full h-full object-contain opacity-5 pointer-events-none mix-blend-luminosity scale-150"
-            aria-hidden="true"
-          />
+        <div className="relative bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950 rounded-3xl p-6 md:p-8 text-white shadow-2xl overflow-hidden">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none" aria-hidden="true">
+            <img 
+              src={logoPath} 
+              alt="" 
+              className="w-64 h-64 md:w-80 md:h-80 object-contain opacity-[0.08]"
+              style={{ filter: 'brightness(1.5) contrast(0.8)' }}
+            />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-neutral-900/50 to-neutral-950 pointer-events-none" />
           
           <div className="relative z-10">
             <div className="text-center mb-6">

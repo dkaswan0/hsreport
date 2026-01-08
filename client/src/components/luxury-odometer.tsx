@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Gauge, X, Eye } from "lucide-react";
+import { X, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LuxuryOdometerProps {
@@ -12,14 +12,14 @@ export function LuxuryOdometer({ odometer, odometerPhoto, className }: LuxuryOdo
   const [showPhoto, setShowPhoto] = useState(false);
   
   const formattedOdometer = odometer?.toLocaleString('en-US') || '0';
-  const digits = formattedOdometer.replace(/,/g, '').padStart(7, '0').split('');
+  const displayNumber = odometer?.toString() || '0';
   
   return (
     <>
       <button
         type="button"
         className={cn(
-          "relative w-full text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 rounded-2xl",
+          "relative w-full text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 rounded-xl",
           odometerPhoto && "cursor-pointer",
           className
         )}
@@ -33,51 +33,72 @@ export function LuxuryOdometer({ odometer, odometerPhoto, className }: LuxuryOdo
         aria-label={odometerPhoto ? "اضغط لعرض صورة العداد" : "عداد السيارة"}
         data-testid="button-odometer-reveal"
       >
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 shadow-2xl border border-slate-700/50">
-          <div className="absolute inset-0 bg-gradient-to-t from-cyan-500/5 via-transparent to-transparent pointer-events-none" />
-          <div className="absolute -top-20 -right-20 w-40 h-40 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 p-5 shadow-2xl border border-neutral-800">
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-900/5 via-transparent to-amber-900/5 pointer-events-none" />
           
           <div className="relative z-10">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-cyan-500/20 rounded-lg">
-                  <Gauge className="w-5 h-5 text-cyan-400" />
+            <div className="bg-gradient-to-b from-neutral-900 to-black rounded-lg p-4 border border-neutral-800 shadow-inner">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50 animate-pulse" />
+                  <span className="text-neutral-500 text-[10px] font-medium tracking-[0.2em] uppercase">ODO</span>
                 </div>
-                <span className="text-cyan-400 text-xs font-medium tracking-wider uppercase">Odometer</span>
+                <span className="text-neutral-600 text-[10px] tracking-wider">km</span>
               </div>
-              <span className="text-slate-500 text-xs">KM</span>
-            </div>
-            
-            <div className="flex items-center justify-center gap-1 py-4">
-              {digits.map((digit, index) => (
-                <div 
-                  key={index}
-                  className="relative w-10 h-14 bg-gradient-to-b from-slate-800 to-slate-900 rounded-lg border border-slate-700/50 flex items-center justify-center shadow-inner overflow-hidden"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent h-1/2 pointer-events-none" />
-                  <span className="text-2xl font-bold text-white font-mono tracking-tight drop-shadow-lg">
-                    {digit}
-                  </span>
-                  <div className="absolute inset-x-0 top-1/2 h-px bg-slate-700/50" />
+              
+              <div className="relative bg-gradient-to-b from-black via-neutral-950 to-black rounded-md p-3 border border-neutral-800/50">
+                <div className="absolute inset-0 bg-gradient-to-t from-white/[0.02] to-transparent pointer-events-none rounded-md" />
+                
+                <div className="flex items-center justify-end gap-0.5">
+                  {displayNumber.padStart(7, ' ').split('').map((char, index) => (
+                    <div 
+                      key={index}
+                      className={cn(
+                        "relative flex items-center justify-center",
+                        char === ' ' ? "w-5" : "w-7 h-10"
+                      )}
+                    >
+                      {char !== ' ' && (
+                        <>
+                          <div className="absolute inset-0 bg-gradient-to-b from-neutral-900/50 to-transparent rounded-sm" />
+                          <span 
+                            className="relative text-2xl font-light tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-white via-neutral-200 to-neutral-400"
+                            style={{ fontFamily: "'SF Pro Display', 'Segoe UI', system-ui, sans-serif" }}
+                          >
+                            {char}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              ))}
+                
+                <div className="absolute bottom-1 right-3 text-neutral-600 text-[8px] tracking-widest">TOTAL</div>
+              </div>
+              
+              <div className="mt-3 flex items-center justify-between">
+                <div className="flex gap-1">
+                  <div className="w-1 h-1 rounded-full bg-neutral-700" />
+                  <div className="w-1 h-1 rounded-full bg-neutral-700" />
+                  <div className="w-1 h-1 rounded-full bg-neutral-700" />
+                </div>
+                <div className="h-px flex-1 mx-3 bg-gradient-to-r from-neutral-800 via-neutral-700 to-neutral-800" />
+                <span className="text-amber-500/80 text-[9px] tracking-wider font-medium">MAYBACH</span>
+              </div>
             </div>
             
             {odometerPhoto && (
-              <div className="mt-4 pt-4 border-t border-slate-700/50">
-                <div className="flex items-center justify-center gap-2 text-cyan-400 group-hover:text-cyan-300 transition-colors">
+              <div className="mt-4 pt-3 border-t border-neutral-800">
+                <div className="flex items-center justify-center gap-2 text-amber-500/80 group-hover:text-amber-400 transition-colors">
                   <Eye className="w-4 h-4" />
-                  <span className="text-sm font-arabic">اضغط لكشف عداد سيارتك</span>
+                  <span className="text-xs font-arabic">اضغط لكشف عداد سيارتك</span>
                 </div>
                 <div className="mt-2 flex justify-center">
-                  <div className="h-1 w-16 bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent rounded-full animate-pulse" />
+                  <div className="h-0.5 w-12 bg-gradient-to-r from-transparent via-amber-500/40 to-transparent rounded-full animate-pulse" />
                 </div>
               </div>
             )}
           </div>
-          
-          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
         </div>
       </button>
 
@@ -98,32 +119,27 @@ export function LuxuryOdometer({ odometer, odometerPhoto, className }: LuxuryOdo
           <div className="max-w-2xl w-full space-y-6" onClick={e => e.stopPropagation()}>
             <div className="text-center mb-4">
               <h3 className="text-white text-xl font-bold font-arabic mb-2">صورة العداد الحقيقية</h3>
-              <p className="text-slate-400 text-sm font-arabic">Real Odometer Photo</p>
+              <p className="text-neutral-400 text-sm font-arabic">Real Odometer Photo</p>
             </div>
             
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl border-2 border-cyan-500/30">
+            <div className="relative rounded-xl overflow-hidden shadow-2xl border border-amber-500/30">
               <img 
                 src={odometerPhoto} 
                 alt="صورة العداد" 
-                className="w-full h-auto object-contain bg-slate-900"
+                className="w-full h-auto object-contain bg-neutral-950"
                 data-testid="img-odometer-photo"
               />
             </div>
             
-            <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 border border-slate-700/50">
+            <div className="bg-gradient-to-b from-neutral-900 to-neutral-950 rounded-xl p-5 border border-neutral-800">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-cyan-500/20 rounded-lg">
-                    <Gauge className="w-5 h-5 text-cyan-400" />
-                  </div>
-                  <div>
-                    <p className="text-slate-400 text-xs font-arabic">قراءة العداد</p>
-                    <p className="text-white text-sm">Odometer Reading</p>
-                  </div>
+                <div>
+                  <p className="text-neutral-500 text-xs font-arabic mb-1">قراءة العداد</p>
+                  <p className="text-neutral-600 text-xs">Odometer Reading</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-3xl font-bold text-cyan-400 font-mono">{formattedOdometer}</p>
-                  <p className="text-slate-500 text-xs">KM</p>
+                  <p className="text-3xl font-light text-white tracking-wide">{formattedOdometer}</p>
+                  <p className="text-neutral-600 text-xs tracking-wider">KM</p>
                 </div>
               </div>
             </div>
