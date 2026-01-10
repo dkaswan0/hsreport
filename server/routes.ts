@@ -1378,6 +1378,40 @@ export async function registerRoutes(
       { category: "تيب الوايرات", faultName: "تيب وايرات التوجيه الكهربائي تالف - EPS Harness Damaged", severity: "high", description: "تيب وايرات التوجيه الكهربائي تالف" },
 
       // ═══════════════════════════════════════════════════════════════
+      // زر تحكم المرايا - Mirror Controls (30 faults)
+      // ═══════════════════════════════════════════════════════════════
+      { category: "زر تحكم المرايا", faultName: "زر تحكم المرايا لا يعمل - Mirror Control Switch Not Working", severity: "medium", description: "زر تحكم المرايا لا يعمل" },
+      { category: "زر تحكم المرايا", faultName: "زر تحكم المرايا مكسور - Mirror Control Switch Broken", severity: "medium", description: "زر تحكم المرايا مكسور" },
+      { category: "زر تحكم المرايا", faultName: "زر تحكم المرايا عالق - Mirror Control Switch Stuck", severity: "medium", description: "زر تحكم المرايا عالق" },
+      { category: "زر تحكم المرايا", faultName: "زر تحكم المرايا مفكوك - Mirror Control Switch Loose", severity: "low", description: "زر تحكم المرايا مفكوك" },
+      { category: "زر تحكم المرايا", faultName: "زر اختيار المرآة لا يعمل - Mirror Selector Not Working", severity: "medium", description: "زر اختيار المرآة لا يعمل" },
+      { category: "زر تحكم المرايا", faultName: "المرآة اليمنى لا تتحرك - Right Mirror Not Moving", severity: "medium", description: "المرآة اليمنى لا تتحرك" },
+      { category: "زر تحكم المرايا", faultName: "المرآة اليسرى لا تتحرك - Left Mirror Not Moving", severity: "medium", description: "المرآة اليسرى لا تتحرك" },
+      { category: "زر تحكم المرايا", faultName: "المرآة اليمنى لا تتحرك للأعلى - Right Mirror Won't Move Up", severity: "medium", description: "المرآة اليمنى لا تتحرك للأعلى" },
+      { category: "زر تحكم المرايا", faultName: "المرآة اليمنى لا تتحرك للأسفل - Right Mirror Won't Move Down", severity: "medium", description: "المرآة اليمنى لا تتحرك للأسفل" },
+      { category: "زر تحكم المرايا", faultName: "المرآة اليمنى لا تتحرك لليمين - Right Mirror Won't Move Right", severity: "medium", description: "المرآة اليمنى لا تتحرك لليمين" },
+      { category: "زر تحكم المرايا", faultName: "المرآة اليمنى لا تتحرك لليسار - Right Mirror Won't Move Left", severity: "medium", description: "المرآة اليمنى لا تتحرك لليسار" },
+      { category: "زر تحكم المرايا", faultName: "المرآة اليسرى لا تتحرك للأعلى - Left Mirror Won't Move Up", severity: "medium", description: "المرآة اليسرى لا تتحرك للأعلى" },
+      { category: "زر تحكم المرايا", faultName: "المرآة اليسرى لا تتحرك للأسفل - Left Mirror Won't Move Down", severity: "medium", description: "المرآة اليسرى لا تتحرك للأسفل" },
+      { category: "زر تحكم المرايا", faultName: "المرآة اليسرى لا تتحرك لليمين - Left Mirror Won't Move Right", severity: "medium", description: "المرآة اليسرى لا تتحرك لليمين" },
+      { category: "زر تحكم المرايا", faultName: "المرآة اليسرى لا تتحرك لليسار - Left Mirror Won't Move Left", severity: "medium", description: "المرآة اليسرى لا تتحرك لليسار" },
+      { category: "زر تحكم المرايا", faultName: "موتور المرآة اليمنى تالف - Right Mirror Motor Faulty", severity: "medium", description: "موتور المرآة اليمنى تالف" },
+      { category: "زر تحكم المرايا", faultName: "موتور المرآة اليسرى تالف - Left Mirror Motor Faulty", severity: "medium", description: "موتور المرآة اليسرى تالف" },
+      { category: "زر تحكم المرايا", faultName: "المرآة اليمنى لا تطوي - Right Mirror Won't Fold", severity: "low", description: "المرآة اليمنى لا تطوي" },
+      { category: "زر تحكم المرايا", faultName: "المرآة اليسرى لا تطوي - Left Mirror Won't Fold", severity: "low", description: "المرآة اليسرى لا تطوي" },
+      { category: "زر تحكم المرايا", faultName: "زر طي المرايا لا يعمل - Mirror Fold Button Not Working", severity: "low", description: "زر طي المرايا لا يعمل" },
+      { category: "زر تحكم المرايا", faultName: "المرايا لا تطوي تلقائياً - Auto Fold Not Working", severity: "low", description: "المرايا لا تطوي تلقائياً" },
+      { category: "زر تحكم المرايا", faultName: "موتور طي المرآة اليمنى تالف - Right Mirror Fold Motor Faulty", severity: "medium", description: "موتور طي المرآة اليمنى تالف" },
+      { category: "زر تحكم المرايا", faultName: "موتور طي المرآة اليسرى تالف - Left Mirror Fold Motor Faulty", severity: "medium", description: "موتور طي المرآة اليسرى تالف" },
+      { category: "زر تحكم المرايا", faultName: "تدفئة المرآة اليمنى لا تعمل - Right Mirror Heater Not Working", severity: "low", description: "تدفئة المرآة اليمنى لا تعمل" },
+      { category: "زر تحكم المرايا", faultName: "تدفئة المرآة اليسرى لا تعمل - Left Mirror Heater Not Working", severity: "low", description: "تدفئة المرآة اليسرى لا تعمل" },
+      { category: "زر تحكم المرايا", faultName: "إضاءة إشارة المرآة اليمنى لا تعمل - Right Mirror Turn Signal Not Working", severity: "medium", description: "إضاءة إشارة المرآة اليمنى لا تعمل" },
+      { category: "زر تحكم المرايا", faultName: "إضاءة إشارة المرآة اليسرى لا تعمل - Left Mirror Turn Signal Not Working", severity: "medium", description: "إضاءة إشارة المرآة اليسرى لا تعمل" },
+      { category: "زر تحكم المرايا", faultName: "كونكتر زر المرايا تالف - Mirror Switch Connector Faulty", severity: "medium", description: "كونكتر زر المرايا تالف" },
+      { category: "زر تحكم المرايا", faultName: "وايرات زر المرايا مقطوعة - Mirror Switch Wiring Cut", severity: "high", description: "وايرات زر المرايا مقطوعة" },
+      { category: "زر تحكم المرايا", faultName: "المرآة الوسطى مكسورة - Center Mirror Broken", severity: "low", description: "المرآة الوسطى مكسورة" },
+
+      // ═══════════════════════════════════════════════════════════════
       // نظام التكييف - AC System (30 faults)
       // ═══════════════════════════════════════════════════════════════
       { category: "نظام التكييف", faultName: "المكيف لا يبرد - AC Not Cooling", severity: "medium", description: "المكيف لا يبرد" },

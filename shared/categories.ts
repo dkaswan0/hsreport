@@ -45,6 +45,7 @@ export const INSPECTION_CATEGORIES = [
   { id: "lights_rear", label: "الليتات الخلفية", labelEn: "Rear Lights", section: "electric" },
   { id: "exterior_lighting", label: "الإضاءة الخارجية", labelEn: "Exterior Lighting", section: "electric" },
   { id: "wire_harness", label: "تيب الوايرات", labelEn: "Wire Harness", section: "electric" },
+  { id: "mirror_controls", label: "زر تحكم المرايا", labelEn: "Mirror Controls", section: "electric" },
   
   // ==================== TRANSMISSION (ناقل الحركة) ====================
   { id: "transmission_system", label: "ناقل الحركة", labelEn: "Transmission System", section: "transmission" },
@@ -79,7 +80,7 @@ export const CATEGORY_GROUPS = [
     group: "الأجزاء الكهربائية",
     groupEn: "ELECTRIC",
     sectionId: "electric",
-    categories: ["electrical_system", "battery", "lights_rear", "exterior_lighting", "wire_harness"]
+    categories: ["electrical_system", "battery", "lights_rear", "exterior_lighting", "wire_harness", "mirror_controls"]
   },
   {
     group: "ناقل الحركة",
