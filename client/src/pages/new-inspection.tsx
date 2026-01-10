@@ -278,23 +278,45 @@ export default function NewInspection() {
                       </button>
                     </div>
                   ) : (
-                    <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors">
-                      <div className="flex flex-col items-center justify-center py-6">
-                        <div className="p-3 bg-primary/10 rounded-full mb-3">
-                          <Upload className="w-8 h-8 text-primary" />
+                    <div className="flex gap-3">
+                      {/* Camera Capture Button */}
+                      <label className="flex-1 flex flex-col items-center justify-center h-40 border-2 border-dashed border-primary/50 rounded-xl cursor-pointer bg-primary/5 hover:bg-primary/10 transition-colors">
+                        <div className="flex flex-col items-center justify-center py-6">
+                          <div className="p-3 bg-primary/20 rounded-full mb-3">
+                            <Camera className="w-8 h-8 text-primary" />
+                          </div>
+                          <p className="text-sm text-primary font-arabic font-bold mb-1">صور بالكاميرا</p>
+                          <p className="text-xs text-slate-400">التقط صورة مباشرة</p>
                         </div>
-                        <p className="text-sm text-slate-600 font-arabic mb-1">اضغط لرفع صورة العداد</p>
-                        <p className="text-xs text-slate-400">PNG, JPG حتى 10MB</p>
-                      </div>
-                      <input 
-                        ref={odometerPhotoRef}
-                        type="file" 
-                        accept="image/*"
-                        className="hidden" 
-                        onChange={handleOdometerPhotoChange}
-                        data-testid="input-odometer-photo"
-                      />
-                    </label>
+                        <input 
+                          type="file" 
+                          accept="image/*"
+                          capture="environment"
+                          className="hidden" 
+                          onChange={handleOdometerPhotoChange}
+                          data-testid="input-odometer-camera"
+                        />
+                      </label>
+                      
+                      {/* File Upload Button */}
+                      <label className="flex-1 flex flex-col items-center justify-center h-40 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors">
+                        <div className="flex flex-col items-center justify-center py-6">
+                          <div className="p-3 bg-slate-200 rounded-full mb-3">
+                            <Upload className="w-8 h-8 text-slate-500" />
+                          </div>
+                          <p className="text-sm text-slate-600 font-arabic mb-1">ارفع من الجهاز</p>
+                          <p className="text-xs text-slate-400">PNG, JPG</p>
+                        </div>
+                        <input 
+                          ref={odometerPhotoRef}
+                          type="file" 
+                          accept="image/*"
+                          className="hidden" 
+                          onChange={handleOdometerPhotoChange}
+                          data-testid="input-odometer-photo"
+                        />
+                      </label>
+                    </div>
                   )}
                 </div>
               </div>
