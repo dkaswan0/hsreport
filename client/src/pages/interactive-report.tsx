@@ -540,44 +540,15 @@ export default function InteractiveReport() {
     }
   };
 
-  // New professional PDF with custom design
+  // New professional PDF with native Arabic text
   const handleNewPdfDownload = async () => {
-    if (!inspection || !pdfTemplateRef.current) return;
+    if (!inspection) return;
     
     toast({ title: "يجهز", description: "يسوي تقرير PDF احترافي..." });
     
     try {
-      const element = pdfTemplateRef.current;
-      
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        width: 794,
-        windowWidth: 794,
-      });
-
-      const imgData = canvas.toDataURL('image/png', 1.0);
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      
-      let heightLeft = pdfHeight;
-      let position = 0;
-      
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-      heightLeft -= pageHeight;
-      
-      while (heightLeft > 0) {
-        position = heightLeft - pdfHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-        heightLeft -= pageHeight;
-      }
-      
-      pdf.save(`تقرير_فحص_${inspection.vin}_HS${inspection.id}.pdf`);
+      const { generateInspectionPdf } = await import('@/lib/pdf-report-builder');
+      await generateInspectionPdf(inspection as any, logoPath);
       toast({ title: "تم التحميل", description: "تم تحميل ملف PDF على جهازك" });
     } catch (error) {
       console.error('PDF error:', error);
