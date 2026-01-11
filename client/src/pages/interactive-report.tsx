@@ -549,8 +549,14 @@ export default function InteractiveReport() {
       const pdfMake = pdfMakeModule.default || pdfMakeModule;
       const { amiriFonts } = await import('@/lib/arabic-fonts');
       
-      // Custom VFS with Amiri fonts
-      const customVfs = {
+      // Check if fonts are loaded
+      if (!amiriFonts || !amiriFonts['Amiri-Regular'] || !amiriFonts['Amiri-Bold']) {
+        throw new Error('Arabic fonts not loaded');
+      }
+      
+      // Custom VFS with Amiri fonts - use Object spread to avoid mutation issues
+      const customVfs: Record<string, string> = {
+        ...{},
         'Amiri-Regular.ttf': amiriFonts['Amiri-Regular'],
         'Amiri-Bold.ttf': amiriFonts['Amiri-Bold']
       };
@@ -909,8 +915,14 @@ export default function InteractiveReport() {
       const pdfMake = pdfMakeModule.default || pdfMakeModule;
       const { amiriFonts } = await import('@/lib/arabic-fonts');
       
+      // Check if fonts are loaded
+      if (!amiriFonts || !amiriFonts['Amiri-Regular'] || !amiriFonts['Amiri-Bold']) {
+        throw new Error('Arabic fonts not loaded');
+      }
+      
       // Custom VFS with Amiri fonts
-      const customVfs = {
+      const customVfs: Record<string, string> = {
+        ...{},
         'Amiri-Regular.ttf': amiriFonts['Amiri-Regular'],
         'Amiri-Bold.ttf': amiriFonts['Amiri-Bold']
       };
