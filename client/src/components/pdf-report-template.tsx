@@ -1,28 +1,31 @@
 import { forwardRef } from 'react';
-import logoPath from '@assets/IMG_3029.png';
+import logoPath from '@assets/logo_1767706304085.png';
 
 interface InspectionItem {
   id: number;
   category: string;
-  name: string;
-  status: 'pass' | 'fail' | 'warning';
-  notes?: string;
-  imageUrl?: string;
+  faultName: string;
+  status: string;
+  notes?: string | null;
+  imageUrl?: string | null;
+  description?: string | null;
 }
 
 interface Inspection {
   id: number;
   vin: string;
-  make?: string;
-  model?: string;
-  year?: number;
-  color?: string;
-  mileage?: number;
-  customerName?: string;
-  customerPhone?: string;
-  inspectionType?: string;
-  signature?: string;
-  createdAt?: string;
+  make?: string | null;
+  model?: string | null;
+  year?: number | null;
+  color?: string | null;
+  mileage?: number | null;
+  odometer?: number | null;
+  customerName?: string | null;
+  customerPhone?: string | null;
+  inspectionType?: string | null;
+  signature?: string | null;
+  customerSignature?: string | null;
+  createdAt?: string | Date | null;
   items?: InspectionItem[];
 }
 
@@ -45,7 +48,7 @@ const INSPECTION_CATEGORIES = [
   { id: 'safety', name: 'السلامة', icon: '🛡️' },
 ];
 
-const getInspectionTypeLabel = (type?: string) => {
+const getInspectionTypeLabel = (type?: string | null) => {
   switch (type) {
     case 'comprehensive': return 'فحص شامل';
     case 'mechanical_computer': return 'فحص ميكانيكي + كمبيوتر';
@@ -259,7 +262,7 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
                               borderRight: '4px solid #dc2626',
                             }}>
                               <p style={{ color: '#1e293b', fontSize: '12px', fontWeight: 'bold', margin: 0 }}>
-                                {item.name}
+                                {item.faultName}
                               </p>
                               {item.notes && (
                                 <p style={{ color: '#64748b', fontSize: '10px', margin: '4px 0 0 0' }}>
@@ -310,7 +313,7 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
                               borderRight: '4px solid #f97316',
                             }}>
                               <p style={{ color: '#1e293b', fontSize: '12px', fontWeight: 'bold', margin: 0 }}>
-                                {item.name}
+                                {item.faultName}
                               </p>
                               {item.notes && (
                                 <p style={{ color: '#64748b', fontSize: '10px', margin: '4px 0 0 0' }}>
