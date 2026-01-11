@@ -609,12 +609,13 @@ export default function InteractiveReport() {
       // Filter only items with issues (fail or warning)
       const issueItems = items.filter((i: any) => i.status === 'fail' || i.status === 'warning');
       
-      // Convert fault images to base64
-      const itemsWithImages: { item: any; imageBase64: string }[] = [];
-      for (const item of issueItems) {
-        const imageBase64 = item.imageUrl ? await imageToBase64(item.imageUrl) : '';
-        itemsWithImages.push({ item, imageBase64 });
-      }
+      // Convert fault images to base64 (parallel for better performance)
+      const itemsWithImages = await Promise.all(
+        issueItems.map(async (item: any) => ({
+          item,
+          imageBase64: item.imageUrl ? await imageToBase64(item.imageUrl) : ''
+        }))
+      );
 
       // Build findings content with images
       const findingsContent: any[] = [];
