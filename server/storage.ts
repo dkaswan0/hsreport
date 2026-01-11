@@ -5,7 +5,7 @@ import {
   type InspectionItem, type InsertInspectionItem, type UpdateInspectionItemRequest,
   type FaultLibrary, type InsertFaultLibrary
 } from "@shared/schema";
-import { eq, ilike, desc } from "drizzle-orm";
+import { eq, ilike, desc, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // Inspections
@@ -17,6 +17,7 @@ export interface IStorage {
   createInspection(inspection: InsertInspection): Promise<Inspection>;
   updateInspection(id: number, updates: UpdateInspectionRequest): Promise<Inspection>;
   deleteInspection(id: number): Promise<void>;
+  deleteMultipleInspections(ids: number[]): Promise<number>;
 
   // Inspection Items
   createInspectionItem(item: InsertInspectionItem): Promise<InspectionItem>;
@@ -100,6 +101,15 @@ export class DatabaseStorage implements IStorage {
   async deleteInspection(id: number): Promise<void> {
     await db.delete(inspectionItems).where(eq(inspectionItems.inspectionId, id));
     await db.delete(inspections).where(eq(inspections.id, id));
+  }
+
+  async deleteMultipleInspections(ids: number[]): Promise<number> {
+    if (ids.length === 0) return 0;
+    return await db.transaction(async (tx) => {
+      await tx.delete(inspectionItems).where(inArray(inspectionItems.inspectionId, ids));
+      const result = await tx.delete(inspections).where(inArray(inspections.id, ids)).returning();
+      return result.length;
+    });
   }
 
   // Inspection Items

@@ -66,6 +66,15 @@ export const api = {
         404: errorSchemas.notFound,
       },
     },
+    deleteMultiple: {
+      method: 'POST' as const,
+      path: '/api/inspections/delete-multiple',
+      input: z.object({ ids: z.array(z.number()) }),
+      responses: {
+        200: z.object({ deleted: z.number() }),
+        400: errorSchemas.validation,
+      },
+    },
     generatePdf: {
       method: 'POST' as const,
       path: '/api/inspections/:id/pdf',

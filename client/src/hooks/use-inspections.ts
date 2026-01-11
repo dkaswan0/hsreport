@@ -89,6 +89,23 @@ export function useDeleteInspection() {
   });
 }
 
+export function useDeleteMultipleInspections() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (ids: number[]) => {
+      const res = await fetch(api.inspections.deleteMultiple.path, {
+        method: api.inspections.deleteMultiple.method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error('Failed to delete inspections');
+      return res.json() as Promise<{ deleted: number }>;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [api.inspections.list.path] }),
+  });
+}
+
 // ============================================
 // INSPECTION ITEMS
 // ============================================

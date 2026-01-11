@@ -54,6 +54,19 @@ export async function registerRoutes(
     res.status(204).end();
   });
 
+  app.post(api.inspections.deleteMultiple.path, async (req, res) => {
+    try {
+      const input = api.inspections.deleteMultiple.input.parse(req.body);
+      const deleted = await storage.deleteMultipleInspections(input.ids);
+      res.json({ deleted });
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      throw err;
+    }
+  });
+
   // Generate share link for an inspection
   app.post("/api/inspections/:id/share", async (req, res) => {
     try {
