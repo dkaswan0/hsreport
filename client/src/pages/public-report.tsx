@@ -17,9 +17,11 @@ import {
   MapPin,
   X,
   ZoomIn,
-  RotateCcw
+  RotateCcw,
+  Palette
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getVehicleColor, calculateInspectionStats, getInspectionTypeLabel } from "@/lib/vehicle-utils";
 import logoPath from "@assets/logo_1767706304085.png";
 import carVisualizationPath from "@assets/generated_images/professional_car_anatomy_diagram.png";
 import type { Inspection, InspectionItem } from "@shared/schema";
@@ -133,15 +135,8 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: InspectionItem[
   };
 
   const stats = useMemo(() => {
-    let warning = 0, fail = 0;
-    const categoriesWithItems = new Set(items.map(i => i.category));
-    INSPECTION_CATEGORIES.forEach(cat => {
-      if (categoriesWithItems.has(cat.id)) {
-        const status = getCategoryStatus(cat.id);
-        if (status === 'warning') warning++;
-        else if (status === 'fail') fail++;
-      }
-    });
+    const warning = items.filter(i => i.status === 'warning').length;
+    const fail = items.filter(i => i.status === 'fail').length;
     return { warning, fail };
   }, [items]);
 
@@ -392,7 +387,7 @@ export default function PublicReport() {
             <Car className="w-6 h-6 text-primary" />
             معلومات السيارة
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4 mb-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-4">
             <div className="bg-slate-50 rounded-lg md:rounded-xl p-2 md:p-3">
               <div className="text-xs md:text-sm text-slate-500 font-arabic mb-1">الشركة المصنعة</div>
               <div className="font-bold text-base md:text-lg text-slate-800 truncate">{inspection.make || '-'}</div>
@@ -404,6 +399,21 @@ export default function PublicReport() {
             <div className="bg-slate-50 rounded-lg md:rounded-xl p-2 md:p-3">
               <div className="text-xs md:text-sm text-slate-500 font-arabic mb-1">سنة الصنع</div>
               <div className="font-bold text-base md:text-lg text-slate-800">{inspection.year || '-'}</div>
+            </div>
+            <div className="bg-slate-50 rounded-lg md:rounded-xl p-2 md:p-3">
+              <div className="text-xs md:text-sm text-slate-500 font-arabic mb-1 flex items-center gap-1">
+                <Palette className="w-3 h-3" />
+                اللون
+              </div>
+              <div className="flex items-center gap-2">
+                <span 
+                  className="w-5 h-5 rounded-full border border-slate-200 shrink-0" 
+                  style={{ backgroundColor: getVehicleColor(inspection.color).hex }}
+                />
+                <span className="font-bold text-base md:text-lg text-slate-800 truncate">
+                  {getVehicleColor(inspection.color).ar}
+                </span>
+              </div>
             </div>
           </div>
           
@@ -417,7 +427,12 @@ export default function PublicReport() {
             <div className="mt-4 pt-4 border-t border-slate-100">
               <div className="bg-primary/10 rounded-lg md:rounded-xl p-3 md:p-4 text-center">
                 <div className="text-xs md:text-sm text-slate-500 font-arabic mb-1">نوع الفحص</div>
-                <div className="font-bold text-lg md:text-xl text-primary">{inspection.inspectionType}</div>
+                <div className="font-bold text-lg md:text-xl text-primary">
+                  {getInspectionTypeLabel(inspection.inspectionType).ar}
+                </div>
+                <div className="text-sm text-slate-500">
+                  {getInspectionTypeLabel(inspection.inspectionType).en}
+                </div>
               </div>
             </div>
           )}

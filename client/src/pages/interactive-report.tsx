@@ -17,7 +17,8 @@ import {
   AlertCircle,
   XCircle,
   Fuel,
-  RotateCcw
+  RotateCcw,
+  Palette
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ import logoPath from "@assets/logo_1767706304085.png";
 import { PdfReportTemplate } from "@/components/pdf-report-template";
 import carVisualizationPath from "@assets/generated_images/professional_car_anatomy_diagram.png";
 import { INSPECTION_CATEGORIES, CATEGORY_GROUPS } from "@shared/categories";
+import { getVehicleColor, calculateInspectionStats } from "@/lib/vehicle-utils";
 
 // Category position mapping for car visualization - organized by car part location
 const CATEGORY_POSITIONS: Record<string, { top: string; left: string; transform?: string }> = {
@@ -118,22 +120,12 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
     setTimeout(() => setIsAnimating(false), 600);
   };
 
-  // Calculate summary stats based on items that exist
+  // Calculate summary stats based on actual items count
   const stats = useMemo(() => {
-    let good = 0, warning = 0, fail = 0;
-    const categoriesWithItems = new Set(items.map(i => i.category));
-    INSPECTION_CATEGORIES.forEach(cat => {
-      if (categoriesWithItems.has(cat.id)) {
-        const status = getCategoryStatus(cat.id);
-        if (status === 'good') good++;
-        else if (status === 'warning') warning++;
-        else fail++;
-      }
-    });
-    // Count categories without items as good
-    const emptyCategories = INSPECTION_CATEGORIES.length - categoriesWithItems.size;
-    good += emptyCategories;
-    return { good, warning, fail, total: INSPECTION_CATEGORIES.length };
+    const pass = items.filter(i => i.status === 'pass').length;
+    const warning = items.filter(i => i.status === 'warning').length;
+    const fail = items.filter(i => i.status === 'fail').length;
+    return { good: pass, warning, fail, total: items.length };
   }, [items]);
 
   return (
@@ -282,21 +274,7 @@ const CompanyHeader = () => (
 
 // Vehicle Info Card
 const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
-  // Parse color to get primary color only
-  const primaryColor = useMemo(() => {
-    const colorStr = inspection.color || '';
-    // If multiple colors separated by comma, take first one
-    const colors = colorStr.split(',');
-    if (colors.length > 0) {
-      const first = colors[0].trim();
-      // Simplify long color names
-      if (first.length > 25) {
-        return first.split(' ').slice(0, 2).join(' ');
-      }
-      return first;
-    }
-    return colorStr || 'غير محدد';
-  }, [inspection.color]);
+  const vehicleColor = useMemo(() => getVehicleColor(inspection.color), [inspection.color]);
 
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
@@ -338,10 +316,17 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
         <div className="bg-slate-50 rounded-2xl p-4 text-right">
           <div className="flex items-center gap-2 justify-end text-slate-400 mb-1">
             <span className="text-xs font-arabic">اللون</span>
-            <div className="w-4 h-4 rounded-full bg-gradient-to-br from-blue-500 to-blue-700" />
+            <Palette className="w-4 h-4" />
           </div>
           <div className="text-[10px] text-slate-400 mb-1">Color</div>
-          <div className="text-sm font-bold text-slate-900 font-arabic">{primaryColor}</div>
+          <div className="flex items-center gap-2">
+            <span 
+              className="w-5 h-5 rounded-full border border-slate-200" 
+              style={{ backgroundColor: vehicleColor.hex }}
+            />
+            <span className="text-sm font-bold text-slate-900 font-arabic">{vehicleColor.ar}</span>
+            <span className="text-xs text-slate-500">({vehicleColor.en})</span>
+          </div>
         </div>
 
         <div className="bg-slate-50 rounded-2xl p-4 text-right">

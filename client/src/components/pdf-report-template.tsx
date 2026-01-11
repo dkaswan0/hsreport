@@ -181,59 +181,59 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
 
     const itemCount = issueItems.length;
     
-    // Adaptive sizing based on content
+    // Adaptive sizing based on content - LARGER minimum sizes for readability
     let gridCols = 2;
-    let fontSize = '11px';
-    let titleSize = '12px';
-    let catFontSize = '8px';
-    let itemPad = '10px 12px';
-    let imgSize = { w: '70px', h: '55px' };
-    let gapSize = '8px';
+    let fontSize = '13px';
+    let titleSize = '15px';
+    let catFontSize = '10px';
+    let itemPad = '12px 14px';
+    let imgSize = { w: '75px', h: '60px' };
+    let gapSize = '10px';
     let showImage = true;
     
     if (itemCount === 0) {
       // No issues - large display
     } else if (itemCount <= 4) {
       gridCols = 2;
-      fontSize = '12px';
-      titleSize = '13px';
-      catFontSize = '9px';
-      itemPad = '12px 14px';
-      imgSize = { w: '80px', h: '65px' };
-      gapSize = '10px';
+      fontSize = '14px';
+      titleSize = '16px';
+      catFontSize = '11px';
+      itemPad = '14px 16px';
+      imgSize = { w: '90px', h: '72px' };
+      gapSize = '12px';
     } else if (itemCount <= 6) {
       gridCols = 2;
-      fontSize = '11px';
-      titleSize = '12px';
-      catFontSize = '8px';
-      itemPad = '10px 12px';
-      imgSize = { w: '70px', h: '55px' };
-      gapSize = '8px';
+      fontSize = '13px';
+      titleSize = '15px';
+      catFontSize = '10px';
+      itemPad = '12px 14px';
+      imgSize = { w: '80px', h: '64px' };
+      gapSize = '10px';
     } else if (itemCount <= 10) {
       gridCols = 2;
-      fontSize = '10px';
-      titleSize = '11px';
-      catFontSize = '7px';
+      fontSize = '12px';
+      titleSize = '14px';
+      catFontSize = '9px';
+      itemPad = '10px 12px';
+      imgSize = { w: '70px', h: '56px' };
+      gapSize = '8px';
+    } else if (itemCount <= 14) {
+      gridCols = 3;
+      fontSize = '11px';
+      titleSize = '13px';
+      catFontSize = '9px';
       itemPad = '8px 10px';
       imgSize = { w: '60px', h: '48px' };
       gapSize = '6px';
-    } else if (itemCount <= 14) {
-      gridCols = 3;
-      fontSize = '9px';
-      titleSize = '10px';
-      catFontSize = '7px';
-      itemPad = '6px 8px';
-      imgSize = { w: '50px', h: '40px' };
-      gapSize = '5px';
     } else {
       gridCols = 3;
-      fontSize = '8px';
-      titleSize = '9px';
-      catFontSize = '6px';
-      itemPad = '5px 6px';
-      imgSize = { w: '45px', h: '36px' };
-      gapSize = '4px';
-      showImage = itemCount <= 20;
+      fontSize = '10px';
+      titleSize = '12px';
+      catFontSize = '8px';
+      itemPad = '6px 8px';
+      imgSize = { w: '55px', h: '44px' };
+      gapSize = '5px';
+      showImage = itemCount <= 18;
     }
 
     const healthPercent = totalItems > 0 ? Math.round((passCount / totalItems) * 100) : 100;
