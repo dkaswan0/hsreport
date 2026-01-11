@@ -1,5 +1,17 @@
 import jsPDF from 'jspdf';
 import { amiriFonts } from './arabic-fonts';
+// @ts-ignore
+import ArabicReshaper from 'arabic-reshaper';
+
+// Helper to reshape Arabic text for proper PDF rendering
+function reshapeArabic(text: string): string {
+  if (!text) return '';
+  try {
+    return ArabicReshaper.convertArabic(text);
+  } catch {
+    return text;
+  }
+}
 
 interface InspectionItem {
   id: number;
@@ -124,7 +136,7 @@ export async function generateInspectionPdf(inspection: Inspection, logoUrl?: st
   pdf.setFont('Amiri', 'bold');
   pdf.setFontSize(16);
   pdf.setTextColor(255, 255, 255);
-  pdf.text('مركز الأمان العالي الدولي', pageWidth - margin - 25, 15, { align: 'right' });
+  pdf.text(reshapeArabic('مركز الأمان العالي الدولي'), pageWidth - margin - 25, 15, { align: 'right' });
   
   pdf.setFont('Amiri', 'normal');
   pdf.setFontSize(10);
@@ -137,12 +149,12 @@ export async function generateInspectionPdf(inspection: Inspection, logoUrl?: st
   pdf.setFont('Amiri', 'bold');
   pdf.setFontSize(10);
   pdf.setTextColor(255, 255, 255);
-  pdf.text(typeLabel, margin + 22.5, 15, { align: 'center' });
+  pdf.text(reshapeArabic(typeLabel), margin + 22.5, 15, { align: 'center' });
 
   pdf.setFont('Amiri', 'normal');
   pdf.setFontSize(8);
   pdf.setTextColor(203, 213, 225);
-  pdf.text(fullDateTime, margin + 22.5, 25, { align: 'center' });
+  pdf.text(reshapeArabic(fullDateTime), margin + 22.5, 25, { align: 'center' });
 
   y = 42;
 
@@ -159,17 +171,17 @@ export async function generateInspectionPdf(inspection: Inspection, logoUrl?: st
   pdf.setFont('Amiri', 'normal');
   pdf.setFontSize(8);
   pdf.setTextColor(100, 116, 139);
-  pdf.text('بيانات المركبة', margin + boxWidth - 5, 44, { align: 'right' });
+  pdf.text(reshapeArabic('بيانات المركبة'), margin + boxWidth - 5, 44, { align: 'right' });
   pdf.setFont('Amiri', 'bold');
   pdf.setFontSize(11);
   pdf.setTextColor(15, 23, 42);
   const vehicleInfo = `${inspection.make || ''} ${inspection.model || ''} ${inspection.year || ''}`.trim() || 'غير محدد';
-  pdf.text(vehicleInfo, margin + boxWidth - 5, 51, { align: 'right' });
+  pdf.text(reshapeArabic(vehicleInfo), margin + boxWidth - 5, 51, { align: 'right' });
   pdf.setFont('Amiri', 'normal');
   pdf.setFontSize(9);
   pdf.setTextColor(71, 85, 105);
   const colorText = `اللون: ${inspection.color?.split(',')[0]?.trim() || 'غير محدد'}`;
-  pdf.text(colorText, margin + boxWidth - 5, 57, { align: 'right' });
+  pdf.text(reshapeArabic(colorText), margin + boxWidth - 5, 57, { align: 'right' });
 
   const vinBoxX = margin + boxWidth + 5;
   pdf.setFillColor(255, 255, 255);
@@ -177,7 +189,7 @@ export async function generateInspectionPdf(inspection: Inspection, logoUrl?: st
   pdf.setFont('Amiri', 'normal');
   pdf.setFontSize(8);
   pdf.setTextColor(100, 116, 139);
-  pdf.text('رقم الشاصي (VIN)', vinBoxX + boxWidth - 5, 44, { align: 'right' });
+  pdf.text(reshapeArabic('رقم الشاصي (VIN)'), vinBoxX + boxWidth - 5, 44, { align: 'right' });
   pdf.setFont('Courier', 'normal');
   pdf.setFontSize(9);
   pdf.setTextColor(15, 23, 42);
@@ -189,7 +201,7 @@ export async function generateInspectionPdf(inspection: Inspection, logoUrl?: st
   pdf.setFont('Amiri', 'normal');
   pdf.setFontSize(8);
   pdf.setTextColor(100, 116, 139);
-  pdf.text('نتيجة الفحص', statsBoxX + boxWidth - 5, 44, { align: 'right' });
+  pdf.text(reshapeArabic('نتيجة الفحص'), statsBoxX + boxWidth - 5, 44, { align: 'right' });
   
   if (failItems.length > 0) {
     pdf.setFillColor(220, 38, 38);
@@ -213,7 +225,7 @@ export async function generateInspectionPdf(inspection: Inspection, logoUrl?: st
     pdf.setFont('Amiri', 'bold');
     pdf.setFontSize(10);
     pdf.setTextColor(34, 197, 94);
-    pdf.text('ممتاز', statsBoxX + boxWidth - 15, 54, { align: 'right' });
+    pdf.text(reshapeArabic('ممتاز'), statsBoxX + boxWidth - 15, 54, { align: 'right' });
   }
 
   y = 72;
@@ -221,7 +233,7 @@ export async function generateInspectionPdf(inspection: Inspection, logoUrl?: st
   pdf.setFont('Amiri', 'bold');
   pdf.setFontSize(14);
   pdf.setTextColor(15, 23, 42);
-  pdf.text('الملاحظات - يحتاج متابعة', pageWidth - margin, y, { align: 'right' });
+  pdf.text(reshapeArabic('الملاحظات - يحتاج متابعة'), pageWidth - margin, y, { align: 'right' });
   y += 8;
 
   if (issueItems.length === 0) {
@@ -230,7 +242,7 @@ export async function generateInspectionPdf(inspection: Inspection, logoUrl?: st
     pdf.setFont('Amiri', 'bold');
     pdf.setFontSize(12);
     pdf.setTextColor(34, 197, 94);
-    pdf.text('المركبة بحالة ممتازة - لا توجد ملاحظات', pageWidth / 2, y + 12, { align: 'center' });
+    pdf.text(reshapeArabic('المركبة بحالة ممتازة - لا توجد ملاحظات'), pageWidth / 2, y + 12, { align: 'center' });
     y += 25;
   } else {
     const categoriesWithIssues = Array.from(new Set(issueItems.map(i => i.category)));
@@ -249,7 +261,7 @@ export async function generateInspectionPdf(inspection: Inspection, logoUrl?: st
       pdf.setFont('Amiri', 'bold');
       pdf.setFontSize(11);
       pdf.setTextColor(51, 65, 85);
-      pdf.text(catName, pageWidth - margin - 5, y + 6, { align: 'right' });
+      pdf.text(reshapeArabic(catName), pageWidth - margin - 5, y + 6, { align: 'right' });
       y += 12;
 
       for (const item of catItems) {
@@ -280,19 +292,19 @@ export async function generateInspectionPdf(inspection: Inspection, logoUrl?: st
         pdf.setFontSize(10);
         pdf.setTextColor(textColor[0], textColor[1], textColor[2]);
         const faultName = item.faultName.split(' - ')[0] || item.faultName;
-        pdf.text(faultName, pageWidth - margin - 12, y + 6, { align: 'right' });
+        pdf.text(reshapeArabic(faultName), pageWidth - margin - 12, y + 6, { align: 'right' });
 
         pdf.setFont('Amiri', 'normal');
         pdf.setFontSize(8);
         pdf.setTextColor(100, 116, 139);
-        pdf.text('يحتاج متابعة', pageWidth - margin - 12, y + 11, { align: 'right' });
+        pdf.text(reshapeArabic('يحتاج متابعة'), pageWidth - margin - 12, y + 11, { align: 'right' });
 
         if (item.notes) {
           pdf.setFont('Amiri', 'normal');
           pdf.setFontSize(8);
           pdf.setTextColor(71, 85, 105);
           const notesText = item.notes.substring(0, 60);
-          pdf.text(notesText, margin + 5, y + 9, { align: 'left' });
+          pdf.text(reshapeArabic(notesText), margin + 5, y + 9, { align: 'left' });
         }
 
         y += 17;
@@ -320,15 +332,15 @@ export async function generateInspectionPdf(inspection: Inspection, logoUrl?: st
       pdf.setFont('Amiri', 'normal');
       pdf.setFontSize(8);
       pdf.setTextColor(100, 116, 139);
-      pdf.text('توقيع العميل', margin + 12.5, pageHeight - 5, { align: 'center' });
+      pdf.text(reshapeArabic('توقيع العميل'), margin + 12.5, pageHeight - 5, { align: 'center' });
     } catch {}
   }
 
   pdf.setFont('Amiri', 'normal');
   pdf.setFontSize(8);
   pdf.setTextColor(100, 116, 139);
-  pdf.text(`تقرير رقم: HS${inspection.id}`, pageWidth / 2, pageHeight - 15, { align: 'center' });
-  pdf.text(fullDateTime, pageWidth / 2, pageHeight - 8, { align: 'center' });
+  pdf.text(reshapeArabic(`تقرير رقم: HS${inspection.id}`), pageWidth / 2, pageHeight - 15, { align: 'center' });
+  pdf.text(reshapeArabic(fullDateTime), pageWidth / 2, pageHeight - 8, { align: 'center' });
 
   pdf.setFont('Amiri', 'normal');
   pdf.setFontSize(7);
