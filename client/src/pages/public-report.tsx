@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute } from "wouter";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { 
   Car,
   Phone,
@@ -27,6 +27,7 @@ import carVisualizationPath from "@assets/generated_images/professional_car_anat
 import type { Inspection, InspectionItem } from "@shared/schema";
 import { INSPECTION_CATEGORIES, CATEGORY_GROUPS } from "@shared/categories";
 import { LuxuryOdometer } from "@/components/luxury-odometer";
+import { IntroAnimation } from "@/components/intro-animation";
 
 type InspectionWithItems = Inspection & { items: InspectionItem[] };
 
@@ -253,6 +254,8 @@ export default function PublicReport() {
   const token = params?.token;
   const [selectedImage, setSelectedImage] = useState<{ url: string; name: string } | null>(null);
   const [highlightedCategory, setHighlightedCategory] = useState<string | null>(null);
+  const [showIntro, setShowIntro] = useState(true);
+  const [introComplete, setIntroComplete] = useState(false);
   
   const { data: inspection, isLoading, error } = useQuery<InspectionWithItems>({
     queryKey: ['/api/public/report', token],
@@ -263,6 +266,11 @@ export default function PublicReport() {
     },
     enabled: !!token
   });
+
+  const handleIntroComplete = () => {
+    setIntroComplete(true);
+    setTimeout(() => setShowIntro(false), 100);
+  };
 
   const handleCategoryClick = (catId: string) => {
     setHighlightedCategory(catId);
@@ -275,12 +283,9 @@ export default function PublicReport() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-white/70 font-arabic">يحمل التقرير...</p>
-        </div>
-      </div>
+      <>
+        {showIntro && <IntroAnimation onComplete={handleIntroComplete} duration={4500} />}
+      </>
     );
   }
 
@@ -311,6 +316,8 @@ export default function PublicReport() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100" dir="rtl">
+      {showIntro && <IntroAnimation onComplete={handleIntroComplete} duration={4500} />}
+      
       {selectedImage && (
         <ImageModal 
           imageUrl={selectedImage.url} 
