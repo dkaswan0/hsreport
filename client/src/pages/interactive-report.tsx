@@ -24,8 +24,9 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import logoPath from "@assets/logo_1767706304085.png";
+import { PdfReportTemplate } from "@/components/pdf-report-template";
 import carVisualizationPath from "@assets/generated_images/professional_car_anatomy_diagram.png";
 import { INSPECTION_CATEGORIES, CATEGORY_GROUPS } from "@shared/categories";
 
@@ -488,6 +489,7 @@ export default function InteractiveReport() {
   const { data: inspection, isLoading } = useInspection(id);
   const { toast } = useToast();
   const [highlightedCategory, setHighlightedCategory] = useState<string | null>(null);
+  const pdfTemplateRef = useRef<HTMLDivElement>(null);
 
   const handleCategoryClick = (catId: string) => {
     setHighlightedCategory(catId);
@@ -535,6 +537,51 @@ export default function InteractiveReport() {
       toast({ title: "تم", description: "انحفظ التقرير PDF" });
     } catch (error) {
       toast({ title: "خطأ", description: "صار خطأ في سوي ملف PDF", variant: "destructive" });
+    }
+  };
+
+  // New professional PDF with custom design
+  const handleNewPdfDownload = async () => {
+    if (!inspection || !pdfTemplateRef.current) return;
+    
+    toast({ title: "يجهز", description: "يسوي تقرير PDF احترافي..." });
+    
+    try {
+      const element = pdfTemplateRef.current;
+      
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        width: 794,
+        windowWidth: 794,
+      });
+
+      const imgData = canvas.toDataURL('image/png', 1.0);
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      
+      let heightLeft = pdfHeight;
+      let position = 0;
+      
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pageHeight;
+      
+      while (heightLeft > 0) {
+        position = heightLeft - pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pageHeight;
+      }
+      
+      pdf.save(`تقرير_فحص_${inspection.vin}_HS${inspection.id}.pdf`);
+      toast({ title: "تم التحميل", description: "تم تحميل ملف PDF على جهازك" });
+    } catch (error) {
+      console.error('PDF error:', error);
+      toast({ title: "خطأ", description: "صار خطأ في إنشاء التقرير", variant: "destructive" });
     }
   };
 
@@ -1281,7 +1328,7 @@ export default function InteractiveReport() {
               <Printer className="w-4 h-4 ml-1" />
               <span className="hidden md:inline">طباعة</span>
             </Button>
-            <Button variant="default" size="sm" onClick={handleDownloadPDF} className="font-arabic bg-primary hover:bg-primary/90">
+            <Button variant="default" size="sm" onClick={handleNewPdfDownload} className="font-arabic bg-primary hover:bg-primary/90">
               <Download className="w-4 h-4 ml-1" />
               تحميل PDF
             </Button>
@@ -1329,6 +1376,11 @@ export default function InteractiveReport() {
             <span>سيتي بلازا الدراري - الشارقة</span>
           </div>
         </div>
+      </div>
+
+      {/* Hidden PDF Template */}
+      <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', opacity: 0, pointerEvents: 'none' }}>
+        <PdfReportTemplate ref={pdfTemplateRef} inspection={inspection} />
       </div>
     </div>
   );
