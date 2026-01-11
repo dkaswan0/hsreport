@@ -540,50 +540,37 @@ export default function InteractiveReport() {
     }
   };
 
-  // New professional single-page PDF with html2canvas and auto-scaling
+  // New professional single-page PDF with html2canvas - high quality
   const handleNewPdfDownload = async () => {
     if (!inspection || !pdfTemplateRef.current) return;
     
-    toast({ title: "يجهز", description: "يسوي تقرير PDF صفحة واحدة..." });
+    toast({ title: "يجهز", description: "يسوي تقرير PDF احترافي..." });
     
     try {
       const element = pdfTemplateRef.current;
       const A4_WIDTH = 794;
       const A4_HEIGHT = 1123;
       
-      // First, measure actual content height
-      const actualHeight = element.scrollHeight;
-      
-      // Calculate scale factor if content exceeds A4 height
-      let scaleFactor = 1;
-      if (actualHeight > A4_HEIGHT) {
-        scaleFactor = A4_HEIGHT / actualHeight;
+      // Wait for fonts to load
+      if (document.fonts && document.fonts.ready) {
+        await document.fonts.ready;
       }
       
-      // Apply scale transform if needed
-      if (scaleFactor < 1) {
-        element.style.transform = `scale(${scaleFactor})`;
-        element.style.transformOrigin = 'top right';
-        element.style.width = `${A4_WIDTH / scaleFactor}px`;
-      }
+      // Wait a bit for images to load
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Capture with html2canvas
+      // Capture with html2canvas at high quality (scale 3 for clarity)
       const canvas = await html2canvas(element, {
-        scale: 2,
+        scale: 3,
         useCORS: true,
+        allowTaint: true,
         logging: false,
         backgroundColor: '#ffffff',
         width: A4_WIDTH,
         height: A4_HEIGHT,
         windowWidth: A4_WIDTH,
+        imageTimeout: 15000,
       });
-      
-      // Reset transform
-      if (scaleFactor < 1) {
-        element.style.transform = '';
-        element.style.transformOrigin = '';
-        element.style.width = '794px';
-      }
 
       const imgData = canvas.toDataURL('image/png', 1.0);
       const pdf = new jsPDF({
@@ -598,8 +585,8 @@ export default function InteractiveReport() {
       // Single page - fit to A4
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       
-      pdf.save(`تقرير_فحص_${inspection.vin}_HS${inspection.id}.pdf`);
-      toast({ title: "تم التحميل", description: "تم تحميل ملف PDF على جهازك" });
+      pdf.save(`Inspection_Report_${inspection.vin}_HS${inspection.id}.pdf`);
+      toast({ title: "تم التحميل", description: "تم تحميل ملف PDF بجودة عالية" });
     } catch (error) {
       console.error('PDF error:', error);
       toast({ title: "خطأ", description: "صار خطأ في إنشاء التقرير", variant: "destructive" });
