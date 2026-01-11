@@ -83,8 +83,15 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
 
     const getCategoryName = (catId: string) => CATEGORIES[catId] || catId;
 
-    const itemsWithImages = issueItems.filter(i => i.imageUrl);
-    const itemsWithoutImages = issueItems.filter(i => !i.imageUrl);
+    const itemCount = issueItems.length;
+    const isCompact = itemCount > 10;
+    const isVeryCompact = itemCount > 20;
+    const gridCols = itemCount > 12 ? 3 : 2;
+    
+    const itemFontSize = isVeryCompact ? '7px' : isCompact ? '8px' : '9px';
+    const itemPadding = isVeryCompact ? '4px 6px' : isCompact ? '5px 7px' : '6px 8px';
+    const imgSize = isVeryCompact ? { w: '30px', h: '24px' } : isCompact ? { w: '38px', h: '30px' } : { w: '45px', h: '35px' };
+    const gapSize = isVeryCompact ? '4px' : isCompact ? '6px' : '8px';
 
     return (
       <div 
@@ -106,19 +113,19 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
         {/* Header - Compact */}
         <div style={{
           background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)',
-          padding: '12px 20px',
+          padding: '10px 20px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           flexShrink: 0,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img src={logoPath} alt="Logo" style={{ width: '40px', height: '40px', borderRadius: '8px' }} />
+            <img src={logoPath} alt="Logo" style={{ width: '36px', height: '36px', borderRadius: '8px' }} />
             <div>
-              <h1 style={{ color: '#ffffff', fontSize: '16px', fontWeight: 'bold', margin: 0 }}>
+              <h1 style={{ color: '#ffffff', fontSize: '14px', fontWeight: 'bold', margin: 0 }}>
                 مركز الأمان العالي الدولي
               </h1>
-              <p style={{ color: '#94a3b8', fontSize: '9px', margin: '2px 0 0 0' }}>
+              <p style={{ color: '#94a3b8', fontSize: '8px', margin: '2px 0 0 0' }}>
                 HIGH SAFETY INTERNATIONAL
               </p>
             </div>
@@ -127,64 +134,64 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
             <div style={{
               backgroundColor: '#3b82f6',
               color: '#ffffff',
-              padding: '4px 12px',
-              borderRadius: '12px',
-              fontSize: '10px',
+              padding: '3px 10px',
+              borderRadius: '10px',
+              fontSize: '9px',
               fontWeight: 'bold',
-              marginBottom: '4px',
+              marginBottom: '3px',
             }}>
               {getInspectionTypeLabel(inspection.inspectionType)}
             </div>
-            <p style={{ color: '#cbd5e1', fontSize: '9px', margin: 0 }}>{fullDateTime}</p>
+            <p style={{ color: '#cbd5e1', fontSize: '8px', margin: 0 }}>{fullDateTime}</p>
           </div>
         </div>
 
         {/* Vehicle Info - Compact Grid */}
         <div style={{
           backgroundColor: '#f8fafc',
-          padding: '10px 20px',
+          padding: '8px 20px',
           display: 'grid',
           gridTemplateColumns: '1fr 1fr 1fr 1fr',
-          gap: '12px',
+          gap: '10px',
           borderBottom: '1px solid #e2e8f0',
           flexShrink: 0,
         }}>
-          <div style={{ background: '#ffffff', borderRadius: '8px', padding: '8px 10px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-            <p style={{ color: '#64748b', fontSize: '8px', margin: '0 0 2px 0' }}>المركبة</p>
-            <p style={{ color: '#0f172a', fontSize: '11px', fontWeight: 'bold', margin: 0 }}>
+          <div style={{ background: '#ffffff', borderRadius: '6px', padding: '6px 8px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+            <p style={{ color: '#64748b', fontSize: '7px', margin: '0 0 2px 0' }}>المركبة</p>
+            <p style={{ color: '#0f172a', fontSize: '10px', fontWeight: 'bold', margin: 0 }}>
               {inspection.make} {inspection.model} {inspection.year}
             </p>
           </div>
-          <div style={{ background: '#ffffff', borderRadius: '8px', padding: '8px 10px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-            <p style={{ color: '#64748b', fontSize: '8px', margin: '0 0 2px 0' }}>رقم الشاصي</p>
-            <p style={{ color: '#0f172a', fontSize: '9px', fontWeight: 'bold', margin: 0, fontFamily: 'monospace' }}>
+          <div style={{ background: '#ffffff', borderRadius: '6px', padding: '6px 8px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+            <p style={{ color: '#64748b', fontSize: '7px', margin: '0 0 2px 0' }}>رقم الشاصي</p>
+            <p style={{ color: '#0f172a', fontSize: '8px', fontWeight: 'bold', margin: 0, fontFamily: 'monospace' }}>
               {inspection.vin}
             </p>
           </div>
-          <div style={{ background: '#ffffff', borderRadius: '8px', padding: '8px 10px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-            <p style={{ color: '#64748b', fontSize: '8px', margin: '0 0 2px 0' }}>اللون / الممشى</p>
-            <p style={{ color: '#0f172a', fontSize: '10px', fontWeight: 'bold', margin: 0 }}>
+          <div style={{ background: '#ffffff', borderRadius: '6px', padding: '6px 8px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+            <p style={{ color: '#64748b', fontSize: '7px', margin: '0 0 2px 0' }}>اللون / الممشى</p>
+            <p style={{ color: '#0f172a', fontSize: '9px', fontWeight: 'bold', margin: 0 }}>
               {inspection.color?.split(',')[0]?.trim() || '-'} / {(inspection.odometer || inspection.mileage)?.toLocaleString() || '-'} كم
             </p>
           </div>
-          <div style={{ background: '#ffffff', borderRadius: '8px', padding: '8px 10px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
+          <div style={{ background: '#ffffff', borderRadius: '6px', padding: '6px 8px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
             <div style={{ textAlign: 'center' }}>
-              <p style={{ color: '#16a34a', fontSize: '16px', fontWeight: 'bold', margin: 0 }}>{passCount}</p>
-              <p style={{ color: '#64748b', fontSize: '7px', margin: 0 }}>سليم</p>
+              <p style={{ color: '#16a34a', fontSize: '14px', fontWeight: 'bold', margin: 0 }}>{passCount}</p>
+              <p style={{ color: '#64748b', fontSize: '6px', margin: 0 }}>سليم</p>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <p style={{ color: '#dc2626', fontSize: '16px', fontWeight: 'bold', margin: 0 }}>{failItems.length}</p>
-              <p style={{ color: '#64748b', fontSize: '7px', margin: 0 }}>عطل</p>
+              <p style={{ color: '#dc2626', fontSize: '14px', fontWeight: 'bold', margin: 0 }}>{failItems.length}</p>
+              <p style={{ color: '#64748b', fontSize: '6px', margin: 0 }}>عطل</p>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <p style={{ color: '#f97316', fontSize: '16px', fontWeight: 'bold', margin: 0 }}>{warningItems.length}</p>
-              <p style={{ color: '#64748b', fontSize: '7px', margin: 0 }}>ملاحظة</p>
+              <p style={{ color: '#f97316', fontSize: '14px', fontWeight: 'bold', margin: 0 }}>{warningItems.length}</p>
+              <p style={{ color: '#64748b', fontSize: '6px', margin: 0 }}>ملاحظة</p>
             </div>
           </div>
         </div>
 
         {/* Main Content */}
-        <div style={{ flex: 1, padding: '12px 20px', overflow: 'hidden' }}>
+        <div style={{ flex: 1, padding: '10px 20px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           {issueItems.length === 0 ? (
             <div style={{
               backgroundColor: '#dcfce7',
@@ -208,19 +215,26 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
                 display: 'flex', 
                 alignItems: 'center', 
                 gap: '8px',
-                marginBottom: '10px',
-                paddingBottom: '6px',
+                marginBottom: '8px',
+                paddingBottom: '4px',
                 borderBottom: '2px solid #0f172a',
+                flexShrink: 0,
               }}>
-                <h2 style={{ color: '#0f172a', fontSize: '13px', fontWeight: 'bold', margin: 0 }}>
+                <h2 style={{ color: '#0f172a', fontSize: '11px', fontWeight: 'bold', margin: 0 }}>
                   البنود التي تحتاج متابعة
                 </h2>
-                <span style={{ color: '#64748b', fontSize: '10px' }}>({issueItems.length} بند)</span>
+                <span style={{ color: '#64748b', fontSize: '9px' }}>({issueItems.length} بند)</span>
               </div>
 
-              {/* Issues Grid - Two Columns */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                {issueItems.slice(0, 16).map((item, idx) => {
+              {/* Issues Grid - Adaptive Columns */}
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: `repeat(${gridCols}, 1fr)`, 
+                gap: gapSize,
+                flex: 1,
+                alignContent: 'start',
+              }}>
+                {issueItems.map((item, idx) => {
                   const isFail = item.status === 'fail';
                   return (
                     <div 
@@ -229,10 +243,10 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
                         backgroundColor: isFail ? '#fef2f2' : '#fffbeb',
                         border: `1px solid ${isFail ? '#fecaca' : '#fde68a'}`,
                         borderRight: `3px solid ${isFail ? '#dc2626' : '#f97316'}`,
-                        borderRadius: '6px',
-                        padding: '6px 8px',
+                        borderRadius: '4px',
+                        padding: itemPadding,
                         display: 'flex',
-                        gap: '6px',
+                        gap: '4px',
                       }}
                     >
                       {item.imageUrl && (
@@ -240,36 +254,36 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
                           src={item.imageUrl} 
                           alt="" 
                           style={{ 
-                            width: '45px', 
-                            height: '35px', 
+                            width: imgSize.w, 
+                            height: imgSize.h, 
                             objectFit: 'cover', 
-                            borderRadius: '4px',
+                            borderRadius: '3px',
                             flexShrink: 0,
                           }} 
                         />
                       )}
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '3px', marginBottom: '1px' }}>
                           <span style={{ 
                             color: isFail ? '#dc2626' : '#f97316', 
-                            fontSize: '10px',
+                            fontSize: isVeryCompact ? '8px' : '10px',
                             fontWeight: 'bold',
                           }}>
                             {isFail ? '●' : '◐'}
                           </span>
                           <span style={{ 
                             color: '#64748b', 
-                            fontSize: '8px',
+                            fontSize: isVeryCompact ? '6px' : '7px',
                             backgroundColor: '#f1f5f9',
-                            padding: '1px 4px',
-                            borderRadius: '4px',
+                            padding: '0px 3px',
+                            borderRadius: '3px',
                           }}>
                             {getCategoryName(item.category)}
                           </span>
                         </div>
                         <p style={{ 
                           color: '#1e293b', 
-                          fontSize: '9px', 
+                          fontSize: itemFontSize, 
                           fontWeight: 'bold', 
                           margin: 0,
                           overflow: 'hidden',
@@ -278,22 +292,10 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
                         }}>
                           {item.faultName.split(' - ')[0]}
                         </p>
-                        {item.notes && (
-                          <p style={{ 
-                            color: '#64748b', 
-                            fontSize: '7px', 
-                            margin: '2px 0 0 0',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}>
-                            {item.notes}
-                          </p>
-                        )}
                         <p style={{ 
                           color: isFail ? '#dc2626' : '#f97316', 
-                          fontSize: '7px', 
-                          margin: '2px 0 0 0',
+                          fontSize: isVeryCompact ? '6px' : '7px', 
+                          margin: '1px 0 0 0',
                           fontWeight: 'bold',
                         }}>
                           يحتاج متابعة
@@ -303,19 +305,6 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
                   );
                 })}
               </div>
-
-              {/* Show remaining count if more than 16 items */}
-              {issueItems.length > 16 && (
-                <p style={{ 
-                  color: '#64748b', 
-                  fontSize: '9px', 
-                  textAlign: 'center', 
-                  margin: '8px 0 0 0',
-                  fontStyle: 'italic',
-                }}>
-                  + {issueItems.length - 16} بند إضافي
-                </p>
-              )}
             </>
           )}
         </div>
@@ -323,21 +312,21 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
         {/* Signature Section - Compact */}
         {(inspection.signature || inspection.customerSignature) && (
           <div style={{ 
-            padding: '8px 20px', 
+            padding: '6px 20px', 
             borderTop: '1px solid #e2e8f0',
             flexShrink: 0,
           }}>
             <div style={{
               backgroundColor: '#f8fafc',
-              borderRadius: '8px',
-              padding: '8px 12px',
+              borderRadius: '6px',
+              padding: '6px 10px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
             }}>
               <div>
-                <p style={{ color: '#64748b', fontSize: '8px', margin: '0 0 2px 0' }}>توقيع العميل</p>
-                <p style={{ color: '#0f172a', fontSize: '10px', fontWeight: 'bold', margin: 0 }}>
+                <p style={{ color: '#64748b', fontSize: '7px', margin: '0 0 2px 0' }}>توقيع العميل</p>
+                <p style={{ color: '#0f172a', fontSize: '9px', fontWeight: 'bold', margin: 0 }}>
                   {inspection.customerName || 'العميل'}
                 </p>
               </div>
@@ -345,8 +334,8 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
                 src={inspection.signature || inspection.customerSignature || ''} 
                 alt="Signature" 
                 style={{ 
-                  height: '35px', 
-                  maxWidth: '100px',
+                  height: '30px', 
+                  maxWidth: '80px',
                   objectFit: 'contain',
                 }} 
               />
@@ -357,7 +346,7 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
         {/* Footer - Compact */}
         <div style={{
           backgroundColor: '#0f172a',
-          padding: '10px 20px',
+          padding: '8px 20px',
           flexShrink: 0,
         }}>
           <div style={{ 
@@ -365,25 +354,25 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
             justifyContent: 'space-between', 
             alignItems: 'center',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <img src={logoPath} alt="Logo" style={{ width: '24px', height: '24px', borderRadius: '4px' }} />
-              <span style={{ color: '#ffffff', fontSize: '10px', fontWeight: 'bold' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <img src={logoPath} alt="Logo" style={{ width: '20px', height: '20px', borderRadius: '4px' }} />
+              <span style={{ color: '#ffffff', fontSize: '9px', fontWeight: 'bold' }}>
                 مركز الأمان العالي الدولي
               </span>
             </div>
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <span style={{ color: '#94a3b8', fontSize: '8px' }}>0542206000</span>
-              <span style={{ color: '#94a3b8', fontSize: '8px' }}>highsafety2021@gmail.com</span>
-              <span style={{ color: '#94a3b8', fontSize: '8px' }}>سيتي بلازا - الشارقة</span>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <span style={{ color: '#94a3b8', fontSize: '7px' }}>0542206000</span>
+              <span style={{ color: '#94a3b8', fontSize: '7px' }}>highsafety2021@gmail.com</span>
+              <span style={{ color: '#94a3b8', fontSize: '7px' }}>سيتي بلازا - الشارقة</span>
             </div>
           </div>
           <p style={{ 
             color: '#64748b', 
-            fontSize: '7px', 
+            fontSize: '6px', 
             textAlign: 'center', 
-            margin: '6px 0 0 0',
+            margin: '4px 0 0 0',
             borderTop: '1px solid #334155',
-            paddingTop: '6px',
+            paddingTop: '4px',
           }}>
             تقرير رقم: HS-{inspection.id} | هذا التقرير يعكس حالة المركبة وقت الفحص فقط
           </p>

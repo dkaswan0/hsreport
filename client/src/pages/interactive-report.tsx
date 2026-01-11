@@ -540,7 +540,7 @@ export default function InteractiveReport() {
     }
   };
 
-  // New professional single-page PDF with html2canvas
+  // New professional single-page PDF with html2canvas and auto-scaling
   const handleNewPdfDownload = async () => {
     if (!inspection || !pdfTemplateRef.current) return;
     
@@ -548,17 +548,42 @@ export default function InteractiveReport() {
     
     try {
       const element = pdfTemplateRef.current;
+      const A4_WIDTH = 794;
+      const A4_HEIGHT = 1123;
       
-      // Capture at high quality
+      // First, measure actual content height
+      const actualHeight = element.scrollHeight;
+      
+      // Calculate scale factor if content exceeds A4 height
+      let scaleFactor = 1;
+      if (actualHeight > A4_HEIGHT) {
+        scaleFactor = A4_HEIGHT / actualHeight;
+      }
+      
+      // Apply scale transform if needed
+      if (scaleFactor < 1) {
+        element.style.transform = `scale(${scaleFactor})`;
+        element.style.transformOrigin = 'top right';
+        element.style.width = `${A4_WIDTH / scaleFactor}px`;
+      }
+      
+      // Capture with html2canvas
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
-        width: 794,
-        height: 1123,
-        windowWidth: 794,
+        width: A4_WIDTH,
+        height: A4_HEIGHT,
+        windowWidth: A4_WIDTH,
       });
+      
+      // Reset transform
+      if (scaleFactor < 1) {
+        element.style.transform = '';
+        element.style.transformOrigin = '';
+        element.style.width = '794px';
+      }
 
       const imgData = canvas.toDataURL('image/png', 1.0);
       const pdf = new jsPDF({
