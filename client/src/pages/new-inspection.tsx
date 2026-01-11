@@ -4,11 +4,19 @@ import { insertInspectionSchema } from "@shared/schema";
 import { useCreateInspection, useVinDecoder } from "@/hooks/use-inspections";
 import { useLocation } from "wouter";
 import { z } from "zod";
-import { Loader2, ArrowLeft, Search, Camera, Car, Fuel, Gauge, Settings, MapPin, CheckCircle2, ScanLine, Upload, X, Image } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { Loader2, ArrowLeft, Search, Camera, Car, Fuel, Gauge, Settings, MapPin, CheckCircle2, ScanLine, Upload, X, Image, PenTool, FileCheck } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { VinScannerModal } from "@/components/vin-scanner-modal";
 import { Button } from "@/components/ui/button";
+
+// Inspection types
+const INSPECTION_TYPES = [
+  { id: 'full', label: 'فحص شامل', description: 'فحص كامل لجميع أجزاء السيارة' },
+  { id: 'mechanical', label: 'ميكانيكا + كومبيوتر', description: 'فحص الأجزاء الميكانيكية والإلكترونية' },
+  { id: 'basic', label: 'الأجزاء الأساسية', description: 'فحص الأجزاء الأساسية فقط' },
+  { id: 'custom', label: 'فحوصات متنوعة', description: 'اختيار فحوصات محددة' }
+];
 
 const formSchema = insertInspectionSchema.extend({
   vin: z.string().min(17, "رقم الشاصي يجب أن يكون 17 حرفاً").max(17),
@@ -26,6 +34,10 @@ export default function NewInspection() {
   const [odometerPhoto, setOdometerPhoto] = useState<string | null>(null);
   const [odometerPhotoPreview, setOdometerPhotoPreview] = useState<string | null>(null);
   const odometerPhotoRef = useRef<HTMLInputElement>(null);
+  const [inspectionType, setInspectionType] = useState('full');
+  const [customerSignature, setCustomerSignature] = useState<string | null>(null);
+  const signatureCanvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
   
   const { data: vinData, isFetching: isDecoding } = useVinDecoder(vinQuery);
 
@@ -69,6 +81,76 @@ export default function NewInspection() {
     if (odometerPhotoRef.current) {
       odometerPhotoRef.current.value = "";
     }
+  };
+
+  // Signature canvas functions
+  const initCanvas = useCallback(() => {
+    const canvas = signatureCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = '#1e3a5f';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+  }, []);
+
+  useEffect(() => {
+    initCanvas();
+  }, [initCanvas]);
+
+  const getCoordinates = (e: React.MouseEvent | React.TouchEvent) => {
+    const canvas = signatureCanvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
+    if ('touches' in e) {
+      return {
+        x: e.touches[0].clientX - rect.left,
+        y: e.touches[0].clientY - rect.top
+      };
+    }
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+  };
+
+  const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
+    const canvas = signatureCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const { x, y } = getCoordinates(e);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    setIsDrawing(true);
+  };
+
+  const draw = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDrawing) return;
+    const canvas = signatureCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const { x, y } = getCoordinates(e);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+  };
+
+  const stopDrawing = () => {
+    if (isDrawing) {
+      setIsDrawing(false);
+      const canvas = signatureCanvasRef.current;
+      if (canvas) {
+        setCustomerSignature(canvas.toDataURL('image/png'));
+      }
+    }
+  };
+
+  const clearSignature = () => {
+    initCanvas();
+    setCustomerSignature(null);
   };
 
   // Auto-fill form when VIN data arrives
@@ -121,10 +203,13 @@ export default function NewInspection() {
       }
     }
     
-    // Add odometer photo to submission
+    // Add odometer photo, inspection type, and signature to submission
+    const inspectionTypeLabel = INSPECTION_TYPES.find(t => t.id === inspectionType)?.label || 'فحص شامل';
     const submissionData = {
       ...data,
-      odometerPhoto: odometerPhoto || undefined
+      odometerPhoto: odometerPhoto || undefined,
+      inspectionType: inspectionTypeLabel,
+      customerSignature: customerSignature || undefined
     };
     
     mutate(submissionData as any, {
@@ -431,6 +516,82 @@ export default function NewInspection() {
                   placeholder="أي ملاحظات عن حالة السيارة..."
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Inspection Type Section */}
+          <div>
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-primary border-b pb-2 font-arabic">
+              <span className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center text-sm">3</span>
+              <FileCheck className="w-5 h-5" />
+              نوع الفحص
+            </h3>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {INSPECTION_TYPES.map((type) => (
+                <button
+                  key={type.id}
+                  type="button"
+                  onClick={() => setInspectionType(type.id)}
+                  className={cn(
+                    "p-4 rounded-xl border-2 text-center transition-all",
+                    inspectionType === type.id
+                      ? "border-primary bg-primary/10 shadow-md"
+                      : "border-slate-200 bg-slate-50 hover:border-primary/50"
+                  )}
+                  data-testid={`button-inspection-type-${type.id}`}
+                >
+                  <div className={cn(
+                    "font-bold font-arabic mb-1",
+                    inspectionType === type.id ? "text-primary" : "text-slate-700"
+                  )}>{type.label}</div>
+                  <div className="text-xs text-slate-500">{type.description}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Customer Signature Section */}
+          <div>
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-primary border-b pb-2 font-arabic">
+              <span className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center text-sm">4</span>
+              <PenTool className="w-5 h-5" />
+              توقيع العميل
+            </h3>
+            
+            <div className="space-y-3">
+              <div className="border-2 border-dashed border-slate-300 rounded-xl p-2 bg-white">
+                <canvas
+                  ref={signatureCanvasRef}
+                  width={400}
+                  height={150}
+                  className="w-full max-w-md mx-auto cursor-crosshair touch-none rounded-lg"
+                  onMouseDown={startDrawing}
+                  onMouseMove={draw}
+                  onMouseUp={stopDrawing}
+                  onMouseLeave={stopDrawing}
+                  onTouchStart={startDrawing}
+                  onTouchMove={draw}
+                  onTouchEnd={stopDrawing}
+                  data-testid="canvas-signature"
+                />
+              </div>
+              <div className="flex justify-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={clearSignature}
+                  className="text-slate-600"
+                  data-testid="button-clear-signature"
+                >
+                  <X className="w-4 h-4 ml-1" />
+                  مسح التوقيع
+                </Button>
+              </div>
+              <p className="text-xs text-slate-400 text-center font-arabic">
+                وقع هنا باستخدام الإصبع أو الماوس - التوقيع يظهر في التقرير
+              </p>
             </div>
           </div>
 

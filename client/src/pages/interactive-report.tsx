@@ -610,8 +610,9 @@ export default function InteractiveReport() {
             
             catItems.forEach((item: any, idx: number) => {
               const faultAr = item.faultName.split(' - ')[0] || item.faultName;
+              // Keep visual distinction with symbols/colors but use "يحتاج متابعة" text as requested
               const statusSymbol = item.status === 'fail' ? '●' : '◐';
-              const statusText = item.status === 'fail' ? 'يحتاج إصلاح' : 'يحتاج متابعة';
+              const statusText = 'يحتاج متابعة';
               const statusColor = item.status === 'fail' ? '#dc2626' : '#d97706';
               const rowBg = idx % 2 === 0 ? '#ffffff' : '#fafafa';
               
@@ -688,7 +689,7 @@ export default function InteractiveReport() {
                 layout: { hLineWidth: () => 0.5, vLineWidth: () => 0, hLineColor: () => '#e2e8f0', paddingLeft: () => 0, paddingRight: () => 0 }
               },
               { width: 12, text: '' },
-              // Customer + Stats
+              // Inspection Type + Stats (Customer data hidden from shared report)
               {
                 width: '46%',
                 stack: [
@@ -696,9 +697,8 @@ export default function InteractiveReport() {
                     table: {
                       widths: ['35%', '65%'],
                       body: [
-                        [{ text: 'بيانات العميل', style: 'sectionTitle', colSpan: 2, fillColor: '#f1f5f9', margin: [5, 6, 5, 6] }, {}],
-                        [{ text: 'الاسم:', style: 'fieldLabel', margin: [5, 4, 5, 4] }, { text: inspection.customerName || 'عميل زائر', style: 'fieldValue', margin: [5, 4, 5, 4] }],
-                        [{ text: 'رقم الهاتف:', style: 'fieldLabel', margin: [5, 4, 5, 4] }, { text: inspection.customerPhone || '-', style: 'fieldValue', margin: [5, 4, 5, 4] }]
+                        [{ text: 'نوع الفحص', style: 'sectionTitle', colSpan: 2, fillColor: '#f1f5f9', margin: [5, 6, 5, 6] }, {}],
+                        [{ text: 'الفحص:', style: 'fieldLabel', margin: [5, 4, 5, 4] }, { text: (inspection as any).inspectionType || 'فحص شامل', style: 'fieldValue', margin: [5, 4, 5, 4] }]
                       ]
                     },
                     layout: { hLineWidth: () => 0.5, vLineWidth: () => 0, hLineColor: () => '#e2e8f0' }
@@ -754,18 +754,36 @@ export default function InteractiveReport() {
             }
           },
           
+          // Customer Signature Section (if available)
+          ...((inspection as any).customerSignature ? [
+            { text: '', margin: [0, 10, 0, 0] },
+            {
+              columns: [
+                { text: '', width: '*' },
+                { 
+                  stack: [
+                    { text: 'توقيع العميل', style: 'fieldLabel', alignment: 'center', margin: [0, 0, 0, 5] },
+                    { image: (inspection as any).customerSignature, width: 100, height: 40, alignment: 'center' }
+                  ],
+                  width: 120
+                }
+              ]
+            }
+          ] : []),
+          
           // Footer with contact info
-          { text: '', margin: [0, 15, 0, 0] },
+          { text: '', margin: [0, 10, 0, 0] },
           { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 555, y2: 0, lineWidth: 1, lineColor: '#1e3a5f' }] },
           { 
             columns: [
-              { text: '📱 واتساب: 0542206000', style: 'footerContact', alignment: 'left' },
-              { text: '📧 highsafety2021@gmail.com', style: 'footerContact', alignment: 'center' },
-              { text: '📍 سيتي بلازا الدراري - الشارقة', style: 'footerContact', alignment: 'right' }
+              { text: 'واتساب: 0542206000', style: 'footerContact', alignment: 'left' },
+              { text: 'highsafety2021@gmail.com', style: 'footerContact', alignment: 'center' },
+              { text: 'سيتي بلازا الدراري - الشارقة', style: 'footerContact', alignment: 'right' }
             ],
             margin: [0, 8, 0, 0]
           },
-          { text: 'هذا التقرير الإلكتروني صادر عن مركز الأمان العالي الدولي ويعكس حالة المركبة وقت الفحص فقط', style: 'disclaimer', alignment: 'center', margin: [0, 6, 0, 0] }
+          { text: 'مركز فحص السيارات - الشارقة، الإمارات', style: 'centerBrand', alignment: 'center', margin: [0, 6, 0, 2] },
+          { text: 'هذا التقرير الإلكتروني صادر عن مركز الأمان العالي الدولي ويعكس حالة المركبة وقت الفحص فقط', style: 'disclaimer', alignment: 'center', margin: [0, 2, 0, 0] }
         ],
         styles: {
           companyName: { fontSize: 18, bold: true, color: '#1e3a5f' },
@@ -785,6 +803,7 @@ export default function InteractiveReport() {
           statusText: { fontSize: 9, bold: true },
           successText: { fontSize: 12, bold: true, color: '#16a34a' },
           footerContact: { fontSize: 8, color: '#475569' },
+          centerBrand: { fontSize: 9, bold: true, color: '#1e3a5f' },
           disclaimer: { fontSize: 7, color: '#94a3b8', italics: true }
         }
       };

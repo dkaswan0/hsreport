@@ -24,6 +24,8 @@ export const inspections = pgTable("inspections", {
   odometerPhoto: text("odometer_photo"), // Photo URL of odometer
   customerName: text("customer_name"),
   customerPhone: text("customer_phone"),
+  inspectionType: text("inspection_type"), // فحص شامل، ميكانيكا+كومبيوتر، الأجزاء الأساسية، فحوصات متنوعة
+  customerSignature: text("customer_signature"), // Base64 signature image
   status: text("status").default("draft"), // draft, completed
   notes: text("notes"),
   shareToken: text("share_token"), // Unique token for public sharing
