@@ -235,6 +235,24 @@ export async function registerRoutes(
     }
   });
 
+  // Delete fault from library
+  app.delete(api.faultLibrary.delete.path, async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      if (isNaN(id) || id <= 0) {
+        return res.status(400).json({ message: "رقم العطل غير صالح" });
+      }
+      const deleted = await storage.deleteFault(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "العطل غير موجود" });
+      }
+      res.status(204).end();
+    } catch (error: any) {
+      console.error("Delete fault error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Force reseed fault library endpoint
   app.post("/api/fault-library/reseed", async (req, res) => {
     try {

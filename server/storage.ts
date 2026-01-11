@@ -27,6 +27,7 @@ export interface IStorage {
   // Fault Library
   getFaultLibrary(search?: string): Promise<FaultLibrary[]>;
   createFault(fault: InsertFaultLibrary): Promise<FaultLibrary>;
+  deleteFault(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -144,6 +145,11 @@ export class DatabaseStorage implements IStorage {
   async createFault(fault: InsertFaultLibrary): Promise<FaultLibrary> {
     const [newFault] = await db.insert(faultLibrary).values(fault).returning();
     return newFault;
+  }
+
+  async deleteFault(id: number): Promise<boolean> {
+    const result = await db.delete(faultLibrary).where(eq(faultLibrary.id, id)).returning();
+    return result.length > 0;
   }
 }
 

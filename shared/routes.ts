@@ -136,6 +136,14 @@ export const api = {
         }),
       },
     },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/fault-library/:id',
+      responses: {
+        204: z.void(),
+        404: errorSchemas.notFound,
+      },
+    },
   },
   vin: {
     decode: {

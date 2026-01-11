@@ -11,7 +11,8 @@ import {
   Filter,
   RefreshCw,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Trash2
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -191,6 +192,8 @@ export default function FaultLibrary() {
     queryKey: ['/api/fault-library'],
   });
 
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
   const reseedMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest("POST", "/api/fault-library/reseed");
@@ -204,6 +207,29 @@ export default function FaultLibrary() {
       toast({ title: "خطأ", description: error.message || "فشل تحميل الأعطال", variant: "destructive" });
     }
   });
+
+  const deleteFaultMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest("DELETE", `/api/fault-library/${id}`);
+      if (!response.ok) throw new Error("فشل الحذف");
+    },
+    onSuccess: () => {
+      toast({ title: "تم!", description: "تم حذف العطل بنجاح" });
+      queryClient.invalidateQueries({ queryKey: ['/api/fault-library'] });
+      setDeletingId(null);
+    },
+    onError: (error: any) => {
+      toast({ title: "خطأ", description: error.message || "فشل حذف العطل", variant: "destructive" });
+      setDeletingId(null);
+    }
+  });
+
+  const handleDeleteFault = (id: number, faultName: string) => {
+    if (confirm(`متأكد تبي تمسح "${faultName}"؟`)) {
+      setDeletingId(id);
+      deleteFaultMutation.mutate(id);
+    }
+  };
 
   const categories = Array.from(new Set(faults.map(f => f.category))).sort();
 
@@ -530,7 +556,7 @@ export default function FaultLibrary() {
                               return (
                                 <div 
                                   key={fault.id} 
-                                  className="p-4 flex items-start gap-4 hover-elevate"
+                                  className="p-4 flex items-start gap-4 hover-elevate group"
                                   data-testid={`fault-item-${fault.id}`}
                                 >
                                   <div className={cn(
@@ -549,12 +575,27 @@ export default function FaultLibrary() {
                                       </p>
                                     )}
                                   </div>
-                                  <Badge 
-                                    variant="outline" 
-                                    className={cn("shrink-0", severityInfo.color)}
-                                  >
-                                    {severityInfo.label}
-                                  </Badge>
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    <Badge 
+                                      variant="outline" 
+                                      className={cn(severityInfo.color)}
+                                    >
+                                      {severityInfo.label}
+                                    </Badge>
+                                    <button
+                                      onClick={() => handleDeleteFault(fault.id, fault.faultName)}
+                                      disabled={deletingId === fault.id}
+                                      className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                                      title="امسح"
+                                      data-testid={`button-delete-fault-${fault.id}`}
+                                    >
+                                      {deletingId === fault.id ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                      ) : (
+                                        <Trash2 className="w-4 h-4" />
+                                      )}
+                                    </button>
+                                  </div>
                                 </div>
                               );
                             })}
