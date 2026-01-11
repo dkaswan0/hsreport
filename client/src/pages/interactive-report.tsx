@@ -877,8 +877,19 @@ export default function InteractiveReport() {
         }
       };
       
-      pdfMake.createPdf(docDefinition).download(`تقرير_فحص_${inspection.vin}_HS${inspection.id}.pdf`);
-      toast({ title: "تم بنجاح", description: "تم حفظ تقرير PDF" });
+      // Use getBlob for reliable download across all browsers
+      const pdfDocGenerator = pdfMake.createPdf(docDefinition);
+      pdfDocGenerator.getBlob((blob: Blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `تقرير_فحص_${inspection.vin}_HS${inspection.id}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        toast({ title: "تم التحميل", description: "تم تحميل ملف PDF على جهازك" });
+      });
     } catch (error) {
       console.error('PDF error:', error);
       toast({ title: "خطأ", description: "صار خطأ في إنشاء التقرير", variant: "destructive" });
@@ -1149,8 +1160,19 @@ export default function InteractiveReport() {
         }
       };
       
-      pdfMake.createPdf(docDefinition).download(`تقرير_فحص_${inspection.vin}.pdf`);
-      toast({ title: "تم بنجاح", description: "تم حفظ التقرير العربي بصيغة PDF" });
+      // Use getBlob for reliable download
+      const pdfDocGenerator = pdfMake.createPdf(docDefinition);
+      pdfDocGenerator.getBlob((blob: Blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `تقرير_فحص_${inspection.vin}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        toast({ title: "تم التحميل", description: "تم تحميل ملف PDF على جهازك" });
+      });
     } catch (error) {
       console.error('PDF generation error:', error);
       toast({ title: "خطأ", description: "صار خطأ في سوي ملف PDF", variant: "destructive" });
