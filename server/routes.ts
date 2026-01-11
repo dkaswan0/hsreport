@@ -441,7 +441,7 @@ export async function registerRoutes(
     const { db } = await import("./db");
     const { sql } = await import("drizzle-orm");
     
-    const EXPECTED_FAULT_COUNT = 1400;
+    const EXPECTED_FAULT_COUNT = 1479;
     const existingFaults = await db.select().from(faultLibrary);
     
     // Always reseed if count doesn't match expected (handles production with stale 1039 faults)
