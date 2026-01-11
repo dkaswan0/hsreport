@@ -13,10 +13,14 @@ import NotFound from "@/pages/not-found";
 
 import InteractiveReport from "@/pages/interactive-report";
 import PublicReport from "@/pages/public-report";
+import HandoffPage from "@/pages/handoff";
 
 function Router() {
   return (
     <Switch>
+      <Route path="/handoff/:token">
+        {(params) => <HandoffPage />}
+      </Route>
       <Route path="/view/:token">
         {(params) => <PublicReport />}
       </Route>
