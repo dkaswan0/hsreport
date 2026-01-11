@@ -33,12 +33,27 @@ interface PdfReportTemplateProps {
   inspection: Inspection;
 }
 
+// High Safety Brand Colors
+const BRAND = {
+  primary: '#0C1A28',      // Navy blue
+  secondary: '#1E3A5F',    // Medium blue
+  accent: '#C5852C',       // Gold/Copper
+  accentLight: '#E8B86D',  // Light gold
+  success: '#059669',      // Green
+  warning: '#D97706',      // Orange
+  danger: '#DC2626',       // Red
+  light: '#F8FAFC',        // Light background
+  dark: '#0F172A',         // Dark text
+  muted: '#64748B',        // Muted text
+  border: '#E2E8F0',       // Border color
+};
+
 const CATEGORIES: Record<string, { ar: string; en: string }> = {
   engine: { ar: 'المحرك', en: 'Engine' },
   transmission: { ar: 'ناقل الحركة', en: 'Transmission' },
   chassis: { ar: 'الشاسيه', en: 'Chassis' },
   body: { ar: 'الهيكل', en: 'Body' },
-  tires: { ar: 'الإطارات', en: 'Tires' },
+  tires: { ar: 'الاطارات', en: 'Tires' },
   brakes: { ar: 'الفرامل', en: 'Brakes' },
   electrical: { ar: 'الكهرباء', en: 'Electrical' },
   wheels: { ar: 'الجنوط', en: 'Wheels' },
@@ -46,35 +61,81 @@ const CATEGORIES: Record<string, { ar: string; en: string }> = {
   ac: { ar: 'التكييف', en: 'A/C' },
   exhaust: { ar: 'العادم', en: 'Exhaust' },
   safety: { ar: 'السلامة', en: 'Safety' },
-  front_bumper: { ar: 'الصدام الأمامي', en: 'Front Bumper' },
+  front_bumper: { ar: 'الصدام الامامي', en: 'Front Bumper' },
   rear_bumper: { ar: 'الصدام الخلفي', en: 'Rear Bumper' },
   hood: { ar: 'الكبوت', en: 'Hood' },
   trunk: { ar: 'الشنطة', en: 'Trunk' },
-  doors: { ar: 'الأبواب', en: 'Doors' },
+  doors: { ar: 'الابواب', en: 'Doors' },
   fenders: { ar: 'الرفارف', en: 'Fenders' },
   roof: { ar: 'السقف', en: 'Roof' },
-  lights: { ar: 'الإضاءة', en: 'Lights' },
+  lights: { ar: 'الاضاءة', en: 'Lights' },
   interior: { ar: 'الداخلية', en: 'Interior' },
   glass: { ar: 'الزجاج', en: 'Glass' },
+};
+
+// Color mapping for vehicle colors
+const COLOR_MAP: Record<string, { ar: string; en: string; hex: string }> = {
+  'اخضر': { ar: 'اخضر', en: 'Green', hex: '#22C55E' },
+  'اخضر غامق': { ar: 'اخضر غامق', en: 'Dark Green', hex: '#166534' },
+  'احمر': { ar: 'احمر', en: 'Red', hex: '#EF4444' },
+  'ازرق': { ar: 'ازرق', en: 'Blue', hex: '#3B82F6' },
+  'ازرق غامق': { ar: 'ازرق غامق', en: 'Dark Blue', hex: '#1E40AF' },
+  'ابيض': { ar: 'ابيض', en: 'White', hex: '#FFFFFF' },
+  'اسود': { ar: 'اسود', en: 'Black', hex: '#1F2937' },
+  'فضي': { ar: 'فضي', en: 'Silver', hex: '#9CA3AF' },
+  'رمادي': { ar: 'رمادي', en: 'Gray', hex: '#6B7280' },
+  'ذهبي': { ar: 'ذهبي', en: 'Gold', hex: '#F59E0B' },
+  'بني': { ar: 'بني', en: 'Brown', hex: '#92400E' },
+  'برتقالي': { ar: 'برتقالي', en: 'Orange', hex: '#F97316' },
+  'اصفر': { ar: 'اصفر', en: 'Yellow', hex: '#EAB308' },
+  'بنفسجي': { ar: 'بنفسجي', en: 'Purple', hex: '#A855F7' },
+  'وردي': { ar: 'وردي', en: 'Pink', hex: '#EC4899' },
+  'بيج': { ar: 'بيج', en: 'Beige', hex: '#D4B896' },
+  'عنابي': { ar: 'عنابي', en: 'Maroon', hex: '#7F1D1D' },
+  'نبيتي': { ar: 'نبيتي', en: 'Burgundy', hex: '#831843' },
+  'green': { ar: 'اخضر', en: 'Green', hex: '#22C55E' },
+  'red': { ar: 'احمر', en: 'Red', hex: '#EF4444' },
+  'blue': { ar: 'ازرق', en: 'Blue', hex: '#3B82F6' },
+  'white': { ar: 'ابيض', en: 'White', hex: '#FFFFFF' },
+  'black': { ar: 'اسود', en: 'Black', hex: '#1F2937' },
+  'silver': { ar: 'فضي', en: 'Silver', hex: '#9CA3AF' },
+  'gray': { ar: 'رمادي', en: 'Gray', hex: '#6B7280' },
+  'grey': { ar: 'رمادي', en: 'Gray', hex: '#6B7280' },
+  'gold': { ar: 'ذهبي', en: 'Gold', hex: '#F59E0B' },
+  'brown': { ar: 'بني', en: 'Brown', hex: '#92400E' },
+  'orange': { ar: 'برتقالي', en: 'Orange', hex: '#F97316' },
+  'yellow': { ar: 'اصفر', en: 'Yellow', hex: '#EAB308' },
+  'purple': { ar: 'بنفسجي', en: 'Purple', hex: '#A855F7' },
+  'pink': { ar: 'وردي', en: 'Pink', hex: '#EC4899' },
+  'beige': { ar: 'بيج', en: 'Beige', hex: '#D4B896' },
+  'maroon': { ar: 'عنابي', en: 'Maroon', hex: '#7F1D1D' },
+};
+
+const getVehicleColor = (colorStr?: string | null) => {
+  if (!colorStr) return { ar: '-', en: '-', hex: '#6B7280' };
+  const normalized = colorStr.toLowerCase().trim().split(',')[0].trim();
+  return COLOR_MAP[normalized] || { ar: colorStr, en: colorStr, hex: '#6B7280' };
 };
 
 const getInspectionTypeLabel = (type?: string | null) => {
   switch (type) {
     case 'comprehensive': return { ar: 'فحص شامل', en: 'Comprehensive' };
     case 'mechanical_computer': return { ar: 'فحص ميكانيكي + كمبيوتر', en: 'Mechanical + Computer' };
-    case 'basic_parts': return { ar: 'فحص قطع أساسية', en: 'Basic Parts' };
+    case 'basic_parts': return { ar: 'فحص قطع اساسية', en: 'Basic Parts' };
     case 'custom': return { ar: 'فحص مخصص', en: 'Custom' };
     default: return { ar: 'فحص شامل', en: 'Comprehensive' };
   }
 };
 
-const arabicFont: React.CSSProperties = {
+// Use simple Arabic text without special characters for better PDF rendering
+const textStyle: React.CSSProperties = {
   fontFamily: 'Tahoma, "Segoe UI", Arial, sans-serif',
-  letterSpacing: 'normal',
-  textRendering: 'optimizeLegibility',
+  letterSpacing: '0',
+  wordSpacing: '2px',
+  lineHeight: '1.5',
 };
 
-const englishFont: React.CSSProperties = {
+const englishStyle: React.CSSProperties = {
   fontFamily: 'Arial, Helvetica, sans-serif',
   letterSpacing: '0.3px',
 };
@@ -95,55 +156,51 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
 
     const getCategoryLabel = (catId: string) => CATEGORIES[catId] || { ar: catId, en: catId };
     const inspectionTypeLabel = getInspectionTypeLabel(inspection.inspectionType);
+    const vehicleColor = getVehicleColor(inspection.color);
 
     const itemCount = issueItems.length;
     
     // Adaptive sizing
     let gridCols = 2;
-    let fontSize = '13px';
-    let catFontSize = '10px';
-    let itemPad = '14px 16px';
-    let imgSize = { w: '85px', h: '68px' };
-    let gapSize = '12px';
-    let statusSize = '10px';
+    let fontSize = '12px';
+    let catFontSize = '9px';
+    let itemPad = '12px 14px';
+    let imgSize = { w: '75px', h: '60px' };
+    let gapSize = '10px';
     
     if (itemCount <= 4) {
       gridCols = 2;
-      fontSize = '14px';
-      catFontSize = '11px';
-      itemPad = '16px 18px';
-      imgSize = { w: '95px', h: '75px' };
-      gapSize = '14px';
-      statusSize = '11px';
+      fontSize = '13px';
+      catFontSize = '10px';
+      itemPad = '14px 16px';
+      imgSize = { w: '85px', h: '68px' };
+      gapSize = '12px';
     } else if (itemCount <= 8) {
       gridCols = 2;
-      fontSize = '12px';
-      catFontSize = '10px';
-      itemPad = '12px 14px';
-      imgSize = { w: '80px', h: '64px' };
-      gapSize = '10px';
-      statusSize = '10px';
-    } else if (itemCount <= 12) {
-      gridCols = 3;
       fontSize = '11px';
       catFontSize = '9px';
       itemPad = '10px 12px';
-      imgSize = { w: '65px', h: '52px' };
+      imgSize = { w: '70px', h: '56px' };
       gapSize = '8px';
-      statusSize = '9px';
-    } else {
+    } else if (itemCount <= 12) {
       gridCols = 3;
       fontSize = '10px';
       catFontSize = '8px';
       itemPad = '8px 10px';
-      imgSize = { w: '55px', h: '44px' };
+      imgSize = { w: '58px', h: '46px' };
       gapSize = '6px';
-      statusSize = '8px';
+    } else {
+      gridCols = 3;
+      fontSize = '9px';
+      catFontSize = '7px';
+      itemPad = '6px 8px';
+      imgSize = { w: '50px', h: '40px' };
+      gapSize = '5px';
     }
 
     // Calculate health percentage
     const healthPercent = totalItems > 0 ? Math.round((passCount / totalItems) * 100) : 100;
-    const healthColor = healthPercent >= 80 ? '#16a34a' : healthPercent >= 60 ? '#f97316' : '#dc2626';
+    const healthColor = healthPercent >= 80 ? BRAND.success : healthPercent >= 60 ? BRAND.warning : BRAND.danger;
 
     return (
       <div 
@@ -159,154 +216,177 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          ...arabicFont,
+          ...textStyle,
         }}
       >
-        {/* Header - Premium Design */}
+        {/* Premium Header with Gold Accent */}
         <div style={{
-          background: 'linear-gradient(135deg, #0c1929 0%, #1e3a5f 50%, #0c1929 100%)',
-          padding: '16px 28px',
+          background: `linear-gradient(135deg, ${BRAND.primary} 0%, ${BRAND.secondary} 100%)`,
+          padding: '20px 28px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           flexShrink: 0,
-          borderBottom: '3px solid #3b82f6',
+          borderBottom: `4px solid ${BRAND.accent}`,
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div style={{
-              width: '52px',
-              height: '52px',
+              width: '60px',
+              height: '60px',
               borderRadius: '12px',
               overflow: 'hidden',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-              border: '2px solid rgba(255,255,255,0.2)',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+              border: `2px solid ${BRAND.accent}`,
             }}>
               <img src={logoPath} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
             <div>
-              <h1 style={{ color: '#ffffff', fontSize: '20px', fontWeight: 'bold', margin: 0, ...arabicFont }}>
-                مركز الأمان العالي الدولي
+              <h1 style={{ color: '#ffffff', fontSize: '22px', fontWeight: 'bold', margin: 0, ...textStyle }}>
+                مركز الامان العالي
               </h1>
-              <p style={{ color: '#60a5fa', fontSize: '11px', margin: '3px 0 0 0', ...englishFont, fontWeight: '600' }}>
-                HIGH SAFETY INTERNATIONAL CENTER
+              <p style={{ color: BRAND.accentLight, fontSize: '12px', margin: '4px 0 0 0', ...englishStyle, fontWeight: '600' }}>
+                HIGH SAFETY CENTER
               </p>
             </div>
           </div>
           
           <div style={{ textAlign: 'left' }}>
             <div style={{
-              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-              color: '#ffffff',
-              padding: '6px 16px',
-              borderRadius: '20px',
-              fontSize: '11px',
+              background: `linear-gradient(135deg, ${BRAND.accent} 0%, ${BRAND.accentLight} 100%)`,
+              color: BRAND.primary,
+              padding: '8px 20px',
+              borderRadius: '24px',
+              fontSize: '12px',
               fontWeight: 'bold',
-              marginBottom: '6px',
-              boxShadow: '0 2px 8px rgba(59,130,246,0.4)',
-              ...arabicFont,
+              marginBottom: '8px',
+              boxShadow: '0 2px 8px rgba(197,133,44,0.4)',
+              ...textStyle,
             }}>
               {inspectionTypeLabel.ar}
             </div>
-            <p style={{ color: '#94a3b8', fontSize: '9px', margin: 0, ...englishFont }}>
+            <p style={{ color: '#94a3b8', fontSize: '10px', margin: 0, ...englishStyle }}>
               {englishDate} | {reportTime}
             </p>
-            <p style={{ color: '#cbd5e1', fontSize: '10px', margin: '2px 0 0 0', ...arabicFont }}>
+            <p style={{ color: '#cbd5e1', fontSize: '11px', margin: '3px 0 0 0', ...textStyle }}>
               {reportDate}
             </p>
           </div>
         </div>
 
-        {/* Vehicle Info Bar */}
+        {/* Vehicle Info Section */}
         <div style={{
-          backgroundColor: '#f8fafc',
-          padding: '14px 28px',
+          backgroundColor: BRAND.light,
+          padding: '16px 28px',
           display: 'grid',
-          gridTemplateColumns: '1.3fr 1.6fr 1fr 1.1fr',
+          gridTemplateColumns: '1.4fr 1.5fr 0.9fr 1.2fr',
           gap: '14px',
-          borderBottom: '1px solid #e2e8f0',
+          borderBottom: `1px solid ${BRAND.border}`,
           flexShrink: 0,
         }}>
-          {/* Vehicle */}
+          {/* Vehicle Details */}
           <div style={{ 
             background: '#ffffff', 
-            borderRadius: '10px', 
-            padding: '12px 14px', 
-            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-            border: '1px solid #e2e8f0',
+            borderRadius: '12px', 
+            padding: '14px 16px', 
+            boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+            border: `1px solid ${BRAND.border}`,
+            borderTop: `3px solid ${BRAND.accent}`,
           }}>
-            <p style={{ color: '#64748b', fontSize: '9px', margin: '0 0 5px 0', display: 'flex', justifyContent: 'space-between' }}>
-              <span style={arabicFont}>المركبة</span>
-              <span style={englishFont}>Vehicle</span>
+            <p style={{ color: BRAND.muted, fontSize: '9px', margin: '0 0 6px 0', display: 'flex', justifyContent: 'space-between' }}>
+              <span style={textStyle}>المركبة</span>
+              <span style={englishStyle}>Vehicle</span>
             </p>
-            <p style={{ color: '#0f172a', fontSize: '15px', fontWeight: 'bold', margin: 0, ...englishFont }}>
+            <p style={{ color: BRAND.dark, fontSize: '16px', fontWeight: 'bold', margin: 0, ...englishStyle }}>
               {inspection.make} {inspection.model}
             </p>
-            <p style={{ color: '#475569', fontSize: '11px', margin: '3px 0 0 0', ...englishFont }}>
-              {inspection.year} | {inspection.color?.split(',')[0]?.trim() || '-'}
-            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+              <span style={{ color: BRAND.muted, fontSize: '11px', ...englishStyle }}>
+                {inspection.year}
+              </span>
+              <span style={{ 
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                backgroundColor: BRAND.light,
+                padding: '2px 8px',
+                borderRadius: '12px',
+                fontSize: '10px',
+              }}>
+                <span style={{
+                  width: '12px',
+                  height: '12px',
+                  borderRadius: '50%',
+                  backgroundColor: vehicleColor.hex,
+                  border: vehicleColor.hex === '#FFFFFF' ? '1px solid #E2E8F0' : 'none',
+                  display: 'inline-block',
+                }}></span>
+                <span style={{ color: BRAND.dark, ...textStyle }}>{vehicleColor.ar}</span>
+              </span>
+            </div>
           </div>
 
           {/* VIN */}
           <div style={{ 
             background: '#ffffff', 
-            borderRadius: '10px', 
-            padding: '12px 14px', 
-            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-            border: '1px solid #e2e8f0',
+            borderRadius: '12px', 
+            padding: '14px 16px', 
+            boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+            border: `1px solid ${BRAND.border}`,
+            borderTop: `3px solid ${BRAND.secondary}`,
           }}>
-            <p style={{ color: '#64748b', fontSize: '9px', margin: '0 0 5px 0', display: 'flex', justifyContent: 'space-between' }}>
-              <span style={arabicFont}>رقم الشاصي</span>
-              <span style={englishFont}>VIN</span>
+            <p style={{ color: BRAND.muted, fontSize: '9px', margin: '0 0 6px 0', display: 'flex', justifyContent: 'space-between' }}>
+              <span style={textStyle}>رقم الشاصي</span>
+              <span style={englishStyle}>VIN</span>
             </p>
             <p style={{ 
-              color: '#0f172a', 
-              fontSize: '12px', 
+              color: BRAND.dark, 
+              fontSize: '11px', 
               fontWeight: 'bold', 
               margin: 0,
               fontFamily: "'Courier New', monospace",
-              letterSpacing: '0.8px',
-              backgroundColor: '#f1f5f9',
-              padding: '4px 8px',
-              borderRadius: '4px',
+              letterSpacing: '0.5px',
+              backgroundColor: BRAND.light,
+              padding: '6px 10px',
+              borderRadius: '6px',
             }}>
               {inspection.vin}
             </p>
-            <p style={{ color: '#3b82f6', fontSize: '9px', margin: '4px 0 0 0', fontWeight: 'bold', ...englishFont }}>
+            <p style={{ color: BRAND.accent, fontSize: '10px', margin: '6px 0 0 0', fontWeight: 'bold', ...englishStyle }}>
               Report: HS-{inspection.id}
             </p>
           </div>
 
           {/* Odometer */}
           <div style={{
-            background: 'linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%)',
-            borderRadius: '10px',
-            padding: '10px 12px',
+            background: `linear-gradient(180deg, ${BRAND.primary} 0%, #0a1420 100%)`,
+            borderRadius: '12px',
+            padding: '12px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
           }}>
-            <p style={{ color: '#9ca3af', fontSize: '8px', margin: '0 0 4px 0', ...englishFont, textTransform: 'uppercase', letterSpacing: '1.5px' }}>
+            <p style={{ color: BRAND.accentLight, fontSize: '8px', margin: '0 0 4px 0', ...englishStyle, textTransform: 'uppercase', letterSpacing: '2px' }}>
               ODOMETER
             </p>
             <div style={{
               background: 'linear-gradient(180deg, #0a0a14 0%, #1a1a2e 100%)',
               borderRadius: '6px',
-              padding: '5px 10px',
-              border: '2px solid #3d3d54',
+              padding: '6px 12px',
+              border: `2px solid ${BRAND.accent}`,
             }}>
               <span style={{
                 color: '#00ff88',
-                fontSize: '16px',
+                fontSize: '18px',
                 fontFamily: "'Courier New', monospace",
                 fontWeight: 'bold',
-                textShadow: '0 0 8px rgba(0,255,136,0.5)',
+                textShadow: '0 0 10px rgba(0,255,136,0.5)',
               }}>
                 {(inspection.odometer || inspection.mileage || 0).toLocaleString('en-US')}
               </span>
             </div>
-            <p style={{ color: '#4ade80', fontSize: '9px', margin: '4px 0 0 0', ...englishFont, fontWeight: 'bold' }}>
+            <p style={{ color: '#4ade80', fontSize: '10px', margin: '5px 0 0 0', ...englishStyle, fontWeight: 'bold' }}>
               KM
             </p>
           </div>
@@ -314,21 +394,21 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
           {/* Health Score */}
           <div style={{ 
             background: '#ffffff', 
-            borderRadius: '10px', 
-            padding: '10px 12px', 
-            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-            border: '1px solid #e2e8f0',
+            borderRadius: '12px', 
+            padding: '12px', 
+            boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+            border: `1px solid ${BRAND.border}`,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-            <p style={{ color: '#64748b', fontSize: '8px', margin: '0 0 4px 0', ...englishFont, textTransform: 'uppercase' }}>
+            <p style={{ color: BRAND.muted, fontSize: '8px', margin: '0 0 6px 0', ...englishStyle, textTransform: 'uppercase' }}>
               Health Score
             </p>
             <div style={{
-              width: '50px',
-              height: '50px',
+              width: '55px',
+              height: '55px',
               borderRadius: '50%',
               border: `4px solid ${healthColor}`,
               display: 'flex',
@@ -336,88 +416,100 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
               justifyContent: 'center',
               backgroundColor: `${healthColor}15`,
             }}>
-              <span style={{ color: healthColor, fontSize: '16px', fontWeight: 'bold', ...englishFont }}>
+              <span style={{ color: healthColor, fontSize: '18px', fontWeight: 'bold', ...englishStyle }}>
                 {healthPercent}%
               </span>
             </div>
-            <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
-              <span style={{ fontSize: '8px', color: '#16a34a', ...englishFont }}>{passCount} Pass</span>
-              <span style={{ fontSize: '8px', color: '#dc2626', ...englishFont }}>{failItems.length} Fail</span>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+              <span style={{ fontSize: '9px', color: BRAND.success, fontWeight: 'bold', ...englishStyle }}>
+                {passCount} Pass
+              </span>
+              <span style={{ fontSize: '9px', color: BRAND.danger, fontWeight: 'bold', ...englishStyle }}>
+                {failItems.length} Fail
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Main Content */}
+        {/* Main Content Area */}
         <div style={{ flex: 1, padding: '16px 28px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           {issueItems.length === 0 ? (
             <div style={{
               backgroundColor: '#dcfce7',
-              borderRadius: '16px',
+              borderRadius: '20px',
               padding: '50px',
               textAlign: 'center',
-              marginTop: '40px',
-              border: '2px solid #86efac',
+              marginTop: '50px',
+              border: `3px solid ${BRAND.success}`,
             }}>
               <div style={{ 
-                width: '70px', 
-                height: '70px', 
+                width: '80px', 
+                height: '80px', 
                 borderRadius: '50%', 
-                backgroundColor: '#16a34a', 
+                backgroundColor: BRAND.success, 
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center',
-                margin: '0 auto 16px',
-                boxShadow: '0 4px 12px rgba(22,163,74,0.3)',
+                margin: '0 auto 20px',
+                boxShadow: '0 4px 16px rgba(5,150,105,0.3)',
               }}>
-                <span style={{ color: '#fff', fontSize: '36px' }}>✓</span>
+                <span style={{ color: '#fff', fontSize: '40px' }}>&#10003;</span>
               </div>
-              <h2 style={{ color: '#166534', fontSize: '24px', fontWeight: 'bold', margin: '0 0 8px 0', ...arabicFont }}>
+              <h2 style={{ color: '#166534', fontSize: '26px', fontWeight: 'bold', margin: '0 0 10px 0', ...textStyle }}>
                 المركبة بحالة ممتازة
               </h2>
-              <p style={{ color: '#15803d', fontSize: '14px', margin: 0, ...englishFont }}>
+              <p style={{ color: '#15803d', fontSize: '16px', margin: 0, ...englishStyle }}>
                 Vehicle in Excellent Condition
               </p>
             </div>
           ) : (
             <>
-              {/* Section Header */}
+              {/* Section Title */}
               <div style={{ 
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'space-between',
-                marginBottom: '12px',
-                paddingBottom: '8px',
-                borderBottom: '2px solid #0f172a',
+                marginBottom: '14px',
+                paddingBottom: '10px',
+                borderBottom: `3px solid ${BRAND.primary}`,
                 flexShrink: 0,
               }}>
-                <div>
-                  <h2 style={{ color: '#0f172a', fontSize: '15px', fontWeight: 'bold', margin: 0, ...arabicFont }}>
-                    البنود التي تحتاج متابعة
-                  </h2>
-                  <p style={{ color: '#64748b', fontSize: '10px', margin: '2px 0 0 0', ...englishFont }}>
-                    Items Requiring Attention
-                  </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{
+                    width: '6px',
+                    height: '36px',
+                    backgroundColor: BRAND.accent,
+                    borderRadius: '3px',
+                  }}></div>
+                  <div>
+                    <h2 style={{ color: BRAND.dark, fontSize: '16px', fontWeight: 'bold', margin: 0, ...textStyle }}>
+                      البنود التي تحتاج متابعة
+                    </h2>
+                    <p style={{ color: BRAND.muted, fontSize: '10px', margin: '2px 0 0 0', ...englishStyle }}>
+                      Items Requiring Attention
+                    </p>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ display: 'flex', gap: '10px' }}>
                   <span style={{ 
-                    backgroundColor: '#dc2626',
+                    backgroundColor: BRAND.danger,
                     color: '#ffffff',
-                    padding: '4px 12px',
-                    borderRadius: '12px',
+                    padding: '6px 14px',
+                    borderRadius: '16px',
                     fontSize: '11px',
                     fontWeight: 'bold',
-                    ...englishFont,
+                    ...englishStyle,
                   }}>
                     {failItems.length} Fail
                   </span>
                   <span style={{ 
-                    backgroundColor: '#f97316',
+                    backgroundColor: BRAND.warning,
                     color: '#ffffff',
-                    padding: '4px 12px',
-                    borderRadius: '12px',
+                    padding: '6px 14px',
+                    borderRadius: '16px',
                     fontSize: '11px',
                     fontWeight: 'bold',
-                    ...englishFont,
+                    ...englishStyle,
                   }}>
                     {warningItems.length} Warning
                   </span>
@@ -435,14 +527,16 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
                 {issueItems.map((item, idx) => {
                   const isFail = item.status === 'fail';
                   const catLabel = getCategoryLabel(item.category);
+                  const itemColor = isFail ? BRAND.danger : BRAND.warning;
+                  
                   return (
                     <div 
                       key={item.id || idx} 
                       style={{
                         backgroundColor: isFail ? '#fef2f2' : '#fffbeb',
-                        border: `2px solid ${isFail ? '#fca5a5' : '#fcd34d'}`,
-                        borderRight: `5px solid ${isFail ? '#dc2626' : '#f97316'}`,
-                        borderRadius: '8px',
+                        border: `1px solid ${isFail ? '#fecaca' : '#fde68a'}`,
+                        borderRight: `5px solid ${itemColor}`,
+                        borderRadius: '10px',
                         padding: itemPad,
                         display: 'flex',
                         gap: '10px',
@@ -457,7 +551,7 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
                             width: imgSize.w, 
                             height: imgSize.h, 
                             objectFit: 'cover', 
-                            borderRadius: '6px',
+                            borderRadius: '8px',
                             flexShrink: 0,
                             border: '2px solid #e5e7eb',
                             boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
@@ -465,44 +559,44 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
                         />
                       )}
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '5px' }}>
                           <span style={{ 
-                            color: isFail ? '#dc2626' : '#f97316', 
-                            fontSize: '14px',
+                            color: itemColor, 
+                            fontSize: '16px',
                             fontWeight: 'bold',
                           }}>
-                            {isFail ? '●' : '◐'}
+                            {isFail ? '\u25CF' : '\u25D0'}
                           </span>
                           <span style={{ 
-                            color: '#374151', 
+                            color: BRAND.dark, 
                             fontSize: catFontSize,
                             backgroundColor: '#e5e7eb',
-                            padding: '2px 8px',
-                            borderRadius: '6px',
+                            padding: '3px 10px',
+                            borderRadius: '8px',
                             fontWeight: 'bold',
-                            ...arabicFont,
+                            ...textStyle,
                           }}>
                             {catLabel.ar}
                           </span>
                         </div>
                         <p style={{ 
-                          color: '#1f2937', 
+                          color: BRAND.dark, 
                           fontSize: fontSize, 
                           fontWeight: 'bold', 
-                          margin: '0 0 4px 0',
+                          margin: '0 0 5px 0',
                           lineHeight: '1.4',
-                          ...arabicFont,
+                          ...textStyle,
                         }}>
                           {item.faultName.split(' - ')[0]}
                         </p>
                         <p style={{ 
-                          color: isFail ? '#b91c1c' : '#c2410c', 
-                          fontSize: statusSize, 
+                          color: itemColor, 
+                          fontSize: catFontSize, 
                           margin: 0,
                           fontWeight: 'bold',
-                          ...englishFont,
+                          ...englishStyle,
                         }}>
-                          {isFail ? '● Needs Repair' : '◐ Needs Attention'}
+                          {isFail ? '\u25CF Needs Repair' : '\u25D0 Needs Attention'}
                         </p>
                       </div>
                     </div>
@@ -516,25 +610,25 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
         {/* Signature Section */}
         {(inspection.signature || inspection.customerSignature) && (
           <div style={{ 
-            padding: '10px 28px', 
-            borderTop: '1px solid #e2e8f0',
+            padding: '12px 28px', 
+            borderTop: `1px solid ${BRAND.border}`,
             flexShrink: 0,
           }}>
             <div style={{
-              backgroundColor: '#f8fafc',
-              borderRadius: '10px',
-              padding: '10px 16px',
+              backgroundColor: BRAND.light,
+              borderRadius: '12px',
+              padding: '12px 18px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              border: '1px solid #e2e8f0',
+              border: `1px solid ${BRAND.border}`,
             }}>
               <div>
-                <p style={{ color: '#64748b', fontSize: '9px', margin: '0 0 3px 0', display: 'flex', gap: '8px' }}>
-                  <span style={arabicFont}>توقيع العميل</span>
-                  <span style={englishFont}>Customer Signature</span>
+                <p style={{ color: BRAND.muted, fontSize: '9px', margin: '0 0 4px 0', display: 'flex', gap: '10px' }}>
+                  <span style={textStyle}>توقيع العميل</span>
+                  <span style={englishStyle}>Customer Signature</span>
                 </p>
-                <p style={{ color: '#0f172a', fontSize: '13px', fontWeight: 'bold', margin: 0, ...arabicFont }}>
+                <p style={{ color: BRAND.dark, fontSize: '14px', fontWeight: 'bold', margin: 0, ...textStyle }}>
                   {inspection.customerName || 'العميل'}
                 </p>
               </div>
@@ -542,8 +636,8 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
                 src={inspection.signature || inspection.customerSignature || ''} 
                 alt="Signature" 
                 style={{ 
-                  height: '45px', 
-                  maxWidth: '140px',
+                  height: '50px', 
+                  maxWidth: '150px',
                   objectFit: 'contain',
                 }} 
               />
@@ -553,39 +647,40 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
 
         {/* Footer */}
         <div style={{
-          background: 'linear-gradient(135deg, #0c1929 0%, #1e3a5f 100%)',
-          padding: '14px 28px',
+          background: `linear-gradient(135deg, ${BRAND.primary} 0%, ${BRAND.secondary} 100%)`,
+          padding: '16px 28px',
           flexShrink: 0,
+          borderTop: `3px solid ${BRAND.accent}`,
         }}>
           <div style={{ 
             display: 'flex', 
             justifyContent: 'space-between', 
             alignItems: 'center',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <img src={logoPath} alt="Logo" style={{ width: '28px', height: '28px', borderRadius: '6px' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <img src={logoPath} alt="Logo" style={{ width: '32px', height: '32px', borderRadius: '8px', border: `1px solid ${BRAND.accent}` }} />
               <div>
-                <span style={{ color: '#ffffff', fontSize: '11px', fontWeight: 'bold', ...arabicFont }}>
-                  مركز الأمان العالي
+                <span style={{ color: '#ffffff', fontSize: '12px', fontWeight: 'bold', ...textStyle }}>
+                  مركز الامان العالي
                 </span>
-                <span style={{ color: '#60a5fa', fontSize: '9px', marginRight: '8px', ...englishFont }}>
+                <span style={{ color: BRAND.accentLight, fontSize: '10px', marginRight: '10px', ...englishStyle }}>
                   High Safety Center
                 </span>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <span style={{ color: '#94a3b8', fontSize: '9px', ...englishFont }}>Tel: 0542206000</span>
-              <span style={{ color: '#94a3b8', fontSize: '9px', ...englishFont }}>highsafety2021@gmail.com</span>
+            <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+              <span style={{ color: '#94a3b8', fontSize: '10px', ...englishStyle }}>Tel: 0542206000</span>
+              <span style={{ color: '#94a3b8', fontSize: '10px', ...englishStyle }}>highsafety2021@gmail.com</span>
             </div>
           </div>
           <p style={{ 
-            color: '#64748b', 
+            color: BRAND.muted, 
             fontSize: '8px', 
             textAlign: 'center', 
-            margin: '10px 0 0 0',
-            borderTop: '1px solid #334155',
-            paddingTop: '10px',
-            ...englishFont,
+            margin: '12px 0 0 0',
+            borderTop: `1px solid ${BRAND.secondary}`,
+            paddingTop: '12px',
+            ...englishStyle,
           }}>
             This report reflects the vehicle condition at the time of inspection only | Report ID: HS-{inspection.id}
           </p>
