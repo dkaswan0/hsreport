@@ -70,61 +70,55 @@ const getInspectionTypeLabel = (type?: string | null) => {
 
 const OdometerWidget = ({ value }: { value: number }) => {
   const formattedValue = value.toLocaleString('en-US');
-  const digits = formattedValue.split('');
   
   return (
     <div style={{
       background: 'linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%)',
       borderRadius: '8px',
-      padding: '8px 12px',
+      padding: '10px 14px',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.5)',
+      justifyContent: 'center',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.3), inset 0 2px 4px rgba(0,0,0,0.5)',
+      border: '1px solid #2d2d44',
     }}>
       <p style={{ 
-        color: '#6b7280', 
-        fontSize: '8px', 
-        margin: '0 0 4px 0',
+        color: '#9ca3af', 
+        fontSize: '9px', 
+        margin: '0 0 6px 0',
         fontFamily: 'Arial, sans-serif',
         textTransform: 'uppercase',
-        letterSpacing: '1px',
+        letterSpacing: '2px',
+        fontWeight: 'bold',
       }}>
         ODOMETER
       </p>
       <div style={{
-        display: 'flex',
-        gap: '2px',
+        background: 'linear-gradient(180deg, #0a0a14 0%, #1a1a2e 100%)',
+        borderRadius: '6px',
+        padding: '6px 12px',
+        border: '2px solid #3d3d54',
+        boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.6)',
       }}>
-        {digits.map((digit, idx) => (
-          <div 
-            key={idx}
-            style={{
-              background: digit === ',' ? 'transparent' : 'linear-gradient(180deg, #2d2d44 0%, #1a1a2e 50%, #2d2d44 100%)',
-              borderRadius: '3px',
-              padding: digit === ',' ? '0' : '3px 5px',
-              minWidth: digit === ',' ? '4px' : '14px',
-              textAlign: 'center',
-              boxShadow: digit === ',' ? 'none' : 'inset 0 1px 2px rgba(0,0,0,0.5)',
-            }}
-          >
-            <span style={{
-              color: '#00ff88',
-              fontSize: '14px',
-              fontFamily: "'Courier New', monospace",
-              fontWeight: 'bold',
-              textShadow: '0 0 8px rgba(0,255,136,0.5)',
-            }}>
-              {digit}
-            </span>
-          </div>
-        ))}
+        <span style={{
+          color: '#00ff88',
+          fontSize: '18px',
+          fontFamily: "'Courier New', 'Lucida Console', monospace",
+          fontWeight: 'bold',
+          textShadow: '0 0 10px rgba(0,255,136,0.6), 0 0 20px rgba(0,255,136,0.3)',
+          letterSpacing: '1px',
+        }}>
+          {formattedValue}
+        </span>
       </div>
       <p style={{ 
         color: '#4ade80', 
-        fontSize: '7px', 
-        margin: '3px 0 0 0',
+        fontSize: '10px', 
+        margin: '6px 0 0 0',
         fontFamily: 'Arial, sans-serif',
+        fontWeight: 'bold',
+        letterSpacing: '1px',
       }}>
         KM
       </p>
@@ -159,13 +153,13 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
     const getCategoryName = (catId: string) => CATEGORIES[catId] || catId;
 
     const itemCount = issueItems.length;
-    const gridCols = itemCount > 8 ? 3 : 2;
-    const isCompact = itemCount > 6;
-    const fontSize = isCompact ? '10px' : '11px';
-    const categoryFontSize = isCompact ? '8px' : '9px';
-    const itemPadding = isCompact ? '6px 8px' : '8px 10px';
-    const imgSize = isCompact ? { w: '50px', h: '40px' } : { w: '60px', h: '48px' };
-    const gapSize = isCompact ? '6px' : '8px';
+    const gridCols = itemCount > 10 ? 3 : 2;
+    const isCompact = itemCount > 8;
+    const fontSize = isCompact ? '10px' : '12px';
+    const categoryFontSize = isCompact ? '9px' : '10px';
+    const itemPadding = isCompact ? '8px 10px' : '10px 12px';
+    const imgSize = isCompact ? { w: '55px', h: '45px' } : { w: '70px', h: '55px' };
+    const gapSize = isCompact ? '8px' : '10px';
 
     return (
       <div 
