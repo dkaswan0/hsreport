@@ -574,7 +574,10 @@ export default function InteractiveReport() {
       ).size;
       const passedCount = totalCategories - categoriesWithIssues;
       const primaryColor = inspection.color?.split(',')[0]?.trim() || 'غير محدد';
-      const reportDate = inspection.createdAt ? new Date(inspection.createdAt).toLocaleDateString('ar-AE', { year: 'numeric', month: 'long', day: 'numeric' }) : new Date().toLocaleDateString('ar-AE');
+      const inspectionDate = inspection.createdAt ? new Date(inspection.createdAt) : new Date();
+      const reportDate = inspectionDate.toLocaleDateString('ar-AE', { year: 'numeric', month: 'long', day: 'numeric' });
+      const reportTime = inspectionDate.toLocaleTimeString('ar-AE', { hour: '2-digit', minute: '2-digit', hour12: false });
+      const fullDateTime = `${reportDate} - الساعة ${reportTime}`;
       
       // Convert logo to base64
       let logoBase64 = '';
@@ -588,41 +591,122 @@ export default function InteractiveReport() {
         });
       } catch (e) {}
       
-      // Build compact findings - group by category with better layout
-      const findingsRows: any[] = [];
+      // Helper function to convert image URL to base64
+      const imageToBase64 = async (url: string): Promise<string> => {
+        try {
+          const response = await fetch(url);
+          const blob = await response.blob();
+          return await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
+        } catch (e) {
+          return '';
+        }
+      };
+
+      // Filter only items with issues (fail or warning)
+      const issueItems = items.filter((i: any) => i.status === 'fail' || i.status === 'warning');
       
-      if (items.length === 0) {
+      // Convert fault images to base64
+      const itemsWithImages: { item: any; imageBase64: string }[] = [];
+      for (const item of issueItems) {
+        const imageBase64 = item.imageUrl ? await imageToBase64(item.imageUrl) : '';
+        itemsWithImages.push({ item, imageBase64 });
+      }
+
+      // Build findings content with images
+      const findingsContent: any[] = [];
+      
+      if (issueItems.length === 0) {
+        findingsContent.push({
+          text: 'المركبة بحالة ممتازة - لا توجد ملاحظات',
+          style: 'successText',
+          alignment: 'center',
+          margin: [0, 20, 0, 20]
+        });
+      } else {
+        // Group by category
+        for (const cat of INSPECTION_CATEGORIES) {
+          const catItemsWithImages = itemsWithImages.filter(({ item }) => item.category === cat.id);
+          if (catItemsWithImages.length === 0) continue;
+          
+          // Category header
+          findingsContent.push({
+            text: cat.label,
+            style: 'categoryHeader',
+            margin: [0, 10, 0, 5]
+          });
+          
+          // Items in this category
+          catItemsWithImages.forEach(({ item, imageBase64 }) => {
+            const faultAr = item.faultName.split(' - ')[0] || item.faultName;
+            const statusSymbol = item.status === 'fail' ? '●' : '◐';
+            const statusText = 'يحتاج متابعة';
+            const statusColor = item.status === 'fail' ? '#dc2626' : '#d97706';
+            const bgColor = item.status === 'fail' ? '#fef2f2' : '#fffbeb';
+            
+            const itemContent: any = {
+              table: {
+                widths: imageBase64 ? ['70%', '30%'] : ['100%'],
+                body: [[
+                  {
+                    stack: [
+                      { text: faultAr, style: 'faultTitle', margin: [0, 0, 0, 3] },
+                      { text: `${statusSymbol} ${statusText}`, color: statusColor, fontSize: 9, bold: true },
+                      ...(item.description ? [{ text: item.description, style: 'faultDesc', margin: [0, 3, 0, 0] }] : [])
+                    ],
+                    fillColor: bgColor,
+                    margin: [8, 8, 8, 8]
+                  },
+                  ...(imageBase64 ? [{
+                    image: imageBase64,
+                    width: 100,
+                    height: 70,
+                    fillColor: bgColor,
+                    margin: [5, 5, 5, 5]
+                  }] : [])
+                ]]
+              },
+              layout: {
+                hLineWidth: () => 0.5,
+                vLineWidth: () => 0.5,
+                hLineColor: () => '#e2e8f0',
+                vLineColor: () => '#e2e8f0'
+              },
+              margin: [0, 3, 0, 3]
+            };
+            
+            findingsContent.push(itemContent);
+          });
+        }
+      }
+      
+      // Build legacy table for backward compatibility (without images)
+      const findingsRows: any[] = [];
+      if (issueItems.length === 0) {
         findingsRows.push([
           { text: 'المركبة بحالة ممتازة - لا توجد ملاحظات', style: 'successText', colSpan: 3, alignment: 'center', margin: [0, 10, 0, 10] }, {}, {}
         ]);
       } else {
-        // Filter only items with issues (fail or warning)
-        const issueItems = items.filter((i: any) => i.status === 'fail' || i.status === 'warning');
-        
-        if (issueItems.length === 0) {
-          findingsRows.push([
-            { text: 'المركبة بحالة ممتازة - لا توجد ملاحظات', style: 'successText', colSpan: 3, alignment: 'center', margin: [0, 10, 0, 10] }, {}, {}
-          ]);
-        } else {
-          for (const cat of INSPECTION_CATEGORIES) {
-            const catItems = issueItems.filter((i: any) => i.category === cat.id);
-            if (catItems.length === 0) continue;
+        for (const cat of INSPECTION_CATEGORIES) {
+          const catItems = issueItems.filter((i: any) => i.category === cat.id);
+          if (catItems.length === 0) continue;
+          
+          catItems.forEach((item: any, idx: number) => {
+            const faultAr = item.faultName.split(' - ')[0] || item.faultName;
+            const statusSymbol = item.status === 'fail' ? '●' : '◐';
+            const statusText = 'يحتاج متابعة';
+            const statusColor = item.status === 'fail' ? '#dc2626' : '#d97706';
+            const rowBg = idx % 2 === 0 ? '#ffffff' : '#fafafa';
             
-            catItems.forEach((item: any, idx: number) => {
-              const faultAr = item.faultName.split(' - ')[0] || item.faultName;
-              // Keep visual distinction with symbols/colors but use "يحتاج متابعة" text as requested
-              const statusSymbol = item.status === 'fail' ? '●' : '◐';
-              const statusText = 'يحتاج متابعة';
-              const statusColor = item.status === 'fail' ? '#dc2626' : '#d97706';
-              const rowBg = idx % 2 === 0 ? '#ffffff' : '#fafafa';
-              
-              findingsRows.push([
-                { text: idx === 0 ? cat.label : '', style: 'catLabel', fillColor: idx === 0 ? '#f8fafc' : rowBg, margin: [4, 4, 4, 4] },
-                { text: faultAr, style: 'faultText', fillColor: rowBg, margin: [4, 4, 4, 4] },
-                { text: `${statusSymbol} ${statusText}`, style: 'statusText', color: statusColor, fillColor: rowBg, margin: [4, 4, 4, 4], alignment: 'center' }
-              ]);
-            });
-          }
+            findingsRows.push([
+              { text: idx === 0 ? cat.label : '', style: 'catLabel', fillColor: idx === 0 ? '#f8fafc' : rowBg, margin: [4, 4, 4, 4] },
+              { text: faultAr, style: 'faultText', fillColor: rowBg, margin: [4, 4, 4, 4] },
+              { text: `${statusSymbol} ${statusText}`, style: 'statusText', color: statusColor, fillColor: rowBg, margin: [4, 4, 4, 4], alignment: 'center' }
+            ]);
+          });
         }
       }
       
@@ -638,7 +722,7 @@ export default function InteractiveReport() {
           // Professional Header with Logo
           {
             columns: [
-              { text: reportDate, style: 'dateLabel', width: 80, alignment: 'left', margin: [0, 15, 0, 0] },
+              { text: fullDateTime, style: 'dateLabel', width: 120, alignment: 'left', margin: [0, 15, 0, 0] },
               { 
                 stack: [
                   { text: 'مركز الأمان العالي الدولي', style: 'companyName', alignment: 'center' },
@@ -732,27 +816,8 @@ export default function InteractiveReport() {
             margin: [0, 0, 0, 8]
           },
           
-          // Findings Table with better styling
-          {
-            table: {
-              widths: ['22%', '53%', '25%'],
-              headerRows: 1,
-              body: [
-                [
-                  { text: 'القسم', style: 'tableHeader', fillColor: '#f1f5f9', alignment: 'center', margin: [4, 6, 4, 6] },
-                  { text: 'الملاحظة / العطل', style: 'tableHeader', fillColor: '#f1f5f9', alignment: 'center', margin: [4, 6, 4, 6] },
-                  { text: 'الحالة', style: 'tableHeader', fillColor: '#f1f5f9', alignment: 'center', margin: [4, 6, 4, 6] }
-                ],
-                ...findingsRows
-              ]
-            },
-            layout: {
-              hLineWidth: (i: number) => i <= 1 ? 1 : 0.5,
-              vLineWidth: () => 0.5,
-              hLineColor: (i: number) => i <= 1 ? '#94a3b8' : '#e2e8f0',
-              vLineColor: () => '#e2e8f0'
-            }
-          },
+          // Findings with images
+          ...findingsContent,
           
           // Customer Signature Section (if available)
           ...((inspection as any).customerSignature ? [
@@ -802,6 +867,9 @@ export default function InteractiveReport() {
           faultText: { fontSize: 9, color: '#1e293b' },
           statusText: { fontSize: 9, bold: true },
           successText: { fontSize: 12, bold: true, color: '#16a34a' },
+          categoryHeader: { fontSize: 11, bold: true, color: '#1e3a5f', decoration: 'underline' },
+          faultTitle: { fontSize: 10, bold: true, color: '#1e293b' },
+          faultDesc: { fontSize: 8, color: '#64748b' },
           footerContact: { fontSize: 8, color: '#475569' },
           centerBrand: { fontSize: 9, bold: true, color: '#1e3a5f' },
           disclaimer: { fontSize: 7, color: '#94a3b8', italics: true }
