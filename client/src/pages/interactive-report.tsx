@@ -549,12 +549,14 @@ export default function InteractiveReport() {
       const pdfMake = pdfMakeModule.default || pdfMakeModule;
       const { amiriFonts } = await import('@/lib/arabic-fonts');
       
-      (pdfMake as any).vfs = {
+      // Custom VFS with Amiri fonts
+      const customVfs = {
         'Amiri-Regular.ttf': amiriFonts['Amiri-Regular'],
         'Amiri-Bold.ttf': amiriFonts['Amiri-Bold']
       };
       
-      (pdfMake as any).fonts = {
+      // Font definitions
+      const customFonts = {
         Amiri: {
           normal: 'Amiri-Regular.ttf',
           bold: 'Amiri-Bold.ttf',
@@ -878,7 +880,7 @@ export default function InteractiveReport() {
       };
       
       // Use getBlob for reliable download across all browsers
-      const pdfDocGenerator = pdfMake.createPdf(docDefinition);
+      const pdfDocGenerator = pdfMake.createPdf(docDefinition, undefined, customFonts, customVfs);
       pdfDocGenerator.getBlob((blob: Blob) => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -907,12 +909,14 @@ export default function InteractiveReport() {
       const pdfMake = pdfMakeModule.default || pdfMakeModule;
       const { amiriFonts } = await import('@/lib/arabic-fonts');
       
-      (pdfMake as any).vfs = {
+      // Custom VFS with Amiri fonts
+      const customVfs = {
         'Amiri-Regular.ttf': amiriFonts['Amiri-Regular'],
         'Amiri-Bold.ttf': amiriFonts['Amiri-Bold']
       };
       
-      (pdfMake as any).fonts = {
+      // Font definitions
+      const customFonts = {
         Amiri: {
           normal: 'Amiri-Regular.ttf',
           bold: 'Amiri-Bold.ttf',
@@ -1161,7 +1165,7 @@ export default function InteractiveReport() {
       };
       
       // Use getBlob for reliable download
-      const pdfDocGenerator = pdfMake.createPdf(docDefinition);
+      const pdfDocGenerator = pdfMake.createPdf(docDefinition, undefined, customFonts, customVfs);
       pdfDocGenerator.getBlob((blob: Blob) => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
