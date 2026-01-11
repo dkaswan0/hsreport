@@ -227,18 +227,22 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
         }}>
           {/* Vehicle */}
           <div style={{ background: '#ffffff', borderRadius: '8px', padding: '10px 12px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-            <p style={{ color: '#64748b', fontSize: '9px', margin: '0 0 4px 0', ...arabicTextStyle }}>المركبة</p>
+            <p style={{ color: '#64748b', fontSize: '9px', margin: '0 0 4px 0' }}>
+              <span style={arabicTextStyle}>المركبة</span> / <span style={{ fontFamily: 'Arial, sans-serif' }}>Vehicle</span>
+            </p>
             <p style={{ color: '#0f172a', fontSize: '13px', fontWeight: 'bold', margin: 0, fontFamily: 'Arial, sans-serif' }}>
               {inspection.make} {inspection.model}
             </p>
-            <p style={{ color: '#475569', fontSize: '11px', margin: '2px 0 0 0', ...arabicTextStyle }}>
+            <p style={{ color: '#475569', fontSize: '11px', margin: '2px 0 0 0', fontFamily: 'Arial, sans-serif' }}>
               {inspection.year} | {inspection.color?.split(',')[0]?.trim() || '-'}
             </p>
           </div>
 
           {/* VIN */}
           <div style={{ background: '#ffffff', borderRadius: '8px', padding: '10px 12px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-            <p style={{ color: '#64748b', fontSize: '9px', margin: '0 0 4px 0', ...arabicTextStyle }}>رقم الشاصي (VIN)</p>
+            <p style={{ color: '#64748b', fontSize: '9px', margin: '0 0 4px 0' }}>
+              <span style={arabicTextStyle}>رقم الشاصي</span> / <span style={{ fontFamily: 'Arial, sans-serif' }}>VIN</span>
+            </p>
             <p style={{ 
               color: '#0f172a', 
               fontSize: '11px', 
@@ -249,7 +253,7 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
             }}>
               {inspection.vin}
             </p>
-            <p style={{ color: '#64748b', fontSize: '9px', margin: '4px 0 0 0' }}>
+            <p style={{ color: '#64748b', fontSize: '9px', margin: '4px 0 0 0', fontFamily: 'Arial, sans-serif' }}>
               Report: HS-{inspection.id}
             </p>
           </div>
@@ -288,7 +292,10 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
               <h2 style={{ color: '#166534', fontSize: '22px', fontWeight: 'bold', margin: '0 0 8px 0', ...arabicTextStyle }}>
                 المركبة بحالة ممتازة
               </h2>
-              <p style={{ color: '#15803d', fontSize: '14px', margin: 0, ...arabicTextStyle }}>
+              <p style={{ color: '#15803d', fontSize: '12px', margin: 0, fontFamily: 'Arial, sans-serif' }}>
+                Vehicle in Excellent Condition
+              </p>
+              <p style={{ color: '#15803d', fontSize: '12px', margin: '8px 0 0 0', ...arabicTextStyle }}>
                 لا توجد أعطال أو ملاحظات تستدعي المتابعة
               </p>
             </div>
@@ -304,9 +311,14 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
                 borderBottom: '3px solid #0f172a',
                 flexShrink: 0,
               }}>
-                <h2 style={{ color: '#0f172a', fontSize: '14px', fontWeight: 'bold', margin: 0, ...arabicTextStyle }}>
-                  البنود التي تحتاج متابعة
-                </h2>
+                <div>
+                  <h2 style={{ color: '#0f172a', fontSize: '14px', fontWeight: 'bold', margin: 0, ...arabicTextStyle }}>
+                    البنود التي تحتاج متابعة
+                  </h2>
+                  <p style={{ color: '#64748b', fontSize: '10px', margin: '2px 0 0 0', fontFamily: 'Arial, sans-serif' }}>
+                    Items Requiring Attention
+                  </p>
+                </div>
                 <span style={{ 
                   backgroundColor: '#dc2626',
                   color: '#ffffff',
@@ -393,9 +405,9 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
                           fontSize: '9px', 
                           margin: 0,
                           fontWeight: 'bold',
-                          ...arabicTextStyle,
                         }}>
-                          {isFail ? '● يحتاج إصلاح' : '◐ يحتاج متابعة'}
+                          <span style={arabicTextStyle}>{isFail ? '● يحتاج إصلاح' : '◐ يحتاج متابعة'}</span>
+                          <span style={{ fontFamily: 'Arial, sans-serif', marginRight: '4px' }}> / {isFail ? 'Needs Repair' : 'Needs Attention'}</span>
                         </p>
                       </div>
                     </div>
@@ -422,7 +434,9 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
               justifyContent: 'space-between',
             }}>
               <div>
-                <p style={{ color: '#64748b', fontSize: '9px', margin: '0 0 2px 0', ...arabicTextStyle }}>توقيع العميل</p>
+                <p style={{ color: '#64748b', fontSize: '9px', margin: '0 0 2px 0' }}>
+                  <span style={arabicTextStyle}>توقيع العميل</span> / <span style={{ fontFamily: 'Arial, sans-serif' }}>Customer Signature</span>
+                </p>
                 <p style={{ color: '#0f172a', fontSize: '12px', fontWeight: 'bold', margin: 0, ...arabicTextStyle }}>
                   {inspection.customerName || 'العميل'}
                 </p>
