@@ -153,13 +153,53 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
     const getCategoryName = (catId: string) => CATEGORIES[catId] || catId;
 
     const itemCount = issueItems.length;
-    const gridCols = itemCount > 10 ? 3 : 2;
-    const isCompact = itemCount > 8;
-    const fontSize = isCompact ? '10px' : '12px';
-    const categoryFontSize = isCompact ? '9px' : '10px';
-    const itemPadding = isCompact ? '8px 10px' : '10px 12px';
-    const imgSize = isCompact ? { w: '55px', h: '45px' } : { w: '70px', h: '55px' };
-    const gapSize = isCompact ? '8px' : '10px';
+    
+    // Adaptive layout based on issue count
+    let gridCols = 2;
+    let fontSize = '13px';
+    let categoryFontSize = '11px';
+    let itemPadding = '14px 16px';
+    let imgSize = { w: '90px', h: '70px' };
+    let gapSize = '12px';
+    let statusFontSize = '10px';
+    
+    if (itemCount <= 4) {
+      // Very few items - make them large and prominent
+      gridCols = 2;
+      fontSize = '14px';
+      categoryFontSize = '12px';
+      itemPadding = '16px 18px';
+      imgSize = { w: '100px', h: '80px' };
+      gapSize = '14px';
+      statusFontSize = '11px';
+    } else if (itemCount <= 8) {
+      // Medium count - balanced layout
+      gridCols = 2;
+      fontSize = '12px';
+      categoryFontSize = '10px';
+      itemPadding = '12px 14px';
+      imgSize = { w: '80px', h: '65px' };
+      gapSize = '10px';
+      statusFontSize = '10px';
+    } else if (itemCount <= 12) {
+      // More items - slightly compact
+      gridCols = 3;
+      fontSize = '11px';
+      categoryFontSize = '9px';
+      itemPadding = '10px 12px';
+      imgSize = { w: '65px', h: '52px' };
+      gapSize = '8px';
+      statusFontSize = '9px';
+    } else {
+      // Many items - compact layout
+      gridCols = 3;
+      fontSize = '10px';
+      categoryFontSize = '8px';
+      itemPadding = '8px 10px';
+      imgSize = { w: '55px', h: '45px' };
+      gapSize = '6px';
+      statusFontSize = '8px';
+    }
 
     return (
       <div 
@@ -402,7 +442,7 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
                         </p>
                         <p style={{ 
                           color: isFail ? '#b91c1c' : '#c2410c', 
-                          fontSize: '9px', 
+                          fontSize: statusFontSize, 
                           margin: 0,
                           fontWeight: 'bold',
                         }}>
