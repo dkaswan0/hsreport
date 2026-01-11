@@ -545,21 +545,28 @@ export default function InteractiveReport() {
     toast({ title: "يجهز", description: "يسوي تقرير PDF احترافي..." });
     
     try {
+      // Load pdfmake and fonts
       const pdfMakeModule = await import('pdfmake/build/pdfmake');
-      const pdfMake = pdfMakeModule.default || pdfMakeModule;
+      const pdfFontsModule = await import('pdfmake/build/vfs_fonts');
       const { amiriFonts } = await import('@/lib/arabic-fonts');
+      
+      // Get pdfMake instance
+      const pdfMake = pdfMakeModule.default || pdfMakeModule;
+      const pdfFonts = pdfFontsModule.default || pdfFontsModule;
       
       // Check if fonts are loaded
       if (!amiriFonts || !amiriFonts['Amiri-Regular'] || !amiriFonts['Amiri-Bold']) {
+        console.error('Arabic fonts not loaded');
         throw new Error('Arabic fonts not loaded');
       }
       
-      // Custom VFS with Amiri fonts - use Object spread to avoid mutation issues
-      const customVfs: Record<string, string> = {
-        ...{},
-        'Amiri-Regular.ttf': amiriFonts['Amiri-Regular'],
-        'Amiri-Bold.ttf': amiriFonts['Amiri-Bold']
-      };
+      // Setup VFS with both default and custom fonts
+      const vfs: Record<string, string> = { ...((pdfFonts as any).pdfMake?.vfs || {}) };
+      vfs['Amiri-Regular.ttf'] = amiriFonts['Amiri-Regular'];
+      vfs['Amiri-Bold.ttf'] = amiriFonts['Amiri-Bold'];
+      
+      // Custom VFS for createPdf
+      const customVfs = vfs;
       
       // Font definitions
       const customFonts = {
@@ -911,21 +918,28 @@ export default function InteractiveReport() {
     toast({ title: "يجهز", description: "يسوي التقرير المفصل..." });
     
     try {
+      // Load pdfmake and fonts
       const pdfMakeModule = await import('pdfmake/build/pdfmake');
-      const pdfMake = pdfMakeModule.default || pdfMakeModule;
+      const pdfFontsModule = await import('pdfmake/build/vfs_fonts');
       const { amiriFonts } = await import('@/lib/arabic-fonts');
+      
+      // Get pdfMake instance
+      const pdfMake = pdfMakeModule.default || pdfMakeModule;
+      const pdfFonts = pdfFontsModule.default || pdfFontsModule;
       
       // Check if fonts are loaded
       if (!amiriFonts || !amiriFonts['Amiri-Regular'] || !amiriFonts['Amiri-Bold']) {
+        console.error('Arabic fonts not loaded');
         throw new Error('Arabic fonts not loaded');
       }
       
-      // Custom VFS with Amiri fonts
-      const customVfs: Record<string, string> = {
-        ...{},
-        'Amiri-Regular.ttf': amiriFonts['Amiri-Regular'],
-        'Amiri-Bold.ttf': amiriFonts['Amiri-Bold']
-      };
+      // Setup VFS with both default and custom fonts
+      const vfs: Record<string, string> = { ...((pdfFonts as any).pdfMake?.vfs || {}) };
+      vfs['Amiri-Regular.ttf'] = amiriFonts['Amiri-Regular'];
+      vfs['Amiri-Bold.ttf'] = amiriFonts['Amiri-Bold'];
+      
+      // Custom VFS for createPdf
+      const customVfs = vfs;
       
       // Font definitions
       const customFonts = {
