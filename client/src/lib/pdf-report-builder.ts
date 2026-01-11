@@ -7,7 +7,11 @@ import ArabicReshaper from 'arabic-reshaper';
 function reshapeArabic(text: string): string {
   if (!text) return '';
   try {
-    return ArabicReshaper.convertArabic(text);
+    // Reshape Arabic characters
+    const reshaped = ArabicReshaper.convertArabic(text);
+    // Reverse word order for RTL display in jsPDF
+    const words = reshaped.split(/(\s+)/);
+    return words.reverse().join('');
   } catch {
     return text;
   }
