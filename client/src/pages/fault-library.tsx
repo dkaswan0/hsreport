@@ -108,6 +108,35 @@ const CATEGORY_LABELS: Record<string, { ar: string; en: string }> = {
   "تانك البترول": { ar: "تانكي البترول", en: "Fuel Tank" },
   "الداخلية": { ar: "الداخلية", en: "Interior" },
   "داخلية السيارة": { ar: "الداخلية", en: "Car Interior" },
+  // الكهرباء - فئات إضافية
+  "تيب الوايرات": { ar: "تيب الوايرات", en: "Wire Harness" },
+  "زر تحكم المرايا": { ar: "زر تحكم المرايا", en: "Mirror Controls" },
+  "النظام الكهربائي": { ar: "النظام الكهربائي", en: "Electrical System" },
+  "البطارية": { ar: "البطارية", en: "Battery" },
+  "الإضاءة الخارجية": { ar: "الإضاءة الخارجية", en: "Exterior Lighting" },
+  // الفئات المضافة
+  "المحرك": { ar: "المحرك", en: "Engine" },
+  "نظام التعليق": { ar: "نظام التعليق", en: "Suspension System" },
+  "نظام التوجيه": { ar: "نظام التوجيه", en: "Steering System" },
+  "نظام الفرامل": { ar: "نظام الفرامل", en: "Brake System" },
+  "نظام التكييف": { ar: "نظام التكييف", en: "AC System" },
+  "نظام الوقود والعادم": { ar: "نظام الوقود والعادم", en: "Fuel & Exhaust" },
+  "ناقل الحركة": { ar: "ناقل الحركة", en: "Transmission" },
+  "الهيكل والشاصي": { ar: "الهيكل والشاصي", en: "Chassis & Frame" },
+  "أنظمة السلامة": { ar: "أنظمة السلامة", en: "Safety Systems" },
+  "الإطارات والجنوط": { ar: "الإطارات والجنوط", en: "Tires & Rims" },
+  "الزجاج والمرايا": { ar: "الزجاج والمرايا", en: "Glass & Mirrors" },
+  "الملحقات والإكسسوارات": { ar: "الملحقات والإكسسوارات", en: "Accessories" },
+  "الوثائق والتوثيق": { ar: "الوثائق والتوثيق", en: "Documentation" },
+  "أعطال متنوعة": { ar: "أعطال متنوعة", en: "Misc" },
+  // السوائل
+  "زيت المحرك": { ar: "زيت المحرك", en: "Engine Oil" },
+  "زيت القير": { ar: "زيت القير", en: "Transmission Oil" },
+  "زيت الفرامل": { ar: "زيت الفرامل", en: "Brake Fluid" },
+  "زيت الباور": { ar: "زيت الباور", en: "Power Steering Fluid" },
+  "سائل التبريد": { ar: "سائل التبريد", en: "Coolant" },
+  "سائل المساحات": { ar: "سائل المساحات", en: "Washer Fluid" },
+  "سوائل إضافية": { ar: "سوائل إضافية", en: "Other Fluids" },
 };
 
 const getSeverityInfo = (severity: string | null) => {
