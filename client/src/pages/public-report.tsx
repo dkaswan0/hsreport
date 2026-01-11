@@ -307,8 +307,8 @@ export default function PublicReport() {
   const warningCount = items.filter(i => i.status === 'warning').length;
 
   const getOverallStatus = () => {
-    if (failCount > 0) return { label: 'يبي تصليح عاجل', color: 'text-red-400', bg: 'bg-red-500/20', icon: XCircle };
-    if (warningCount > 0) return { label: 'يبي متابعة', color: 'text-amber-400', bg: 'bg-amber-500/20', icon: AlertCircle };
+    if (failCount > 0) return { label: 'يحتاج متابعة', color: 'text-red-400', bg: 'bg-red-500/20', icon: XCircle };
+    if (warningCount > 0) return { label: 'يحتاج متابعة', color: 'text-amber-400', bg: 'bg-amber-500/20', icon: AlertCircle };
     return { label: 'ممتازة', color: 'text-emerald-400', bg: 'bg-emerald-500/20', icon: CheckCircle2 };
   };
 
@@ -412,24 +412,13 @@ export default function PublicReport() {
             odometerPhoto={inspection.odometerPhoto}
           />
           
-          {inspection.customerName && (
-            <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4">
-              <div className="bg-slate-50 rounded-lg md:rounded-xl p-2 md:p-3">
-                <div className="text-xs md:text-sm text-slate-500 font-arabic mb-1 flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  اسم العميل
-                </div>
-                <div className="font-bold text-base md:text-lg text-slate-800">{inspection.customerName}</div>
+          {/* Show inspection type instead of customer data for privacy */}
+          {inspection.inspectionType && (
+            <div className="mt-4 pt-4 border-t border-slate-100">
+              <div className="bg-primary/10 rounded-lg md:rounded-xl p-3 md:p-4 text-center">
+                <div className="text-xs md:text-sm text-slate-500 font-arabic mb-1">نوع الفحص</div>
+                <div className="font-bold text-lg md:text-xl text-primary">{inspection.inspectionType}</div>
               </div>
-              {inspection.customerPhone && (
-                <div className="bg-slate-50 rounded-lg md:rounded-xl p-2 md:p-3">
-                  <div className="text-xs md:text-sm text-slate-500 font-arabic mb-1 flex items-center gap-2">
-                    <Phone className="w-4 h-4" />
-                    رقم الهاتف
-                  </div>
-                  <div className="font-bold text-base md:text-lg text-slate-800 font-mono">{inspection.customerPhone}</div>
-                </div>
-              )}
             </div>
           )}
         </div>
@@ -517,13 +506,27 @@ export default function PublicReport() {
           </div>
         )}
 
+        {/* Customer Signature */}
+        {inspection.customerSignature && (
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+            <h2 className="text-lg font-bold mb-4 font-arabic text-slate-800 text-center">توقيع العميل</h2>
+            <div className="flex justify-center">
+              <img 
+                src={inspection.customerSignature} 
+                alt="توقيع العميل" 
+                className="max-h-24 border border-slate-200 rounded-lg bg-white p-2"
+              />
+            </div>
+          </div>
+        )}
+
         <div className="bg-slate-900 rounded-2xl p-8 text-center text-white">
           <img src={logoPath} alt="High Safety" className="h-14 mx-auto mb-4" />
           <h3 className="text-lg font-bold font-arabic mb-2">
             هاي سيفتي انترناشيونال
           </h3>
           <p className="text-white/60 text-sm font-arabic">
-            مركز فحص السيارات المعتمد - الشارقة، الإمارات
+            مركز فحص السيارات - الشارقة، الإمارات
           </p>
           <div className="mt-4 pt-4 border-t border-white/10 flex flex-wrap justify-center gap-4 text-sm">
             <div className="flex items-center gap-2 text-white/70">
