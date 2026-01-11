@@ -1281,7 +1281,7 @@ export default function InteractiveReport() {
               <Printer className="w-4 h-4 ml-1" />
               <span className="hidden md:inline">طباعة</span>
             </Button>
-            <Button variant="default" size="sm" onClick={handleTextPDF} className="font-arabic bg-primary hover:bg-primary/90">
+            <Button variant="default" size="sm" onClick={handleDownloadPDF} className="font-arabic bg-primary hover:bg-primary/90">
               <Download className="w-4 h-4 ml-1" />
               تحميل PDF
             </Button>
