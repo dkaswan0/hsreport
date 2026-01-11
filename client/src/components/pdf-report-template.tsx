@@ -155,7 +155,7 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
               اللون: {inspection.color?.split(',')[0]?.trim() || 'غير محدد'}
             </p>
             <p style={{ color: '#475569', fontSize: '12px', margin: '4px 0 0 0' }}>
-              الممشى: {inspection.mileage?.toLocaleString() || '—'} كم
+              الممشى: {(inspection.odometer || inspection.mileage)?.toLocaleString() || '—'} كم
             </p>
           </div>
 
