@@ -33,20 +33,30 @@ interface PdfReportTemplateProps {
   inspection: Inspection;
 }
 
-const INSPECTION_CATEGORIES = [
-  { id: 'engine', name: 'المحرك', icon: '⚙️' },
-  { id: 'transmission', name: 'ناقل الحركة', icon: '🔧' },
-  { id: 'chassis', name: 'الشاسيه', icon: '🚗' },
-  { id: 'body', name: 'الهيكل', icon: '🛡️' },
-  { id: 'tires', name: 'الإطارات', icon: '⭕' },
-  { id: 'brakes', name: 'الفرامل', icon: '🛑' },
-  { id: 'electrical', name: 'الكهرباء', icon: '⚡' },
-  { id: 'wheels', name: 'الجنوط', icon: '🔘' },
-  { id: 'suspension', name: 'نظام التعليق', icon: '🔩' },
-  { id: 'ac', name: 'التكييف', icon: '❄️' },
-  { id: 'exhaust', name: 'الإكزوز', icon: '💨' },
-  { id: 'safety', name: 'السلامة', icon: '🛡️' },
-];
+const CATEGORIES: Record<string, string> = {
+  engine: 'المحرك',
+  transmission: 'ناقل الحركة',
+  chassis: 'الشاسيه',
+  body: 'الهيكل',
+  tires: 'الإطارات',
+  brakes: 'الفرامل',
+  electrical: 'الكهرباء',
+  wheels: 'الجنوط',
+  suspension: 'التعليق',
+  ac: 'التكييف',
+  exhaust: 'العادم',
+  safety: 'السلامة',
+  front_bumper: 'الصدام الأمامي',
+  rear_bumper: 'الصدام الخلفي',
+  hood: 'الكبوت',
+  trunk: 'الشنطة',
+  doors: 'الأبواب',
+  fenders: 'الرفارف',
+  roof: 'السقف',
+  lights: 'الإضاءة',
+  interior: 'الداخلية',
+  glass: 'الزجاج',
+};
 
 const getInspectionTypeLabel = (type?: string | null) => {
   switch (type) {
@@ -63,29 +73,18 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
     const items = inspection.items || [];
     const failItems = items.filter(i => i.status === 'fail');
     const warningItems = items.filter(i => i.status === 'warning');
+    const issueItems = [...failItems, ...warningItems];
     const passCount = items.filter(i => i.status === 'pass').length;
-    const totalCategories = INSPECTION_CATEGORIES.length;
     
     const inspectionDate = inspection.createdAt ? new Date(inspection.createdAt) : new Date();
-    const reportDate = inspectionDate.toLocaleDateString('ar-AE', { year: 'numeric', month: 'long', day: 'numeric' });
-    const reportTime = inspectionDate.toLocaleTimeString('ar-AE', { hour: '2-digit', minute: '2-digit', hour12: false });
+    const reportDate = inspectionDate.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
+    const reportTime = inspectionDate.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', hour12: false });
     const fullDateTime = `${reportDate} - الساعة ${reportTime}`;
 
-    const getCategoryName = (catId: string) => {
-      return INSPECTION_CATEGORIES.find(c => c.id === catId)?.name || catId;
-    };
+    const getCategoryName = (catId: string) => CATEGORIES[catId] || catId;
 
-    const groupedFails = failItems.reduce((acc, item) => {
-      if (!acc[item.category]) acc[item.category] = [];
-      acc[item.category].push(item);
-      return acc;
-    }, {} as Record<string, InspectionItem[]>);
-
-    const groupedWarnings = warningItems.reduce((acc, item) => {
-      if (!acc[item.category]) acc[item.category] = [];
-      acc[item.category].push(item);
-      return acc;
-    }, {} as Record<string, InspectionItem[]>);
+    const itemsWithImages = issueItems.filter(i => i.imageUrl);
+    const itemsWithoutImages = issueItems.filter(i => !i.imageUrl);
 
     return (
       <div 
@@ -93,29 +92,33 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
         dir="rtl"
         style={{
           width: '794px',
-          minHeight: '1123px',
+          height: '1123px',
           backgroundColor: '#ffffff',
-          fontFamily: 'Arial, sans-serif',
+          fontFamily: 'Arial, Tahoma, sans-serif',
           padding: '0',
           margin: '0',
           boxSizing: 'border-box',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
         }}
       >
-        {/* Header Band */}
+        {/* Header - Compact */}
         <div style={{
           background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)',
-          padding: '24px 32px',
+          padding: '12px 20px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
+          flexShrink: 0,
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <img src={logoPath} alt="Logo" style={{ width: '56px', height: '56px', borderRadius: '12px' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <img src={logoPath} alt="Logo" style={{ width: '40px', height: '40px', borderRadius: '8px' }} />
             <div>
-              <h1 style={{ color: '#ffffff', fontSize: '22px', fontWeight: 'bold', margin: 0 }}>
+              <h1 style={{ color: '#ffffff', fontSize: '16px', fontWeight: 'bold', margin: 0 }}>
                 مركز الأمان العالي الدولي
               </h1>
-              <p style={{ color: '#94a3b8', fontSize: '12px', margin: '4px 0 0 0' }}>
+              <p style={{ color: '#94a3b8', fontSize: '9px', margin: '2px 0 0 0' }}>
                 HIGH SAFETY INTERNATIONAL
               </p>
             </div>
@@ -124,281 +127,265 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
             <div style={{
               backgroundColor: '#3b82f6',
               color: '#ffffff',
-              padding: '8px 16px',
-              borderRadius: '20px',
-              fontSize: '13px',
+              padding: '4px 12px',
+              borderRadius: '12px',
+              fontSize: '10px',
               fontWeight: 'bold',
-              marginBottom: '8px',
+              marginBottom: '4px',
             }}>
               {getInspectionTypeLabel(inspection.inspectionType)}
             </div>
-            <p style={{ color: '#cbd5e1', fontSize: '11px', margin: 0 }}>{fullDateTime}</p>
+            <p style={{ color: '#cbd5e1', fontSize: '9px', margin: 0 }}>{fullDateTime}</p>
           </div>
         </div>
 
-        {/* Vehicle Info Strip */}
+        {/* Vehicle Info - Compact Grid */}
         <div style={{
-          backgroundColor: '#f8f5f0',
-          padding: '20px 32px',
+          backgroundColor: '#f8fafc',
+          padding: '10px 20px',
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr 1fr',
-          gap: '24px',
-          borderBottom: '2px solid #e2e8f0',
+          gridTemplateColumns: '1fr 1fr 1fr 1fr',
+          gap: '12px',
+          borderBottom: '1px solid #e2e8f0',
+          flexShrink: 0,
         }}>
-          {/* Vehicle Identity */}
-          <div style={{ background: '#ffffff', borderRadius: '12px', padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <h3 style={{ color: '#64748b', fontSize: '11px', margin: '0 0 8px 0', fontWeight: 'normal' }}>بيانات المركبة</h3>
-            <p style={{ color: '#0f172a', fontSize: '16px', fontWeight: 'bold', margin: '0 0 4px 0' }}>
+          <div style={{ background: '#ffffff', borderRadius: '8px', padding: '8px 10px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+            <p style={{ color: '#64748b', fontSize: '8px', margin: '0 0 2px 0' }}>المركبة</p>
+            <p style={{ color: '#0f172a', fontSize: '11px', fontWeight: 'bold', margin: 0 }}>
               {inspection.make} {inspection.model} {inspection.year}
             </p>
-            <p style={{ color: '#475569', fontSize: '12px', margin: 0 }}>
-              اللون: {inspection.color?.split(',')[0]?.trim() || 'غير محدد'}
-            </p>
-            <p style={{ color: '#475569', fontSize: '12px', margin: '4px 0 0 0' }}>
-              الممشى: {(inspection.odometer || inspection.mileage)?.toLocaleString() || '—'} كم
-            </p>
           </div>
-
-          {/* VIN */}
-          <div style={{ background: '#ffffff', borderRadius: '12px', padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <h3 style={{ color: '#64748b', fontSize: '11px', margin: '0 0 8px 0', fontWeight: 'normal' }}>رقم الشاصي (VIN)</h3>
-            <p style={{ 
-              color: '#0f172a', 
-              fontSize: '13px', 
-              fontWeight: 'bold', 
-              margin: 0,
-              fontFamily: 'monospace',
-              letterSpacing: '1px',
-              wordBreak: 'break-all',
-            }}>
+          <div style={{ background: '#ffffff', borderRadius: '8px', padding: '8px 10px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+            <p style={{ color: '#64748b', fontSize: '8px', margin: '0 0 2px 0' }}>رقم الشاصي</p>
+            <p style={{ color: '#0f172a', fontSize: '9px', fontWeight: 'bold', margin: 0, fontFamily: 'monospace' }}>
               {inspection.vin}
             </p>
-            <p style={{ color: '#64748b', fontSize: '11px', margin: '8px 0 0 0' }}>
-              رقم التقرير: HS-{inspection.id}
+          </div>
+          <div style={{ background: '#ffffff', borderRadius: '8px', padding: '8px 10px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+            <p style={{ color: '#64748b', fontSize: '8px', margin: '0 0 2px 0' }}>اللون / الممشى</p>
+            <p style={{ color: '#0f172a', fontSize: '10px', fontWeight: 'bold', margin: 0 }}>
+              {inspection.color?.split(',')[0]?.trim() || '-'} / {(inspection.odometer || inspection.mileage)?.toLocaleString() || '-'} كم
             </p>
           </div>
-
-          {/* Quick Stats */}
-          <div style={{ background: '#ffffff', borderRadius: '12px', padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <h3 style={{ color: '#64748b', fontSize: '11px', margin: '0 0 12px 0', fontWeight: 'normal' }}>ملخص الفحص</h3>
-            <div style={{ display: 'flex', justifyContent: 'space-around', textAlign: 'center' }}>
-              <div>
-                <p style={{ color: '#16a34a', fontSize: '24px', fontWeight: 'bold', margin: 0 }}>{passCount}</p>
-                <p style={{ color: '#64748b', fontSize: '10px', margin: '2px 0 0 0' }}>سليم</p>
-              </div>
-              <div>
-                <p style={{ color: '#dc2626', fontSize: '24px', fontWeight: 'bold', margin: 0 }}>{failItems.length}</p>
-                <p style={{ color: '#64748b', fontSize: '10px', margin: '2px 0 0 0' }}>عطل</p>
-              </div>
-              <div>
-                <p style={{ color: '#f97316', fontSize: '24px', fontWeight: 'bold', margin: 0 }}>{warningItems.length}</p>
-                <p style={{ color: '#64748b', fontSize: '10px', margin: '2px 0 0 0' }}>ملاحظة</p>
-              </div>
+          <div style={{ background: '#ffffff', borderRadius: '8px', padding: '8px 10px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
+            <div style={{ textAlign: 'center' }}>
+              <p style={{ color: '#16a34a', fontSize: '16px', fontWeight: 'bold', margin: 0 }}>{passCount}</p>
+              <p style={{ color: '#64748b', fontSize: '7px', margin: 0 }}>سليم</p>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <p style={{ color: '#dc2626', fontSize: '16px', fontWeight: 'bold', margin: 0 }}>{failItems.length}</p>
+              <p style={{ color: '#64748b', fontSize: '7px', margin: 0 }}>عطل</p>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <p style={{ color: '#f97316', fontSize: '16px', fontWeight: 'bold', margin: 0 }}>{warningItems.length}</p>
+              <p style={{ color: '#64748b', fontSize: '7px', margin: 0 }}>ملاحظة</p>
             </div>
           </div>
         </div>
 
-        {/* Main Content - Faults */}
-        <div style={{ padding: '24px 32px' }}>
-          {failItems.length === 0 && warningItems.length === 0 ? (
+        {/* Main Content */}
+        <div style={{ flex: 1, padding: '12px 20px', overflow: 'hidden' }}>
+          {issueItems.length === 0 ? (
             <div style={{
               backgroundColor: '#dcfce7',
-              borderRadius: '16px',
-              padding: '40px',
+              borderRadius: '12px',
+              padding: '30px',
               textAlign: 'center',
+              marginTop: '20px',
             }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px' }}>✓</div>
-              <h2 style={{ color: '#166534', fontSize: '20px', fontWeight: 'bold', margin: '0 0 8px 0' }}>
-                السيارة بحالة ممتازة
+              <div style={{ fontSize: '36px', marginBottom: '8px' }}>✓</div>
+              <h2 style={{ color: '#166534', fontSize: '18px', fontWeight: 'bold', margin: '0 0 6px 0' }}>
+                المركبة بحالة ممتازة
               </h2>
-              <p style={{ color: '#15803d', fontSize: '14px', margin: 0 }}>
+              <p style={{ color: '#15803d', fontSize: '12px', margin: 0 }}>
                 لا توجد أعطال أو ملاحظات تستدعي المتابعة
               </p>
             </div>
           ) : (
             <>
-              <h2 style={{ 
-                color: '#0f172a', 
-                fontSize: '16px', 
-                fontWeight: 'bold', 
-                margin: '0 0 16px 0',
-                paddingBottom: '8px',
+              {/* Section Title */}
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px',
+                marginBottom: '10px',
+                paddingBottom: '6px',
                 borderBottom: '2px solid #0f172a',
               }}>
-                البنود التي تحتاج متابعة
-              </h2>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                {/* Fails Column */}
-                <div>
-                  {failItems.length > 0 && (
-                    <>
-                      <div style={{
-                        backgroundColor: '#fef2f2',
-                        borderRadius: '8px',
-                        padding: '10px 14px',
-                        marginBottom: '12px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                      }}>
-                        <span style={{ color: '#dc2626', fontSize: '16px' }}>●</span>
-                        <span style={{ color: '#991b1b', fontSize: '13px', fontWeight: 'bold' }}>
-                          أعطال تحتاج إصلاح ({failItems.length})
-                        </span>
-                      </div>
-                      {Object.entries(groupedFails).map(([catId, catItems]) => (
-                        <div key={catId} style={{ marginBottom: '12px' }}>
-                          <p style={{ color: '#475569', fontSize: '11px', fontWeight: 'bold', margin: '0 0 6px 0' }}>
-                            {getCategoryName(catId)}
-                          </p>
-                          {catItems.map((item) => (
-                            <div key={item.id} style={{
-                              backgroundColor: '#ffffff',
-                              border: '1px solid #fecaca',
-                              borderRadius: '8px',
-                              padding: '10px 12px',
-                              marginBottom: '6px',
-                              borderRight: '4px solid #dc2626',
-                            }}>
-                              <p style={{ color: '#1e293b', fontSize: '12px', fontWeight: 'bold', margin: 0 }}>
-                                {item.faultName}
-                              </p>
-                              {item.notes && (
-                                <p style={{ color: '#64748b', fontSize: '10px', margin: '4px 0 0 0' }}>
-                                  {item.notes}
-                                </p>
-                              )}
-                              <p style={{ color: '#dc2626', fontSize: '10px', margin: '4px 0 0 0', fontWeight: 'bold' }}>
-                                يحتاج متابعة ●
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      ))}
-                    </>
-                  )}
-                </div>
-
-                {/* Warnings Column */}
-                <div>
-                  {warningItems.length > 0 && (
-                    <>
-                      <div style={{
-                        backgroundColor: '#fff7ed',
-                        borderRadius: '8px',
-                        padding: '10px 14px',
-                        marginBottom: '12px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                      }}>
-                        <span style={{ color: '#f97316', fontSize: '16px' }}>◐</span>
-                        <span style={{ color: '#9a3412', fontSize: '13px', fontWeight: 'bold' }}>
-                          ملاحظات تحتاج انتباه ({warningItems.length})
-                        </span>
-                      </div>
-                      {Object.entries(groupedWarnings).map(([catId, catItems]) => (
-                        <div key={catId} style={{ marginBottom: '12px' }}>
-                          <p style={{ color: '#475569', fontSize: '11px', fontWeight: 'bold', margin: '0 0 6px 0' }}>
-                            {getCategoryName(catId)}
-                          </p>
-                          {catItems.map((item) => (
-                            <div key={item.id} style={{
-                              backgroundColor: '#ffffff',
-                              border: '1px solid #fed7aa',
-                              borderRadius: '8px',
-                              padding: '10px 12px',
-                              marginBottom: '6px',
-                              borderRight: '4px solid #f97316',
-                            }}>
-                              <p style={{ color: '#1e293b', fontSize: '12px', fontWeight: 'bold', margin: 0 }}>
-                                {item.faultName}
-                              </p>
-                              {item.notes && (
-                                <p style={{ color: '#64748b', fontSize: '10px', margin: '4px 0 0 0' }}>
-                                  {item.notes}
-                                </p>
-                              )}
-                              <p style={{ color: '#f97316', fontSize: '10px', margin: '4px 0 0 0', fontWeight: 'bold' }}>
-                                يحتاج متابعة ◐
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      ))}
-                    </>
-                  )}
-                </div>
+                <h2 style={{ color: '#0f172a', fontSize: '13px', fontWeight: 'bold', margin: 0 }}>
+                  البنود التي تحتاج متابعة
+                </h2>
+                <span style={{ color: '#64748b', fontSize: '10px' }}>({issueItems.length} بند)</span>
               </div>
+
+              {/* Issues Grid - Two Columns */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                {issueItems.slice(0, 16).map((item, idx) => {
+                  const isFail = item.status === 'fail';
+                  return (
+                    <div 
+                      key={item.id || idx} 
+                      style={{
+                        backgroundColor: isFail ? '#fef2f2' : '#fffbeb',
+                        border: `1px solid ${isFail ? '#fecaca' : '#fde68a'}`,
+                        borderRight: `3px solid ${isFail ? '#dc2626' : '#f97316'}`,
+                        borderRadius: '6px',
+                        padding: '6px 8px',
+                        display: 'flex',
+                        gap: '6px',
+                      }}
+                    >
+                      {item.imageUrl && (
+                        <img 
+                          src={item.imageUrl} 
+                          alt="" 
+                          style={{ 
+                            width: '45px', 
+                            height: '35px', 
+                            objectFit: 'cover', 
+                            borderRadius: '4px',
+                            flexShrink: 0,
+                          }} 
+                        />
+                      )}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
+                          <span style={{ 
+                            color: isFail ? '#dc2626' : '#f97316', 
+                            fontSize: '10px',
+                            fontWeight: 'bold',
+                          }}>
+                            {isFail ? '●' : '◐'}
+                          </span>
+                          <span style={{ 
+                            color: '#64748b', 
+                            fontSize: '8px',
+                            backgroundColor: '#f1f5f9',
+                            padding: '1px 4px',
+                            borderRadius: '4px',
+                          }}>
+                            {getCategoryName(item.category)}
+                          </span>
+                        </div>
+                        <p style={{ 
+                          color: '#1e293b', 
+                          fontSize: '9px', 
+                          fontWeight: 'bold', 
+                          margin: 0,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}>
+                          {item.faultName.split(' - ')[0]}
+                        </p>
+                        {item.notes && (
+                          <p style={{ 
+                            color: '#64748b', 
+                            fontSize: '7px', 
+                            margin: '2px 0 0 0',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}>
+                            {item.notes}
+                          </p>
+                        )}
+                        <p style={{ 
+                          color: isFail ? '#dc2626' : '#f97316', 
+                          fontSize: '7px', 
+                          margin: '2px 0 0 0',
+                          fontWeight: 'bold',
+                        }}>
+                          يحتاج متابعة
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Show remaining count if more than 16 items */}
+              {issueItems.length > 16 && (
+                <p style={{ 
+                  color: '#64748b', 
+                  fontSize: '9px', 
+                  textAlign: 'center', 
+                  margin: '8px 0 0 0',
+                  fontStyle: 'italic',
+                }}>
+                  + {issueItems.length - 16} بند إضافي
+                </p>
+              )}
             </>
           )}
         </div>
 
-        {/* Signature Section */}
-        {inspection.signature && (
-          <div style={{ padding: '0 32px 24px 32px' }}>
+        {/* Signature Section - Compact */}
+        {(inspection.signature || inspection.customerSignature) && (
+          <div style={{ 
+            padding: '8px 20px', 
+            borderTop: '1px solid #e2e8f0',
+            flexShrink: 0,
+          }}>
             <div style={{
               backgroundColor: '#f8fafc',
-              borderRadius: '12px',
-              padding: '16px',
+              borderRadius: '8px',
+              padding: '8px 12px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
             }}>
               <div>
-                <p style={{ color: '#64748b', fontSize: '11px', margin: '0 0 4px 0' }}>توقيع العميل الإلكتروني</p>
-                <p style={{ color: '#0f172a', fontSize: '13px', fontWeight: 'bold', margin: 0 }}>
+                <p style={{ color: '#64748b', fontSize: '8px', margin: '0 0 2px 0' }}>توقيع العميل</p>
+                <p style={{ color: '#0f172a', fontSize: '10px', fontWeight: 'bold', margin: 0 }}>
                   {inspection.customerName || 'العميل'}
                 </p>
               </div>
               <img 
-                src={inspection.signature} 
+                src={inspection.signature || inspection.customerSignature || ''} 
                 alt="Signature" 
                 style={{ 
-                  height: '50px', 
-                  maxWidth: '150px',
+                  height: '35px', 
+                  maxWidth: '100px',
                   objectFit: 'contain',
-                  filter: 'contrast(1.2)',
                 }} 
               />
             </div>
           </div>
         )}
 
-        {/* Footer */}
+        {/* Footer - Compact */}
         <div style={{
           backgroundColor: '#0f172a',
-          padding: '20px 32px',
-          marginTop: 'auto',
+          padding: '10px 20px',
+          flexShrink: 0,
         }}>
           <div style={{ 
             display: 'flex', 
             justifyContent: 'space-between', 
             alignItems: 'center',
-            marginBottom: '12px',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <img src={logoPath} alt="Logo" style={{ width: '32px', height: '32px', borderRadius: '8px' }} />
-              <span style={{ color: '#ffffff', fontSize: '13px', fontWeight: 'bold' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <img src={logoPath} alt="Logo" style={{ width: '24px', height: '24px', borderRadius: '4px' }} />
+              <span style={{ color: '#ffffff', fontSize: '10px', fontWeight: 'bold' }}>
                 مركز الأمان العالي الدولي
               </span>
             </div>
-            <div style={{ display: 'flex', gap: '24px' }}>
-              <span style={{ color: '#94a3b8', fontSize: '11px' }}>📱 0542206000</span>
-              <span style={{ color: '#94a3b8', fontSize: '11px' }}>📧 highsafety2021@gmail.com</span>
-              <span style={{ color: '#94a3b8', fontSize: '11px' }}>📍 سيتي بلازا الدراري - الشارقة</span>
+            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+              <span style={{ color: '#94a3b8', fontSize: '8px' }}>0542206000</span>
+              <span style={{ color: '#94a3b8', fontSize: '8px' }}>highsafety2021@gmail.com</span>
+              <span style={{ color: '#94a3b8', fontSize: '8px' }}>سيتي بلازا - الشارقة</span>
             </div>
           </div>
           <p style={{ 
             color: '#64748b', 
-            fontSize: '9px', 
+            fontSize: '7px', 
             textAlign: 'center', 
-            margin: 0,
+            margin: '6px 0 0 0',
             borderTop: '1px solid #334155',
-            paddingTop: '12px',
+            paddingTop: '6px',
           }}>
-            هذا التقرير الإلكتروني صادر عن مركز الأمان العالي الدولي ويعكس حالة المركبة وقت الفحص فقط. لا يُعتبر ضماناً لحالة المركبة المستقبلية.
+            تقرير رقم: HS-{inspection.id} | هذا التقرير يعكس حالة المركبة وقت الفحص فقط
           </p>
         </div>
       </div>

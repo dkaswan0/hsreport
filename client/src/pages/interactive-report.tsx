@@ -540,15 +540,40 @@ export default function InteractiveReport() {
     }
   };
 
-  // New professional PDF with native Arabic text
+  // New professional single-page PDF with html2canvas
   const handleNewPdfDownload = async () => {
-    if (!inspection) return;
+    if (!inspection || !pdfTemplateRef.current) return;
     
-    toast({ title: "يجهز", description: "يسوي تقرير PDF احترافي..." });
+    toast({ title: "يجهز", description: "يسوي تقرير PDF صفحة واحدة..." });
     
     try {
-      const { generateInspectionPdf } = await import('@/lib/pdf-report-builder');
-      await generateInspectionPdf(inspection as any, logoPath);
+      const element = pdfTemplateRef.current;
+      
+      // Capture at high quality
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        width: 794,
+        height: 1123,
+        windowWidth: 794,
+      });
+
+      const imgData = canvas.toDataURL('image/png', 1.0);
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      // Single page - fit to A4
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      
+      pdf.save(`تقرير_فحص_${inspection.vin}_HS${inspection.id}.pdf`);
       toast({ title: "تم التحميل", description: "تم تحميل ملف PDF على جهازك" });
     } catch (error) {
       console.error('PDF error:', error);
