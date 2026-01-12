@@ -104,15 +104,15 @@ export default function HandoffPage() {
 
   const getStatusInfo = () => {
     if (failCount > 0) return { 
-      label: 'يوجد ملاحظات', 
-      labelEn: 'Has Issues',
+      label: 'يحتاج مراجعة', 
+      labelEn: 'Needs Review',
       color: 'text-red-400', 
       bg: 'bg-red-500/20', 
       icon: XCircle 
     };
     if (warningCount > 0) return { 
-      label: 'جيد مع ملاحظات', 
-      labelEn: 'Good with Notes',
+      label: 'تحذيرات', 
+      labelEn: 'Warnings',
       color: 'text-amber-400', 
       bg: 'bg-amber-500/20', 
       icon: AlertCircle 

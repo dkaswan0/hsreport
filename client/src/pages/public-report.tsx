@@ -468,8 +468,8 @@ export default function PublicReport() {
   const warningCount = items.filter(i => i.status === 'warning').length;
 
   const getOverallStatus = () => {
-    if (failCount > 0) return { label: 'يوجد ملاحظات', color: 'text-red-400', bg: 'bg-red-500/20', icon: XCircle };
-    if (warningCount > 0) return { label: 'يوجد ملاحظات', color: 'text-amber-400', bg: 'bg-amber-500/20', icon: AlertCircle };
+    if (failCount > 0) return { label: 'يحتاج مراجعة', color: 'text-red-400', bg: 'bg-red-500/20', icon: XCircle };
+    if (warningCount > 0) return { label: 'تحذيرات', color: 'text-amber-400', bg: 'bg-amber-500/20', icon: AlertCircle };
     return { label: 'ممتازة', color: 'text-emerald-400', bg: 'bg-emerald-500/20', icon: CheckCircle2 };
   };
 

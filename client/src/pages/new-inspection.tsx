@@ -600,12 +600,12 @@ export default function NewInspection() {
               
               {/* User Notes - Separate field */}
               <div className="col-span-full">
-                <label className="block text-sm font-medium text-slate-700 mb-2">ملاحظات</label>
+                <label className="block text-sm font-medium text-slate-700 mb-2">معلومات إضافية</label>
                 <textarea
                   value={userNotes}
                   onChange={(e) => setUserNotes(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all min-h-[100px]"
-                  placeholder="أي ملاحظات عن حالة السيارة..."
+                  placeholder="معلومات إضافية عن السيارة..."
                 />
               </div>
             </div>
