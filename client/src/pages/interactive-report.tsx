@@ -1221,10 +1221,23 @@ export default function InteractiveReport() {
           { text: 'نتائج الفحص التفصيلية', style: 'sectionHeader', margin: [0, 0, 0, 10] },
           ...findingsContent,
           
+          // Terms and Conditions
+          { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, lineColor: '#e2e8f0' }], margin: [0, 20, 0, 10] },
+          { text: 'الأحكام والشروط | Terms & Conditions', style: 'termsHeader', alignment: 'center', margin: [0, 0, 0, 8] },
+          {
+            ol: [
+              { text: [{ text: 'المركز غير مسئول عن أي أعطال تحدث أثناء الفحص أو بعده.\n', style: 'termsAr' }, { text: 'The center is not responsible for any malfunctions occurring during or after inspection.', style: 'termsEn' }] },
+              { text: [{ text: 'المركز مسئول عن نتيجة الفحص وقت الفحص فقط وغير مسئول بعد خروج المركبة من الفحص.\n', style: 'termsAr' }, { text: 'The center is only responsible for inspection results at the time of inspection.', style: 'termsEn' }] },
+              { text: [{ text: 'هذا الفحص غير معتمد لدى إدارة التراخيص.\n', style: 'termsAr' }, { text: 'This inspection is not approved by the Licensing Authority.', style: 'termsEn' }] },
+              { text: [{ text: 'المركز غير مسئول عن أي أغراض شخصية داخل السيارة أثناء الفحص.\n', style: 'termsAr' }, { text: 'The center is not responsible for any personal belongings inside the vehicle.', style: 'termsEn' }] },
+              { text: [{ text: 'يعتبر هذا التقرير لحالة المركبة حسب قراءة الأجهزة في وقت الفحص.\n', style: 'termsAr' }, { text: 'This report reflects the vehicle condition based on device readings at inspection time.', style: 'termsEn' }] }
+            ],
+            margin: [20, 0, 20, 15]
+          },
+          
           // Footer
-          { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, lineColor: '#94a3b8' }], margin: [0, 20, 0, 10] },
-          { text: 'هذا التقرير يعكس حالة المركبة وقت الفحص وقد تتغير مع الاستخدام', style: 'footer', alignment: 'center' },
-          { text: 'للاستفسارات: واتساب 0542206000 | highsafety2021@gmail.com', style: 'footer', alignment: 'center' }
+          { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, lineColor: '#94a3b8' }], margin: [0, 10, 0, 10] },
+          { text: 'للاستفسارات: واتساب 0542206000 | highsafety2021@gmail.com | سيتي بلازا الدراري - الشارقة', style: 'footer', alignment: 'center' }
         ],
         styles: {
           header: { fontSize: 22, bold: true, color: '#1e293b' },
@@ -1245,7 +1258,10 @@ export default function InteractiveReport() {
           statusBadge: { fontSize: 9, bold: true },
           description: { fontSize: 10, color: '#475569', margin: [0, 3, 0, 0] },
           success: { fontSize: 14, bold: true, color: '#16a34a' },
-          footer: { fontSize: 8, color: '#94a3b8' }
+          footer: { fontSize: 8, color: '#94a3b8' },
+          termsHeader: { fontSize: 11, bold: true, color: '#1e293b' },
+          termsAr: { fontSize: 9, color: '#374151' },
+          termsEn: { fontSize: 8, color: '#6b7280', italics: true }
         }
       };
       
@@ -1370,6 +1386,50 @@ export default function InteractiveReport() {
         {/* Inspection Results */}
         <InspectionResults inspection={inspection} highlightedCategory={highlightedCategory} />
 
+        {/* Terms and Conditions */}
+        <div className="bg-slate-50 rounded-3xl p-6 border border-slate-200">
+          <h3 className="text-lg font-bold text-slate-800 mb-4 text-center font-arabic">
+            الأحكام والشروط | Terms & Conditions
+          </h3>
+          <div className="space-y-3 text-sm">
+            <div className="flex gap-3 items-start">
+              <span className="text-primary font-bold min-w-[24px]">1.</span>
+              <div>
+                <p className="text-slate-700 font-arabic">المركز غير مسئول عن أي أعطال تحدث أثناء الفحص أو بعده.</p>
+                <p className="text-slate-500 text-xs">The center is not responsible for any malfunctions occurring during or after inspection.</p>
+              </div>
+            </div>
+            <div className="flex gap-3 items-start">
+              <span className="text-primary font-bold min-w-[24px]">2.</span>
+              <div>
+                <p className="text-slate-700 font-arabic">المركز مسئول عن نتيجة الفحص وقت الفحص فقط وغير مسئول بعد خروج المركبة من الفحص.</p>
+                <p className="text-slate-500 text-xs">The center is only responsible for inspection results at the time of inspection and not after the vehicle leaves.</p>
+              </div>
+            </div>
+            <div className="flex gap-3 items-start">
+              <span className="text-primary font-bold min-w-[24px]">3.</span>
+              <div>
+                <p className="text-slate-700 font-arabic">هذا الفحص غير معتمد لدى إدارة التراخيص.</p>
+                <p className="text-slate-500 text-xs">This inspection is not approved by the Licensing Authority.</p>
+              </div>
+            </div>
+            <div className="flex gap-3 items-start">
+              <span className="text-primary font-bold min-w-[24px]">4.</span>
+              <div>
+                <p className="text-slate-700 font-arabic">المركز غير مسئول عن أي أغراض شخصية داخل السيارة أثناء الفحص.</p>
+                <p className="text-slate-500 text-xs">The center is not responsible for any personal belongings inside the vehicle during inspection.</p>
+              </div>
+            </div>
+            <div className="flex gap-3 items-start">
+              <span className="text-primary font-bold min-w-[24px]">5.</span>
+              <div>
+                <p className="text-slate-700 font-arabic">يعتبر هذا التقرير لحالة المركبة حسب قراءة الأجهزة في وقت الفحص.</p>
+                <p className="text-slate-500 text-xs">This report reflects the vehicle condition based on device readings at the time of inspection.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Footer */}
         <div className="bg-slate-900 text-white rounded-3xl p-6 text-center">
           <div className="flex items-center justify-center gap-3 mb-3">
@@ -1381,7 +1441,15 @@ export default function InteractiveReport() {
             النتائج مبنية على حالة المركبة وقت الفحص وقد تتغير مع الاستخدام.
           </p>
           <div className="mt-4 pt-4 border-t border-white/10 flex flex-wrap items-center justify-center gap-2 md:gap-6 text-xs text-white/40">
-            <span>WhatsApp: 0542206000</span>
+            <a 
+              href="https://wa.me/971542206000" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hover:text-green-400 transition-colors flex items-center gap-1"
+              data-testid="link-whatsapp-footer"
+            >
+              <span>WhatsApp: 0542206000</span>
+            </a>
             <span className="hidden md:inline">|</span>
             <span>highsafety2021@gmail.com</span>
             <span className="hidden md:inline">|</span>
