@@ -525,8 +525,7 @@ export default function PublicReport() {
             </div>
 
             <div className={cn("flex items-center justify-center gap-3 py-4 rounded-2xl", status.bg)}>
-              <status.icon className={cn("w-8 h-8", status.color)} />
-              <span className={cn("text-2xl font-black font-arabic", status.color)}>{status.label}</span>
+              <status.icon className={cn("w-10 h-10", status.color)} />
             </div>
           </div>
         </div>
@@ -567,8 +566,17 @@ export default function PublicReport() {
             </div>
           </div>
           
-          {/* VIN Plate */}
-          <div className="mb-4">
+          {/* VIN Section with Photo */}
+          <div className="mb-4 bg-slate-50 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Car className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-800 font-arabic text-sm">رقم الشاصي (VIN)</h3>
+                <p className="text-xs text-slate-500 font-arabic">الرقم التسلسلي للمركبة - اضغط على الصورة للتكبير</p>
+              </div>
+            </div>
             <VinPlate 
               vin={inspection.vin}
               make={inspection.make}
@@ -577,12 +585,60 @@ export default function PublicReport() {
               vinPhoto={inspection.vinPhoto}
               className="max-w-md mx-auto"
             />
+            {inspection.vinPhoto && (
+              <button
+                onClick={() => setSelectedImage({ url: inspection.vinPhoto!, name: 'صورة رقم الشاصي' })}
+                className="mt-3 w-full relative rounded-xl overflow-hidden group cursor-pointer border border-slate-200"
+              >
+                <img 
+                  src={inspection.vinPhoto} 
+                  alt="صورة رقم الشاصي" 
+                  className="w-full h-32 object-cover transition-transform group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                  <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
+                  <p className="text-white text-xs font-arabic text-center">اضغط لتكبير الصورة</p>
+                </div>
+              </button>
+            )}
           </div>
           
-          <LuxuryOdometer 
-            odometer={inspection.odometer || 0} 
-            odometerPhoto={inspection.odometerPhoto}
-          />
+          {/* Odometer Section with Photo */}
+          <div className="bg-slate-50 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Gauge className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-800 font-arabic text-sm">قراءة العداد</h3>
+                <p className="text-xs text-slate-500 font-arabic">المسافة المقطوعة وقت الفحص - اضغط على الصورة للتكبير</p>
+              </div>
+            </div>
+            <LuxuryOdometer 
+              odometer={inspection.odometer || 0} 
+              odometerPhoto={inspection.odometerPhoto}
+            />
+            {inspection.odometerPhoto && (
+              <button
+                onClick={() => setSelectedImage({ url: inspection.odometerPhoto!, name: 'صورة العداد' })}
+                className="mt-3 w-full relative rounded-xl overflow-hidden group cursor-pointer border border-slate-200"
+              >
+                <img 
+                  src={inspection.odometerPhoto} 
+                  alt="صورة العداد" 
+                  className="w-full h-32 object-cover transition-transform group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                  <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
+                  <p className="text-white text-xs font-arabic text-center">اضغط لتكبير الصورة</p>
+                </div>
+              </button>
+            )}
+          </div>
           
           {inspection.inspectionType && (
             <div className="mt-4 pt-4 border-t border-slate-100">
