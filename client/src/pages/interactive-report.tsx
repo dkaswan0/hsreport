@@ -46,72 +46,137 @@ const CAR_VIEWS: { angle: ViewAngle; image: string; label: string; labelEn: stri
   { angle: 'left', image: carLeftView, label: 'الجانب الأيسر', labelEn: 'Left' },
 ];
 
-// Category positions for each viewing angle - accurate physical locations
+// Category positions for each viewing angle - comprehensive coverage for all categories
 const CATEGORY_POSITIONS_BY_VIEW: Record<ViewAngle, Record<string, { top: string; left: string }>> = {
   front: {
+    // Mechanical
     engine: { top: "55%", left: "50%" },
+    suspension_system: { top: "85%", left: "30%" },
+    steering_system: { top: "65%", left: "50%" },
+    misc_mechanical: { top: "70%", left: "35%" },
+    brake_system: { top: "88%", left: "25%" },
+    fuel_exhaust: { top: "75%", left: "65%" },
+    ac_cooling: { top: "60%", left: "40%" },
+    // Body
     hood: { top: "35%", left: "50%" },
-    front_bumper: { top: "75%", left: "50%" },
-    bumper_frame_front: { top: "80%", left: "50%" },
-    lights_front: { top: "45%", left: "25%" },
-    condenser: { top: "60%", left: "40%" },
-    radiator: { top: "60%", left: "60%" },
-    cooling_fan: { top: "55%", left: "35%" },
-    tires: { top: "85%", left: "20%" },
-    rims: { top: "85%", left: "80%" },
+    front_bumper: { top: "78%", left: "50%" },
+    bumper_frame_front: { top: "82%", left: "50%" },
     front_chest: { top: "70%", left: "50%" },
     fender_front_right: { top: "50%", left: "20%" },
     fender_front_left: { top: "50%", left: "80%" },
+    // Electric
+    exterior_lighting: { top: "45%", left: "25%" },
+    battery: { top: "58%", left: "65%" },
+    electrical_system: { top: "52%", left: "35%" },
+    wire_harness: { top: "48%", left: "45%" },
+    // Other
     windows: { top: "25%", left: "50%" },
+    tires_rims: { top: "88%", left: "75%" },
+    glass_mirrors: { top: "30%", left: "35%" },
+    safety_systems: { top: "42%", left: "50%" },
   },
   right: {
+    // Body
     door_front_right: { top: "40%", left: "35%" },
     door_rear_right: { top: "40%", left: "60%" },
     fender_front_right: { top: "50%", left: "18%" },
     fender_rear_right: { top: "50%", left: "82%" },
-    tires: { top: "80%", left: "22%" },
-    rims: { top: "80%", left: "78%" },
-    windows: { top: "25%", left: "50%" },
     quarter_panel: { top: "45%", left: "75%" },
     pillars: { top: "30%", left: "45%" },
-    engine: { top: "60%", left: "15%" },
     trunk: { top: "35%", left: "88%" },
-    exhaust: { top: "85%", left: "85%" },
-    suspension_arms: { top: "75%", left: "30%" },
-    brake_pads: { top: "82%", left: "25%" },
-    axles: { top: "78%", left: "55%" },
+    roof: { top: "20%", left: "50%" },
+    // Mechanical
+    engine: { top: "60%", left: "15%" },
+    suspension_system: { top: "75%", left: "30%" },
+    steering_system: { top: "72%", left: "22%" },
+    brake_system: { top: "82%", left: "25%" },
+    fuel_exhaust: { top: "85%", left: "85%" },
+    ac_cooling: { top: "55%", left: "18%" },
+    misc_mechanical: { top: "68%", left: "40%" },
+    // Transmission
+    transmission_system: { top: "70%", left: "45%" },
+    // Chassis
+    chassis_frame: { top: "78%", left: "55%" },
+    // Other
+    windows: { top: "25%", left: "50%" },
+    tires_rims: { top: "85%", left: "22%" },
+    interior: { top: "35%", left: "45%" },
+    glass_mirrors: { top: "32%", left: "28%" },
+    accessories: { top: "38%", left: "55%" },
   },
   rear: {
+    // Body
     trunk: { top: "35%", left: "50%" },
-    rear_bumper: { top: "75%", left: "50%" },
-    bumper_frame_rear: { top: "80%", left: "50%" },
-    lights_rear: { top: "45%", left: "25%" },
+    rear_bumper: { top: "78%", left: "50%" },
+    bumper_frame_rear: { top: "82%", left: "50%" },
     rear_chest: { top: "55%", left: "50%" },
-    exhaust: { top: "85%", left: "40%" },
-    tires: { top: "85%", left: "20%" },
-    rims: { top: "85%", left: "80%" },
     fender_rear_right: { top: "50%", left: "20%" },
     fender_rear_left: { top: "50%", left: "80%" },
-    differential: { top: "70%", left: "50%" },
-    fuel_tank: { top: "65%", left: "70%" },
+    quarter_panel: { top: "45%", left: "25%" },
+    roof: { top: "20%", left: "50%" },
+    // Electric
+    lights_rear: { top: "45%", left: "25%" },
+    exterior_lighting: { top: "45%", left: "75%" },
+    electrical_system: { top: "60%", left: "65%" },
+    // Mechanical
+    fuel_exhaust: { top: "85%", left: "40%" },
+    suspension_system: { top: "75%", left: "30%" },
+    brake_system: { top: "80%", left: "70%" },
+    // Chassis
+    chassis_frame: { top: "70%", left: "50%" },
+    // Other
+    tires_rims: { top: "88%", left: "20%" },
+    windows: { top: "28%", left: "50%" },
+    safety_systems: { top: "62%", left: "35%" },
   },
   left: {
+    // Body
     door_front_left: { top: "40%", left: "35%" },
     door_rear_left: { top: "40%", left: "60%" },
     fender_front_left: { top: "50%", left: "18%" },
     fender_rear_left: { top: "50%", left: "82%" },
-    tires: { top: "80%", left: "22%" },
-    rims: { top: "80%", left: "78%" },
-    windows: { top: "25%", left: "50%" },
     quarter_panel: { top: "45%", left: "75%" },
     pillars: { top: "30%", left: "55%" },
-    engine: { top: "60%", left: "15%" },
     trunk: { top: "35%", left: "88%" },
-    exhaust: { top: "85%", left: "85%" },
-    suspension_arms: { top: "75%", left: "70%" },
-    brake_pads: { top: "82%", left: "75%" },
-    axles: { top: "78%", left: "45%" },
+    roof: { top: "20%", left: "50%" },
+    // Mechanical
+    engine: { top: "60%", left: "15%" },
+    suspension_system: { top: "75%", left: "70%" },
+    steering_system: { top: "72%", left: "78%" },
+    brake_system: { top: "82%", left: "75%" },
+    fuel_exhaust: { top: "85%", left: "15%" },
+    ac_cooling: { top: "55%", left: "82%" },
+    misc_mechanical: { top: "68%", left: "60%" },
+    // Transmission
+    transmission_system: { top: "70%", left: "55%" },
+    // Chassis
+    chassis_frame: { top: "78%", left: "45%" },
+    // Other
+    windows: { top: "25%", left: "50%" },
+    tires_rims: { top: "85%", left: "78%" },
+    interior: { top: "35%", left: "55%" },
+    glass_mirrors: { top: "32%", left: "72%" },
+    accessories: { top: "38%", left: "45%" },
   },
+};
+
+// Default positions for unmapped categories (ensures all categories are visible)
+const DEFAULT_CATEGORY_POSITIONS: Record<string, { top: string; left: string }> = {
+  // Electric categories
+  mirror_controls: { top: "35%", left: "50%" },
+  // Documentation
+  documentation: { top: "20%", left: "85%" },
+  // Any remaining categories get a visible default position
+};
+
+// Get category position with fallback to legacy positions then default
+const getCategoryPosition = (catId: string, currentView: ViewAngle): { top: string; left: string } => {
+  const viewPositions = CATEGORY_POSITIONS_BY_VIEW[currentView];
+  if (viewPositions[catId]) return viewPositions[catId];
+  if (CATEGORY_POSITIONS[catId]) return CATEGORY_POSITIONS[catId];
+  if (DEFAULT_CATEGORY_POSITIONS[catId]) return DEFAULT_CATEGORY_POSITIONS[catId];
+  // Ultimate fallback - position at a visible location based on category section
+  return { top: "50%", left: "50%" };
 };
 
 // Legacy position mapping (fallback for top-down view)
@@ -179,14 +244,14 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
 
   const currentView = CAR_VIEWS[currentViewIndex];
 
-  // Auto-rotate through views
+  // Auto-rotate through views (pause when popup is open)
   useEffect(() => {
-    if (!isAutoRotating || isDragging) return;
+    if (!isAutoRotating || isDragging || selectedCategory) return;
     const interval = setInterval(() => {
       setCurrentViewIndex(prev => (prev + 1) % CAR_VIEWS.length);
     }, 3000);
     return () => clearInterval(interval);
-  }, [isAutoRotating, isDragging]);
+  }, [isAutoRotating, isDragging, selectedCategory]);
 
   // Navigate to next/previous view
   const goToView = (direction: 'next' | 'prev') => {
@@ -276,8 +341,6 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
     setIsAutoRotating(!isAutoRotating);
   };
 
-  // Get positions for current view
-  const currentPositions = CATEGORY_POSITIONS_BY_VIEW[currentView.angle];
 
   // Calculate summary stats based on actual items count
   const stats = useMemo(() => {
@@ -375,7 +438,7 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
 
           {/* Category indicators for current view */}
           {INSPECTION_CATEGORIES.map(cat => {
-            const position = currentPositions[cat.id];
+            const position = getCategoryPosition(cat.id, currentView.angle);
             if (!position) return null;
             
             const status = getCategoryStatus(cat.id);
