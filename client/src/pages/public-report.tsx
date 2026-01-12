@@ -145,17 +145,26 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: InspectionItem[
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [dragDistance, setDragDistance] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const currentView = CAR_VIEWS[currentViewIndex];
 
-  // Auto-rotate through views (pause when popup is open)
+  // Auto-rotate through views (pause when popup is open, disabled on mobile)
   useEffect(() => {
-    if (!isAutoRotating || isDragging || selectedCategory) return;
+    if (!isAutoRotating || isDragging || selectedCategory || isMobile) return;
     const interval = setInterval(() => {
       setCurrentViewIndex(prev => (prev + 1) % CAR_VIEWS.length);
     }, 3000);
     return () => clearInterval(interval);
-  }, [isAutoRotating, isDragging, selectedCategory]);
+  }, [isAutoRotating, isDragging, selectedCategory, isMobile]);
 
   const goToView = (direction: 'next' | 'prev') => {
     setCurrentViewIndex(prev => {
@@ -243,22 +252,151 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: InspectionItem[
     return { warning, fail };
   }, [items]);
 
+  // On mobile, show single static image
+  if (isMobile) {
+    return (
+      <div className="relative w-full bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 rounded-3xl overflow-hidden">
+        {/* Header stats */}
+        <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-20">
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl px-3 py-1.5 text-white text-xs font-arabic font-bold">
+            عرض السيارة
+          </div>
+          <div className="flex gap-2">
+            {stats.warning > 0 && (
+              <div className="flex items-center gap-1.5 bg-amber-500/30 text-amber-300 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm">
+                <AlertCircle className="w-3.5 h-3.5" />
+                <span>{stats.warning}</span>
+              </div>
+            )}
+            {stats.fail > 0 && (
+              <div className="flex items-center gap-1.5 bg-red-500/30 text-red-300 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm">
+                <XCircle className="w-3.5 h-3.5" />
+                <span>{stats.fail}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Single image on mobile */}
+        <div className="relative w-full aspect-square flex items-center justify-center p-8 pt-16">
+          <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-white/5 to-transparent" />
+          
+          <div className="relative w-full h-full">
+            <img 
+              src={carFrontView} 
+              alt="عرض السيارة" 
+              className="w-full h-full object-contain drop-shadow-2xl"
+            />
+
+            {/* Category indicators for front view */}
+            {INSPECTION_CATEGORIES.map(cat => {
+              const position = getCategoryPosition(cat.id, 'front');
+              const status = getCategoryStatus(cat.id);
+              const hasIssues = status !== 'good';
+              const catItems = getCategoryItems(cat.id);
+              const isSelected = selectedCategory === cat.id;
+
+              if (!hasIssues) return null;
+              
+              return (
+                <div 
+                  key={cat.id} 
+                  className="absolute z-10 transition-all duration-300" 
+                  style={position as any}
+                >
+                  <button
+                    onClick={() => handleCategoryPress(cat.id)}
+                    className={cn(
+                      "flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold text-white transition-all duration-300 cursor-pointer",
+                      getStatusColor(status),
+                      "shadow-lg",
+                      isSelected ? "ring-2 ring-white scale-110" : "animate-pulse"
+                    )}
+                    data-testid={`button-category-${cat.id}`}
+                  >
+                    {getStatusIcon(status)}
+                  </button>
+                  
+                  {/* Fault details popup */}
+                  {isSelected && catItems.length > 0 && (
+                    <div 
+                      className="absolute top-full mt-2 right-0 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-3 min-w-[180px] max-w-[250px] z-50"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-200">
+                        <span className="font-bold text-xs text-slate-800 font-arabic">{cat.label}</span>
+                        <span className="text-[10px] text-slate-500">{catItems.length}</span>
+                      </div>
+                      <div className="space-y-2 max-h-[120px] overflow-y-auto">
+                        {catItems.map((item, idx) => (
+                          <div 
+                            key={idx}
+                            className={cn(
+                              "p-2 rounded-lg text-xs",
+                              item.status === 'fail' ? "bg-red-50 border border-red-200" : "bg-amber-50 border border-amber-200"
+                            )}
+                          >
+                            <div className="flex items-start gap-2">
+                              {item.status === 'fail' ? 
+                                <XCircle className="w-3 h-3 text-red-500 shrink-0 mt-0.5" /> : 
+                                <AlertCircle className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" />
+                              }
+                              <p className={cn(
+                                "font-bold font-arabic leading-tight text-[11px]",
+                                item.status === 'fail' ? "text-red-700" : "text-amber-700"
+                              )}>
+                                {item.faultName.split(' - ')[0]}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Legend */}
+        <div className="absolute bottom-4 left-0 right-0">
+          <div className="flex justify-center gap-6">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50" />
+              <span className="text-[10px] text-white/70 font-arabic">سليم</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-amber-500 shadow-lg shadow-amber-500/50" />
+              <span className="text-[10px] text-white/70 font-arabic">تحذير</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-red-500 shadow-lg shadow-red-500/50" />
+              <span className="text-[10px] text-white/70 font-arabic">خطير</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop: Full 360 rotation view
   return (
     <div className="relative w-full bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 rounded-3xl overflow-hidden">
       {/* Header stats */}
       <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-20">
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl px-3 py-1.5 text-white text-xs font-arabic">
+        <div className="bg-white/20 backdrop-blur-sm rounded-xl px-3 py-1.5 text-white text-xs font-arabic font-bold">
           {currentView.label}
         </div>
         <div className="flex gap-2">
           {stats.warning > 0 && (
-            <div className="flex items-center gap-1.5 bg-amber-500/20 text-amber-400 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm">
+            <div className="flex items-center gap-1.5 bg-amber-500/30 text-amber-300 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm">
               <AlertCircle className="w-3.5 h-3.5" />
               <span>{stats.warning}</span>
             </div>
           )}
           {stats.fail > 0 && (
-            <div className="flex items-center gap-1.5 bg-red-500/20 text-red-400 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm">
+            <div className="flex items-center gap-1.5 bg-red-500/30 text-red-300 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm">
               <XCircle className="w-3.5 h-3.5" />
               <span>{stats.fail}</span>
             </div>
@@ -269,14 +407,14 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: InspectionItem[
       {/* Navigation arrows */}
       <button
         onClick={() => goToView('prev')}
-        className="absolute left-2 top-1/2 -translate-y-1/2 z-20 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+        className="absolute left-2 top-1/2 -translate-y-1/2 z-20 p-2 bg-white/20 hover:bg-white/30 rounded-full text-white transition-colors"
         data-testid="button-view-prev"
       >
         <ChevronLeft className="w-5 h-5" />
       </button>
       <button
         onClick={() => goToView('next')}
-        className="absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+        className="absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 bg-white/20 hover:bg-white/30 rounded-full text-white transition-colors"
         data-testid="button-view-next"
       >
         <ChevronRight className="w-5 h-5" />
@@ -284,7 +422,7 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: InspectionItem[
 
       {/* Car visualization with drag/swipe */}
       <div 
-        className="relative w-full aspect-square md:aspect-[16/10] flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
+        className="relative w-full aspect-[16/10] flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -385,7 +523,7 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: InspectionItem[
               "w-2.5 h-2.5 rounded-full transition-all",
               idx === currentViewIndex 
                 ? "bg-accent w-8" 
-                : "bg-white/30 hover:bg-white/50"
+                : "bg-white/40 hover:bg-white/60"
             )}
             data-testid={`button-view-${view.angle}`}
           />
@@ -394,7 +532,7 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: InspectionItem[
 
       {/* Legend */}
       <div className="absolute bottom-4 left-0 right-0 space-y-2">
-        <div className="flex justify-center gap-6 text-xs font-bold font-arabic text-white/80">
+        <div className="flex justify-center gap-6 text-xs font-bold font-arabic text-white/90">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50" />
           </div>
@@ -489,39 +627,38 @@ export default function PublicReport() {
       
       <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-6">
         
-        <div className="relative bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950 rounded-3xl p-6 md:p-8 text-white shadow-2xl overflow-hidden">
+        <div className="relative bg-gradient-to-br from-[#0C1A28] via-[#0f1f2e] to-[#0C1A28] rounded-3xl p-6 md:p-8 text-white shadow-2xl overflow-hidden">
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none" aria-hidden="true">
             <img 
               src={logoPath} 
               alt="" 
-              className="w-64 h-64 md:w-80 md:h-80 object-contain opacity-[0.08]"
-              style={{ filter: 'brightness(1.5) contrast(0.8)' }}
+              className="w-64 h-64 md:w-80 md:h-80 object-contain opacity-[0.06]"
             />
           </div>
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-neutral-900/50 to-neutral-950 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0C1A28]/30 to-[#0C1A28] pointer-events-none" />
           
           <div className="relative z-10">
             <div className="text-center mb-6">
               <div className="flex items-center justify-center gap-4 mb-4">
-                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-500/60 to-transparent" />
-                <ShieldCheck className="w-10 h-10 text-amber-500" />
-                <div className="h-px flex-1 bg-gradient-to-l from-transparent via-amber-500/60 to-transparent" />
+                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#C5852C] to-transparent" />
+                <ShieldCheck className="w-10 h-10 text-[#C5852C]" />
+                <div className="h-px flex-1 bg-gradient-to-l from-transparent via-[#C5852C] to-transparent" />
               </div>
               
-              <h1 className="text-2xl md:text-3xl font-black mb-2 font-arabic text-white">
+              <h1 className="text-2xl md:text-3xl font-black mb-2 font-arabic text-white drop-shadow-lg">
                 مركز فحص الأمان العالي الدولي
               </h1>
-              <p className="text-amber-400 text-sm md:text-base font-bold tracking-widest mb-4">
+              <p className="text-[#C5852C] text-sm md:text-base font-bold tracking-widest mb-4 drop-shadow-md">
                 HIGH SAFETY INTERNATIONAL INSPECTION CENTER
               </p>
               
               <div className="flex items-center justify-center gap-3 mb-6">
-                <div className="w-2 h-2 rounded-full bg-amber-500" />
-                <div className="w-2 h-2 rounded-full bg-amber-500" />
-                <div className="w-2 h-2 rounded-full bg-amber-500" />
+                <div className="w-2 h-2 rounded-full bg-[#C5852C]" />
+                <div className="w-2 h-2 rounded-full bg-[#C5852C]" />
+                <div className="w-2 h-2 rounded-full bg-[#C5852C]" />
               </div>
               
-              <p className="text-white/50 text-sm font-arabic">تقرير الفحص التفاعلي</p>
+              <p className="text-white/80 text-sm font-arabic font-semibold">تقرير الفحص التفاعلي</p>
             </div>
 
           </div>
@@ -563,7 +700,7 @@ export default function PublicReport() {
             </div>
           </div>
           
-          {/* VIN Section with Photo */}
+          {/* VIN Section - Click to reveal photo */}
           <div className="mb-4 bg-slate-50 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -571,7 +708,12 @@ export default function PublicReport() {
               </div>
               <div>
                 <h3 className="font-bold text-slate-800 font-arabic text-sm">رقم الشاصي (VIN)</h3>
-                <p className="text-xs text-slate-500 font-arabic">الرقم التسلسلي للمركبة - اضغط على الصورة للتكبير</p>
+                {inspection.vinPhoto && (
+                  <p className="text-xs text-primary font-arabic flex items-center gap-1">
+                    <ZoomIn className="w-3 h-3" />
+                    اضغط على اللوحة لعرض الصورة الأصلية
+                  </p>
+                )}
               </div>
             </div>
             <VinPlate 
@@ -582,27 +724,9 @@ export default function PublicReport() {
               vinPhoto={inspection.vinPhoto}
               className="max-w-md mx-auto"
             />
-            {inspection.vinPhoto && (
-              <button
-                onClick={() => setSelectedImage({ url: inspection.vinPhoto!, name: 'صورة رقم الشاصي' })}
-                className="mt-3 w-full relative rounded-xl overflow-hidden group cursor-pointer border border-slate-200"
-              >
-                <img 
-                  src={inspection.vinPhoto} 
-                  alt="صورة رقم الشاصي" 
-                  className="w-full h-32 object-cover transition-transform group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-                  <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
-                  <p className="text-white text-xs font-arabic text-center">اضغط لتكبير الصورة</p>
-                </div>
-              </button>
-            )}
           </div>
           
-          {/* Odometer Section with Photo */}
+          {/* Odometer Section - Click to reveal photo */}
           <div className="bg-slate-50 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -610,31 +734,18 @@ export default function PublicReport() {
               </div>
               <div>
                 <h3 className="font-bold text-slate-800 font-arabic text-sm">قراءة العداد</h3>
-                <p className="text-xs text-slate-500 font-arabic">المسافة المقطوعة وقت الفحص - اضغط على الصورة للتكبير</p>
+                {inspection.odometerPhoto && (
+                  <p className="text-xs text-primary font-arabic flex items-center gap-1">
+                    <ZoomIn className="w-3 h-3" />
+                    اضغط على العداد لعرض الصورة الأصلية
+                  </p>
+                )}
               </div>
             </div>
             <LuxuryOdometer 
               odometer={inspection.odometer || 0} 
               odometerPhoto={inspection.odometerPhoto}
             />
-            {inspection.odometerPhoto && (
-              <button
-                onClick={() => setSelectedImage({ url: inspection.odometerPhoto!, name: 'صورة العداد' })}
-                className="mt-3 w-full relative rounded-xl overflow-hidden group cursor-pointer border border-slate-200"
-              >
-                <img 
-                  src={inspection.odometerPhoto} 
-                  alt="صورة العداد" 
-                  className="w-full h-32 object-cover transition-transform group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-                  <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
-                  <p className="text-white text-xs font-arabic text-center">اضغط لتكبير الصورة</p>
-                </div>
-              </button>
-            )}
           </div>
           
           {inspection.inspectionType && (
