@@ -524,9 +524,6 @@ export default function PublicReport() {
               <p className="text-white/50 text-sm font-arabic">تقرير الفحص التفاعلي</p>
             </div>
 
-            <div className={cn("flex items-center justify-center gap-3 py-4 rounded-2xl", status.bg)}>
-              <status.icon className={cn("w-10 h-10", status.color)} />
-            </div>
           </div>
         </div>
 
