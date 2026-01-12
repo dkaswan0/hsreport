@@ -25,7 +25,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import { useState, useMemo, useCallback, useRef } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import logoPath from "@assets/logo_1767706304085.png";
 import { PdfReportTemplate } from "@/components/pdf-report-template";
 import carVisualizationPath from "@assets/generated_images/professional_car_anatomy_diagram.png";
@@ -86,10 +86,58 @@ const CATEGORY_POSITIONS: Record<string, { top: string; left: string; transform?
   stabilizer_link: { top: "90%", left: "60%" },
 };
 
-// Realistic 3D Car Component with CSS animations
+// Realistic 3D Car Component with CSS animations and 360 rotation
 const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCategoryClick: (cat: string) => void }) => {
   const [rotateY, setRotateY] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [isAutoRotating, setIsAutoRotating] = useState(true);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Auto-rotate effect
+  useEffect(() => {
+    if (!isAutoRotating || isDragging) return;
+    const interval = setInterval(() => {
+      setRotateY(prev => (prev + 0.5) % 360);
+    }, 50);
+    return () => clearInterval(interval);
+  }, [isAutoRotating, isDragging]);
+
+  // Drag handlers for manual rotation
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setStartX(e.clientX);
+    setIsAutoRotating(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    const delta = e.clientX - startX;
+    setRotateY(prev => prev + delta * 0.5);
+    setStartX(e.clientX);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    setStartX(e.touches[0].clientX);
+    setIsAutoRotating(false);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    const delta = e.touches[0].clientX - startX;
+    setRotateY(prev => prev + delta * 0.5);
+    setStartX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
 
   const getCategoryStatus = (catId: string) => {
     const catItems = items.filter(i => i.category === catId);
@@ -97,6 +145,10 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
     if (catItems.some(i => i.status === 'fail')) return 'fail';
     if (catItems.some(i => i.status === 'warning')) return 'warning';
     return 'good';
+  };
+
+  const getCategoryItems = (catId: string) => {
+    return items.filter(i => i.category === catId);
   };
 
   const getStatusColor = (status: string) => {
@@ -115,10 +167,13 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
     }
   };
 
-  const handleRotate = () => {
-    setIsAnimating(true);
-    setRotateY(prev => prev + 45);
-    setTimeout(() => setIsAnimating(false), 600);
+  const handleCategoryPress = (catId: string) => {
+    setSelectedCategory(selectedCategory === catId ? null : catId);
+    onCategoryClick(catId);
+  };
+
+  const toggleAutoRotate = () => {
+    setIsAutoRotating(!isAutoRotating);
   };
 
   // Calculate summary stats based on actual items count
@@ -130,16 +185,30 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
   }, [items]);
 
   return (
-    <div className="relative w-full bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 rounded-3xl overflow-hidden">
+    <div 
+      ref={containerRef}
+      className="relative w-full bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 rounded-3xl overflow-hidden select-none"
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Header */}
       <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-20">
         <Button 
           variant="ghost" 
           size="icon" 
-          onClick={handleRotate}
-          className="bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm"
+          onClick={toggleAutoRotate}
+          className={cn(
+            "backdrop-blur-sm text-white",
+            isAutoRotating ? "bg-primary/50 hover:bg-primary/70" : "bg-white/10 hover:bg-white/20"
+          )}
+          data-testid="button-toggle-rotation"
         >
-          <RotateCcw className={cn("w-5 h-5", isAnimating && "animate-spin")} />
+          <RotateCcw className={cn("w-5 h-5", isAutoRotating && "animate-spin")} />
         </Button>
         <div className="flex gap-2">
           <div className="flex items-center gap-1.5 bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm">
@@ -187,43 +256,104 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
             
             const status = getCategoryStatus(cat.id);
             const hasIssues = status !== 'good';
+            const catItems = getCategoryItems(cat.id);
+            const isSelected = selectedCategory === cat.id;
             
             // Only show categories that have issues to avoid cluttering
             if (!hasIssues) return null;
             
             return (
-              <button
-                key={cat.id}
-                onClick={() => onCategoryClick(cat.id)}
-                className={cn(
-                  "absolute flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold text-white transition-all duration-300 cursor-pointer z-10",
-                  getStatusColor(status),
-                  "shadow-lg hover:scale-110",
-                  "animate-pulse"
-                )}
+              <div 
+                key={cat.id} 
+                className="absolute z-10" 
                 style={position as any}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
               >
-                {getStatusIcon(status)}
-                <span className="hidden md:inline truncate max-w-[80px]">{cat.label}</span>
-              </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCategoryPress(cat.id);
+                  }}
+                  className={cn(
+                    "flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold text-white transition-all duration-300 cursor-pointer",
+                    getStatusColor(status),
+                    "shadow-lg hover:scale-110",
+                    isSelected ? "ring-2 ring-white scale-110" : "animate-pulse"
+                  )}
+                  data-testid={`button-category-${cat.id}`}
+                >
+                  {getStatusIcon(status)}
+                  <span className="hidden md:inline truncate max-w-[80px]">{cat.label}</span>
+                </button>
+                
+                {/* Fault details popup */}
+                {isSelected && catItems.length > 0 && (
+                  <div 
+                    className="absolute top-full mt-2 right-0 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-3 min-w-[200px] max-w-[280px] z-50"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-200">
+                      <span className="font-bold text-xs text-slate-800 font-arabic">{cat.label}</span>
+                      <span className="text-[10px] text-slate-500">{catItems.length} ملاحظات</span>
+                    </div>
+                    <div className="space-y-2 max-h-[150px] overflow-y-auto">
+                      {catItems.map((item, idx) => (
+                        <div 
+                          key={idx}
+                          className={cn(
+                            "p-2 rounded-lg text-xs",
+                            item.status === 'fail' ? "bg-red-50 border border-red-200" : "bg-amber-50 border border-amber-200"
+                          )}
+                        >
+                          <div className="flex items-start gap-2">
+                            {item.status === 'fail' ? 
+                              <XCircle className="w-3 h-3 text-red-500 shrink-0 mt-0.5" /> : 
+                              <AlertCircle className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" />
+                            }
+                            <div>
+                              <p className={cn(
+                                "font-bold font-arabic leading-tight",
+                                item.status === 'fail' ? "text-red-700" : "text-amber-700"
+                              )}>
+                                {item.faultName.split(' - ')[0]}
+                              </p>
+                              {item.notes && (
+                                <p className="text-slate-500 text-[10px] mt-1 font-arabic">{item.notes}</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
       </div>
 
-      {/* Legend */}
-      <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-6 text-xs font-bold font-arabic text-white/80">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50" />
-          <span>جيد</span>
+      {/* Legend and Instructions */}
+      <div className="absolute bottom-4 left-0 right-0 space-y-2">
+        <div className="flex justify-center">
+          <div className="bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5 text-[10px] text-white/60 font-arabic">
+            {isDragging ? "جاري التدوير..." : "اسحب للتدوير 360° • اضغط على النقاط لعرض التفاصيل"}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-amber-500 shadow-lg shadow-amber-500/50" />
-          <span>ملاحظات</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-red-500 shadow-lg shadow-red-500/50" />
-          <span>يحتاج إصلاح</span>
+        <div className="flex justify-center gap-6 text-xs font-bold font-arabic text-white/80">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50" />
+            <span>جيد</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-amber-500 shadow-lg shadow-amber-500/50" />
+            <span>ملاحظات</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-red-500 shadow-lg shadow-red-500/50" />
+            <span>يحتاج إصلاح</span>
+          </div>
         </div>
       </div>
     </div>
@@ -348,6 +478,7 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
             make={inspection.make}
             model={inspection.model}
             year={inspection.year}
+            vinPhoto={inspection.vinPhoto}
             className="w-full md:w-auto md:min-w-[320px]"
           />
           <div className="flex items-center gap-2 text-xs text-primary font-arabic bg-primary/5 px-4 py-2 rounded-full">

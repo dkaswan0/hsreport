@@ -414,6 +414,7 @@ export default function PublicReport() {
               make={inspection.make}
               model={inspection.model}
               year={inspection.year}
+              vinPhoto={inspection.vinPhoto}
               className="max-w-md mx-auto"
             />
           </div>

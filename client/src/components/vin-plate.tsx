@@ -1,26 +1,41 @@
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { X, ZoomIn } from "lucide-react";
 
 interface VinPlateProps {
   vin: string;
   make?: string | null;
   model?: string | null;
   year?: number | null;
+  vinPhoto?: string | null;
   className?: string;
 }
 
-export function VinPlate({ vin, make, model, year, className }: VinPlateProps) {
+export function VinPlate({ vin, make, model, year, vinPhoto, className }: VinPlateProps) {
   const displayVin = vin || "XXXXXXXXXXXXXXXXX";
+  const [showPhoto, setShowPhoto] = useState(false);
   
   return (
+    <>
     <div 
       className={cn(
         "relative overflow-hidden rounded-lg",
+        vinPhoto && "cursor-pointer group",
         className
       )}
       style={{
         background: 'linear-gradient(145deg, #d4d4d8 0%, #a1a1aa 25%, #d4d4d8 50%, #a1a1aa 75%, #d4d4d8 100%)',
         boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.15)',
       }}
+      onClick={() => vinPhoto && setShowPhoto(true)}
+      onKeyDown={(e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && vinPhoto) {
+          setShowPhoto(true);
+        }
+      }}
+      role={vinPhoto ? "button" : undefined}
+      tabIndex={vinPhoto ? 0 : undefined}
+      aria-label={vinPhoto ? "اضغط لعرض صورة لوحة الشاصي" : "لوحة الشاصي"}
     >
       <div 
         className="absolute inset-0 opacity-30"
@@ -120,7 +135,39 @@ export function VinPlate({ vin, make, model, year, className }: VinPlateProps) {
           boxShadow: 'inset 0 -1px 2px rgba(0,0,0,0.3), 0 1px 1px rgba(255,255,255,0.3)',
         }}
       />
+
+      {/* Photo indicator */}
+      {vinPhoto && (
+        <div className="absolute bottom-2 right-2 p-1.5 bg-primary/80 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+          <ZoomIn className="w-3 h-3 text-white" />
+        </div>
+      )}
     </div>
+
+    {/* Photo Modal */}
+    {showPhoto && vinPhoto && (
+      <div 
+        className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+        onClick={() => setShowPhoto(false)}
+      >
+        <button
+          onClick={() => setShowPhoto(false)}
+          className="absolute top-4 right-4 p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors"
+          data-testid="button-close-vin-photo"
+        >
+          <X className="w-6 h-6 text-white" />
+        </button>
+        <img
+          src={vinPhoto}
+          alt="صورة لوحة الشاصي الأصلية"
+          className="max-w-full max-h-[90vh] object-contain rounded-lg"
+        />
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 text-sm font-arabic">
+          صورة لوحة الشاصي الأصلية
+        </div>
+      </div>
+    )}
+    </>
   );
 }
 

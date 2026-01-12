@@ -34,6 +34,9 @@ export default function NewInspection() {
   const [odometerPhoto, setOdometerPhoto] = useState<string | null>(null);
   const [odometerPhotoPreview, setOdometerPhotoPreview] = useState<string | null>(null);
   const odometerPhotoRef = useRef<HTMLInputElement>(null);
+  const [vinPhoto, setVinPhoto] = useState<string | null>(null);
+  const [vinPhotoPreview, setVinPhotoPreview] = useState<string | null>(null);
+  const vinPhotoRef = useRef<HTMLInputElement>(null);
   const [inspectionType, setInspectionType] = useState('full');
   const [customerSignature, setCustomerSignature] = useState<string | null>(null);
   const signatureCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -80,6 +83,27 @@ export default function NewInspection() {
     setOdometerPhotoPreview(null);
     if (odometerPhotoRef.current) {
       odometerPhotoRef.current.value = "";
+    }
+  };
+
+  const handleVinPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = event.target?.result as string;
+      setVinPhoto(result);
+      setVinPhotoPreview(result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeVinPhoto = () => {
+    setVinPhoto(null);
+    setVinPhotoPreview(null);
+    if (vinPhotoRef.current) {
+      vinPhotoRef.current.value = "";
     }
   };
 
@@ -203,11 +227,12 @@ export default function NewInspection() {
       }
     }
     
-    // Add odometer photo, inspection type, and signature to submission
+    // Add photos, inspection type, and signature to submission
     const inspectionTypeLabel = INSPECTION_TYPES.find(t => t.id === inspectionType)?.label || 'فحص شامل';
     const submissionData = {
       ...data,
       odometerPhoto: odometerPhoto || undefined,
+      vinPhoto: vinPhoto || undefined,
       inspectionType: inspectionTypeLabel,
       customerSignature: customerSignature || undefined
     };
@@ -291,6 +316,73 @@ export default function NewInspection() {
                 {form.formState.errors.vin && (
                   <p className="text-red-500 text-sm mt-1">{form.formState.errors.vin.message}</p>
                 )}
+              </div>
+
+              {/* VIN Photo Upload */}
+              <div className="col-span-full">
+                <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
+                  <Image className="w-4 h-4 text-primary" />
+                  صورة لوحة الشاصي
+                </label>
+                <div className="space-y-3">
+                  {vinPhotoPreview ? (
+                    <div className="relative inline-block">
+                      <img 
+                        src={vinPhotoPreview} 
+                        alt="صورة لوحة الشاصي" 
+                        className="w-full max-w-md h-48 object-cover rounded-xl border-2 border-primary/20"
+                      />
+                      <button
+                        type="button"
+                        onClick={removeVinPhoto}
+                        className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full shadow-lg"
+                        data-testid="button-remove-vin-photo"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-3">
+                      {/* Camera Capture Button */}
+                      <label className="flex-1 flex flex-col items-center justify-center h-40 border-2 border-dashed border-accent/50 rounded-xl cursor-pointer bg-accent/5 hover:bg-accent/10 transition-colors">
+                        <div className="flex flex-col items-center justify-center py-6">
+                          <div className="p-3 bg-accent/20 rounded-full mb-3">
+                            <Camera className="w-8 h-8 text-accent" />
+                          </div>
+                          <p className="text-sm text-accent font-arabic font-bold mb-1">صور لوحة الشاصي</p>
+                          <p className="text-xs text-slate-400">التقط صورة مباشرة</p>
+                        </div>
+                        <input 
+                          type="file" 
+                          accept="image/*"
+                          capture="environment"
+                          className="hidden" 
+                          onChange={handleVinPhotoChange}
+                          data-testid="input-vin-camera"
+                        />
+                      </label>
+                      
+                      {/* File Upload Button */}
+                      <label className="flex-1 flex flex-col items-center justify-center h-40 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors">
+                        <div className="flex flex-col items-center justify-center py-6">
+                          <div className="p-3 bg-slate-200 rounded-full mb-3">
+                            <Upload className="w-8 h-8 text-slate-500" />
+                          </div>
+                          <p className="text-sm text-slate-600 font-arabic mb-1">ارفع من الجهاز</p>
+                          <p className="text-xs text-slate-400">PNG, JPG</p>
+                        </div>
+                        <input 
+                          ref={vinPhotoRef}
+                          type="file" 
+                          accept="image/*"
+                          className="hidden" 
+                          onChange={handleVinPhotoChange}
+                          data-testid="input-vin-photo"
+                        />
+                      </label>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>

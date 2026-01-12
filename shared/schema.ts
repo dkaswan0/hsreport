@@ -16,6 +16,7 @@ export const users = pgTable("users", {
 export const inspections = pgTable("inspections", {
   id: serial("id").primaryKey(),
   vin: text("vin").notNull(),
+  vinPhoto: text("vin_photo"), // Photo URL of VIN plate
   make: text("make"),
   model: text("model"),
   year: integer("year"),
