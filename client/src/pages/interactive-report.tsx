@@ -29,11 +29,92 @@ import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import logoPath from "@assets/logo_1767706304085.png";
 import { PdfReportTemplate } from "@/components/pdf-report-template";
 import carVisualizationPath from "@assets/generated_images/professional_car_anatomy_diagram.png";
+import carFrontView from "@assets/generated_images/car_front_view_diagram.png";
+import carRightView from "@assets/generated_images/car_right_side_view.png";
+import carRearView from "@assets/generated_images/car_rear_view_diagram.png";
+import carLeftView from "@assets/generated_images/car_left_side_view.png";
 import { INSPECTION_CATEGORIES, CATEGORY_GROUPS } from "@shared/categories";
 import { getVehicleColor, calculateInspectionStats } from "@/lib/vehicle-utils";
 import { VinPlate } from "@/components/vin-plate";
 
-// Category position mapping for car visualization - organized by car part location
+// Car views configuration
+type ViewAngle = 'front' | 'right' | 'rear' | 'left';
+const CAR_VIEWS: { angle: ViewAngle; image: string; label: string; labelEn: string }[] = [
+  { angle: 'front', image: carFrontView, label: 'الأمام', labelEn: 'Front' },
+  { angle: 'right', image: carRightView, label: 'الجانب الأيمن', labelEn: 'Right' },
+  { angle: 'rear', image: carRearView, label: 'الخلف', labelEn: 'Rear' },
+  { angle: 'left', image: carLeftView, label: 'الجانب الأيسر', labelEn: 'Left' },
+];
+
+// Category positions for each viewing angle - accurate physical locations
+const CATEGORY_POSITIONS_BY_VIEW: Record<ViewAngle, Record<string, { top: string; left: string }>> = {
+  front: {
+    engine: { top: "55%", left: "50%" },
+    hood: { top: "35%", left: "50%" },
+    front_bumper: { top: "75%", left: "50%" },
+    bumper_frame_front: { top: "80%", left: "50%" },
+    lights_front: { top: "45%", left: "25%" },
+    condenser: { top: "60%", left: "40%" },
+    radiator: { top: "60%", left: "60%" },
+    cooling_fan: { top: "55%", left: "35%" },
+    tires: { top: "85%", left: "20%" },
+    rims: { top: "85%", left: "80%" },
+    front_chest: { top: "70%", left: "50%" },
+    fender_front_right: { top: "50%", left: "20%" },
+    fender_front_left: { top: "50%", left: "80%" },
+    windows: { top: "25%", left: "50%" },
+  },
+  right: {
+    door_front_right: { top: "40%", left: "35%" },
+    door_rear_right: { top: "40%", left: "60%" },
+    fender_front_right: { top: "50%", left: "18%" },
+    fender_rear_right: { top: "50%", left: "82%" },
+    tires: { top: "80%", left: "22%" },
+    rims: { top: "80%", left: "78%" },
+    windows: { top: "25%", left: "50%" },
+    quarter_panel: { top: "45%", left: "75%" },
+    pillars: { top: "30%", left: "45%" },
+    engine: { top: "60%", left: "15%" },
+    trunk: { top: "35%", left: "88%" },
+    exhaust: { top: "85%", left: "85%" },
+    suspension_arms: { top: "75%", left: "30%" },
+    brake_pads: { top: "82%", left: "25%" },
+    axles: { top: "78%", left: "55%" },
+  },
+  rear: {
+    trunk: { top: "35%", left: "50%" },
+    rear_bumper: { top: "75%", left: "50%" },
+    bumper_frame_rear: { top: "80%", left: "50%" },
+    lights_rear: { top: "45%", left: "25%" },
+    rear_chest: { top: "55%", left: "50%" },
+    exhaust: { top: "85%", left: "40%" },
+    tires: { top: "85%", left: "20%" },
+    rims: { top: "85%", left: "80%" },
+    fender_rear_right: { top: "50%", left: "20%" },
+    fender_rear_left: { top: "50%", left: "80%" },
+    differential: { top: "70%", left: "50%" },
+    fuel_tank: { top: "65%", left: "70%" },
+  },
+  left: {
+    door_front_left: { top: "40%", left: "35%" },
+    door_rear_left: { top: "40%", left: "60%" },
+    fender_front_left: { top: "50%", left: "18%" },
+    fender_rear_left: { top: "50%", left: "82%" },
+    tires: { top: "80%", left: "22%" },
+    rims: { top: "80%", left: "78%" },
+    windows: { top: "25%", left: "50%" },
+    quarter_panel: { top: "45%", left: "75%" },
+    pillars: { top: "30%", left: "55%" },
+    engine: { top: "60%", left: "15%" },
+    trunk: { top: "35%", left: "88%" },
+    exhaust: { top: "85%", left: "85%" },
+    suspension_arms: { top: "75%", left: "70%" },
+    brake_pads: { top: "82%", left: "75%" },
+    axles: { top: "78%", left: "45%" },
+  },
+};
+
+// Legacy position mapping (fallback for top-down view)
 const CATEGORY_POSITIONS: Record<string, { top: string; left: string; transform?: string }> = {
   front_bumper: { top: "42%", left: "8%" },
   rear_bumper: { top: "42%", left: "92%" },
@@ -86,57 +167,76 @@ const CATEGORY_POSITIONS: Record<string, { top: string; left: string; transform?
   stabilizer_link: { top: "90%", left: "60%" },
 };
 
-// Realistic 3D Car Component with CSS animations and 360 rotation
+// Realistic 360° Car Visualization with 4 viewing angles
 const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCategoryClick: (cat: string) => void }) => {
-  const [rotateY, setRotateY] = useState(0);
+  const [currentViewIndex, setCurrentViewIndex] = useState(0);
   const [isAutoRotating, setIsAutoRotating] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
+  const [dragDistance, setDragDistance] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-rotate effect
+  const currentView = CAR_VIEWS[currentViewIndex];
+
+  // Auto-rotate through views
   useEffect(() => {
     if (!isAutoRotating || isDragging) return;
     const interval = setInterval(() => {
-      setRotateY(prev => (prev + 0.5) % 360);
-    }, 50);
+      setCurrentViewIndex(prev => (prev + 1) % CAR_VIEWS.length);
+    }, 3000);
     return () => clearInterval(interval);
   }, [isAutoRotating, isDragging]);
+
+  // Navigate to next/previous view
+  const goToView = (direction: 'next' | 'prev') => {
+    setCurrentViewIndex(prev => {
+      if (direction === 'next') return (prev + 1) % CAR_VIEWS.length;
+      return prev === 0 ? CAR_VIEWS.length - 1 : prev - 1;
+    });
+  };
 
   // Drag handlers for manual rotation
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
     setStartX(e.clientX);
+    setDragDistance(0);
     setIsAutoRotating(false);
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging) return;
     const delta = e.clientX - startX;
-    setRotateY(prev => prev + delta * 0.5);
-    setStartX(e.clientX);
+    setDragDistance(delta);
   };
 
   const handleMouseUp = () => {
+    if (isDragging && Math.abs(dragDistance) > 50) {
+      goToView(dragDistance > 0 ? 'prev' : 'next');
+    }
     setIsDragging(false);
+    setDragDistance(0);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setIsDragging(true);
     setStartX(e.touches[0].clientX);
+    setDragDistance(0);
     setIsAutoRotating(false);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDragging) return;
     const delta = e.touches[0].clientX - startX;
-    setRotateY(prev => prev + delta * 0.5);
-    setStartX(e.touches[0].clientX);
+    setDragDistance(delta);
   };
 
   const handleTouchEnd = () => {
+    if (isDragging && Math.abs(dragDistance) > 50) {
+      goToView(dragDistance > 0 ? 'prev' : 'next');
+    }
     setIsDragging(false);
+    setDragDistance(0);
   };
 
   const getCategoryStatus = (catId: string) => {
@@ -176,6 +276,9 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
     setIsAutoRotating(!isAutoRotating);
   };
 
+  // Get positions for current view
+  const currentPositions = CATEGORY_POSITIONS_BY_VIEW[currentView.angle];
+
   // Calculate summary stats based on actual items count
   const stats = useMemo(() => {
     const pass = items.filter(i => i.status === 'pass').length;
@@ -198,18 +301,23 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
     >
       {/* Header */}
       <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-20">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={toggleAutoRotate}
-          className={cn(
-            "backdrop-blur-sm text-white",
-            isAutoRotating ? "bg-primary/50 hover:bg-primary/70" : "bg-white/10 hover:bg-white/20"
-          )}
-          data-testid="button-toggle-rotation"
-        >
-          <RotateCcw className={cn("w-5 h-5", isAutoRotating && "animate-spin")} />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={(e) => { e.stopPropagation(); toggleAutoRotate(); }}
+            className={cn(
+              "backdrop-blur-sm text-white",
+              isAutoRotating ? "bg-primary/50 hover:bg-primary/70" : "bg-white/10 hover:bg-white/20"
+            )}
+            data-testid="button-toggle-rotation"
+          >
+            <RotateCcw className={cn("w-5 h-5", isAutoRotating && "animate-spin")} />
+          </Button>
+          <div className="bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs font-bold text-white font-arabic">
+            {currentView.label}
+          </div>
+        </div>
         <div className="flex gap-2">
           <div className="flex items-center gap-1.5 bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm">
             <CheckCircle2 className="w-3.5 h-3.5" />
@@ -226,32 +334,48 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
         </div>
       </div>
 
-      {/* 3D Car Container */}
-      <div 
-        className="relative w-full aspect-square md:aspect-[16/10] flex items-center justify-center"
-        style={{ perspective: '1500px' }}
+      {/* View Navigation Arrows */}
+      <button
+        onClick={(e) => { e.stopPropagation(); goToView('prev'); }}
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white p-3 rounded-full transition-all"
+        data-testid="button-prev-view"
       >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+      <button
+        onClick={(e) => { e.stopPropagation(); goToView('next'); }}
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white p-3 rounded-full transition-all"
+        data-testid="button-next-view"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+
+      {/* Car View Container */}
+      <div className="relative w-full aspect-square md:aspect-[16/10] flex items-center justify-center pt-16">
         {/* Ground reflection */}
         <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-white/5 to-transparent" />
         
-        {/* 3D Car Body */}
+        {/* Car Image with transition */}
         <div 
-          className="relative w-[85%] h-[75%] transition-transform duration-500 ease-out"
+          className="relative w-[85%] h-[75%] transition-all duration-500 ease-out"
           style={{ 
-            transformStyle: 'preserve-3d',
-            transform: `rotateY(${rotateY}deg) rotateX(5deg)`
+            transform: `translateX(${isDragging ? dragDistance * 0.1 : 0}px)`,
+            opacity: isDragging ? 0.8 : 1
           }}
         >
-          {/* Sports Car Image */}
           <img 
-            src={carVisualizationPath} 
-            alt="Vehicle Visualization" 
+            src={currentView.image} 
+            alt={`Vehicle - ${currentView.labelEn}`} 
             className="w-full h-full object-contain drop-shadow-2xl"
           />
 
-          {/* Category indicators overlaid on car - only show categories with issues */}
+          {/* Category indicators for current view */}
           {INSPECTION_CATEGORIES.map(cat => {
-            const position = CATEGORY_POSITIONS[cat.id];
+            const position = currentPositions[cat.id];
             if (!position) return null;
             
             const status = getCategoryStatus(cat.id);
@@ -259,13 +383,12 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
             const catItems = getCategoryItems(cat.id);
             const isSelected = selectedCategory === cat.id;
             
-            // Only show categories that have issues to avoid cluttering
             if (!hasIssues) return null;
             
             return (
               <div 
                 key={cat.id} 
-                className="absolute z-10" 
+                className="absolute z-10 transition-all duration-300" 
                 style={position as any}
                 onMouseDown={(e) => e.stopPropagation()}
                 onTouchStart={(e) => e.stopPropagation()}
@@ -334,11 +457,28 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
         </div>
       </div>
 
+      {/* View Indicators (dots) */}
+      <div className="absolute bottom-20 left-0 right-0 flex justify-center gap-2">
+        {CAR_VIEWS.map((view, idx) => (
+          <button
+            key={view.angle}
+            onClick={(e) => { e.stopPropagation(); setCurrentViewIndex(idx); }}
+            className={cn(
+              "w-2.5 h-2.5 rounded-full transition-all",
+              idx === currentViewIndex 
+                ? "bg-accent w-8" 
+                : "bg-white/30 hover:bg-white/50"
+            )}
+            data-testid={`button-view-${view.angle}`}
+          />
+        ))}
+      </div>
+
       {/* Legend and Instructions */}
       <div className="absolute bottom-4 left-0 right-0 space-y-2">
         <div className="flex justify-center">
           <div className="bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5 text-[10px] text-white/60 font-arabic">
-            {isDragging ? "جاري التدوير..." : "اسحب للتدوير 360° • اضغط على النقاط لعرض التفاصيل"}
+            {isDragging ? "جاري التدوير..." : "اسحب أو استخدم الأسهم للتدوير 360° • اضغط على النقاط لعرض التفاصيل"}
           </div>
         </div>
         <div className="flex justify-center gap-6 text-xs font-bold font-arabic text-white/80">
