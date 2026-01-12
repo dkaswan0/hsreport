@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute } from "wouter";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { 
   Car,
   Phone,
@@ -24,7 +24,10 @@ import { cn } from "@/lib/utils";
 import { getVehicleColor, calculateInspectionStats, getInspectionTypeLabel } from "@/lib/vehicle-utils";
 import logoPath from "@assets/logo_1767706304085.png";
 import { VinPlate } from "@/components/vin-plate";
-import carAnatomyView from "@assets/generated_images/technical_car_cutaway_diagram.png";
+import carCutawayFrontLeft from "@assets/generated_images/car_cutaway_front-left_view.png";
+import carCutawayRightSide from "@assets/generated_images/car_cutaway_right_side_view.png";
+import carCutawayRearRight from "@assets/generated_images/car_cutaway_rear-right_view.png";
+import carCutawayLeftSide from "@assets/generated_images/car_cutaway_left_side_view.png";
 import type { Inspection, InspectionItem } from "@shared/schema";
 import { INSPECTION_CATEGORIES, CATEGORY_GROUPS } from "@shared/categories";
 import { LuxuryOdometer } from "@/components/luxury-odometer";
@@ -32,55 +35,75 @@ import { IntroAnimation } from "@/components/intro-animation";
 
 type InspectionWithItems = Inspection & { items: InspectionItem[] };
 
-// Anatomy positions for cutaway diagram - showing internal car systems
-const ANATOMY_POSITIONS: Record<string, { top: string; left: string; label: string }> = {
-  // Engine & Mechanical
-  engine: { top: "45%", left: "18%", label: "المحرك" },
-  transmission: { top: "52%", left: "35%", label: "ناقل الحركة" },
-  steering_system: { top: "48%", left: "22%", label: "التوجيه" },
-  
-  // Suspension & Brakes
-  suspension_system: { top: "62%", left: "25%", label: "التعليق" },
-  brake_system: { top: "65%", left: "15%", label: "الفرامل" },
-  tires_rims: { top: "70%", left: "12%", label: "الإطارات" },
-  
-  // Cooling & Exhaust  
-  ac_cooling: { top: "38%", left: "20%", label: "التكييف" },
-  fuel_exhaust: { top: "55%", left: "75%", label: "العادم" },
-  
-  // Body Exterior
-  hood: { top: "28%", left: "20%", label: "الكبوت" },
-  trunk: { top: "32%", left: "82%", label: "الصندوق" },
-  front_bumper: { top: "50%", left: "5%", label: "الصدام الأمامي" },
-  rear_bumper: { top: "50%", left: "95%", label: "الصدام الخلفي" },
-  
-  // Doors & Panels
-  door_front_right: { top: "42%", left: "40%", label: "الباب الأمامي" },
-  door_rear_right: { top: "42%", left: "55%", label: "الباب الخلفي" },
-  door_front_left: { top: "42%", left: "40%", label: "الباب الأمامي" },
-  door_rear_left: { top: "42%", left: "55%", label: "الباب الخلفي" },
-  fender_front_right: { top: "48%", left: "28%", label: "الرفرف الأمامي" },
-  fender_rear_right: { top: "48%", left: "72%", label: "الرفرف الخلفي" },
-  fender_front_left: { top: "48%", left: "28%", label: "الرفرف الأمامي" },
-  fender_rear_left: { top: "48%", left: "72%", label: "الرفرف الخلفي" },
-  quarter_panel: { top: "40%", left: "78%", label: "ربع اللوحة" },
-  
-  // Top & Windows
-  roof: { top: "22%", left: "50%", label: "السقف" },
-  pillars: { top: "30%", left: "45%", label: "الأعمدة" },
-  windows: { top: "28%", left: "50%", label: "الزجاج" },
-  
-  // Lights & Electronics
-  exterior_lighting: { top: "38%", left: "8%", label: "الإضاءة" },
-  electrical: { top: "35%", left: "45%", label: "الكهربائيات" },
-  
-  // Interior
-  interior: { top: "35%", left: "50%", label: "الداخلية" },
-  seats: { top: "38%", left: "48%", label: "المقاعد" },
-  dashboard: { top: "32%", left: "35%", label: "الطبلون" },
-  
-  // Other
-  rear_chest: { top: "45%", left: "85%", label: "التجويف الخلفي" },
+// 360 degree car views configuration
+type ViewAngle = 'front_left' | 'right_side' | 'rear_right' | 'left_side';
+const CAR_CUTAWAY_VIEWS: { angle: ViewAngle; image: string; label: string }[] = [
+  { angle: 'front_left', image: carCutawayFrontLeft, label: 'الأمام' },
+  { angle: 'right_side', image: carCutawayRightSide, label: 'اليمين' },
+  { angle: 'rear_right', image: carCutawayRearRight, label: 'الخلف' },
+  { angle: 'left_side', image: carCutawayLeftSide, label: 'اليسار' },
+];
+
+// Anatomy positions per view angle for accurate fault placement
+const ANATOMY_POSITIONS_BY_VIEW: Record<ViewAngle, Record<string, { top: string; left: string; label: string }>> = {
+  front_left: {
+    engine: { top: "50%", left: "35%", label: "المحرك" },
+    transmission: { top: "55%", left: "45%", label: "ناقل الحركة" },
+    steering_system: { top: "52%", left: "30%", label: "التوجيه" },
+    suspension_system: { top: "65%", left: "25%", label: "التعليق" },
+    brake_system: { top: "70%", left: "20%", label: "الفرامل" },
+    tires_rims: { top: "75%", left: "18%", label: "الإطارات" },
+    ac_cooling: { top: "45%", left: "28%", label: "التكييف" },
+    hood: { top: "35%", left: "38%", label: "الكبوت" },
+    exterior_lighting: { top: "48%", left: "15%", label: "الإضاءة" },
+    front_bumper: { top: "60%", left: "12%", label: "الصدام" },
+    windows: { top: "30%", left: "50%", label: "الزجاج" },
+    roof: { top: "25%", left: "55%", label: "السقف" },
+    electrical: { top: "40%", left: "50%", label: "الكهرباء" },
+  },
+  right_side: {
+    engine: { top: "48%", left: "18%", label: "المحرك" },
+    transmission: { top: "55%", left: "35%", label: "ناقل الحركة" },
+    fuel_exhaust: { top: "65%", left: "70%", label: "العادم" },
+    suspension_system: { top: "68%", left: "25%", label: "التعليق" },
+    brake_system: { top: "72%", left: "22%", label: "الفرامل" },
+    tires_rims: { top: "75%", left: "20%", label: "الإطارات" },
+    door_front_right: { top: "42%", left: "35%", label: "الباب الأمامي" },
+    door_rear_right: { top: "42%", left: "55%", label: "الباب الخلفي" },
+    fender_front_right: { top: "52%", left: "22%", label: "الرفرف" },
+    fender_rear_right: { top: "52%", left: "78%", label: "الرفرف" },
+    windows: { top: "30%", left: "45%", label: "الزجاج" },
+    roof: { top: "22%", left: "50%", label: "السقف" },
+    trunk: { top: "38%", left: "85%", label: "الصندوق" },
+  },
+  rear_right: {
+    fuel_exhaust: { top: "60%", left: "45%", label: "العادم" },
+    trunk: { top: "35%", left: "50%", label: "الصندوق" },
+    rear_bumper: { top: "60%", left: "55%", label: "الصدام" },
+    rear_chest: { top: "45%", left: "50%", label: "التجويف" },
+    fuel_tank: { top: "55%", left: "40%", label: "الوقود" },
+    suspension_system: { top: "68%", left: "70%", label: "التعليق" },
+    brake_system: { top: "72%", left: "75%", label: "الفرامل" },
+    tires_rims: { top: "75%", left: "78%", label: "الإطارات" },
+    exterior_lighting: { top: "48%", left: "65%", label: "الإضاءة" },
+    windows: { top: "28%", left: "45%", label: "الزجاج" },
+    quarter_panel: { top: "45%", left: "72%", label: "الربع" },
+  },
+  left_side: {
+    engine: { top: "48%", left: "82%", label: "المحرك" },
+    transmission: { top: "55%", left: "65%", label: "ناقل الحركة" },
+    fuel_exhaust: { top: "65%", left: "30%", label: "العادم" },
+    suspension_system: { top: "68%", left: "75%", label: "التعليق" },
+    brake_system: { top: "72%", left: "78%", label: "الفرامل" },
+    tires_rims: { top: "75%", left: "80%", label: "الإطارات" },
+    door_front_left: { top: "42%", left: "65%", label: "الباب الأمامي" },
+    door_rear_left: { top: "42%", left: "45%", label: "الباب الخلفي" },
+    fender_front_left: { top: "52%", left: "78%", label: "الرفرف" },
+    fender_rear_left: { top: "52%", left: "22%", label: "الرفرف" },
+    windows: { top: "30%", left: "55%", label: "الزجاج" },
+    roof: { top: "22%", left: "50%", label: "السقف" },
+    hood: { top: "38%", left: "85%", label: "الكبوت" },
+  },
 };
 
 const ImageModal = ({ imageUrl, faultName, onClose }: { imageUrl: string; faultName: string; onClose: () => void }) => (
@@ -108,7 +131,14 @@ const ImageModal = ({ imageUrl, faultName, onClose }: { imageUrl: string; faultN
 );
 
 const CarAnatomyVisualization = ({ items, onCategoryClick }: { items: InspectionItem[], onCategoryClick: (cat: string) => void }) => {
+  const [currentViewIndex, setCurrentViewIndex] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [dragDistance, setDragDistance] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const currentView = CAR_CUTAWAY_VIEWS[currentViewIndex];
 
   const getCategoryStatus = (catId: string) => {
     const catItems = items.filter(i => i.category === catId);
@@ -148,46 +178,107 @@ const CarAnatomyVisualization = ({ items, onCategoryClick }: { items: Inspection
   }, [items]);
 
   const getPosition = (catId: string) => {
-    return ANATOMY_POSITIONS[catId] || { top: "50%", left: "50%", label: catId };
+    const viewPositions = ANATOMY_POSITIONS_BY_VIEW[currentView.angle];
+    return viewPositions[catId] || { top: "50%", left: "50%", label: catId };
   };
 
-  // Single anatomical cutaway view for all devices
+  const goToView = (direction: 'next' | 'prev') => {
+    setCurrentViewIndex(prev => {
+      if (direction === 'next') return (prev + 1) % CAR_CUTAWAY_VIEWS.length;
+      return prev === 0 ? CAR_CUTAWAY_VIEWS.length - 1 : prev - 1;
+    });
+    setSelectedCategory(null);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    setStartX(e.touches[0].clientX);
+    setDragDistance(0);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    setDragDistance(e.touches[0].clientX - startX);
+  };
+
+  const handleTouchEnd = () => {
+    if (isDragging && Math.abs(dragDistance) > 50) {
+      goToView(dragDistance > 0 ? 'prev' : 'next');
+    }
+    setIsDragging(false);
+    setDragDistance(0);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setStartX(e.clientX);
+    setDragDistance(0);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    setDragDistance(e.clientX - startX);
+  };
+
+  const handleMouseUp = () => {
+    if (isDragging && Math.abs(dragDistance) > 50) {
+      goToView(dragDistance > 0 ? 'prev' : 'next');
+    }
+    setIsDragging(false);
+    setDragDistance(0);
+  };
+
   return (
-    <div className="relative w-full bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 rounded-3xl overflow-hidden">
+    <div className="relative w-full bg-gradient-to-b from-[#0C1A28] via-[#0f1f2e] to-[#0C1A28] rounded-3xl overflow-hidden">
       {/* Header stats */}
-      <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-20">
-        <div className="bg-white/20 backdrop-blur-sm rounded-xl px-3 py-1.5 text-white text-xs font-arabic font-bold">
-          عرض تشريحي
+      <div className="absolute top-0 left-0 right-0 p-3 md:p-4 flex justify-between items-center z-20">
+        <div className="bg-[#C5852C]/20 backdrop-blur-sm rounded-xl px-3 py-1.5 text-[#C5852C] text-xs font-arabic font-bold border border-[#C5852C]/30">
+          {currentView.label}
         </div>
         <div className="flex gap-2">
           {stats.warning > 0 && (
-            <div className="flex items-center gap-1.5 bg-amber-500/30 text-amber-300 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm">
-              <AlertCircle className="w-3.5 h-3.5" />
-              <span>{stats.warning}</span>
+            <div className="flex items-center gap-1.5 bg-amber-500/20 text-amber-400 px-2 md:px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm border border-amber-500/30">
+              <AlertCircle className="w-3 h-3 md:w-3.5 md:h-3.5" />
+              <span>{stats.warning} تحذير</span>
             </div>
           )}
           {stats.fail > 0 && (
-            <div className="flex items-center gap-1.5 bg-red-500/30 text-red-300 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm">
-              <XCircle className="w-3.5 h-3.5" />
-              <span>{stats.fail}</span>
+            <div className="flex items-center gap-1.5 bg-red-500/20 text-red-400 px-2 md:px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm border border-red-500/30">
+              <XCircle className="w-3 h-3 md:w-3.5 md:h-3.5" />
+              <span>{stats.fail} خطير</span>
             </div>
           )}
         </div>
       </div>
 
-      {/* Anatomical Car Visualization */}
-      <div className="relative w-full aspect-[16/9] md:aspect-[16/10] flex items-center justify-center p-4 pt-14">
-        <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-white/5 to-transparent" />
+      {/* 360 Rotation Car Visualization */}
+      <div 
+        ref={containerRef}
+        className="relative w-full aspect-[4/3] md:aspect-[16/9] flex items-center justify-center pt-12 md:pt-14 pb-16 cursor-grab active:cursor-grabbing select-none touch-pan-y"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+      >
+        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-white/5 to-transparent" />
         
-        <div className="relative w-full h-full max-w-3xl">
+        <div className="relative w-full h-full px-2 md:px-8">
           <img 
-            src={carAnatomyView} 
-            alt="عرض تشريحي للسيارة" 
-            className="w-full h-full object-contain drop-shadow-2xl"
+            src={currentView.image} 
+            alt={`عرض تشريحي - ${currentView.label}`} 
+            className="w-full h-full object-contain drop-shadow-2xl transition-transform duration-300"
+            style={{ transform: isDragging ? `translateX(${dragDistance * 0.1}px)` : 'none' }}
+            draggable={false}
           />
 
           {/* Category markers on anatomy diagram */}
           {INSPECTION_CATEGORIES.map(cat => {
+            const viewPositions = ANATOMY_POSITIONS_BY_VIEW[currentView.angle];
+            if (!viewPositions[cat.id]) return null;
+            
             const position = getPosition(cat.id);
             const status = getCategoryStatus(cat.id);
             const hasIssues = status !== 'good';
@@ -201,6 +292,8 @@ const CarAnatomyVisualization = ({ items, onCategoryClick }: { items: Inspection
                 key={cat.id} 
                 className="absolute z-10 transition-all duration-300 -translate-x-1/2 -translate-y-1/2" 
                 style={{ top: position.top, left: position.left }}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
               >
                 <button
                   onClick={() => handleCategoryPress(cat.id)}
@@ -258,22 +351,42 @@ const CarAnatomyVisualization = ({ items, onCategoryClick }: { items: Inspection
         </div>
       </div>
 
-      {/* Legend */}
-      <div className="absolute bottom-4 left-0 right-0">
-        <div className="flex justify-center gap-6">
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50" />
-            <span className="text-[10px] text-white/70 font-arabic">سليم</span>
+      {/* View Indicators (dots) */}
+      <div className="absolute bottom-12 left-0 right-0 flex justify-center gap-2">
+        {CAR_CUTAWAY_VIEWS.map((view, idx) => (
+          <button
+            key={view.angle}
+            onClick={() => { setCurrentViewIndex(idx); setSelectedCategory(null); }}
+            className={cn(
+              "h-2 rounded-full transition-all duration-300",
+              idx === currentViewIndex 
+                ? "bg-[#C5852C] w-6" 
+                : "bg-white/30 w-2 hover:bg-white/50"
+            )}
+            data-testid={`button-view-${view.angle}`}
+          />
+        ))}
+      </div>
+
+      {/* Legend & Hint */}
+      <div className="absolute bottom-2 left-0 right-0 space-y-1">
+        <div className="flex justify-center gap-4 md:gap-6">
+          <div className="flex items-center gap-1">
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50" />
+            <span className="text-[9px] md:text-[10px] text-white/70 font-arabic">سليم</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-amber-500 shadow-lg shadow-amber-500/50" />
-            <span className="text-[10px] text-white/70 font-arabic">تحذير</span>
+          <div className="flex items-center gap-1">
+            <div className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50" />
+            <span className="text-[9px] md:text-[10px] text-white/70 font-arabic">تحذير</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-red-500 shadow-lg shadow-red-500/50" />
-            <span className="text-[10px] text-white/70 font-arabic">خطير</span>
+          <div className="flex items-center gap-1">
+            <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-sm shadow-red-500/50" />
+            <span className="text-[9px] md:text-[10px] text-white/70 font-arabic">خطير</span>
           </div>
         </div>
+        <p className="text-center text-[8px] md:text-[9px] text-white/40 font-arabic">
+          اسحب لتدوير السيارة 360° • اضغط على العلامة لمعرفة التفاصيل
+        </p>
       </div>
     </div>
   );
