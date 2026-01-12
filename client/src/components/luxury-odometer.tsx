@@ -10,6 +10,7 @@ interface LuxuryOdometerProps {
 
 export function LuxuryOdometer({ odometer, odometerPhoto, className }: LuxuryOdometerProps) {
   const [showPhoto, setShowPhoto] = useState(false);
+  const [showFullSize, setShowFullSize] = useState(false);
   
   const formattedOdometer = odometer?.toLocaleString('en-US') || '0';
   const displayNumber = odometer?.toString() || '0';
@@ -207,7 +208,7 @@ export function LuxuryOdometer({ odometer, odometerPhoto, className }: LuxuryOdo
         )}
       </button>
 
-      {showPhoto && odometerPhoto && (
+      {showPhoto && odometerPhoto && !showFullSize && (
         <div 
           className="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-4 animate-in fade-in duration-300"
           onClick={() => setShowPhoto(false)}
@@ -221,26 +222,44 @@ export function LuxuryOdometer({ odometer, odometerPhoto, className }: LuxuryOdo
             <X className="w-6 h-6" />
           </button>
           
-          <div className="max-w-2xl w-full space-y-6" onClick={e => e.stopPropagation()}>
-            <div className="text-center mb-4">
-              <h3 className="text-white text-xl font-bold font-arabic mb-2">صورة العداد الحقيقية</h3>
-              <p className="text-neutral-400 text-sm font-arabic">Real Odometer Photo</p>
+          <div className="max-w-lg w-full space-y-4" onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="text-center">
+              <h3 className="text-white text-xl font-bold font-arabic mb-1">قراءة العداد</h3>
+              <p className="text-neutral-400 text-sm font-arabic">Odometer Reading</p>
             </div>
             
-            <div className="relative rounded-xl overflow-hidden shadow-2xl border border-amber-500/30">
-              <img 
-                src={odometerPhoto} 
-                alt="صورة العداد" 
-                className="w-full h-auto object-contain bg-neutral-950"
-                data-testid="img-odometer-photo"
-              />
-            </div>
+            {/* Rotating Image Container - Clickable */}
+            <button
+              type="button"
+              className="relative w-full rounded-2xl overflow-hidden border-2 border-amber-500/40 bg-gradient-to-b from-neutral-900 to-black p-1 cursor-pointer hover:border-amber-500 transition-colors"
+              onClick={() => setShowFullSize(true)}
+              data-testid="button-expand-odometer-photo"
+            >
+              <div className="relative aspect-video rounded-xl overflow-hidden bg-black">
+                <img 
+                  src={odometerPhoto} 
+                  alt="صورة العداد" 
+                  className="w-full h-full object-contain animate-slow-rotate"
+                  data-testid="img-odometer-photo"
+                />
+              </div>
+              
+              {/* Instruction overlay */}
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-4">
+                <div className="flex items-center justify-center gap-2 text-amber-400">
+                  <Eye className="w-4 h-4" />
+                  <span className="text-sm font-arabic font-medium">اضغط على الصورة لعرضها بالحجم الكامل</span>
+                </div>
+              </div>
+            </button>
             
+            {/* Odometer Display */}
             <div className="bg-gradient-to-b from-neutral-900 to-neutral-950 rounded-xl p-5 border border-neutral-800">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-neutral-500 text-xs font-arabic mb-1">قراءة العداد</p>
-                  <p className="text-neutral-600 text-xs">Odometer Reading</p>
+                  <p className="text-neutral-500 text-xs font-arabic mb-1">قراءة العداد الفعلية</p>
+                  <p className="text-neutral-600 text-xs">Verified Odometer</p>
                 </div>
                 <div className="text-right">
                   <p className="text-3xl font-light text-white tracking-wide">{formattedOdometer}</p>
@@ -249,6 +268,27 @@ export function LuxuryOdometer({ odometer, odometerPhoto, className }: LuxuryOdo
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Full Size Photo Modal */}
+      {showFullSize && odometerPhoto && (
+        <div 
+          className="fixed inset-0 bg-black z-[60] flex items-center justify-center p-2"
+          onClick={() => { setShowFullSize(false); setShowPhoto(false); }}
+        >
+          <button
+            onClick={() => { setShowFullSize(false); setShowPhoto(false); }}
+            className="absolute top-4 right-4 p-3 bg-white/10 rounded-full hover:bg-white/20 transition-colors backdrop-blur-sm z-10"
+            data-testid="button-close-odometer-fullsize"
+          >
+            <X className="w-6 h-6 text-white" />
+          </button>
+          <img
+            src={odometerPhoto}
+            alt="صورة العداد - الحجم الكامل"
+            className="max-w-full max-h-full object-contain"
+          />
         </div>
       )}
     </>

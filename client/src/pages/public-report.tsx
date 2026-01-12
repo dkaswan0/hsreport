@@ -769,12 +769,17 @@ export default function PublicReport() {
         )}
 
         {/* Footer with WhatsApp CTA */}
-        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-8 text-center text-white">
-          <img src={logoPath} alt="High Safety" className="h-14 mx-auto mb-4" />
-          <h3 className="text-lg font-bold font-arabic mb-2">
-            هاي سيفتي انترناشيونال
-          </h3>
-          <p className="text-white/60 text-sm font-arabic">
+        <div className="bg-gradient-to-br from-[#0C1A28] via-[#0f1f2e] to-[#0C1A28] rounded-2xl p-8 text-center text-white border border-[#C5852C]/20">
+          <img src={logoPath} alt="High Safety" className="h-16 mx-auto mb-4 drop-shadow-lg" />
+          <div className="bg-[#C5852C]/10 rounded-xl px-6 py-3 inline-block mb-3 border border-[#C5852C]/30">
+            <h3 className="text-xl md:text-2xl font-black font-arabic text-[#C5852C] tracking-wide drop-shadow-sm">
+              هاي سيفتي انترناشيونال
+            </h3>
+            <p className="text-[#C5852C]/80 text-sm font-bold tracking-widest mt-1">
+              HIGH SAFETY INTERNATIONAL
+            </p>
+          </div>
+          <p className="text-white/70 text-sm font-arabic font-medium">
             مركز فحص السيارات - الشارقة، الإمارات
           </p>
           

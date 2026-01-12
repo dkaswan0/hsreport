@@ -131,3 +131,17 @@
 ::-webkit-scrollbar-thumb {
   @apply bg-muted-foreground/30 rounded-full hover:bg-muted-foreground/50 transition-colors;
 }
+
+/* Slow 360 rotation animation for evidence photos */
+@keyframes slowRotate {
+  from {
+    transform: perspective(500px) rotateY(0deg);
+  }
+  to {
+    transform: perspective(500px) rotateY(360deg);
+  }
+}
+
+.animate-slow-rotate {
+  animation: slowRotate 20s linear infinite;
+}
