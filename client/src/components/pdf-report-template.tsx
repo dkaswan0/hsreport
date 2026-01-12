@@ -366,35 +366,76 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
             </div>
           </div>
 
-          {/* VIN */}
+          {/* VIN - Metal Plate Style */}
           <div style={{ 
-            background: '#ffffff', 
-            borderRadius: '10px', 
-            padding: '12px 14px', 
-            boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
-            border: `1px solid ${BRAND.border}`,
-            borderTop: `3px solid ${BRAND.secondary}`,
+            background: 'linear-gradient(145deg, #d4d4d8 0%, #a1a1aa 25%, #d4d4d8 50%, #a1a1aa 75%, #d4d4d8 100%)',
+            borderRadius: '8px', 
+            padding: '10px 12px', 
+            boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.15)',
+            position: 'relative',
           }}>
-            <p style={{ color: BRAND.muted, fontSize: '8px', margin: '0 0 4px 0', display: 'flex', justifyContent: 'space-between' }}>
-              <span style={textStyle}>رقم الشاصي</span>
-              <span style={englishStyle}>VIN Number</span>
-            </p>
-            <p style={{ 
-              color: BRAND.dark, 
-              fontSize: '10px', 
-              fontWeight: 'bold', 
-              margin: 0,
-              fontFamily: "'Courier New', monospace",
-              letterSpacing: '0.4px',
-              backgroundColor: BRAND.light,
-              padding: '5px 8px',
-              borderRadius: '5px',
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              borderBottom: '1px solid rgba(82, 82, 91, 0.3)',
+              paddingBottom: '4px',
+              marginBottom: '4px',
             }}>
-              {inspection.vin}
+              <span style={{ fontSize: '8px', fontWeight: 'bold', color: '#3f3f46', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                {inspection.make || 'MANUFACTURER'}
+              </span>
+              <span style={{ fontSize: '8px', fontWeight: 'bold', color: '#3f3f46' }}>
+                {inspection.year || '----'}
+              </span>
+            </div>
+            {inspection.model && (
+              <p style={{ fontSize: '9px', fontWeight: 'bold', color: '#27272a', textAlign: 'center', margin: '0 0 4px 0', textTransform: 'uppercase' }}>
+                {inspection.model}
+              </p>
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '7px', fontWeight: 'bold', color: '#52525b' }}>VIN</span>
+              <div style={{
+                flex: 1,
+                background: 'linear-gradient(180deg, #fafafa 0%, #e4e4e7 100%)',
+                borderRadius: '4px',
+                padding: '4px 6px',
+                boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.15)',
+              }}>
+                <p style={{ 
+                  fontFamily: "'Courier New', monospace",
+                  fontWeight: 900,
+                  fontSize: '9px',
+                  color: '#18181b',
+                  letterSpacing: '1.5px',
+                  textAlign: 'center',
+                  margin: 0,
+                }}>
+                  {inspection.vin}
+                </p>
+              </div>
+            </div>
+            <p style={{ fontSize: '6px', color: '#52525b', textAlign: 'center', margin: '4px 0 0 0', borderTop: '1px solid rgba(82, 82, 91, 0.2)', paddingTop: '3px' }}>
+              VEHICLE IDENTIFICATION • Report: HS-{inspection.id}
             </p>
-            <p style={{ color: BRAND.accent, fontSize: '9px', margin: '5px 0 0 0', fontWeight: 'bold', ...englishStyle }}>
-              <span style={textStyle}>رقم التقرير</span> | Report: HS-{inspection.id}
-            </p>
+            <div style={{
+              position: 'absolute',
+              top: '6px',
+              left: '6px',
+              width: '5px',
+              height: '5px',
+              borderRadius: '50%',
+              background: 'radial-gradient(circle at 30% 30%, #a1a1aa, #52525b)',
+            }} />
+            <div style={{
+              position: 'absolute',
+              top: '6px',
+              right: '6px',
+              width: '5px',
+              height: '5px',
+              borderRadius: '50%',
+              background: 'radial-gradient(circle at 30% 30%, #a1a1aa, #52525b)',
+            }} />
           </div>
 
           {/* Odometer */}

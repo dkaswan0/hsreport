@@ -31,6 +31,7 @@ import { PdfReportTemplate } from "@/components/pdf-report-template";
 import carVisualizationPath from "@assets/generated_images/professional_car_anatomy_diagram.png";
 import { INSPECTION_CATEGORIES, CATEGORY_GROUPS } from "@shared/categories";
 import { getVehicleColor, calculateInspectionStats } from "@/lib/vehicle-utils";
+import { VinPlate } from "@/components/vin-plate";
 
 // Category position mapping for car visualization - organized by car part location
 const CATEGORY_POSITIONS: Record<string, { top: string; left: string; transform?: string }> = {
@@ -339,17 +340,17 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
         </div>
       </div>
 
-      {/* VIN Section */}
+      {/* VIN Section - Professional Metal Plate */}
       <div className="px-6 pb-6">
-        <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <ShieldCheck className="w-8 h-8 text-primary" />
-            <div className="text-right">
-              <div className="text-xs text-slate-500 font-arabic">رقم الشاصي / VIN Number</div>
-              <div className="font-mono font-black text-lg text-slate-900 tracking-wider">{inspection.vin}</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-primary font-arabic">
+        <div className="flex flex-col md:flex-row items-center gap-4">
+          <VinPlate 
+            vin={inspection.vin}
+            make={inspection.make}
+            model={inspection.model}
+            year={inspection.year}
+            className="w-full md:w-auto md:min-w-[320px]"
+          />
+          <div className="flex items-center gap-2 text-xs text-primary font-arabic bg-primary/5 px-4 py-2 rounded-full">
             <CheckCircle2 className="w-4 h-4" />
             تم التحقق من صحة الرقم
           </div>
