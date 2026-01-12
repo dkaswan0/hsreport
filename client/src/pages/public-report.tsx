@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute } from "wouter";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { 
   Car,
   Phone,
@@ -24,94 +24,63 @@ import { cn } from "@/lib/utils";
 import { getVehicleColor, calculateInspectionStats, getInspectionTypeLabel } from "@/lib/vehicle-utils";
 import logoPath from "@assets/logo_1767706304085.png";
 import { VinPlate } from "@/components/vin-plate";
-import carFrontView from "@assets/generated_images/car_front_view_diagram.png";
-import carRightView from "@assets/generated_images/car_right_side_view.png";
-import carRearView from "@assets/generated_images/car_rear_view_diagram.png";
-import carLeftView from "@assets/generated_images/car_left_side_view.png";
+import carAnatomyView from "@assets/generated_images/technical_car_cutaway_diagram.png";
 import type { Inspection, InspectionItem } from "@shared/schema";
 import { INSPECTION_CATEGORIES, CATEGORY_GROUPS } from "@shared/categories";
 import { LuxuryOdometer } from "@/components/luxury-odometer";
 import { IntroAnimation } from "@/components/intro-animation";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type InspectionWithItems = Inspection & { items: InspectionItem[] };
 
-// Car views configuration
-type ViewAngle = 'front' | 'right' | 'rear' | 'left';
-const CAR_VIEWS: { angle: ViewAngle; image: string; label: string }[] = [
-  { angle: 'front', image: carFrontView, label: 'الأمام' },
-  { angle: 'right', image: carRightView, label: 'الجانب الأيمن' },
-  { angle: 'rear', image: carRearView, label: 'الخلف' },
-  { angle: 'left', image: carLeftView, label: 'الجانب الأيسر' },
-];
-
-// Category positions for each viewing angle
-const CATEGORY_POSITIONS_BY_VIEW: Record<ViewAngle, Record<string, { top: string; left: string }>> = {
-  front: {
-    engine: { top: "55%", left: "50%" },
-    suspension_system: { top: "85%", left: "30%" },
-    steering_system: { top: "65%", left: "50%" },
-    brake_system: { top: "88%", left: "25%" },
-    ac_cooling: { top: "60%", left: "40%" },
-    hood: { top: "35%", left: "50%" },
-    front_bumper: { top: "78%", left: "50%" },
-    exterior_lighting: { top: "45%", left: "25%" },
-    windows: { top: "25%", left: "50%" },
-    tires_rims: { top: "88%", left: "75%" },
-  },
-  right: {
-    door_front_right: { top: "40%", left: "35%" },
-    door_rear_right: { top: "40%", left: "60%" },
-    fender_front_right: { top: "50%", left: "18%" },
-    fender_rear_right: { top: "50%", left: "82%" },
-    quarter_panel: { top: "45%", left: "75%" },
-    pillars: { top: "30%", left: "45%" },
-    roof: { top: "22%", left: "50%" },
-    windows: { top: "32%", left: "55%" },
-    tires_rims: { top: "85%", left: "25%" },
-    engine: { top: "55%", left: "15%" },
-  },
-  rear: {
-    trunk: { top: "35%", left: "50%" },
-    rear_bumper: { top: "78%", left: "50%" },
-    rear_chest: { top: "65%", left: "50%" },
-    fender_rear_right: { top: "50%", left: "20%" },
-    fender_rear_left: { top: "50%", left: "80%" },
-    exterior_lighting: { top: "45%", left: "25%" },
-    windows: { top: "25%", left: "50%" },
-    tires_rims: { top: "88%", left: "75%" },
-    fuel_exhaust: { top: "70%", left: "50%" },
-  },
-  left: {
-    door_front_left: { top: "40%", left: "65%" },
-    door_rear_left: { top: "40%", left: "40%" },
-    fender_front_left: { top: "50%", left: "82%" },
-    fender_rear_left: { top: "50%", left: "18%" },
-    quarter_panel: { top: "45%", left: "25%" },
-    pillars: { top: "30%", left: "55%" },
-    roof: { top: "22%", left: "50%" },
-    windows: { top: "32%", left: "45%" },
-    tires_rims: { top: "85%", left: "75%" },
-    engine: { top: "55%", left: "85%" },
-  },
-};
-
-// Legacy fallback positions
-const CATEGORY_POSITIONS: Record<string, { top: string; left: string }> = {
-  front_bumper: { top: "42%", left: "8%" },
-  rear_bumper: { top: "42%", left: "92%" },
-  hood: { top: "25%", left: "15%" },
-  trunk: { top: "25%", left: "85%" },
-  engine: { top: "55%", left: "18%" },
-  tires_rims: { top: "92%", left: "25%" },
-};
-
-// Get position with fallback
-const getCategoryPosition = (catId: string, currentView: ViewAngle): { top: string; left: string } => {
-  const viewPositions = CATEGORY_POSITIONS_BY_VIEW[currentView];
-  if (viewPositions[catId]) return viewPositions[catId];
-  if (CATEGORY_POSITIONS[catId]) return CATEGORY_POSITIONS[catId];
-  return { top: "50%", left: "50%" };
+// Anatomy positions for cutaway diagram - showing internal car systems
+const ANATOMY_POSITIONS: Record<string, { top: string; left: string; label: string }> = {
+  // Engine & Mechanical
+  engine: { top: "45%", left: "18%", label: "المحرك" },
+  transmission: { top: "52%", left: "35%", label: "ناقل الحركة" },
+  steering_system: { top: "48%", left: "22%", label: "التوجيه" },
+  
+  // Suspension & Brakes
+  suspension_system: { top: "62%", left: "25%", label: "التعليق" },
+  brake_system: { top: "65%", left: "15%", label: "الفرامل" },
+  tires_rims: { top: "70%", left: "12%", label: "الإطارات" },
+  
+  // Cooling & Exhaust  
+  ac_cooling: { top: "38%", left: "20%", label: "التكييف" },
+  fuel_exhaust: { top: "55%", left: "75%", label: "العادم" },
+  
+  // Body Exterior
+  hood: { top: "28%", left: "20%", label: "الكبوت" },
+  trunk: { top: "32%", left: "82%", label: "الصندوق" },
+  front_bumper: { top: "50%", left: "5%", label: "الصدام الأمامي" },
+  rear_bumper: { top: "50%", left: "95%", label: "الصدام الخلفي" },
+  
+  // Doors & Panels
+  door_front_right: { top: "42%", left: "40%", label: "الباب الأمامي" },
+  door_rear_right: { top: "42%", left: "55%", label: "الباب الخلفي" },
+  door_front_left: { top: "42%", left: "40%", label: "الباب الأمامي" },
+  door_rear_left: { top: "42%", left: "55%", label: "الباب الخلفي" },
+  fender_front_right: { top: "48%", left: "28%", label: "الرفرف الأمامي" },
+  fender_rear_right: { top: "48%", left: "72%", label: "الرفرف الخلفي" },
+  fender_front_left: { top: "48%", left: "28%", label: "الرفرف الأمامي" },
+  fender_rear_left: { top: "48%", left: "72%", label: "الرفرف الخلفي" },
+  quarter_panel: { top: "40%", left: "78%", label: "ربع اللوحة" },
+  
+  // Top & Windows
+  roof: { top: "22%", left: "50%", label: "السقف" },
+  pillars: { top: "30%", left: "45%", label: "الأعمدة" },
+  windows: { top: "28%", left: "50%", label: "الزجاج" },
+  
+  // Lights & Electronics
+  exterior_lighting: { top: "38%", left: "8%", label: "الإضاءة" },
+  electrical: { top: "35%", left: "45%", label: "الكهربائيات" },
+  
+  // Interior
+  interior: { top: "35%", left: "50%", label: "الداخلية" },
+  seats: { top: "38%", left: "48%", label: "المقاعد" },
+  dashboard: { top: "32%", left: "35%", label: "الطبلون" },
+  
+  // Other
+  rear_chest: { top: "45%", left: "85%", label: "التجويف الخلفي" },
 };
 
 const ImageModal = ({ imageUrl, faultName, onClose }: { imageUrl: string; faultName: string; onClose: () => void }) => (
@@ -138,82 +107,8 @@ const ImageModal = ({ imageUrl, faultName, onClose }: { imageUrl: string; faultN
   </div>
 );
 
-const Car3DVisualization = ({ items, onCategoryClick }: { items: InspectionItem[], onCategoryClick: (cat: string) => void }) => {
-  const [currentViewIndex, setCurrentViewIndex] = useState(0);
-  const [isAutoRotating, setIsAutoRotating] = useState(true);
+const CarAnatomyVisualization = ({ items, onCategoryClick }: { items: InspectionItem[], onCategoryClick: (cat: string) => void }) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [dragDistance, setDragDistance] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Detect mobile
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  const currentView = CAR_VIEWS[currentViewIndex];
-
-  // Auto-rotate through views (pause when popup is open, disabled on mobile)
-  useEffect(() => {
-    if (!isAutoRotating || isDragging || selectedCategory || isMobile) return;
-    const interval = setInterval(() => {
-      setCurrentViewIndex(prev => (prev + 1) % CAR_VIEWS.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [isAutoRotating, isDragging, selectedCategory, isMobile]);
-
-  const goToView = (direction: 'next' | 'prev') => {
-    setCurrentViewIndex(prev => {
-      if (direction === 'next') return (prev + 1) % CAR_VIEWS.length;
-      return prev === 0 ? CAR_VIEWS.length - 1 : prev - 1;
-    });
-  };
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setStartX(e.clientX);
-    setDragDistance(0);
-    setIsAutoRotating(false);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    setDragDistance(e.clientX - startX);
-  };
-
-  const handleMouseUp = () => {
-    if (isDragging && Math.abs(dragDistance) > 50) {
-      goToView(dragDistance > 0 ? 'prev' : 'next');
-    }
-    setIsDragging(false);
-    setDragDistance(0);
-    setTimeout(() => setIsAutoRotating(true), 500);
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setIsDragging(true);
-    setStartX(e.touches[0].clientX);
-    setDragDistance(0);
-    setIsAutoRotating(false);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) return;
-    setDragDistance(e.touches[0].clientX - startX);
-  };
-
-  const handleTouchEnd = () => {
-    if (isDragging && Math.abs(dragDistance) > 50) {
-      goToView(dragDistance > 0 ? 'prev' : 'next');
-    }
-    setIsDragging(false);
-    setDragDistance(0);
-    setTimeout(() => setIsAutoRotating(true), 500);
-  };
 
   const getCategoryStatus = (catId: string) => {
     const catItems = items.filter(i => i.category === catId);
@@ -252,141 +147,17 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: InspectionItem[
     return { warning, fail };
   }, [items]);
 
-  // On mobile, show single static image
-  if (isMobile) {
-    return (
-      <div className="relative w-full bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 rounded-3xl overflow-hidden">
-        {/* Header stats */}
-        <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-20">
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl px-3 py-1.5 text-white text-xs font-arabic font-bold">
-            عرض السيارة
-          </div>
-          <div className="flex gap-2">
-            {stats.warning > 0 && (
-              <div className="flex items-center gap-1.5 bg-amber-500/30 text-amber-300 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm">
-                <AlertCircle className="w-3.5 h-3.5" />
-                <span>{stats.warning}</span>
-              </div>
-            )}
-            {stats.fail > 0 && (
-              <div className="flex items-center gap-1.5 bg-red-500/30 text-red-300 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm">
-                <XCircle className="w-3.5 h-3.5" />
-                <span>{stats.fail}</span>
-              </div>
-            )}
-          </div>
-        </div>
+  const getPosition = (catId: string) => {
+    return ANATOMY_POSITIONS[catId] || { top: "50%", left: "50%", label: catId };
+  };
 
-        {/* Single image on mobile */}
-        <div className="relative w-full aspect-square flex items-center justify-center p-8 pt-16">
-          <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-white/5 to-transparent" />
-          
-          <div className="relative w-full h-full">
-            <img 
-              src={carFrontView} 
-              alt="عرض السيارة" 
-              className="w-full h-full object-contain drop-shadow-2xl"
-            />
-
-            {/* Category indicators for front view */}
-            {INSPECTION_CATEGORIES.map(cat => {
-              const position = getCategoryPosition(cat.id, 'front');
-              const status = getCategoryStatus(cat.id);
-              const hasIssues = status !== 'good';
-              const catItems = getCategoryItems(cat.id);
-              const isSelected = selectedCategory === cat.id;
-
-              if (!hasIssues) return null;
-              
-              return (
-                <div 
-                  key={cat.id} 
-                  className="absolute z-10 transition-all duration-300" 
-                  style={position as any}
-                >
-                  <button
-                    onClick={() => handleCategoryPress(cat.id)}
-                    className={cn(
-                      "flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold text-white transition-all duration-300 cursor-pointer",
-                      getStatusColor(status),
-                      "shadow-lg",
-                      isSelected ? "ring-2 ring-white scale-110" : "animate-pulse"
-                    )}
-                    data-testid={`button-category-${cat.id}`}
-                  >
-                    {getStatusIcon(status)}
-                  </button>
-                  
-                  {/* Fault details popup */}
-                  {isSelected && catItems.length > 0 && (
-                    <div 
-                      className="absolute top-full mt-2 right-0 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-3 min-w-[180px] max-w-[250px] z-50"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-200">
-                        <span className="font-bold text-xs text-slate-800 font-arabic">{cat.label}</span>
-                        <span className="text-[10px] text-slate-500">{catItems.length}</span>
-                      </div>
-                      <div className="space-y-2 max-h-[120px] overflow-y-auto">
-                        {catItems.map((item, idx) => (
-                          <div 
-                            key={idx}
-                            className={cn(
-                              "p-2 rounded-lg text-xs",
-                              item.status === 'fail' ? "bg-red-50 border border-red-200" : "bg-amber-50 border border-amber-200"
-                            )}
-                          >
-                            <div className="flex items-start gap-2">
-                              {item.status === 'fail' ? 
-                                <XCircle className="w-3 h-3 text-red-500 shrink-0 mt-0.5" /> : 
-                                <AlertCircle className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" />
-                              }
-                              <p className={cn(
-                                "font-bold font-arabic leading-tight text-[11px]",
-                                item.status === 'fail' ? "text-red-700" : "text-amber-700"
-                              )}>
-                                {item.faultName.split(' - ')[0]}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Legend */}
-        <div className="absolute bottom-4 left-0 right-0">
-          <div className="flex justify-center gap-6">
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50" />
-              <span className="text-[10px] text-white/70 font-arabic">سليم</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-amber-500 shadow-lg shadow-amber-500/50" />
-              <span className="text-[10px] text-white/70 font-arabic">تحذير</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-red-500 shadow-lg shadow-red-500/50" />
-              <span className="text-[10px] text-white/70 font-arabic">خطير</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Desktop: Full 360 rotation view
+  // Single anatomical cutaway view for all devices
   return (
     <div className="relative w-full bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 rounded-3xl overflow-hidden">
       {/* Header stats */}
       <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-20">
         <div className="bg-white/20 backdrop-blur-sm rounded-xl px-3 py-1.5 text-white text-xs font-arabic font-bold">
-          {currentView.label}
+          عرض تشريحي
         </div>
         <div className="flex gap-2">
           {stats.warning > 0 && (
@@ -404,45 +175,20 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: InspectionItem[
         </div>
       </div>
 
-      {/* Navigation arrows */}
-      <button
-        onClick={() => goToView('prev')}
-        className="absolute left-2 top-1/2 -translate-y-1/2 z-20 p-2 bg-white/20 hover:bg-white/30 rounded-full text-white transition-colors"
-        data-testid="button-view-prev"
-      >
-        <ChevronLeft className="w-5 h-5" />
-      </button>
-      <button
-        onClick={() => goToView('next')}
-        className="absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 bg-white/20 hover:bg-white/30 rounded-full text-white transition-colors"
-        data-testid="button-view-next"
-      >
-        <ChevronRight className="w-5 h-5" />
-      </button>
-
-      {/* Car visualization with drag/swipe */}
-      <div 
-        className="relative w-full aspect-[16/10] flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
+      {/* Anatomical Car Visualization */}
+      <div className="relative w-full aspect-[16/9] md:aspect-[16/10] flex items-center justify-center p-4 pt-14">
         <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-white/5 to-transparent" />
         
-        <div className="relative w-[85%] h-[75%]">
+        <div className="relative w-full h-full max-w-3xl">
           <img 
-            src={currentView.image} 
-            alt={`Vehicle - ${currentView.label}`} 
+            src={carAnatomyView} 
+            alt="عرض تشريحي للسيارة" 
             className="w-full h-full object-contain drop-shadow-2xl"
           />
 
-          {/* Category indicators */}
+          {/* Category markers on anatomy diagram */}
           {INSPECTION_CATEGORIES.map(cat => {
-            const position = getCategoryPosition(cat.id, currentView.angle);
+            const position = getPosition(cat.id);
             const status = getCategoryStatus(cat.id);
             const hasIssues = status !== 'good';
             const catItems = getCategoryItems(cat.id);
@@ -453,35 +199,34 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: InspectionItem[
             return (
               <div 
                 key={cat.id} 
-                className="absolute z-10 transition-all duration-300" 
-                style={position as any}
-                onMouseDown={(e) => e.stopPropagation()}
-                onTouchStart={(e) => e.stopPropagation()}
+                className="absolute z-10 transition-all duration-300 -translate-x-1/2 -translate-y-1/2" 
+                style={{ top: position.top, left: position.left }}
               >
                 <button
-                  onClick={(e) => { e.stopPropagation(); handleCategoryPress(cat.id); }}
+                  onClick={() => handleCategoryPress(cat.id)}
                   className={cn(
                     "flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold text-white transition-all duration-300 cursor-pointer",
                     getStatusColor(status),
                     "shadow-lg hover:scale-110",
-                    isSelected ? "ring-2 ring-white scale-110" : "animate-pulse"
+                    isSelected ? "ring-2 ring-white scale-125" : "animate-pulse"
                   )}
-                  data-testid={`button-category-${cat.id}`}
+                  data-testid={`button-anatomy-${cat.id}`}
                 >
                   {getStatusIcon(status)}
+                  <span className="font-arabic text-[8px] hidden md:inline">{position.label}</span>
                 </button>
                 
                 {/* Fault details popup */}
                 {isSelected && catItems.length > 0 && (
                   <div 
-                    className="absolute top-full mt-2 right-0 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-3 min-w-[200px] max-w-[280px] z-50"
+                    className="absolute top-full mt-2 right-0 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-3 min-w-[180px] max-w-[250px] z-50"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-200">
                       <span className="font-bold text-xs text-slate-800 font-arabic">{cat.label}</span>
                       <span className="text-[10px] text-slate-500">{catItems.length}</span>
                     </div>
-                    <div className="space-y-2 max-h-[150px] overflow-y-auto">
+                    <div className="space-y-2 max-h-[120px] overflow-y-auto">
                       {catItems.map((item, idx) => (
                         <div 
                           key={idx}
@@ -496,7 +241,7 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: InspectionItem[
                               <AlertCircle className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" />
                             }
                             <p className={cn(
-                              "font-bold font-arabic leading-tight",
+                              "font-bold font-arabic leading-tight text-[11px]",
                               item.status === 'fail' ? "text-red-700" : "text-amber-700"
                             )}>
                               {item.faultName.split(' - ')[0]}
@@ -513,34 +258,20 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: InspectionItem[
         </div>
       </div>
 
-      {/* View Indicators (dots) */}
-      <div className="absolute bottom-20 left-0 right-0 flex justify-center gap-2">
-        {CAR_VIEWS.map((view, idx) => (
-          <button
-            key={view.angle}
-            onClick={(e) => { e.stopPropagation(); setCurrentViewIndex(idx); }}
-            className={cn(
-              "w-2.5 h-2.5 rounded-full transition-all",
-              idx === currentViewIndex 
-                ? "bg-accent w-8" 
-                : "bg-white/40 hover:bg-white/60"
-            )}
-            data-testid={`button-view-${view.angle}`}
-          />
-        ))}
-      </div>
-
       {/* Legend */}
-      <div className="absolute bottom-4 left-0 right-0 space-y-2">
-        <div className="flex justify-center gap-6 text-xs font-bold font-arabic text-white/90">
-          <div className="flex items-center gap-2">
+      <div className="absolute bottom-4 left-0 right-0">
+        <div className="flex justify-center gap-6">
+          <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50" />
+            <span className="text-[10px] text-white/70 font-arabic">سليم</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-full bg-amber-500 shadow-lg shadow-amber-500/50" />
+            <span className="text-[10px] text-white/70 font-arabic">تحذير</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-full bg-red-500 shadow-lg shadow-red-500/50" />
+            <span className="text-[10px] text-white/70 font-arabic">خطير</span>
           </div>
         </div>
       </div>
@@ -764,7 +495,7 @@ export default function PublicReport() {
         </div>
 
         {/* Car Visualization - After Vehicle Info */}
-        <Car3DVisualization items={issueItems} onCategoryClick={handleCategoryClick} />
+        <CarAnatomyVisualization items={issueItems} onCategoryClick={handleCategoryClick} />
 
         <div className="grid grid-cols-2 gap-2 md:gap-4">
           <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-4 text-center shadow-sm border border-slate-100">
