@@ -701,7 +701,7 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
                           margin: 0,
                           fontWeight: 'bold',
                         }}>
-                          <span style={textStyle}>{isFail ? '\u25CF يحتاج اصلاح' : '\u25D0 يحتاج متابعة'}</span>
+                          <span style={textStyle}>{isFail ? '\u25CF يحتاج اصلاح' : '\u25D0 ملاحظة'}</span>
                           <span style={{ ...englishStyle, marginRight: '4px' }}>| {isFail ? 'Needs Repair' : 'Needs Attention'}</span>
                         </p>
                       </div>

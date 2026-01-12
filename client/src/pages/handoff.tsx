@@ -104,8 +104,8 @@ export default function HandoffPage() {
 
   const getStatusInfo = () => {
     if (failCount > 0) return { 
-      label: 'يحتاج متابعة', 
-      labelEn: 'Needs Attention',
+      label: 'يوجد ملاحظات', 
+      labelEn: 'Has Issues',
       color: 'text-red-400', 
       bg: 'bg-red-500/20', 
       icon: XCircle 

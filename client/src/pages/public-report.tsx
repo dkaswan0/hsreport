@@ -23,6 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 import { getVehicleColor, calculateInspectionStats, getInspectionTypeLabel } from "@/lib/vehicle-utils";
 import logoPath from "@assets/logo_1767706304085.png";
+import { VinPlate } from "@/components/vin-plate";
 import carVisualizationPath from "@assets/generated_images/professional_car_anatomy_diagram.png";
 import type { Inspection, InspectionItem } from "@shared/schema";
 import { INSPECTION_CATEGORIES, CATEGORY_GROUPS } from "@shared/categories";
@@ -307,8 +308,8 @@ export default function PublicReport() {
   const warningCount = items.filter(i => i.status === 'warning').length;
 
   const getOverallStatus = () => {
-    if (failCount > 0) return { label: 'يحتاج متابعة', color: 'text-red-400', bg: 'bg-red-500/20', icon: XCircle };
-    if (warningCount > 0) return { label: 'يحتاج متابعة', color: 'text-amber-400', bg: 'bg-amber-500/20', icon: AlertCircle };
+    if (failCount > 0) return { label: 'يوجد ملاحظات', color: 'text-red-400', bg: 'bg-red-500/20', icon: XCircle };
+    if (warningCount > 0) return { label: 'يوجد ملاحظات', color: 'text-amber-400', bg: 'bg-amber-500/20', icon: AlertCircle };
     return { label: 'ممتازة', color: 'text-emerald-400', bg: 'bg-emerald-500/20', icon: CheckCircle2 };
   };
 
@@ -370,25 +371,7 @@ export default function PublicReport() {
           </div>
         </div>
 
-        <Car3DVisualization items={issueItems} onCategoryClick={handleCategoryClick} />
-
-        <div className="grid grid-cols-2 gap-2 md:gap-4">
-          <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-4 text-center shadow-sm border border-slate-100">
-            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-amber-100 flex items-center justify-center mx-auto mb-2">
-              <AlertCircle className="w-5 h-5 md:w-6 md:h-6 text-amber-600" />
-            </div>
-            <div className="text-xl md:text-2xl font-black text-amber-600">{warningCount}</div>
-            <div className="text-xs md:text-sm text-slate-600 font-arabic font-semibold">تحذير</div>
-          </div>
-          <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-4 text-center shadow-sm border border-slate-100">
-            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-red-100 flex items-center justify-center mx-auto mb-2">
-              <XCircle className="w-5 h-5 md:w-6 md:h-6 text-red-600" />
-            </div>
-            <div className="text-xl md:text-2xl font-black text-red-600">{failCount}</div>
-            <div className="text-xs md:text-sm text-slate-600 font-arabic font-semibold">خطير</div>
-          </div>
-        </div>
-
+        {/* Vehicle Info Section - Before Car Visualization */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2 font-arabic text-slate-800">
             <Car className="w-6 h-6 text-primary" />
@@ -424,12 +407,22 @@ export default function PublicReport() {
             </div>
           </div>
           
+          {/* VIN Plate */}
+          <div className="mb-4">
+            <VinPlate 
+              vin={inspection.vin}
+              make={inspection.make}
+              model={inspection.model}
+              year={inspection.year}
+              className="max-w-md mx-auto"
+            />
+          </div>
+          
           <LuxuryOdometer 
             odometer={inspection.odometer || 0} 
             odometerPhoto={inspection.odometerPhoto}
           />
           
-          {/* Show inspection type instead of customer data for privacy */}
           {inspection.inspectionType && (
             <div className="mt-4 pt-4 border-t border-slate-100">
               <div className="bg-primary/10 rounded-lg md:rounded-xl p-3 md:p-4 text-center">
@@ -443,6 +436,26 @@ export default function PublicReport() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Car Visualization - After Vehicle Info */}
+        <Car3DVisualization items={issueItems} onCategoryClick={handleCategoryClick} />
+
+        <div className="grid grid-cols-2 gap-2 md:gap-4">
+          <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-4 text-center shadow-sm border border-slate-100">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-amber-100 flex items-center justify-center mx-auto mb-2">
+              <AlertCircle className="w-5 h-5 md:w-6 md:h-6 text-amber-600" />
+            </div>
+            <div className="text-xl md:text-2xl font-black text-amber-600">{warningCount}</div>
+            <div className="text-xs md:text-sm text-slate-600 font-arabic font-semibold">تحذير</div>
+          </div>
+          <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-4 text-center shadow-sm border border-slate-100">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-red-100 flex items-center justify-center mx-auto mb-2">
+              <XCircle className="w-5 h-5 md:w-6 md:h-6 text-red-600" />
+            </div>
+            <div className="text-xl md:text-2xl font-black text-red-600">{failCount}</div>
+            <div className="text-xs md:text-sm text-slate-600 font-arabic font-semibold">خطير</div>
+          </div>
         </div>
 
         {issueItems.length > 0 && (

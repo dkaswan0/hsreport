@@ -237,7 +237,7 @@ export async function generateInspectionPdf(inspection: Inspection, logoUrl?: st
   pdf.setFont('Amiri', 'bold');
   pdf.setFontSize(14);
   pdf.setTextColor(15, 23, 42);
-  pdf.text(reshapeArabic('الملاحظات - يحتاج متابعة'), pageWidth - margin, y, { align: 'right' });
+  pdf.text(reshapeArabic('الملاحظات'), pageWidth - margin, y, { align: 'right' });
   y += 8;
 
   if (issueItems.length === 0) {
@@ -301,7 +301,7 @@ export async function generateInspectionPdf(inspection: Inspection, logoUrl?: st
         pdf.setFont('Amiri', 'normal');
         pdf.setFontSize(8);
         pdf.setTextColor(100, 116, 139);
-        pdf.text(reshapeArabic('يحتاج متابعة'), pageWidth - margin - 12, y + 11, { align: 'right' });
+        pdf.text(reshapeArabic('ملاحظة'), pageWidth - margin - 12, y + 11, { align: 'right' });
 
         if (item.notes) {
           pdf.setFont('Amiri', 'normal');
