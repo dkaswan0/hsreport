@@ -281,6 +281,8 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
     }
     setIsDragging(false);
     setDragDistance(0);
+    // Resume auto-rotation after drag
+    setTimeout(() => setIsAutoRotating(true), 500);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -302,6 +304,8 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
     }
     setIsDragging(false);
     setDragDistance(0);
+    // Resume auto-rotation after touch
+    setTimeout(() => setIsAutoRotating(true), 500);
   };
 
   const getCategoryStatus = (catId: string) => {
@@ -481,7 +485,7 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
                   >
                     <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-200">
                       <span className="font-bold text-xs text-slate-800 font-arabic">{cat.label}</span>
-                      <span className="text-[10px] text-slate-500">{catItems.length} ملاحظات</span>
+                      <span className="text-[10px] text-slate-500">{catItems.length}</span>
                     </div>
                     <div className="space-y-2 max-h-[150px] overflow-y-auto">
                       {catItems.map((item, idx) => (
@@ -547,15 +551,12 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
         <div className="flex justify-center gap-6 text-xs font-bold font-arabic text-white/80">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50" />
-            <span>جيد</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-amber-500 shadow-lg shadow-amber-500/50" />
-            <span>ملاحظات</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-red-500 shadow-lg shadow-red-500/50" />
-            <span>يحتاج إصلاح</span>
           </div>
         </div>
       </div>
@@ -813,7 +814,7 @@ const InspectionResults = ({ inspection, highlightedCategory }: { inspection: an
         <div className="bg-emerald-50 border border-emerald-200 rounded-3xl p-8 text-center">
           <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
           <h3 className="text-xl font-bold text-emerald-800 font-arabic mb-2">السيارة حالتها ممتازة</h3>
-          <p className="text-emerald-600 font-arabic">ما لقينا أي أعطال أو ملاحظات</p>
+          <p className="text-emerald-600 font-arabic">المركبة بحالة ممتازة</p>
         </div>
       )}
     </div>
@@ -1030,7 +1031,7 @@ export default function InteractiveReport() {
       
       if (issueItems.length === 0) {
         findingsContent.push({
-          text: 'المركبة بحالة ممتازة - لا توجد ملاحظات',
+          text: 'المركبة بحالة ممتازة',
           style: 'successText',
           alignment: 'center',
           margin: [0, 20, 0, 20]
@@ -1052,7 +1053,6 @@ export default function InteractiveReport() {
           catItemsWithImages.forEach(({ item, imageBase64 }) => {
             const faultAr = item.faultName.split(' - ')[0] || item.faultName;
             const statusSymbol = item.status === 'fail' ? '●' : '◐';
-            const statusText = 'ملاحظة';
             const statusColor = item.status === 'fail' ? '#dc2626' : '#d97706';
             const bgColor = item.status === 'fail' ? '#fef2f2' : '#fffbeb';
             
@@ -1063,7 +1063,7 @@ export default function InteractiveReport() {
                   {
                     stack: [
                       { text: faultAr, style: 'faultTitle', margin: [0, 0, 0, 3] },
-                      { text: `${statusSymbol} ${statusText}`, color: statusColor, fontSize: 9, bold: true },
+                      { text: statusSymbol, color: statusColor, fontSize: 9, bold: true },
                       ...(item.description ? [{ text: item.description, style: 'faultDesc', margin: [0, 3, 0, 0] }] : [])
                     ],
                     fillColor: bgColor,
@@ -1096,7 +1096,7 @@ export default function InteractiveReport() {
       const findingsRows: any[] = [];
       if (issueItems.length === 0) {
         findingsRows.push([
-          { text: 'المركبة بحالة ممتازة - لا توجد ملاحظات', style: 'successText', colSpan: 3, alignment: 'center', margin: [0, 10, 0, 10] }, {}, {}
+          { text: 'المركبة بحالة ممتازة', style: 'successText', colSpan: 3, alignment: 'center', margin: [0, 10, 0, 10] }, {}, {}
         ]);
       } else {
         for (const cat of INSPECTION_CATEGORIES) {
@@ -1106,14 +1106,13 @@ export default function InteractiveReport() {
           catItems.forEach((item: any, idx: number) => {
             const faultAr = item.faultName.split(' - ')[0] || item.faultName;
             const statusSymbol = item.status === 'fail' ? '●' : '◐';
-            const statusText = 'ملاحظة';
             const statusColor = item.status === 'fail' ? '#dc2626' : '#d97706';
             const rowBg = idx % 2 === 0 ? '#ffffff' : '#fafafa';
             
             findingsRows.push([
               { text: idx === 0 ? cat.label : '', style: 'catLabel', fillColor: idx === 0 ? '#f8fafc' : rowBg, margin: [4, 4, 4, 4] },
               { text: faultAr, style: 'faultText', fillColor: rowBg, margin: [4, 4, 4, 4] },
-              { text: `${statusSymbol} ${statusText}`, style: 'statusText', color: statusColor, fillColor: rowBg, margin: [4, 4, 4, 4], alignment: 'center' }
+              { text: statusSymbol, style: 'statusText', color: statusColor, fillColor: rowBg, margin: [4, 4, 4, 4], alignment: 'center' }
             ]);
           });
         }
@@ -1383,7 +1382,7 @@ export default function InteractiveReport() {
       
       if (items.length === 0) {
         findingsContent.push({
-          text: 'المركبة بحالة ممتازة - لم يتم اكتشاف أي ملاحظات',
+          text: 'المركبة بحالة ممتازة',
           style: 'success',
           alignment: 'center',
           margin: [0, 10, 0, 10]
@@ -1402,7 +1401,7 @@ export default function InteractiveReport() {
           for (const item of catItems) {
             const faultAr = item.faultName.split(' - ')[0] || item.faultName;
             const faultEn = item.faultName.split(' - ')[1] || '';
-            const statusText = item.status === 'fail' ? 'يحتاج إصلاح' : 'ملاحظة';
+            const statusSymbol = item.status === 'fail' ? '●' : '◐';
             const statusColor = item.status === 'fail' ? '#dc2626' : '#d97706';
             
             // Convert image to base64 if exists
@@ -1415,7 +1414,7 @@ export default function InteractiveReport() {
               { 
                 columns: [
                   { text: faultAr, style: 'faultName', width: '*' },
-                  { text: statusText, style: 'statusBadge', color: statusColor, width: 'auto' }
+                  { text: statusSymbol, style: 'statusBadge', color: statusColor, width: 'auto' }
                 ]
               }
             ];
@@ -1544,9 +1543,9 @@ export default function InteractiveReport() {
           // Summary Stats
           {
             columns: [
-              { stack: [{ text: String(passedCount), style: 'statNumber', color: '#16a34a' }, { text: 'سليم', style: 'statLabel' }], alignment: 'center', width: '*' },
-              { stack: [{ text: String(warningCount), style: 'statNumber', color: '#d97706' }, { text: 'ملاحظات', style: 'statLabel' }], alignment: 'center', width: '*' },
-              { stack: [{ text: String(failCount), style: 'statNumber', color: '#dc2626' }, { text: 'يحتاج إصلاح', style: 'statLabel' }], alignment: 'center', width: '*' }
+              { stack: [{ text: String(passedCount), style: 'statNumber', color: '#16a34a' }, { text: '✓', style: 'statLabel' }], alignment: 'center', width: '*' },
+              { stack: [{ text: String(warningCount), style: 'statNumber', color: '#d97706' }, { text: '◐', style: 'statLabel' }], alignment: 'center', width: '*' },
+              { stack: [{ text: String(failCount), style: 'statNumber', color: '#dc2626' }, { text: '●', style: 'statLabel' }], alignment: 'center', width: '*' }
             ],
             margin: [0, 0, 0, 20]
           },
