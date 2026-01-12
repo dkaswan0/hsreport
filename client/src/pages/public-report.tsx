@@ -24,64 +24,94 @@ import { cn } from "@/lib/utils";
 import { getVehicleColor, calculateInspectionStats, getInspectionTypeLabel } from "@/lib/vehicle-utils";
 import logoPath from "@assets/logo_1767706304085.png";
 import { VinPlate } from "@/components/vin-plate";
-import carVisualizationPath from "@assets/generated_images/professional_car_anatomy_diagram.png";
+import carFrontView from "@assets/generated_images/car_front_view_diagram.png";
+import carRightView from "@assets/generated_images/car_right_side_view.png";
+import carRearView from "@assets/generated_images/car_rear_view_diagram.png";
+import carLeftView from "@assets/generated_images/car_left_side_view.png";
 import type { Inspection, InspectionItem } from "@shared/schema";
 import { INSPECTION_CATEGORIES, CATEGORY_GROUPS } from "@shared/categories";
 import { LuxuryOdometer } from "@/components/luxury-odometer";
 import { IntroAnimation } from "@/components/intro-animation";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type InspectionWithItems = Inspection & { items: InspectionItem[] };
 
-const CATEGORY_POSITIONS: Record<string, { top: string; left: string; transform?: string }> = {
+// Car views configuration
+type ViewAngle = 'front' | 'right' | 'rear' | 'left';
+const CAR_VIEWS: { angle: ViewAngle; image: string; label: string }[] = [
+  { angle: 'front', image: carFrontView, label: 'الأمام' },
+  { angle: 'right', image: carRightView, label: 'الجانب الأيمن' },
+  { angle: 'rear', image: carRearView, label: 'الخلف' },
+  { angle: 'left', image: carLeftView, label: 'الجانب الأيسر' },
+];
+
+// Category positions for each viewing angle
+const CATEGORY_POSITIONS_BY_VIEW: Record<ViewAngle, Record<string, { top: string; left: string }>> = {
+  front: {
+    engine: { top: "55%", left: "50%" },
+    suspension_system: { top: "85%", left: "30%" },
+    steering_system: { top: "65%", left: "50%" },
+    brake_system: { top: "88%", left: "25%" },
+    ac_cooling: { top: "60%", left: "40%" },
+    hood: { top: "35%", left: "50%" },
+    front_bumper: { top: "78%", left: "50%" },
+    exterior_lighting: { top: "45%", left: "25%" },
+    windows: { top: "25%", left: "50%" },
+    tires_rims: { top: "88%", left: "75%" },
+  },
+  right: {
+    door_front_right: { top: "40%", left: "35%" },
+    door_rear_right: { top: "40%", left: "60%" },
+    fender_front_right: { top: "50%", left: "18%" },
+    fender_rear_right: { top: "50%", left: "82%" },
+    quarter_panel: { top: "45%", left: "75%" },
+    pillars: { top: "30%", left: "45%" },
+    roof: { top: "22%", left: "50%" },
+    windows: { top: "32%", left: "55%" },
+    tires_rims: { top: "85%", left: "25%" },
+    engine: { top: "55%", left: "15%" },
+  },
+  rear: {
+    trunk: { top: "35%", left: "50%" },
+    rear_bumper: { top: "78%", left: "50%" },
+    rear_chest: { top: "65%", left: "50%" },
+    fender_rear_right: { top: "50%", left: "20%" },
+    fender_rear_left: { top: "50%", left: "80%" },
+    exterior_lighting: { top: "45%", left: "25%" },
+    windows: { top: "25%", left: "50%" },
+    tires_rims: { top: "88%", left: "75%" },
+    fuel_exhaust: { top: "70%", left: "50%" },
+  },
+  left: {
+    door_front_left: { top: "40%", left: "65%" },
+    door_rear_left: { top: "40%", left: "40%" },
+    fender_front_left: { top: "50%", left: "82%" },
+    fender_rear_left: { top: "50%", left: "18%" },
+    quarter_panel: { top: "45%", left: "25%" },
+    pillars: { top: "30%", left: "55%" },
+    roof: { top: "22%", left: "50%" },
+    windows: { top: "32%", left: "45%" },
+    tires_rims: { top: "85%", left: "75%" },
+    engine: { top: "55%", left: "85%" },
+  },
+};
+
+// Legacy fallback positions
+const CATEGORY_POSITIONS: Record<string, { top: string; left: string }> = {
   front_bumper: { top: "42%", left: "8%" },
   rear_bumper: { top: "42%", left: "92%" },
-  bumper_frame_front: { top: "52%", left: "5%" },
-  bumper_frame_rear: { top: "52%", left: "95%" },
   hood: { top: "25%", left: "15%" },
-  front_chest: { top: "60%", left: "12%" },
-  rear_chest: { top: "60%", left: "88%" },
-  fender_front_right: { top: "35%", left: "20%" },
-  fender_front_left: { top: "65%", left: "20%" },
-  fender_rear_right: { top: "35%", left: "80%" },
-  fender_rear_left: { top: "65%", left: "80%" },
-  door_front_right: { top: "30%", left: "35%" },
-  door_front_left: { top: "70%", left: "35%" },
-  door_rear_right: { top: "30%", left: "55%" },
-  door_rear_left: { top: "70%", left: "55%" },
   trunk: { top: "25%", left: "85%" },
-  quarter_panel: { top: "45%", left: "75%" },
-  roof: { top: "15%", left: "50%", transform: "translateX(-50%)" },
-  pillars: { top: "20%", left: "45%" },
-  windows: { top: "22%", left: "55%" },
-  lights_front: { top: "38%", left: "5%" },
-  lights_rear: { top: "38%", left: "95%" },
-  interior: { top: "45%", left: "50%", transform: "translateX(-50%)" },
-  chassis: { top: "85%", left: "50%", transform: "translateX(-50%)" },
   engine: { top: "55%", left: "18%" },
-  transmission: { top: "65%", left: "35%" },
-  transfer_case: { top: "75%", left: "45%" },
-  differential: { top: "75%", left: "70%" },
-  driveshaft: { top: "80%", left: "55%" },
-  condenser: { top: "48%", left: "10%" },
-  radiator: { top: "50%", left: "15%" },
-  cooling_fan: { top: "55%", left: "12%" },
-  turbo: { top: "58%", left: "22%" },
-  water_pump: { top: "62%", left: "18%" },
-  thermostat: { top: "52%", left: "20%" },
-  control_arms: { top: "78%", left: "28%" },
-  exhaust: { top: "88%", left: "65%" },
-  tires: { top: "92%", left: "25%" },
-  rims: { top: "92%", left: "75%" },
-  brake_pads: { top: "88%", left: "30%" },
-  brake_drums: { top: "88%", left: "70%" },
-  brakes: { top: "85%", left: "35%" },
-  suspension_arms: { top: "82%", left: "40%" },
-  axles: { top: "82%", left: "60%" },
-  fuel_tank: { top: "78%", left: "80%" },
-  power_steering: { top: "68%", left: "25%" },
-  fuel_pump: { top: "72%", left: "78%" },
-  tie_rod: { top: "90%", left: "40%" },
-  stabilizer_link: { top: "90%", left: "60%" },
+  tires_rims: { top: "92%", left: "25%" },
+};
+
+// Get position with fallback
+const getCategoryPosition = (catId: string, currentView: ViewAngle): { top: string; left: string } => {
+  const viewPositions = CATEGORY_POSITIONS_BY_VIEW[currentView];
+  if (viewPositions[catId]) return viewPositions[catId];
+  if (CATEGORY_POSITIONS[catId]) return CATEGORY_POSITIONS[catId];
+  return { top: "50%", left: "50%" };
 };
 
 const ImageModal = ({ imageUrl, faultName, onClose }: { imageUrl: string; faultName: string; onClose: () => void }) => (
@@ -109,31 +139,102 @@ const ImageModal = ({ imageUrl, faultName, onClose }: { imageUrl: string; faultN
 );
 
 const Car3DVisualization = ({ items, onCategoryClick }: { items: InspectionItem[], onCategoryClick: (cat: string) => void }) => {
-  const [rotateY, setRotateY] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+  const [currentViewIndex, setCurrentViewIndex] = useState(0);
+  const [isAutoRotating, setIsAutoRotating] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [dragDistance, setDragDistance] = useState(0);
+
+  const currentView = CAR_VIEWS[currentViewIndex];
+
+  // Auto-rotate through views (pause when popup is open)
+  useEffect(() => {
+    if (!isAutoRotating || isDragging || selectedCategory) return;
+    const interval = setInterval(() => {
+      setCurrentViewIndex(prev => (prev + 1) % CAR_VIEWS.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [isAutoRotating, isDragging, selectedCategory]);
+
+  const goToView = (direction: 'next' | 'prev') => {
+    setCurrentViewIndex(prev => {
+      if (direction === 'next') return (prev + 1) % CAR_VIEWS.length;
+      return prev === 0 ? CAR_VIEWS.length - 1 : prev - 1;
+    });
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setStartX(e.clientX);
+    setDragDistance(0);
+    setIsAutoRotating(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    setDragDistance(e.clientX - startX);
+  };
+
+  const handleMouseUp = () => {
+    if (isDragging && Math.abs(dragDistance) > 50) {
+      goToView(dragDistance > 0 ? 'prev' : 'next');
+    }
+    setIsDragging(false);
+    setDragDistance(0);
+    setTimeout(() => setIsAutoRotating(true), 500);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    setStartX(e.touches[0].clientX);
+    setDragDistance(0);
+    setIsAutoRotating(false);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    setDragDistance(e.touches[0].clientX - startX);
+  };
+
+  const handleTouchEnd = () => {
+    if (isDragging && Math.abs(dragDistance) > 50) {
+      goToView(dragDistance > 0 ? 'prev' : 'next');
+    }
+    setIsDragging(false);
+    setDragDistance(0);
+    setTimeout(() => setIsAutoRotating(true), 500);
+  };
 
   const getCategoryStatus = (catId: string) => {
     const catItems = items.filter(i => i.category === catId);
-    if (catItems.length === 0) return 'none';
+    if (catItems.length === 0) return 'good';
     if (catItems.some(i => i.status === 'fail')) return 'fail';
     if (catItems.some(i => i.status === 'warning')) return 'warning';
-    return 'none';
+    return 'good';
   };
 
-  const getStatusStyles = (status: string, isHovered: boolean) => {
-    const base = isHovered ? 'scale-110' : '';
+  const getCategoryItems = (catId: string) => items.filter(i => i.category === catId);
+
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case 'fail': return `bg-red-500 border-red-300 shadow-red-500/60 ${base}`;
-      case 'warning': return `bg-amber-500 border-amber-300 shadow-amber-500/60 ${base}`;
-      default: return '';
+      case 'fail': return 'bg-red-500 shadow-red-500/50';
+      case 'warning': return 'bg-amber-500 shadow-amber-500/50';
+      default: return 'bg-emerald-500 shadow-emerald-500/50';
     }
   };
 
-  const handleRotate = () => {
-    setIsAnimating(true);
-    setRotateY(prev => prev + 45);
-    setTimeout(() => setIsAnimating(false), 600);
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'fail': return <XCircle className="w-3 h-3" />;
+      case 'warning': return <AlertCircle className="w-3 h-3" />;
+      default: return <CheckCircle2 className="w-3 h-3" />;
+    }
+  };
+
+  const handleCategoryPress = (catId: string) => {
+    setSelectedCategory(selectedCategory === catId ? null : catId);
+    onCategoryClick(catId);
   };
 
   const stats = useMemo(() => {
@@ -142,109 +243,168 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: InspectionItem[
     return { warning, fail };
   }, [items]);
 
-  const categoriesWithIssues = useMemo(() => {
-    return INSPECTION_CATEGORIES.filter(cat => {
-      const position = CATEGORY_POSITIONS[cat.id];
-      if (!position) return false;
-      const status = getCategoryStatus(cat.id);
-      return status !== 'none';
-    });
-  }, [items]);
-
   return (
     <div className="relative w-full bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 rounded-3xl overflow-hidden">
+      {/* Header stats */}
       <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-20">
-        <button 
-          onClick={handleRotate}
-          className="p-2 bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm rounded-xl transition-colors"
-        >
-          <RotateCcw className={cn("w-5 h-5", isAnimating && "animate-spin")} />
-        </button>
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl px-3 py-1.5 text-white text-xs font-arabic">
+          {currentView.label}
+        </div>
         <div className="flex gap-2">
           {stats.warning > 0 && (
             <div className="flex items-center gap-1.5 bg-amber-500/20 text-amber-400 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm">
               <AlertCircle className="w-3.5 h-3.5" />
-              <span>{stats.warning} تحذير</span>
+              <span>{stats.warning}</span>
             </div>
           )}
           {stats.fail > 0 && (
             <div className="flex items-center gap-1.5 bg-red-500/20 text-red-400 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm">
               <XCircle className="w-3.5 h-3.5" />
-              <span>{stats.fail} خطير</span>
+              <span>{stats.fail}</span>
             </div>
           )}
         </div>
       </div>
 
+      {/* Navigation arrows */}
+      <button
+        onClick={() => goToView('prev')}
+        className="absolute left-2 top-1/2 -translate-y-1/2 z-20 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+        data-testid="button-view-prev"
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
+      <button
+        onClick={() => goToView('next')}
+        className="absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+        data-testid="button-view-next"
+      >
+        <ChevronRight className="w-5 h-5" />
+      </button>
+
+      {/* Car visualization with drag/swipe */}
       <div 
-        className="relative w-full aspect-square md:aspect-[16/10] flex items-center justify-center"
-        style={{ perspective: '1500px' }}
+        className="relative w-full aspect-square md:aspect-[16/10] flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-white/5 to-transparent" />
         
-        <div 
-          className="relative w-[85%] h-[75%] transition-transform duration-500 ease-out"
-          style={{ 
-            transformStyle: 'preserve-3d',
-            transform: `rotateY(${rotateY}deg) rotateX(5deg)`
-          }}
-        >
+        <div className="relative w-[85%] h-[75%]">
           <img 
-            src={carVisualizationPath} 
-            alt="Vehicle Visualization" 
+            src={currentView.image} 
+            alt={`Vehicle - ${currentView.label}`} 
             className="w-full h-full object-contain drop-shadow-2xl"
           />
 
-          {categoriesWithIssues.map(cat => {
-            const position = CATEGORY_POSITIONS[cat.id];
+          {/* Category indicators */}
+          {INSPECTION_CATEGORIES.map(cat => {
+            const position = getCategoryPosition(cat.id, currentView.angle);
             const status = getCategoryStatus(cat.id);
-            const isHovered = hoveredCategory === cat.id;
+            const hasIssues = status !== 'good';
+            const catItems = getCategoryItems(cat.id);
+            const isSelected = selectedCategory === cat.id;
+
+            if (!hasIssues) return null;
             
             return (
-              <button
-                key={cat.id}
-                onClick={() => onCategoryClick(cat.id)}
-                onMouseEnter={() => setHoveredCategory(cat.id)}
-                onMouseLeave={() => setHoveredCategory(null)}
-                onTouchStart={() => setHoveredCategory(cat.id)}
-                className={cn(
-                  "absolute flex flex-col items-center justify-center rounded-xl text-white transition-all duration-300 cursor-pointer z-10 border-2",
-                  getStatusStyles(status, isHovered),
-                  "shadow-lg min-w-[32px] min-h-[32px] p-1.5",
-                  !isHovered && "animate-pulse"
-                )}
+              <div 
+                key={cat.id} 
+                className="absolute z-10 transition-all duration-300" 
                 style={position as any}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
               >
-                {status === 'fail' ? <XCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                {isHovered && (
-                  <div className="absolute top-full mt-2 bg-slate-900/95 backdrop-blur-sm text-white px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap z-50 border border-white/20 shadow-xl">
-                    <div className="font-arabic mb-1">{cat.label}</div>
-                    <div className="text-[10px] text-white/70 font-arabic">اضغط لمعرفة العطل</div>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleCategoryPress(cat.id); }}
+                  className={cn(
+                    "flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold text-white transition-all duration-300 cursor-pointer",
+                    getStatusColor(status),
+                    "shadow-lg hover:scale-110",
+                    isSelected ? "ring-2 ring-white scale-110" : "animate-pulse"
+                  )}
+                  data-testid={`button-category-${cat.id}`}
+                >
+                  {getStatusIcon(status)}
+                </button>
+                
+                {/* Fault details popup */}
+                {isSelected && catItems.length > 0 && (
+                  <div 
+                    className="absolute top-full mt-2 right-0 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-3 min-w-[200px] max-w-[280px] z-50"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-200">
+                      <span className="font-bold text-xs text-slate-800 font-arabic">{cat.label}</span>
+                      <span className="text-[10px] text-slate-500">{catItems.length}</span>
+                    </div>
+                    <div className="space-y-2 max-h-[150px] overflow-y-auto">
+                      {catItems.map((item, idx) => (
+                        <div 
+                          key={idx}
+                          className={cn(
+                            "p-2 rounded-lg text-xs",
+                            item.status === 'fail' ? "bg-red-50 border border-red-200" : "bg-amber-50 border border-amber-200"
+                          )}
+                        >
+                          <div className="flex items-start gap-2">
+                            {item.status === 'fail' ? 
+                              <XCircle className="w-3 h-3 text-red-500 shrink-0 mt-0.5" /> : 
+                              <AlertCircle className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" />
+                            }
+                            <p className={cn(
+                              "font-bold font-arabic leading-tight",
+                              item.status === 'fail' ? "text-red-700" : "text-amber-700"
+                            )}>
+                              {item.faultName.split(' - ')[0]}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
-              </button>
+              </div>
             );
           })}
         </div>
       </div>
 
-      <div className="p-4 text-center space-y-3">
-        <div className="flex justify-center gap-4 text-xs font-bold font-arabic text-white/80">
+      {/* View Indicators (dots) */}
+      <div className="absolute bottom-20 left-0 right-0 flex justify-center gap-2">
+        {CAR_VIEWS.map((view, idx) => (
+          <button
+            key={view.angle}
+            onClick={(e) => { e.stopPropagation(); setCurrentViewIndex(idx); }}
+            className={cn(
+              "w-2.5 h-2.5 rounded-full transition-all",
+              idx === currentViewIndex 
+                ? "bg-accent w-8" 
+                : "bg-white/30 hover:bg-white/50"
+            )}
+            data-testid={`button-view-${view.angle}`}
+          />
+        ))}
+      </div>
+
+      {/* Legend */}
+      <div className="absolute bottom-4 left-0 right-0 space-y-2">
+        <div className="flex justify-center gap-6 text-xs font-bold font-arabic text-white/80">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-amber-500 shadow-lg shadow-amber-500/50 border border-amber-300" />
-            <span>تحذير</span>
+            <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50" />
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-red-500 shadow-lg shadow-red-500/50 border border-red-300" />
-            <span>خطير</span>
+            <div className="w-3 h-3 rounded-full bg-amber-500 shadow-lg shadow-amber-500/50" />
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-red-500 shadow-lg shadow-red-500/50" />
           </div>
         </div>
-        {categoriesWithIssues.length > 0 && (
-          <div className="text-white/50 text-xs font-arabic flex items-center justify-center gap-2">
-            <AlertTriangle className="w-3.5 h-3.5" />
-            <span>اضغط على أي علامة لمعرفة تفاصيل العطل</span>
-          </div>
-        )}
       </div>
     </div>
   );
