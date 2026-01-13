@@ -8,12 +8,18 @@ import {
   X,
   Search,
   Bell,
-  Database
+  Database,
+  LogOut
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
-export default function LayoutShell({ children }: { children: React.ReactNode }) {
+interface LayoutShellProps {
+  children: React.ReactNode;
+  onLogout?: () => void;
+}
+
+export default function LayoutShell({ children, onLogout }: LayoutShellProps) {
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [lang, setLang] = useState<'en' | 'ar'>('ar');
@@ -59,16 +65,26 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
           })}
         </nav>
 
-        <div className="p-4 border-t border-slate-700">
+        <div className="p-4 border-t border-slate-700 space-y-3">
           <div className="bg-slate-800 rounded-xl p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center text-slate-300 font-bold">
+            <div className="w-10 h-10 rounded-full bg-[#C5852C] flex items-center justify-center text-white font-bold">
               HS
             </div>
             <div className="flex-1 overflow-hidden">
-              <p className="text-sm font-medium text-white truncate">Admin User</p>
-              <p className="text-xs text-slate-400 truncate">admin@highsafety.com</p>
+              <p className="text-sm font-medium text-white truncate">High Safety</p>
+              <p className="text-xs text-slate-400 truncate">مسجل الدخول</p>
             </div>
           </div>
+          {onLogout && (
+            <button
+              onClick={onLogout}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
+              data-testid="button-logout"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="text-sm font-medium">{lang === 'ar' ? 'تسجيل الخروج' : 'Logout'}</span>
+            </button>
+          )}
         </div>
       </aside>
 

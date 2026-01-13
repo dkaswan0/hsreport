@@ -2,15 +2,42 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import session from "express-session";
+import MemoryStore from "memorystore";
 
 const app = express();
 const httpServer = createServer(app);
+const MemoryStoreSession = MemoryStore(session);
 
 declare module "http" {
   interface IncomingMessage {
     rawBody: unknown;
   }
 }
+
+declare module "express-session" {
+  interface SessionData {
+    isAuthenticated?: boolean;
+    username?: string;
+  }
+}
+
+// Session middleware for authentication
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "high-safety-secret-key-2024",
+    resave: false,
+    saveUninitialized: false,
+    store: new MemoryStoreSession({
+      checkPeriod: 86400000, // prune expired entries every 24h
+    }),
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    },
+  })
+);
 
 app.use(
   express.json({

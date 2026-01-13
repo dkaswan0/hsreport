@@ -1,10 +1,18 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { registerChatRoutes } from "./replit_integrations/chat";
 import { registerImageRoutes, openai } from "./replit_integrations/image"; // Import openai client
+
+// Authentication middleware - protects admin routes
+const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+  if (req.session?.isAuthenticated) {
+    return next();
+  }
+  res.status(401).json({ message: "Unauthorized - Please login" });
+};
 
 export async function registerRoutes(
   httpServer: Server,
@@ -13,6 +21,37 @@ export async function registerRoutes(
   // Register Replit AI integration routes
   registerChatRoutes(app);
   registerImageRoutes(app);
+
+  // === Authentication Routes ===
+  app.post("/api/auth/login", (req, res) => {
+    const { username, password } = req.body;
+    const adminUser = process.env.ADMIN_USERNAME || "hs";
+    const adminPass = process.env.ADMIN_PASSWORD || "ahmed";
+
+    if (username === adminUser && password === adminPass) {
+      req.session.isAuthenticated = true;
+      req.session.username = username;
+      res.json({ success: true, message: "Login successful" });
+    } else {
+      res.status(401).json({ success: false, message: "Invalid credentials" });
+    }
+  });
+
+  app.post("/api/auth/logout", (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Logout failed" });
+      }
+      res.json({ success: true, message: "Logged out" });
+    });
+  });
+
+  app.get("/api/auth/check", (req, res) => {
+    res.json({ 
+      isAuthenticated: !!req.session?.isAuthenticated,
+      username: req.session?.username || null
+    });
+  });
 
   // === Inspections ===
   app.get(api.inspections.list.path, async (req, res) => {
