@@ -879,11 +879,28 @@ export default function InteractiveReport() {
     }
   };
 
+  // Helper function to wait for all images to load
+  const waitForImages = async (element: HTMLElement): Promise<void> => {
+    const images = element.querySelectorAll('img');
+    const imagePromises = Array.from(images).map((img) => {
+      if (img.complete && img.naturalHeight !== 0) {
+        return Promise.resolve();
+      }
+      return new Promise<void>((resolve) => {
+        img.onload = () => resolve();
+        img.onerror = () => resolve(); // Continue even if image fails
+        // Timeout fallback
+        setTimeout(resolve, 5000);
+      });
+    });
+    await Promise.all(imagePromises);
+  };
+
   // New professional single-page PDF with html2canvas - high quality
   const handleNewPdfDownload = async () => {
     if (!inspection || !pdfTemplateRef.current) return;
     
-    toast({ title: "يجهز", description: "يسوي تقرير PDF احترافي..." });
+    toast({ title: "يجهز", description: "يسوي تقرير PDF احترافي... جاري تحميل الصور" });
     
     try {
       const element = pdfTemplateRef.current;
@@ -895,8 +912,13 @@ export default function InteractiveReport() {
         await document.fonts.ready;
       }
       
-      // Wait a bit for images to load
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Wait for ALL images to load completely
+      await waitForImages(element);
+      
+      // Additional delay to ensure rendering is complete
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast({ title: "يجهز", description: "يلتقط التقرير..." });
       
       // Capture with html2canvas at high quality (scale 3 for clarity)
       const canvas = await html2canvas(element, {
@@ -908,7 +930,15 @@ export default function InteractiveReport() {
         width: A4_WIDTH,
         height: A4_HEIGHT,
         windowWidth: A4_WIDTH,
-        imageTimeout: 15000,
+        imageTimeout: 30000, // Increased timeout for images
+        onclone: (clonedDoc) => {
+          // Ensure images in cloned document have proper dimensions
+          const clonedImages = clonedDoc.querySelectorAll('img');
+          clonedImages.forEach((img) => {
+            if (img.style.width) img.setAttribute('width', img.style.width);
+            if (img.style.height) img.setAttribute('height', img.style.height);
+          });
+        },
       });
 
       const imgData = canvas.toDataURL('image/png', 1.0);
@@ -925,7 +955,7 @@ export default function InteractiveReport() {
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       
       pdf.save(`Inspection_Report_${inspection.vin}_HS${inspection.id}.pdf`);
-      toast({ title: "تم التحميل", description: "تم تحميل ملف PDF بجودة عالية" });
+      toast({ title: "تم التحميل", description: "تم تحميل ملف PDF بجودة عالية مع جميع الصور" });
     } catch (error) {
       console.error('PDF error:', error);
       toast({ title: "خطأ", description: "صار خطأ في إنشاء التقرير", variant: "destructive" });

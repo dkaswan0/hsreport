@@ -438,52 +438,108 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
             }} />
           </div>
 
-          {/* Odometer - Realistic Digital Display */}
+          {/* Odometer - Car Dashboard Style */}
           <div style={{
-            background: 'linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 50%, #1a1a1a 100%)',
-            borderRadius: '8px',
-            padding: '8px',
+            background: 'radial-gradient(ellipse at center, #2a2a2a 0%, #1a1a1a 50%, #0d0d0d 100%)',
+            borderRadius: '12px',
+            padding: '10px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)',
-            border: '2px solid #333',
+            boxShadow: '0 6px 20px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.05), inset 0 -2px 4px rgba(0,0,0,0.5)',
+            border: '3px solid #444',
+            position: 'relative',
+            overflow: 'hidden',
           }}>
-            <p style={{ color: '#666', fontSize: '6px', margin: '0 0 4px 0', letterSpacing: '1px', ...englishStyle }}>
-              ODOMETER
-            </p>
+            {/* Dashboard bezel effect */}
             <div style={{
-              background: 'linear-gradient(180deg, #0a0a0a 0%, #151515 100%)',
-              borderRadius: '4px',
-              padding: '6px 12px',
-              border: '1px solid #222',
-              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.8)',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '50%',
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%)',
+              borderRadius: '10px 10px 0 0',
+              pointerEvents: 'none',
+            }} />
+            
+            {/* LCD Screen Container */}
+            <div style={{
+              background: 'linear-gradient(180deg, #0a1520 0%, #0d1a25 50%, #081015 100%)',
+              borderRadius: '6px',
+              padding: '8px 14px',
+              border: '2px solid #1a2a3a',
+              boxShadow: 'inset 0 3px 8px rgba(0,0,0,0.9), 0 1px 0 rgba(255,255,255,0.1)',
+              position: 'relative',
+            }}>
+              {/* LCD glow effect */}
+              <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: '80%',
+                height: '60%',
+                background: 'radial-gradient(ellipse, rgba(0,180,255,0.15) 0%, transparent 70%)',
+                pointerEvents: 'none',
+              }} />
+              
+              {/* Digital Display */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'baseline',
+                gap: '3px',
+                position: 'relative',
+              }}>
+                {String(inspection.odometer || inspection.mileage || 0).padStart(6, '0').split('').map((digit, i) => (
+                  <span key={i} style={{
+                    color: '#00d4ff',
+                    fontSize: '18px',
+                    fontFamily: "'Courier New', 'Consolas', 'Monaco', monospace",
+                    fontWeight: 'bold',
+                    textShadow: '0 0 10px rgba(0,212,255,0.8), 0 0 20px rgba(0,212,255,0.4), 0 0 30px rgba(0,212,255,0.2)',
+                    letterSpacing: '1px',
+                  }}>
+                    {digit}
+                  </span>
+                ))}
+                <span style={{
+                  color: '#00d4ff',
+                  fontSize: '10px',
+                  fontFamily: "'Arial', sans-serif",
+                  fontWeight: 'bold',
+                  textShadow: '0 0 8px rgba(0,212,255,0.6)',
+                  marginLeft: '4px',
+                }}>
+                  km
+                </span>
+              </div>
+            </div>
+            
+            {/* Bottom indicator */}
+            <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '2px',
+              gap: '8px',
+              marginTop: '6px',
             }}>
-              {String(inspection.odometer || inspection.mileage || 0).padStart(6, '0').split('').map((digit, i) => (
-                <span key={i} style={{
-                  background: 'linear-gradient(180deg, #111 0%, #1a1a1a 50%, #111 100%)',
-                  color: '#00ff00',
-                  fontSize: '14px',
-                  fontFamily: "'Courier New', 'Consolas', monospace",
-                  fontWeight: 'bold',
-                  padding: '2px 3px',
-                  borderRadius: '2px',
-                  textShadow: '0 0 6px rgba(0,255,0,0.6)',
-                  minWidth: '12px',
-                  textAlign: 'center',
-                  border: '1px solid #333',
-                }}>
-                  {digit}
-                </span>
-              ))}
+              <div style={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, #00ff00 0%, #00aa00 100%)',
+                boxShadow: '0 0 6px rgba(0,255,0,0.8)',
+              }} />
+              <span style={{ 
+                color: '#888', 
+                fontSize: '6px', 
+                letterSpacing: '1px', 
+                ...englishStyle 
+              }}>
+                ODOMETER
+              </span>
             </div>
-            <p style={{ color: '#00ff00', fontSize: '8px', margin: '4px 0 0 0', ...englishStyle, fontWeight: 'bold', textShadow: '0 0 4px rgba(0,255,0,0.4)' }}>
-              KM
-            </p>
           </div>
 
           {/* Vehicle Model Display - Car Silhouette */}
