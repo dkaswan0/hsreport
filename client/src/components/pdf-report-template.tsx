@@ -807,84 +807,84 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
 
         {/* Terms & Conditions */}
         <div style={{
-          padding: '12px 24px',
+          padding: '14px 24px',
           backgroundColor: BRAND.light,
-          borderTop: `1px solid ${BRAND.border}`,
+          borderTop: `2px solid ${BRAND.accent}`,
           flexShrink: 0,
         }}>
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
-            marginBottom: '8px',
+            gap: '10px',
+            marginBottom: '10px',
           }}>
             <div style={{
-              width: '4px',
-              height: '16px',
+              width: '5px',
+              height: '20px',
               backgroundColor: BRAND.accent,
-              borderRadius: '2px',
+              borderRadius: '3px',
             }}></div>
-            <h3 style={{ color: BRAND.dark, fontSize: '10px', fontWeight: 'bold', margin: 0 }}>
+            <h3 style={{ color: BRAND.dark, fontSize: '12px', fontWeight: 'bold', margin: 0 }}>
               <span style={textStyle}>البنود والأحكام</span>
-              <span style={{ ...englishStyle, marginRight: '8px', color: BRAND.muted }}>| Terms & Conditions</span>
+              <span style={{ ...englishStyle, marginRight: '10px', color: BRAND.muted }}>| Terms & Conditions</span>
             </h3>
           </div>
           <div style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
-            gap: '6px 16px',
+            gap: '8px 20px',
           }}>
-            <div style={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
-              <span style={{ color: BRAND.accent, fontSize: '8px', marginTop: '2px' }}>●</span>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+              <span style={{ color: BRAND.accent, fontSize: '10px', marginTop: '2px', fontWeight: 'bold' }}>●</span>
               <div>
-                <p style={{ color: BRAND.dark, fontSize: '8px', margin: 0, lineHeight: '1.4', ...textStyle }}>
+                <p style={{ color: BRAND.dark, fontSize: '10px', margin: 0, lineHeight: '1.5', fontWeight: '600', ...textStyle }}>
                   المركز غير مسئول عن أي أعطال تحدث أثناء الفحص أو بعده.
                 </p>
-                <p style={{ color: BRAND.muted, fontSize: '7px', margin: '1px 0 0 0', lineHeight: '1.3', ...englishStyle }}>
+                <p style={{ color: BRAND.muted, fontSize: '9px', margin: '2px 0 0 0', lineHeight: '1.4', ...englishStyle }}>
                   The center is not responsible for any malfunctions during or after inspection.
                 </p>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
-              <span style={{ color: BRAND.accent, fontSize: '8px', marginTop: '2px' }}>●</span>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+              <span style={{ color: BRAND.accent, fontSize: '10px', marginTop: '2px', fontWeight: 'bold' }}>●</span>
               <div>
-                <p style={{ color: BRAND.dark, fontSize: '8px', margin: 0, lineHeight: '1.4', ...textStyle }}>
+                <p style={{ color: BRAND.dark, fontSize: '10px', margin: 0, lineHeight: '1.5', fontWeight: '600', ...textStyle }}>
                   المركز مسئول عن نتيجة الفحص وقت الفحص فقط.
                 </p>
-                <p style={{ color: BRAND.muted, fontSize: '7px', margin: '1px 0 0 0', lineHeight: '1.3', ...englishStyle }}>
+                <p style={{ color: BRAND.muted, fontSize: '9px', margin: '2px 0 0 0', lineHeight: '1.4', ...englishStyle }}>
                   The center is only responsible for inspection results at the time of inspection.
                 </p>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
-              <span style={{ color: BRAND.accent, fontSize: '8px', marginTop: '2px' }}>●</span>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+              <span style={{ color: BRAND.accent, fontSize: '10px', marginTop: '2px', fontWeight: 'bold' }}>●</span>
               <div>
-                <p style={{ color: BRAND.dark, fontSize: '8px', margin: 0, lineHeight: '1.4', ...textStyle }}>
+                <p style={{ color: BRAND.dark, fontSize: '10px', margin: 0, lineHeight: '1.5', fontWeight: '600', ...textStyle }}>
                   هذا الفحص غير معتمد لدى إدارة التراخيص.
                 </p>
-                <p style={{ color: BRAND.muted, fontSize: '7px', margin: '1px 0 0 0', lineHeight: '1.3', ...englishStyle }}>
+                <p style={{ color: BRAND.muted, fontSize: '9px', margin: '2px 0 0 0', lineHeight: '1.4', ...englishStyle }}>
                   This inspection is not approved by the Licensing Authority.
                 </p>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
-              <span style={{ color: BRAND.accent, fontSize: '8px', marginTop: '2px' }}>●</span>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+              <span style={{ color: BRAND.accent, fontSize: '10px', marginTop: '2px', fontWeight: 'bold' }}>●</span>
               <div>
-                <p style={{ color: BRAND.dark, fontSize: '8px', margin: 0, lineHeight: '1.4', ...textStyle }}>
+                <p style={{ color: BRAND.dark, fontSize: '10px', margin: 0, lineHeight: '1.5', fontWeight: '600', ...textStyle }}>
                   المركز غير مسئول عن أي أغراض شخصية داخل السيارة.
                 </p>
-                <p style={{ color: BRAND.muted, fontSize: '7px', margin: '1px 0 0 0', lineHeight: '1.3', ...englishStyle }}>
+                <p style={{ color: BRAND.muted, fontSize: '9px', margin: '2px 0 0 0', lineHeight: '1.4', ...englishStyle }}>
                   The center is not responsible for personal belongings inside the vehicle.
                 </p>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '6px', alignItems: 'flex-start', gridColumn: 'span 2' }}>
-              <span style={{ color: BRAND.accent, fontSize: '8px', marginTop: '2px' }}>●</span>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', gridColumn: 'span 2' }}>
+              <span style={{ color: BRAND.accent, fontSize: '10px', marginTop: '2px', fontWeight: 'bold' }}>●</span>
               <div>
-                <p style={{ color: BRAND.dark, fontSize: '8px', margin: 0, lineHeight: '1.4', ...textStyle }}>
+                <p style={{ color: BRAND.dark, fontSize: '10px', margin: 0, lineHeight: '1.5', fontWeight: '600', ...textStyle }}>
                   يعتبر هذا التقرير لحالة المركبة حسب قراءة الأجهزة في وقت الفحص.
                 </p>
-                <p style={{ color: BRAND.muted, fontSize: '7px', margin: '1px 0 0 0', lineHeight: '1.3', ...englishStyle }}>
+                <p style={{ color: BRAND.muted, fontSize: '9px', margin: '2px 0 0 0', lineHeight: '1.4', ...englishStyle }}>
                   This report reflects the vehicle condition based on device readings at the time of inspection.
                 </p>
               </div>
