@@ -1,5 +1,6 @@
 import { forwardRef } from 'react';
 import logoPath from '@assets/logo_1767706304085.png';
+import hsCarBranding from '@assets/hs_car_branding.png';
 
 interface InspectionItem {
   id: number;
@@ -542,92 +543,23 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
             </div>
           </div>
 
-          {/* Vehicle Model Display - Car Silhouette */}
+          {/* High Safety Car Branding */}
           <div style={{ 
-            background: `linear-gradient(135deg, ${BRAND.primary} 0%, ${BRAND.secondary} 100%)`,
-            borderRadius: '10px', 
-            padding: '10px', 
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            borderRadius: '8px', 
+            overflow: 'hidden',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
             border: `2px solid ${BRAND.accent}`,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
           }}>
-            {/* CSS Car Silhouette */}
-            <div style={{
-              position: 'relative',
-              width: '60px',
-              height: '28px',
-              marginBottom: '6px',
-            }}>
-              {/* Car Body */}
-              <div style={{
-                position: 'absolute',
-                bottom: '6px',
-                left: '5px',
-                right: '5px',
-                height: '12px',
-                background: `linear-gradient(180deg, ${BRAND.accent} 0%, #a87225 100%)`,
-                borderRadius: '3px 3px 2px 2px',
-              }} />
-              {/* Car Top/Cabin */}
-              <div style={{
-                position: 'absolute',
-                bottom: '16px',
-                left: '14px',
-                right: '10px',
-                height: '10px',
-                background: `linear-gradient(180deg, ${BRAND.accentLight} 0%, ${BRAND.accent} 100%)`,
-                borderRadius: '6px 10px 0 0',
-              }} />
-              {/* Windows */}
-              <div style={{
-                position: 'absolute',
-                bottom: '17px',
-                left: '16px',
-                width: '12px',
-                height: '6px',
-                background: 'rgba(255,255,255,0.3)',
-                borderRadius: '3px 2px 0 0',
-              }} />
-              <div style={{
-                position: 'absolute',
-                bottom: '17px',
-                left: '30px',
-                width: '14px',
-                height: '6px',
-                background: 'rgba(255,255,255,0.3)',
-                borderRadius: '2px 4px 0 0',
-              }} />
-              {/* Wheels */}
-              <div style={{
-                position: 'absolute',
-                bottom: '2px',
-                left: '10px',
-                width: '10px',
-                height: '10px',
-                background: 'radial-gradient(circle, #333 40%, #666 50%, #333 60%, #1a1a1a 100%)',
-                borderRadius: '50%',
-                border: '1px solid #444',
-              }} />
-              <div style={{
-                position: 'absolute',
-                bottom: '2px',
-                right: '10px',
-                width: '10px',
-                height: '10px',
-                background: 'radial-gradient(circle, #333 40%, #666 50%, #333 60%, #1a1a1a 100%)',
-                borderRadius: '50%',
-                border: '1px solid #444',
-              }} />
-            </div>
-            <p style={{ color: '#fff', fontSize: '10px', fontWeight: 'bold', margin: '0', textAlign: 'center', ...englishStyle }}>
-              {inspection.make}
-            </p>
-            <p style={{ color: BRAND.accentLight, fontSize: '8px', margin: '2px 0 0 0', textAlign: 'center', ...englishStyle }}>
-              {inspection.model} {inspection.year}
-            </p>
+            <img 
+              src={hsCarBranding} 
+              alt="High Safety" 
+              style={{
+                width: '100px',
+                height: '75px',
+                objectFit: 'cover',
+                display: 'block',
+              }}
+            />
           </div>
         </div>
 
