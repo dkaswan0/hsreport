@@ -367,158 +367,211 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
             </div>
           </div>
 
-          {/* VIN - Metal Plate Style */}
+          {/* VIN - Realistic Stamped Metal Plate */}
           <div style={{ 
-            background: 'linear-gradient(145deg, #d4d4d8 0%, #a1a1aa 25%, #d4d4d8 50%, #a1a1aa 75%, #d4d4d8 100%)',
-            borderRadius: '8px', 
-            padding: '10px 12px', 
-            boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.15)',
+            background: 'linear-gradient(180deg, #c0c0c0 0%, #a8a8a8 20%, #d0d0d0 40%, #b8b8b8 60%, #c8c8c8 80%, #a0a0a0 100%)',
+            borderRadius: '4px', 
+            padding: '8px 10px', 
+            boxShadow: '0 3px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -1px 0 rgba(0,0,0,0.2)',
             position: 'relative',
+            border: '1px solid #888',
           }}>
             <div style={{ 
               display: 'flex', 
               justifyContent: 'space-between', 
-              borderBottom: '1px solid rgba(82, 82, 91, 0.3)',
-              paddingBottom: '4px',
-              marginBottom: '4px',
+              marginBottom: '6px',
             }}>
-              <span style={{ fontSize: '8px', fontWeight: 'bold', color: '#3f3f46', letterSpacing: '1px', textTransform: 'uppercase' }}>
-                {inspection.make || 'MANUFACTURER'}
+              <span style={{ fontSize: '7px', fontWeight: 'bold', color: '#333', letterSpacing: '0.5px' }}>
+                {inspection.make?.toUpperCase() || 'MANUFACTURER'}
               </span>
-              <span style={{ fontSize: '8px', fontWeight: 'bold', color: '#3f3f46' }}>
+              <span style={{ fontSize: '7px', fontWeight: 'bold', color: '#333' }}>
                 {inspection.year || '----'}
               </span>
             </div>
-            {inspection.model && (
-              <p style={{ fontSize: '9px', fontWeight: 'bold', color: '#27272a', textAlign: 'center', margin: '0 0 4px 0', textTransform: 'uppercase' }}>
-                {inspection.model}
-              </p>
-            )}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '7px', fontWeight: 'bold', color: '#52525b' }}>VIN</span>
-              <div style={{
-                flex: 1,
-                background: 'linear-gradient(180deg, #fafafa 0%, #e4e4e7 100%)',
-                borderRadius: '4px',
-                padding: '4px 6px',
-                boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.15)',
-              }}>
-                <p style={{ 
-                  fontFamily: "'Courier New', monospace",
-                  fontWeight: 900,
-                  fontSize: '9px',
-                  color: '#18181b',
-                  letterSpacing: '1.5px',
-                  textAlign: 'center',
-                  margin: 0,
-                }}>
-                  {inspection.vin}
-                </p>
-              </div>
-            </div>
-            <p style={{ fontSize: '6px', color: '#52525b', textAlign: 'center', margin: '4px 0 0 0', borderTop: '1px solid rgba(82, 82, 91, 0.2)', paddingTop: '3px' }}>
-              VEHICLE IDENTIFICATION • Report: HS-{inspection.id}
-            </p>
             <div style={{
-              position: 'absolute',
-              top: '6px',
-              left: '6px',
-              width: '5px',
-              height: '5px',
-              borderRadius: '50%',
-              background: 'radial-gradient(circle at 30% 30%, #a1a1aa, #52525b)',
+              background: 'linear-gradient(180deg, #f5f5f5 0%, #e8e8e8 50%, #f0f0f0 100%)',
+              borderRadius: '2px',
+              padding: '6px 8px',
+              border: '1px solid #999',
+              boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1)',
+            }}>
+              <p style={{ 
+                fontFamily: "'Courier New', 'Consolas', monospace",
+                fontWeight: 900,
+                fontSize: '10px',
+                color: '#1a1a1a',
+                letterSpacing: '2px',
+                textAlign: 'center',
+                margin: 0,
+                textShadow: '0 1px 0 rgba(255,255,255,0.5)',
+              }}>
+                {inspection.vin}
+              </p>
+            </div>
+            <p style={{ fontSize: '6px', color: '#555', textAlign: 'center', margin: '5px 0 0 0', letterSpacing: '0.5px' }}>
+              VEHICLE IDENTIFICATION NUMBER
+            </p>
+            {/* Rivets */}
+            <div style={{
+              position: 'absolute', top: '5px', left: '5px',
+              width: '6px', height: '6px', borderRadius: '50%',
+              background: 'radial-gradient(circle at 35% 35%, #e0e0e0, #808080 40%, #606060)',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.3)',
             }} />
             <div style={{
-              position: 'absolute',
-              top: '6px',
-              right: '6px',
-              width: '5px',
-              height: '5px',
-              borderRadius: '50%',
-              background: 'radial-gradient(circle at 30% 30%, #a1a1aa, #52525b)',
+              position: 'absolute', top: '5px', right: '5px',
+              width: '6px', height: '6px', borderRadius: '50%',
+              background: 'radial-gradient(circle at 35% 35%, #e0e0e0, #808080 40%, #606060)',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.3)',
+            }} />
+            <div style={{
+              position: 'absolute', bottom: '5px', left: '5px',
+              width: '6px', height: '6px', borderRadius: '50%',
+              background: 'radial-gradient(circle at 35% 35%, #e0e0e0, #808080 40%, #606060)',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.3)',
+            }} />
+            <div style={{
+              position: 'absolute', bottom: '5px', right: '5px',
+              width: '6px', height: '6px', borderRadius: '50%',
+              background: 'radial-gradient(circle at 35% 35%, #e0e0e0, #808080 40%, #606060)',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.3)',
             }} />
           </div>
 
-          {/* Odometer */}
+          {/* Odometer - Realistic Digital Display */}
           <div style={{
-            background: `linear-gradient(180deg, ${BRAND.primary} 0%, #0a1420 100%)`,
-            borderRadius: '10px',
-            padding: '10px',
+            background: 'linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 50%, #1a1a1a 100%)',
+            borderRadius: '8px',
+            padding: '8px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)',
+            border: '2px solid #333',
           }}>
-            <p style={{ color: BRAND.muted, fontSize: '7px', margin: '0 0 2px 0', ...textStyle }}>
-              عداد المسافة
-            </p>
-            <p style={{ color: BRAND.accentLight, fontSize: '7px', margin: '0 0 3px 0', ...englishStyle, textTransform: 'uppercase', letterSpacing: '1px' }}>
+            <p style={{ color: '#666', fontSize: '6px', margin: '0 0 4px 0', letterSpacing: '1px', ...englishStyle }}>
               ODOMETER
             </p>
             <div style={{
-              background: 'linear-gradient(180deg, #0a0a14 0%, #1a1a2e 100%)',
-              borderRadius: '5px',
-              padding: '4px 10px',
-              border: `2px solid ${BRAND.accent}`,
+              background: 'linear-gradient(180deg, #0a0a0a 0%, #151515 100%)',
+              borderRadius: '4px',
+              padding: '6px 12px',
+              border: '1px solid #222',
+              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.8)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '2px',
             }}>
-              <span style={{
-                color: '#00ff88',
-                fontSize: '15px',
-                fontFamily: "'Courier New', monospace",
-                fontWeight: 'bold',
-                textShadow: '0 0 8px rgba(0,255,136,0.5)',
-              }}>
-                {(inspection.odometer || inspection.mileage || 0).toLocaleString('en-US')}
-              </span>
+              {String(inspection.odometer || inspection.mileage || 0).padStart(6, '0').split('').map((digit, i) => (
+                <span key={i} style={{
+                  background: 'linear-gradient(180deg, #111 0%, #1a1a1a 50%, #111 100%)',
+                  color: '#00ff00',
+                  fontSize: '14px',
+                  fontFamily: "'Courier New', 'Consolas', monospace",
+                  fontWeight: 'bold',
+                  padding: '2px 3px',
+                  borderRadius: '2px',
+                  textShadow: '0 0 6px rgba(0,255,0,0.6)',
+                  minWidth: '12px',
+                  textAlign: 'center',
+                  border: '1px solid #333',
+                }}>
+                  {digit}
+                </span>
+              ))}
             </div>
-            <p style={{ color: '#4ade80', fontSize: '9px', margin: '3px 0 0 0', ...englishStyle, fontWeight: 'bold' }}>
+            <p style={{ color: '#00ff00', fontSize: '8px', margin: '4px 0 0 0', ...englishStyle, fontWeight: 'bold', textShadow: '0 0 4px rgba(0,255,0,0.4)' }}>
               KM
             </p>
           </div>
 
-          {/* Health Score */}
+          {/* Vehicle Model Display - Car Silhouette */}
           <div style={{ 
-            background: '#ffffff', 
+            background: `linear-gradient(135deg, ${BRAND.primary} 0%, ${BRAND.secondary} 100%)`,
             borderRadius: '10px', 
             padding: '10px', 
-            boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
-            border: `1px solid ${BRAND.border}`,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            border: `2px solid ${BRAND.accent}`,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-            <p style={{ color: BRAND.muted, fontSize: '7px', margin: '0 0 4px 0', display: 'flex', gap: '4px' }}>
-              <span style={textStyle}>نتيجة الفحص</span>
-              <span style={englishStyle}>Score</span>
-            </p>
+            {/* CSS Car Silhouette */}
             <div style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '50%',
-              border: `4px solid ${healthColor}`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: `${healthColor}15`,
+              position: 'relative',
+              width: '60px',
+              height: '28px',
+              marginBottom: '6px',
             }}>
-              <span style={{ color: healthColor, fontSize: '16px', fontWeight: 'bold', ...englishStyle }}>
-                {healthPercent}%
-              </span>
+              {/* Car Body */}
+              <div style={{
+                position: 'absolute',
+                bottom: '6px',
+                left: '5px',
+                right: '5px',
+                height: '12px',
+                background: `linear-gradient(180deg, ${BRAND.accent} 0%, #a87225 100%)`,
+                borderRadius: '3px 3px 2px 2px',
+              }} />
+              {/* Car Top/Cabin */}
+              <div style={{
+                position: 'absolute',
+                bottom: '16px',
+                left: '14px',
+                right: '10px',
+                height: '10px',
+                background: `linear-gradient(180deg, ${BRAND.accentLight} 0%, ${BRAND.accent} 100%)`,
+                borderRadius: '6px 10px 0 0',
+              }} />
+              {/* Windows */}
+              <div style={{
+                position: 'absolute',
+                bottom: '17px',
+                left: '16px',
+                width: '12px',
+                height: '6px',
+                background: 'rgba(255,255,255,0.3)',
+                borderRadius: '3px 2px 0 0',
+              }} />
+              <div style={{
+                position: 'absolute',
+                bottom: '17px',
+                left: '30px',
+                width: '14px',
+                height: '6px',
+                background: 'rgba(255,255,255,0.3)',
+                borderRadius: '2px 4px 0 0',
+              }} />
+              {/* Wheels */}
+              <div style={{
+                position: 'absolute',
+                bottom: '2px',
+                left: '10px',
+                width: '10px',
+                height: '10px',
+                background: 'radial-gradient(circle, #333 40%, #666 50%, #333 60%, #1a1a1a 100%)',
+                borderRadius: '50%',
+                border: '1px solid #444',
+              }} />
+              <div style={{
+                position: 'absolute',
+                bottom: '2px',
+                right: '10px',
+                width: '10px',
+                height: '10px',
+                background: 'radial-gradient(circle, #333 40%, #666 50%, #333 60%, #1a1a1a 100%)',
+                borderRadius: '50%',
+                border: '1px solid #444',
+              }} />
             </div>
-            <p style={{ fontSize: '8px', color: healthColor, fontWeight: 'bold', margin: '4px 0 0 0', textAlign: 'center' }}>
-              <span style={textStyle}>{healthLabel.ar}</span>
-              <span style={{ ...englishStyle, marginRight: '4px' }}>| {healthLabel.en}</span>
+            <p style={{ color: '#fff', fontSize: '10px', fontWeight: 'bold', margin: '0', textAlign: 'center', ...englishStyle }}>
+              {inspection.make}
             </p>
-            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-              <span style={{ fontSize: '8px', color: BRAND.success, fontWeight: 'bold', ...englishStyle }}>
-                {passCount} <span style={textStyle}>سليم</span>
-              </span>
-              <span style={{ fontSize: '8px', color: BRAND.danger, fontWeight: 'bold', ...englishStyle }}>
-                {failItems.length} <span style={textStyle}>عطل</span>
-              </span>
-            </div>
+            <p style={{ color: BRAND.accentLight, fontSize: '8px', margin: '2px 0 0 0', textAlign: 'center', ...englishStyle }}>
+              {inspection.model} {inspection.year}
+            </p>
           </div>
         </div>
 
@@ -591,7 +644,7 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
                     fontWeight: 'bold',
                     ...englishStyle,
                   }}>
-                    <span style={textStyle}>يحتاج اصلاح</span> | {failItems.length} Fail
+                    <span style={textStyle}>أعطال</span> | {failItems.length} Faults
                   </span>
                   <span style={{ 
                     backgroundColor: BRAND.warning,
@@ -702,8 +755,8 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
                           margin: 0,
                           fontWeight: 'bold',
                         }}>
-                          <span style={textStyle}>{isFail ? '\u25CF يحتاج اصلاح' : '\u25D0 ملاحظة'}</span>
-                          <span style={{ ...englishStyle, marginRight: '4px' }}>| {isFail ? 'Needs Repair' : 'Needs Attention'}</span>
+                          <span style={textStyle}>{isFail ? '\u25CF عطل' : '\u25D0 ملاحظة'}</span>
+                          <span style={{ ...englishStyle, marginRight: '4px' }}>| {isFail ? 'Fault' : 'Note'}</span>
                         </p>
                       </div>
                     </div>
@@ -751,6 +804,93 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
             </div>
           </div>
         )}
+
+        {/* Terms & Conditions */}
+        <div style={{
+          padding: '12px 24px',
+          backgroundColor: BRAND.light,
+          borderTop: `1px solid ${BRAND.border}`,
+          flexShrink: 0,
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            marginBottom: '8px',
+          }}>
+            <div style={{
+              width: '4px',
+              height: '16px',
+              backgroundColor: BRAND.accent,
+              borderRadius: '2px',
+            }}></div>
+            <h3 style={{ color: BRAND.dark, fontSize: '10px', fontWeight: 'bold', margin: 0 }}>
+              <span style={textStyle}>البنود والأحكام</span>
+              <span style={{ ...englishStyle, marginRight: '8px', color: BRAND.muted }}>| Terms & Conditions</span>
+            </h3>
+          </div>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '6px 16px',
+          }}>
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
+              <span style={{ color: BRAND.accent, fontSize: '8px', marginTop: '2px' }}>●</span>
+              <div>
+                <p style={{ color: BRAND.dark, fontSize: '8px', margin: 0, lineHeight: '1.4', ...textStyle }}>
+                  المركز غير مسئول عن أي أعطال تحدث أثناء الفحص أو بعده.
+                </p>
+                <p style={{ color: BRAND.muted, fontSize: '7px', margin: '1px 0 0 0', lineHeight: '1.3', ...englishStyle }}>
+                  The center is not responsible for any malfunctions during or after inspection.
+                </p>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
+              <span style={{ color: BRAND.accent, fontSize: '8px', marginTop: '2px' }}>●</span>
+              <div>
+                <p style={{ color: BRAND.dark, fontSize: '8px', margin: 0, lineHeight: '1.4', ...textStyle }}>
+                  المركز مسئول عن نتيجة الفحص وقت الفحص فقط.
+                </p>
+                <p style={{ color: BRAND.muted, fontSize: '7px', margin: '1px 0 0 0', lineHeight: '1.3', ...englishStyle }}>
+                  The center is only responsible for inspection results at the time of inspection.
+                </p>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
+              <span style={{ color: BRAND.accent, fontSize: '8px', marginTop: '2px' }}>●</span>
+              <div>
+                <p style={{ color: BRAND.dark, fontSize: '8px', margin: 0, lineHeight: '1.4', ...textStyle }}>
+                  هذا الفحص غير معتمد لدى إدارة التراخيص.
+                </p>
+                <p style={{ color: BRAND.muted, fontSize: '7px', margin: '1px 0 0 0', lineHeight: '1.3', ...englishStyle }}>
+                  This inspection is not approved by the Licensing Authority.
+                </p>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
+              <span style={{ color: BRAND.accent, fontSize: '8px', marginTop: '2px' }}>●</span>
+              <div>
+                <p style={{ color: BRAND.dark, fontSize: '8px', margin: 0, lineHeight: '1.4', ...textStyle }}>
+                  المركز غير مسئول عن أي أغراض شخصية داخل السيارة.
+                </p>
+                <p style={{ color: BRAND.muted, fontSize: '7px', margin: '1px 0 0 0', lineHeight: '1.3', ...englishStyle }}>
+                  The center is not responsible for personal belongings inside the vehicle.
+                </p>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'flex-start', gridColumn: 'span 2' }}>
+              <span style={{ color: BRAND.accent, fontSize: '8px', marginTop: '2px' }}>●</span>
+              <div>
+                <p style={{ color: BRAND.dark, fontSize: '8px', margin: 0, lineHeight: '1.4', ...textStyle }}>
+                  يعتبر هذا التقرير لحالة المركبة حسب قراءة الأجهزة في وقت الفحص.
+                </p>
+                <p style={{ color: BRAND.muted, fontSize: '7px', margin: '1px 0 0 0', lineHeight: '1.3', ...englishStyle }}>
+                  This report reflects the vehicle condition based on device readings at the time of inspection.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Footer */}
         <div style={{
