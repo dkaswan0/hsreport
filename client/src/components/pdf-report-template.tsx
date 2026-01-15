@@ -130,6 +130,57 @@ const getVehicleColor = (colorStr?: string | null) => {
   return COLOR_MAP[normalized] || { ar: colorStr, en: colorStr, hex: '#6B7280' };
 };
 
+const CAR_LOGOS: Record<string, string> = {
+  'bmw': 'https://logo.clearbit.com/bmw.com',
+  'mercedes': 'https://logo.clearbit.com/mercedes-benz.com',
+  'mercedes-benz': 'https://logo.clearbit.com/mercedes-benz.com',
+  'toyota': 'https://logo.clearbit.com/toyota.com',
+  'honda': 'https://logo.clearbit.com/honda.com',
+  'nissan': 'https://logo.clearbit.com/nissan.com',
+  'ford': 'https://logo.clearbit.com/ford.com',
+  'chevrolet': 'https://logo.clearbit.com/chevrolet.com',
+  'audi': 'https://logo.clearbit.com/audi.com',
+  'volkswagen': 'https://logo.clearbit.com/volkswagen.com',
+  'hyundai': 'https://logo.clearbit.com/hyundai.com',
+  'kia': 'https://logo.clearbit.com/kia.com',
+  'lexus': 'https://logo.clearbit.com/lexus.com',
+  'mazda': 'https://logo.clearbit.com/mazda.com',
+  'porsche': 'https://logo.clearbit.com/porsche.com',
+  'jeep': 'https://logo.clearbit.com/jeep.com',
+  'land rover': 'https://logo.clearbit.com/landrover.com',
+  'range rover': 'https://logo.clearbit.com/landrover.com',
+  'infiniti': 'https://logo.clearbit.com/infiniti.com',
+  'subaru': 'https://logo.clearbit.com/subaru.com',
+  'mitsubishi': 'https://logo.clearbit.com/mitsubishi-motors.com',
+  'volvo': 'https://logo.clearbit.com/volvocars.com',
+  'jaguar': 'https://logo.clearbit.com/jaguar.com',
+  'gmc': 'https://logo.clearbit.com/gmc.com',
+  'cadillac': 'https://logo.clearbit.com/cadillac.com',
+  'genesis': 'https://logo.clearbit.com/genesis.com',
+  'dodge': 'https://logo.clearbit.com/dodge.com',
+  'chrysler': 'https://logo.clearbit.com/chrysler.com',
+  'maserati': 'https://logo.clearbit.com/maserati.com',
+  'bentley': 'https://logo.clearbit.com/bentleymotors.com',
+  'ferrari': 'https://logo.clearbit.com/ferrari.com',
+  'lamborghini': 'https://logo.clearbit.com/lamborghini.com',
+  'rolls-royce': 'https://logo.clearbit.com/rolls-roycemotorcars.com',
+  'aston martin': 'https://logo.clearbit.com/astonmartin.com',
+  'mini': 'https://logo.clearbit.com/mini.com',
+  'alfa romeo': 'https://logo.clearbit.com/alfaromeo.com',
+  'fiat': 'https://logo.clearbit.com/fiat.com',
+  'peugeot': 'https://logo.clearbit.com/peugeot.com',
+  'renault': 'https://logo.clearbit.com/renault.com',
+  'citroen': 'https://logo.clearbit.com/citroen.com',
+  'skoda': 'https://logo.clearbit.com/skoda-auto.com',
+  'seat': 'https://logo.clearbit.com/seat.com',
+};
+
+const getCarLogo = (make?: string | null): string | null => {
+  if (!make) return null;
+  const normalized = make.toLowerCase().trim();
+  return CAR_LOGOS[normalized] || null;
+};
+
 const getInspectionTypeLabel = (type?: string | null) => {
   switch (type) {
     case 'comprehensive': return { ar: 'فحص شامل', en: 'Comprehensive Inspection' };
@@ -178,6 +229,7 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
     const getCategoryLabel = (catId: string) => CATEGORIES[catId] || { ar: catId, en: catId };
     const inspectionTypeLabel = getInspectionTypeLabel(inspection.inspectionType);
     const vehicleColor = getVehicleColor(inspection.color);
+    const carLogoUrl = getCarLogo(inspection.make);
 
     const itemCount = issueItems.length;
     
@@ -330,7 +382,25 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
             boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
             border: `1px solid ${BRAND.border}`,
             borderTop: `3px solid ${BRAND.accent}`,
+            position: 'relative',
           }}>
+            {carLogoUrl && (
+              <img 
+                src={carLogoUrl} 
+                alt={inspection.make || 'Logo'} 
+                crossOrigin="anonymous"
+                style={{ 
+                  position: 'absolute',
+                  top: '8px',
+                  left: '8px',
+                  width: '24px',
+                  height: '24px',
+                  objectFit: 'contain',
+                  borderRadius: '4px',
+                  backgroundColor: '#fff',
+                }}
+              />
+            )}
             <p style={{ color: BRAND.muted, fontSize: '8px', margin: '0 0 4px 0', display: 'flex', justifyContent: 'space-between' }}>
               <span style={textStyle}>المركبة</span>
               <span style={englishStyle}>Vehicle</span>
