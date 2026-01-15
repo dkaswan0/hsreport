@@ -439,123 +439,189 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
             }} />
           </div>
 
-          {/* Odometer - Car Dashboard Style */}
+          {/* Realistic Analog Odometer with Dual Gauges */}
           <div style={{
-            background: 'radial-gradient(ellipse at center, #2a2a2a 0%, #1a1a1a 50%, #0d0d0d 100%)',
-            borderRadius: '12px',
-            padding: '10px',
+            background: 'radial-gradient(ellipse at center, #1a1a1a 0%, #0a0a0a 60%, #000 100%)',
+            borderRadius: '10px',
+            padding: '8px',
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 6px 20px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.05), inset 0 -2px 4px rgba(0,0,0,0.5)',
-            border: '3px solid #444',
-            position: 'relative',
-            overflow: 'hidden',
+            gap: '4px',
+            boxShadow: '0 6px 20px rgba(0,0,0,0.8), inset 0 1px 2px rgba(255,255,255,0.05)',
+            border: '2px solid #333',
           }}>
-            {/* Dashboard bezel effect */}
+            {/* Left Gauge (RPM style) */}
             <div style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: '50%',
-              background: 'linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%)',
-              borderRadius: '10px 10px 0 0',
-              pointerEvents: 'none',
-            }} />
-            
-            {/* LCD Screen Container */}
-            <div style={{
-              background: 'linear-gradient(180deg, #0a1520 0%, #0d1a25 50%, #081015 100%)',
-              borderRadius: '6px',
-              padding: '8px 14px',
-              border: '2px solid #1a2a3a',
-              boxShadow: 'inset 0 3px 8px rgba(0,0,0,0.9), 0 1px 0 rgba(255,255,255,0.1)',
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              background: 'radial-gradient(circle at 30% 30%, #2a2a2a 0%, #111 60%, #000 100%)',
+              border: '2px solid #444',
               position: 'relative',
+              boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.9)',
             }}>
-              {/* LCD glow effect */}
+              {/* Gauge markings */}
+              {[0, 30, 60, 90, 120, 150, 180, 210, 240].map((angle, i) => (
+                <div key={i} style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  width: '1px',
+                  height: '4px',
+                  background: i > 6 ? '#ff3333' : '#fff',
+                  transformOrigin: 'center -10px',
+                  transform: `translate(-50%, -50%) rotate(${angle - 120}deg)`,
+                }} />
+              ))}
+              {/* Needle */}
+              <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                width: '2px',
+                height: '12px',
+                background: 'linear-gradient(180deg, #ff4444 0%, #cc0000 100%)',
+                transformOrigin: 'bottom center',
+                transform: 'translate(-50%, -100%) rotate(-30deg)',
+                borderRadius: '1px',
+              }} />
+              {/* Center cap */}
               <div style={{
                 position: 'absolute',
                 top: '50%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
-                width: '80%',
-                height: '60%',
-                background: 'radial-gradient(ellipse, rgba(0,180,255,0.15) 0%, transparent 70%)',
-                pointerEvents: 'none',
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, #666 0%, #222 100%)',
+                border: '1px solid #444',
               }} />
-              
-              {/* Digital Display */}
+            </div>
+
+            {/* Center Digital Odometer Display */}
+            <div style={{
+              background: 'linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%)',
+              borderRadius: '4px',
+              padding: '6px 8px',
+              border: '1px solid #333',
+              boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.9)',
+            }}>
+              {/* Mechanical roller digits */}
               <div style={{
                 display: 'flex',
-                alignItems: 'baseline',
-                gap: '3px',
-                position: 'relative',
+                alignItems: 'center',
+                gap: '1px',
+                background: '#111',
+                padding: '3px 4px',
+                borderRadius: '2px',
+                border: '1px solid #222',
               }}>
                 {String(inspection.odometer || inspection.mileage || 0).padStart(6, '0').split('').map((digit, i) => (
-                  <span key={i} style={{
-                    color: '#00d4ff',
-                    fontSize: '18px',
-                    fontFamily: "'Courier New', 'Consolas', 'Monaco', monospace",
-                    fontWeight: 'bold',
-                    textShadow: '0 0 10px rgba(0,212,255,0.8), 0 0 20px rgba(0,212,255,0.4), 0 0 30px rgba(0,212,255,0.2)',
-                    letterSpacing: '1px',
+                  <div key={i} style={{
+                    width: '10px',
+                    height: '14px',
+                    background: i < 5 ? 'linear-gradient(180deg, #1a1a1a 0%, #2a2a2a 50%, #1a1a1a 100%)' : 'linear-gradient(180deg, #ff2222 0%, #cc0000 50%, #aa0000 100%)',
+                    borderRadius: '1px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '1px solid #333',
+                    boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.5)',
                   }}>
-                    {digit}
-                  </span>
+                    <span style={{
+                      color: '#fff',
+                      fontSize: '10px',
+                      fontFamily: "'Arial', sans-serif",
+                      fontWeight: 'bold',
+                    }}>
+                      {digit}
+                    </span>
+                  </div>
                 ))}
-                <span style={{
-                  color: '#00d4ff',
-                  fontSize: '10px',
-                  fontFamily: "'Arial', sans-serif",
-                  fontWeight: 'bold',
-                  textShadow: '0 0 8px rgba(0,212,255,0.6)',
-                  marginLeft: '4px',
+              </div>
+              <div style={{
+                textAlign: 'center',
+                marginTop: '2px',
+              }}>
+                <span style={{ 
+                  color: '#888', 
+                  fontSize: '6px', 
+                  letterSpacing: '1px',
+                  ...englishStyle,
                 }}>
                   km
                 </span>
               </div>
             </div>
-            
-            {/* Bottom indicator */}
+
+            {/* Right Gauge (Speed style) */}
             <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              marginTop: '6px',
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              background: 'radial-gradient(circle at 30% 30%, #2a2a2a 0%, #111 60%, #000 100%)',
+              border: '2px solid #444',
+              position: 'relative',
+              boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.9)',
             }}>
+              {/* Gauge markings */}
+              {[0, 30, 60, 90, 120, 150, 180, 210, 240].map((angle, i) => (
+                <div key={i} style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  width: '1px',
+                  height: '4px',
+                  background: i > 6 ? '#ff3333' : '#fff',
+                  transformOrigin: 'center -10px',
+                  transform: `translate(-50%, -50%) rotate(${angle - 120}deg)`,
+                }} />
+              ))}
+              {/* Needle */}
               <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                width: '2px',
+                height: '12px',
+                background: 'linear-gradient(180deg, #ff4444 0%, #cc0000 100%)',
+                transformOrigin: 'bottom center',
+                transform: 'translate(-50%, -100%) rotate(15deg)',
+                borderRadius: '1px',
+              }} />
+              {/* Center cap */}
+              <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
                 width: '6px',
                 height: '6px',
                 borderRadius: '50%',
-                background: 'radial-gradient(circle, #00ff00 0%, #00aa00 100%)',
-                boxShadow: '0 0 6px rgba(0,255,0,0.8)',
+                background: 'radial-gradient(circle, #666 0%, #222 100%)',
+                border: '1px solid #444',
               }} />
-              <span style={{ 
-                color: '#888', 
-                fontSize: '6px', 
-                letterSpacing: '1px', 
-                ...englishStyle 
-              }}>
-                ODOMETER
-              </span>
             </div>
           </div>
 
-          {/* High Safety Car Branding */}
+          {/* High Safety Car Branding - Professional Fixed Display */}
           <div style={{ 
-            borderRadius: '8px', 
+            width: '140px',
+            height: '90px',
+            borderRadius: '6px', 
             overflow: 'hidden',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.4), inset 0 0 20px rgba(197,133,44,0.1)',
             border: `2px solid ${BRAND.accent}`,
+            background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)',
           }}>
             <img 
               src={hsCarBranding} 
               alt="High Safety" 
               style={{
-                width: '100px',
-                height: '75px',
+                width: '100%',
+                height: '100%',
                 objectFit: 'cover',
                 display: 'block',
               }}
