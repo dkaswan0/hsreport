@@ -28,6 +28,7 @@ import html2canvas from "html2canvas";
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import logoPath from "@assets/logo_1767706304085.png";
 import { PdfReportTemplate } from "@/components/pdf-report-template";
+import { generateInspectionPdf } from "@/lib/pdf-report-builder";
 import carVisualizationPath from "@assets/generated_images/professional_car_anatomy_diagram.png";
 import carFrontView from "@assets/generated_images/car_front_view_diagram.png";
 import carRightView from "@assets/generated_images/car_right_side_view.png";
@@ -879,52 +880,14 @@ export default function InteractiveReport() {
     }
   };
 
-  // New professional single-page PDF with html2canvas - high quality
+  // New professional PDF using jsPDF directly with Arabic support
   const handleNewPdfDownload = async () => {
-    if (!inspection || !pdfTemplateRef.current) return;
+    if (!inspection) return;
     
     toast({ title: "يجهز", description: "يسوي تقرير PDF احترافي..." });
     
     try {
-      const element = pdfTemplateRef.current;
-      const A4_WIDTH = 794;
-      const A4_HEIGHT = 1123;
-      
-      // Wait for fonts to load
-      if (document.fonts && document.fonts.ready) {
-        await document.fonts.ready;
-      }
-      
-      // Wait a bit for images to load
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Capture with html2canvas at high quality (scale 3 for clarity)
-      const canvas = await html2canvas(element, {
-        scale: 3,
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        width: A4_WIDTH,
-        height: A4_HEIGHT,
-        windowWidth: A4_WIDTH,
-        imageTimeout: 15000,
-      });
-
-      const imgData = canvas.toDataURL('image/png', 1.0);
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-      });
-      
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      
-      // Single page - fit to A4
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      
-      pdf.save(`Inspection_Report_${inspection.vin}_HS${inspection.id}.pdf`);
+      await generateInspectionPdf(inspection, logoPath);
       toast({ title: "تم التحميل", description: "تم تحميل ملف PDF بجودة عالية" });
     } catch (error) {
       console.error('PDF error:', error);
