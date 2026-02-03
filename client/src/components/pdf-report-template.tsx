@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import logoPath from '@assets/logo_1767706304085.png';
+import logoPath from '@assets/hs-logo.png';
 import hsCarBranding from '@assets/hs_car_branding.png';
 
 interface InspectionItem {

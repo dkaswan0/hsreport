@@ -26,7 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
-import logoPath from "@assets/logo_1767706304085.png";
+import logoPath from "@assets/hs-logo.png";
 import { PdfReportTemplate } from "@/components/pdf-report-template";
 import carVisualizationPath from "@assets/generated_images/professional_car_anatomy_diagram.png";
 import carFrontView from "@assets/generated_images/car_front_view_diagram.png";

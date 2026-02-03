@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Lock, User, Eye, EyeOff, Shield } from "lucide-react";
-import logoPath from "@assets/logo_1767706304085.png";
+import logoPath from "@assets/hs-logo.png";
 
 export default function Login({ onLoginSuccess }: { onLoginSuccess: () => void }) {
   const [, setLocation] = useLocation();

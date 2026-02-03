@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getVehicleColor, calculateInspectionStats, getInspectionTypeLabel } from "@/lib/vehicle-utils";
-import logoPath from "@assets/logo_1767706304085.png";
+import logoPath from "@assets/hs-logo.png";
 import { VinPlate } from "@/components/vin-plate";
 import carCutawayFrontLeft from "@assets/generated_images/car_cutaway_front-left_view.png";
 import carCutawayRightSide from "@assets/generated_images/car_cutaway_right_side_view.png";
