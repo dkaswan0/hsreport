@@ -38,7 +38,18 @@ Preferred communication style: Simple, everyday language.
 - **Path Aliases**: `@/` maps to client source, `@shared/` maps to shared code
 
 ### Inspection Categories
-The system organizes vehicle inspections into 12 categories: Engine, Transmission, Chassis, Body, Tires, Brakes, Electrical, Wheels, Suspension, AC/Cooling, Exhaust, and Safety.
+The system organizes vehicle inspections into **6 main sections** with subcategories:
+1. **MECHANIC (الأجزاء الميكانيكية)**: Engine, Suspension System, Steering System, Brake System, Fuel & Exhaust, AC & Cooling
+2. **TRANSMISSION (ناقل الحركة)**: Automatic, Manual, Performance, Sounds, Leaks, Gear Shifting
+3. **BODY (الهيكل الخارجي)**: Doors, Hood, Trunk, Fenders, Bumpers, Roof, Pillars, Quarter Panels
+4. **CHASSIS (الشاصي)**: Frame, Alignment, Welding, Accident Damage
+5. **ELECTRIC (الكهربائية)**: Electrical System, Battery, Lights, Wire Harness, Sensors
+6. **INTERIOR & SAFETY (الداخلية والسلامة)**: Interior, Safety Systems, Tires/Rims, Windows, Mirrors, Accessories
+
+### Fault Database
+- **Total Faults**: 9,639 faults (1,479 original + 8,160 generated)
+- **Source**: `shared/fault-data.ts` generates comprehensive faults programmatically
+- **Coverage**: All external vehicle parts with multiple condition types
 
 ## External Dependencies
 
