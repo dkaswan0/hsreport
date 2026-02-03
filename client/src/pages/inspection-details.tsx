@@ -54,14 +54,14 @@ export default function InspectionDetails() {
     return group.categories.map(catId => INSPECTION_CATEGORIES.find(c => c.id === catId)).filter(Boolean);
   };
   
-  // Get all category IDs for the MECHANIC section (to show all faults together)
+  // Get all category IDs for the mechanic section (to show all faults together)
   const getMechanicCategoryIds = () => {
-    const group = CATEGORY_GROUPS.find(g => g.sectionId === 'MECHANIC');
+    const group = CATEGORY_GROUPS.find(g => g.sectionId === 'mechanic');
     return group ? group.categories : [];
   };
   
   // Check if we're viewing the mechanical section (show all faults together)
-  const isViewingMechanicSection = activeSection === 'MECHANIC' && expandedSections['MECHANIC'];
+  const isViewingMechanicSection = activeSection === 'mechanic' && expandedSections['mechanic'];
 
   if (isLoading) return <div className="flex justify-center items-center h-96"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>;
   if (!inspection && error) return (
@@ -130,8 +130,8 @@ export default function InspectionDetails() {
             ))}
           </div>
         </div>
-        {/* Show subcategories when a section is expanded (except MECHANIC which shows all faults together) */}
-        {activeSection && expandedSections[activeSection] && activeSection !== 'MECHANIC' && (
+        {/* Show subcategories when a section is expanded (except mechanic which shows all faults together) */}
+        {activeSection && expandedSections[activeSection] && activeSection !== 'mechanic' && (
           <div className="border-t border-slate-100 bg-slate-50/50">
             <div className="overflow-x-auto overscroll-x-contain">
               <div className="flex gap-2 p-3 min-w-max">
@@ -154,8 +154,8 @@ export default function InspectionDetails() {
             </div>
           </div>
         )}
-        {/* MECHANIC section shows all faults together */}
-        {activeSection === 'MECHANIC' && expandedSections['MECHANIC'] && (
+        {/* mechanic section shows all faults together */}
+        {activeSection === 'mechanic' && expandedSections['mechanic'] && (
           <div className="border-t border-slate-100 bg-emerald-50/50 px-4 py-2 text-xs text-emerald-700 font-medium">
             كل الأعطال الميكانيكية معروضة مع بعض
           </div>
@@ -194,8 +194,8 @@ export default function InspectionDetails() {
                     </span>
                   </button>
                   
-                  {/* Subcategories - except for MECHANIC which shows all faults together */}
-                  {isExpanded && section.id !== 'MECHANIC' && (
+                  {/* Subcategories - except for mechanic which shows all faults together */}
+                  {isExpanded && section.id !== 'mechanic' && (
                     <div className="mr-4 space-y-0.5 border-r-2 border-slate-100 pr-2">
                       {sectionCategories.map(cat => cat && (
                         <button
@@ -215,8 +215,8 @@ export default function InspectionDetails() {
                       ))}
                     </div>
                   )}
-                  {/* MECHANIC section shows all faults together */}
-                  {isExpanded && section.id === 'MECHANIC' && (
+                  {/* mechanic section shows all faults together */}
+                  {isExpanded && section.id === 'mechanic' && (
                     <div className="mr-4 px-3 py-2 text-xs text-emerald-700 bg-emerald-50 rounded-lg border border-emerald-100">
                       كل الأعطال الميكانيكية معروضة مع بعض
                     </div>
