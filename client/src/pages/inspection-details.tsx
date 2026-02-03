@@ -731,9 +731,19 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
                 )}
               </div>
               {formData.faultName && (
-                <div className="mt-2 p-2 bg-primary/5 rounded-lg border border-primary/20 text-sm text-primary flex items-center gap-2">
-                  <Check className="w-4 h-4" />
-                  <span>تم الاختيار: {formData.faultName}</span>
+                <div className="mt-2 p-2 bg-primary/5 rounded-lg border border-primary/20">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Check className="w-4 h-4 text-primary" />
+                    <span className="text-xs text-primary font-medium">تم الاختيار (يمكنك التحرير):</span>
+                  </div>
+                  <input
+                    type="text"
+                    value={formData.faultName}
+                    onChange={(e) => setFormData(prev => ({ ...prev, faultName: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg border border-primary/30 bg-white text-sm text-slate-900 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all text-right"
+                    placeholder="اكتب أو عدّل اسم العطل..."
+                    data-testid="input-fault-name-edit"
+                  />
                 </div>
               )}
             </div>
