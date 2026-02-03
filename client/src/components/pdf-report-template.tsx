@@ -49,29 +49,103 @@ const BRAND = {
   border: '#E2E8F0',
 };
 
-const CATEGORIES: Record<string, { ar: string; en: string }> = {
-  engine: { ar: 'المحرك', en: 'Engine' },
-  transmission: { ar: 'ناقل الحركة', en: 'Transmission' },
-  chassis: { ar: 'الشاسيه', en: 'Chassis' },
-  body: { ar: 'الهيكل', en: 'Body' },
-  tires: { ar: 'الاطارات', en: 'Tires' },
-  brakes: { ar: 'الفرامل', en: 'Brakes' },
-  electrical: { ar: 'الكهرباء', en: 'Electrical' },
-  wheels: { ar: 'الجنوط', en: 'Wheels' },
-  suspension: { ar: 'التعليق', en: 'Suspension' },
-  ac: { ar: 'التكييف', en: 'A/C' },
-  exhaust: { ar: 'العادم', en: 'Exhaust' },
-  safety: { ar: 'السلامة', en: 'Safety' },
-  front_bumper: { ar: 'الصدام الامامي', en: 'Front Bumper' },
-  rear_bumper: { ar: 'الصدام الخلفي', en: 'Rear Bumper' },
-  hood: { ar: 'الكبوت', en: 'Hood' },
-  trunk: { ar: 'الشنطة', en: 'Trunk' },
-  doors: { ar: 'الابواب', en: 'Doors' },
-  fenders: { ar: 'الرفارف', en: 'Fenders' },
-  roof: { ar: 'السقف', en: 'Roof' },
-  lights: { ar: 'الاضاءة', en: 'Lights' },
-  interior: { ar: 'الداخلية', en: 'Interior' },
-  glass: { ar: 'الزجاج', en: 'Glass' },
+// Main 6 Sections with subcategories
+const MAIN_SECTIONS_PDF = [
+  { id: 'mechanic', ar: 'الأجزاء الميكانيكية', en: 'MECHANIC' },
+  { id: 'transmission', ar: 'ناقل الحركة', en: 'TRANSMISSION' },
+  { id: 'body', ar: 'الهيكل الخارجي', en: 'BODY' },
+  { id: 'chassis', ar: 'الشاصي', en: 'CHASSIS' },
+  { id: 'electric', ar: 'الأجزاء الكهربائية', en: 'ELECTRIC' },
+  { id: 'interior', ar: 'الداخلية والسلامة', en: 'INTERIOR & SAFETY' },
+];
+
+const CATEGORIES: Record<string, { ar: string; en: string; section?: string }> = {
+  // MECHANIC Section
+  engine: { ar: 'المحرك', en: 'Engine', section: 'mechanic' },
+  suspension_system: { ar: 'نظام التعليق', en: 'Suspension System', section: 'mechanic' },
+  steering_system: { ar: 'نظام التوجيه', en: 'Steering System', section: 'mechanic' },
+  brake_system: { ar: 'نظام الفرامل', en: 'Brake System', section: 'mechanic' },
+  fuel_exhaust: { ar: 'نظام الوقود والعادم', en: 'Fuel & Exhaust', section: 'mechanic' },
+  ac_cooling: { ar: 'نظام التكييف', en: 'AC & Cooling', section: 'mechanic' },
+  misc_mechanical: { ar: 'أعطال ميكانيكية متنوعة', en: 'Misc Mechanical', section: 'mechanic' },
+  // Legacy mechanic categories
+  suspension: { ar: 'التعليق', en: 'Suspension', section: 'mechanic' },
+  brakes: { ar: 'الفرامل', en: 'Brakes', section: 'mechanic' },
+  ac: { ar: 'التكييف', en: 'A/C', section: 'mechanic' },
+  exhaust: { ar: 'العادم', en: 'Exhaust', section: 'mechanic' },
+  
+  // TRANSMISSION Section
+  transmission: { ar: 'ناقل الحركة', en: 'Transmission', section: 'transmission' },
+  transmission_auto: { ar: 'قير أوتوماتيك', en: 'Automatic Transmission', section: 'transmission' },
+  transmission_manual: { ar: 'قير عادي', en: 'Manual Transmission', section: 'transmission' },
+  transmission_performance: { ar: 'أداء ناقل الحركة', en: 'Transmission Performance', section: 'transmission' },
+  transmission_sounds: { ar: 'أصوات ناقل الحركة', en: 'Transmission Sounds', section: 'transmission' },
+  transmission_leaks: { ar: 'تسريبات ناقل الحركة', en: 'Transmission Leaks', section: 'transmission' },
+  transmission_shifting: { ar: 'التبديل والتعشيق', en: 'Gear Shifting', section: 'transmission' },
+  
+  // BODY Section
+  body: { ar: 'الهيكل', en: 'Body', section: 'body' },
+  door_front_left: { ar: 'الباب الأمامي يسار', en: 'Front Left Door', section: 'body' },
+  door_front_right: { ar: 'الباب الأمامي يمين', en: 'Front Right Door', section: 'body' },
+  door_rear_left: { ar: 'الباب الخلفي يسار', en: 'Rear Left Door', section: 'body' },
+  door_rear_right: { ar: 'الباب الخلفي يمين', en: 'Rear Right Door', section: 'body' },
+  hood: { ar: 'البونيت', en: 'Hood', section: 'body' },
+  trunk: { ar: 'الدبة', en: 'Trunk', section: 'body' },
+  fender_front_left: { ar: 'الرفرف الأمامي يسار', en: 'Front Left Fender', section: 'body' },
+  fender_front_right: { ar: 'الرفرف الأمامي يمين', en: 'Front Right Fender', section: 'body' },
+  fender_rear_left: { ar: 'الرفرف الخلفي يسار', en: 'Rear Left Fender', section: 'body' },
+  fender_rear_right: { ar: 'الرفرف الخلفي يمين', en: 'Rear Right Fender', section: 'body' },
+  quarter_panel_left: { ar: 'الفخد يسار', en: 'Left Quarter Panel', section: 'body' },
+  quarter_panel_right: { ar: 'الفخد يمين', en: 'Right Quarter Panel', section: 'body' },
+  roof: { ar: 'السقف', en: 'Roof', section: 'body' },
+  pillars: { ar: 'القوائم', en: 'Pillars', section: 'body' },
+  front_chest: { ar: 'الصدر الأمامي', en: 'Front Frame', section: 'body' },
+  rear_chest: { ar: 'الصدر الخلفي', en: 'Rear Frame', section: 'body' },
+  front_bumper: { ar: 'الدعامية الأمامية', en: 'Front Bumper', section: 'body' },
+  rear_bumper: { ar: 'الدعامية الخلفية', en: 'Rear Bumper', section: 'body' },
+  bumper_frame_front: { ar: 'جسر الدعامية الأمامية', en: 'Front Bumper Frame', section: 'body' },
+  bumper_frame_rear: { ar: 'جسر الدعامية الخلفية', en: 'Rear Bumper Frame', section: 'body' },
+  fender_front: { ar: 'المدقار الأمامي', en: 'Front Fender', section: 'body' },
+  fender_rear: { ar: 'المدقار الخلفي', en: 'Rear Fender', section: 'body' },
+  // Legacy body categories
+  doors: { ar: 'الابواب', en: 'Doors', section: 'body' },
+  fenders: { ar: 'الرفارف', en: 'Fenders', section: 'body' },
+  
+  // CHASSIS Section
+  chassis: { ar: 'الشاسيه', en: 'Chassis', section: 'chassis' },
+  chassis_frame: { ar: 'الهيكل والشاصي', en: 'Chassis & Frame', section: 'chassis' },
+  chassis_alignment: { ar: 'الاستقامة', en: 'Alignment', section: 'chassis' },
+  chassis_welding: { ar: 'القص واللحام', en: 'Cutting & Welding', section: 'chassis' },
+  chassis_accident: { ar: 'آثار الحوادث القوية', en: 'Accident Damage', section: 'chassis' },
+  
+  // ELECTRIC Section
+  electrical: { ar: 'الكهرباء', en: 'Electrical', section: 'electric' },
+  electrical_system: { ar: 'النظام الكهربائي', en: 'Electrical System', section: 'electric' },
+  battery: { ar: 'البطارية', en: 'Battery', section: 'electric' },
+  exterior_lighting: { ar: 'الإضاءة الخارجية', en: 'Exterior Lighting', section: 'electric' },
+  lights_front: { ar: 'الليتات الأمامية', en: 'Front Lights', section: 'electric' },
+  lights_rear: { ar: 'الليتات الخلفية', en: 'Rear Lights', section: 'electric' },
+  wire_harness: { ar: 'تيب الوايرات', en: 'Wire Harness', section: 'electric' },
+  mirror_controls: { ar: 'زر تحكم المرايا', en: 'Mirror Controls', section: 'electric' },
+  computer_sensors: { ar: 'فحص الكمبيوتر والحساسات', en: 'Computer & Sensors', section: 'electric' },
+  lights: { ar: 'الاضاءة', en: 'Lights', section: 'electric' },
+  
+  // INTERIOR & SAFETY Section
+  interior: { ar: 'الداخلية', en: 'Interior', section: 'interior' },
+  safety: { ar: 'السلامة', en: 'Safety', section: 'interior' },
+  safety_systems: { ar: 'أنظمة السلامة', en: 'Safety Systems', section: 'interior' },
+  tires_rims: { ar: 'الإطارات والجنوط', en: 'Tires & Rims', section: 'interior' },
+  windows: { ar: 'الزجاج والجامات', en: 'Glass & Windows', section: 'interior' },
+  mirrors: { ar: 'المرايا', en: 'Mirrors', section: 'interior' },
+  accessories: { ar: 'الإكسسوارات والملحقات', en: 'Accessories', section: 'interior' },
+  documentation: { ar: 'الوثائق والتوثيق', en: 'Documentation', section: 'interior' },
+  tires: { ar: 'الاطارات', en: 'Tires', section: 'interior' },
+  wheels: { ar: 'الجنوط', en: 'Wheels', section: 'interior' },
+  glass: { ar: 'الزجاج', en: 'Glass', section: 'interior' },
+};
+
+const getCategorySection = (categoryId: string): string => {
+  return CATEGORIES[categoryId]?.section || 'interior';
 };
 
 // Fault name translations
