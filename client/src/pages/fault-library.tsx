@@ -142,6 +142,13 @@ const CATEGORY_LABELS: Record<string, { ar: string; en: string }> = {
 
 const getSeverityInfo = (severity: string | null) => {
   switch (severity) {
+    case 'critical':
+      return { 
+        label: 'حرج', 
+        labelEn: 'Critical',
+        color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+        icon: XCircle
+      };
     case 'high':
       return { 
         label: 'خطير', 
@@ -292,7 +299,8 @@ export default function FaultLibrary() {
 
   const stats = {
     total: faults.length,
-    high: faults.filter(f => f.severity === 'high').length,
+    critical: faults.filter(f => f.severity === 'critical').length,
+    high: faults.filter(f => f.severity === 'high' || f.severity === 'critical').length,
     medium: faults.filter(f => f.severity === 'medium').length,
     low: faults.filter(f => f.severity === 'low').length,
   };
@@ -452,6 +460,16 @@ export default function FaultLibrary() {
             >
               <Filter className="w-3 h-3 ml-1" />
               الكل
+            </Button>
+            <Button
+              variant={selectedSeverity === 'critical' ? "destructive" : "ghost"}
+              size="sm"
+              onClick={() => setSelectedSeverity(selectedSeverity === 'critical' ? null : 'critical')}
+              className="font-arabic"
+              data-testid="button-filter-severity-critical"
+            >
+              <XCircle className="w-3 h-3 ml-1" />
+              حرج
             </Button>
             <Button
               variant={selectedSeverity === 'high' ? "destructive" : "ghost"}
