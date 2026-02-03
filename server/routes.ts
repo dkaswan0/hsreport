@@ -510,8 +510,9 @@ export async function registerRoutes(
     const { faultLibrary } = await import("@shared/schema");
     const { db } = await import("./db");
     const { sql } = await import("drizzle-orm");
+    const { FAULT_DATABASE, FAULT_COUNT } = await import("@shared/fault-data");
     
-    const EXPECTED_FAULT_COUNT = 1479;
+    const EXPECTED_FAULT_COUNT = FAULT_COUNT;
     const existingFaults = await db.select().from(faultLibrary);
     
     // Always reseed if count doesn't match expected (handles production with stale 1039 faults)
@@ -2225,8 +2226,24 @@ export async function registerRoutes(
       { category: "نظام التكييف", faultName: "ريليه المكيف تالف - AC Relay Faulty", severity: "medium", description: "ريليه المكيف تالف" },
     ];
 
-    await db.insert(faultLibrary).values(faults);
-    console.log(`Seeded ${faults.length} faults to library`);
+    // Add faults from the new comprehensive database
+    const newFaults = FAULT_DATABASE.map(f => ({
+      category: f.category,
+      faultName: f.faultName,
+      severity: f.severity,
+      description: f.description || f.faultNameEn,
+    }));
+    
+    // Combine old faults with new ones
+    const allFaults = [...faults, ...newFaults];
+    
+    // Insert in batches to avoid hitting limits
+    const batchSize = 500;
+    for (let i = 0; i < allFaults.length; i += batchSize) {
+      const batch = allFaults.slice(i, i + batchSize);
+      await db.insert(faultLibrary).values(batch);
+    }
+    console.log(`Seeded ${allFaults.length} faults to library (${faults.length} original + ${newFaults.length} new)`);
   }
   
   seedFaultLibrary().catch(console.error);
