@@ -3,6 +3,7 @@ import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
+import { LanguageProvider } from "@/contexts/language-context";
 import LayoutShell from "@/components/layout-shell";
 import Dashboard from "@/pages/dashboard";
 import NewInspection from "@/pages/new-inspection";
@@ -92,8 +93,10 @@ function AppContent() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Toaster />
-      <AppContent />
+      <LanguageProvider>
+        <Toaster />
+        <AppContent />
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }

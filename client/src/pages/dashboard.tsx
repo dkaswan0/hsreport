@@ -6,8 +6,10 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/language-context";
 
 export default function Dashboard() {
+  const { t, lang } = useLanguage();
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const { data: inspections, isLoading } = useInspections({ search });
@@ -19,16 +21,16 @@ export default function Dashboard() {
   const handleDelete = async (id: number, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (confirm("متأكد تبي تمسح هالفحص؟")) {
+    if (confirm(lang === 'ar' ? "متأكد تبي تمسح هالفحص؟" : "Are you sure you want to delete this inspection?")) {
       setDeletingId(id);
       deleteMutation.mutate(id, {
         onSuccess: () => {
-          toast({ title: "تم الحذف", description: "تم حذف الفحص بنجاح" });
+          toast({ title: lang === 'ar' ? "تم الحذف" : "Deleted", description: lang === 'ar' ? "تم حذف الفحص بنجاح" : "Inspection deleted successfully" });
           setDeletingId(null);
           setSelectedIds(prev => prev.filter(i => i !== id));
         },
         onError: () => {
-          toast({ title: "خطأ", description: "فشل حذف الفحص", variant: "destructive" });
+          toast({ title: lang === 'ar' ? "خطأ" : "Error", description: lang === 'ar' ? "فشل حذف الفحص" : "Failed to delete inspection", variant: "destructive" });
           setDeletingId(null);
         }
       });
@@ -37,14 +39,14 @@ export default function Dashboard() {
 
   const handleDeleteSelected = async () => {
     if (selectedIds.length === 0) return;
-    if (confirm(`متأكد تبي تمسح ${selectedIds.length} فحص؟`)) {
+    if (confirm(lang === 'ar' ? `متأكد تبي تمسح ${selectedIds.length} فحص؟` : `Are you sure you want to delete ${selectedIds.length} inspections?`)) {
       deleteMultipleMutation.mutate(selectedIds, {
         onSuccess: (result) => {
-          toast({ title: "تم الحذف", description: `تم حذف ${result.deleted} فحص بنجاح` });
+          toast({ title: lang === 'ar' ? "تم الحذف" : "Deleted", description: lang === 'ar' ? `تم حذف ${result.deleted} فحص بنجاح` : `${result.deleted} inspections deleted successfully` });
           setSelectedIds([]);
         },
         onError: () => {
-          toast({ title: "خطأ", description: "فشل حذف الفحوصات", variant: "destructive" });
+          toast({ title: lang === 'ar' ? "خطأ" : "Error", description: lang === 'ar' ? "فشل حذف الفحوصات" : "Failed to delete inspections", variant: "destructive" });
         }
       });
     }
@@ -74,12 +76,12 @@ export default function Dashboard() {
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">الرئيسية</h1>
-          <p className="text-slate-500 mt-1">شوف آخر الفحوصات</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{t('nav.dashboard')}</h1>
+          <p className="text-slate-500 mt-1">{lang === 'ar' ? 'شوف آخر الفحوصات' : 'View recent inspections'}</p>
         </div>
         <Link href="/inspections/new" className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl flex items-center gap-2 font-semibold shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5">
           <Plus className="w-5 h-5" />
-          <span>فحص يديد</span>
+          <span>{t('dashboard.newInspection')}</span>
         </Link>
       </div>
 
@@ -89,7 +91,7 @@ export default function Dashboard() {
             <ClipboardCheck className="w-8 h-8" />
           </div>
           <div>
-            <p className="text-slate-500 text-sm font-medium">كل الفحوصات</p>
+            <p className="text-slate-500 text-sm font-medium">{lang === 'ar' ? 'كل الفحوصات' : 'All Inspections'}</p>
             <h3 className="text-3xl font-bold text-slate-900">{total}</h3>
           </div>
         </div>
@@ -98,7 +100,7 @@ export default function Dashboard() {
             <Clock className="w-8 h-8" />
           </div>
           <div>
-            <p className="text-slate-500 text-sm font-medium">خلصت</p>
+            <p className="text-slate-500 text-sm font-medium">{lang === 'ar' ? 'مكتملة' : 'Completed'}</p>
             <h3 className="text-3xl font-bold text-slate-900">{completed}</h3>
           </div>
         </div>
@@ -107,7 +109,7 @@ export default function Dashboard() {
             <AlertTriangle className="w-8 h-8" />
           </div>
           <div>
-            <p className="text-slate-500 text-sm font-medium">ما خلصت</p>
+            <p className="text-slate-500 text-sm font-medium">{lang === 'ar' ? 'مسودة' : 'Drafts'}</p>
             <h3 className="text-3xl font-bold text-slate-900">{drafts}</h3>
           </div>
         </div>
@@ -116,7 +118,7 @@ export default function Dashboard() {
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="p-4 md:p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex items-center gap-4">
-            <h3 className="text-xl font-bold">الفحوصات الأخيرة</h3>
+            <h3 className="text-xl font-bold">{lang === 'ar' ? 'الفحوصات الأخيرة' : 'Recent Inspections'}</h3>
             {selectedIds.length > 0 && (
               <Button
                 onClick={handleDeleteSelected}
@@ -131,7 +133,7 @@ export default function Dashboard() {
                 ) : (
                   <Trash2 className="w-4 h-4" />
                 )}
-                <span>امسح المحدد ({selectedIds.length})</span>
+                <span>{lang === 'ar' ? `امسح المحدد (${selectedIds.length})` : `Delete Selected (${selectedIds.length})`}</span>
               </Button>
             )}
           </div>
@@ -140,7 +142,7 @@ export default function Dashboard() {
              <input 
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="ابحث بالشاصي أو اسم الكستمر..."
+                placeholder={lang === 'ar' ? "ابحث بالشاصي أو اسم الكستمر..." : "Search by VIN or customer name..."}
                 className="w-full pl-4 pr-10 py-2 rounded-lg bg-slate-50 border border-slate-200 focus:border-accent focus:ring-0 text-sm rtl:pr-4 rtl:pl-10"
                 data-testid="input-search"
              />
@@ -156,7 +158,7 @@ export default function Dashboard() {
                     onClick={toggleSelectAll}
                     className="p-1 hover:bg-slate-200 rounded transition-colors"
                     data-testid="button-select-all"
-                    title={allSelected ? "الغاء تحديد الكل" : "تحديد الكل"}
+                    title={allSelected ? (lang === 'ar' ? "الغاء تحديد الكل" : "Deselect All") : (lang === 'ar' ? "تحديد الكل" : "Select All")}
                   >
                     {allSelected ? (
                       <XSquare className="w-5 h-5 text-primary" />
@@ -165,22 +167,22 @@ export default function Dashboard() {
                     )}
                   </button>
                 </th>
-                <th className="px-6 py-4 text-right">رقم الفحص</th>
-                <th className="px-6 py-4 text-right">السيارة</th>
-                <th className="px-6 py-4 text-right">الكستمر</th>
-                <th className="px-6 py-4 text-right">التاريخ</th>
-                <th className="px-6 py-4 text-right">الحالة</th>
+                <th className="px-6 py-4 text-right">{lang === 'ar' ? 'رقم الفحص' : 'Inspection #'}</th>
+                <th className="px-6 py-4 text-right">{lang === 'ar' ? 'السيارة' : 'Vehicle'}</th>
+                <th className="px-6 py-4 text-right">{lang === 'ar' ? 'العميل' : 'Customer'}</th>
+                <th className="px-6 py-4 text-right">{lang === 'ar' ? 'التاريخ' : 'Date'}</th>
+                <th className="px-6 py-4 text-right">{lang === 'ar' ? 'الحالة' : 'Status'}</th>
                 <th className="px-6 py-4 text-right">-</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-slate-400">يحمل...</td>
+                  <td colSpan={7} className="px-6 py-8 text-center text-slate-400">{lang === 'ar' ? 'جاري التحميل...' : 'Loading...'}</td>
                 </tr>
               ) : inspections?.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-slate-400">ما في فحوصات</td>
+                  <td colSpan={7} className="px-6 py-8 text-center text-slate-400">{lang === 'ar' ? 'لا توجد فحوصات' : 'No inspections found'}</td>
                 </tr>
               ) : (
                 inspections?.map((inspection) => (

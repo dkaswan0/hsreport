@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { FaultLibrary } from "@shared/schema";
 import { CATEGORY_GROUPS, MAIN_SECTIONS, INSPECTION_CATEGORIES } from "@shared/categories";
+import { useLanguage } from "@/contexts/language-context";
 
 const CATEGORY_LABELS: Record<string, { ar: string; en: string }> = {
   // الفئات الأساسية - لهجة إماراتية
@@ -181,6 +182,7 @@ const getSeverityInfo = (severity: string | null) => {
 };
 
 export default function FaultLibrary() {
+  const { lang, t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSeverity, setSelectedSeverity] = useState<string | null>(null);
@@ -207,11 +209,11 @@ export default function FaultLibrary() {
       return response.json();
     },
     onSuccess: (data) => {
-      toast({ title: "تم!", description: data.message || `تم تحميل ${data.count} عطل` });
+      toast({ title: lang === 'ar' ? "تم!" : "Done!", description: data.message || (lang === 'ar' ? `تم تحميل ${data.count} عطل` : `${data.count} faults loaded`) });
       queryClient.invalidateQueries({ queryKey: ['/api/fault-library'] });
     },
     onError: (error: any) => {
-      toast({ title: "خطأ", description: error.message || "فشل تحميل الأعطال", variant: "destructive" });
+      toast({ title: lang === 'ar' ? "خطأ" : "Error", description: error.message || (lang === 'ar' ? "فشل تحميل الأعطال" : "Failed to load faults"), variant: "destructive" });
     }
   });
 
@@ -221,18 +223,18 @@ export default function FaultLibrary() {
       if (!response.ok) throw new Error("فشل الحذف");
     },
     onSuccess: () => {
-      toast({ title: "تم!", description: "تم حذف العطل بنجاح" });
+      toast({ title: lang === 'ar' ? "تم!" : "Done!", description: lang === 'ar' ? "تم حذف العطل بنجاح" : "Fault deleted successfully" });
       queryClient.invalidateQueries({ queryKey: ['/api/fault-library'] });
       setDeletingId(null);
     },
     onError: (error: any) => {
-      toast({ title: "خطأ", description: error.message || "فشل حذف العطل", variant: "destructive" });
+      toast({ title: lang === 'ar' ? "خطأ" : "Error", description: error.message || (lang === 'ar' ? "فشل حذف العطل" : "Failed to delete fault"), variant: "destructive" });
       setDeletingId(null);
     }
   });
 
   const handleDeleteFault = (id: number, faultName: string) => {
-    if (confirm(`متأكد تبي تمسح "${faultName}"؟`)) {
+    if (confirm(lang === 'ar' ? `متأكد تبي تمسح "${faultName}"؟` : `Are you sure you want to delete "${faultName}"?`)) {
       setDeletingId(id);
       deleteFaultMutation.mutate(id);
     }

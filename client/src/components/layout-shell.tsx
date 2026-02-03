@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/language-context";
 
 interface LayoutShellProps {
   children: React.ReactNode;
@@ -22,21 +23,19 @@ interface LayoutShellProps {
 export default function LayoutShell({ children, onLogout }: LayoutShellProps) {
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [lang, setLang] = useState<'en' | 'ar'>('ar');
+  const { lang, setLang, t } = useLanguage();
 
   const navItems = [
-    { href: "/", label: lang === 'ar' ? 'الرئيسية' : 'Dashboard', icon: LayoutDashboard },
-    { href: "/inspections", label: lang === 'ar' ? 'الفحوصات' : 'Inspections', icon: ClipboardList },
-    { href: "/fault-library", label: lang === 'ar' ? 'الأعطال' : 'Fault Library', icon: Car },
-    { href: "/vehicle-data", label: lang === 'ar' ? 'بيانات السيارة' : 'Vehicle Data', icon: Database },
-    { href: "/settings", label: lang === 'ar' ? 'الاعدادات' : 'Settings', icon: Settings },
+    { href: "/", label: t('nav.dashboard'), icon: LayoutDashboard },
+    { href: "/inspections", label: t('nav.inspections'), icon: ClipboardList },
+    { href: "/fault-library", label: t('nav.faultLibrary'), icon: Car },
+    { href: "/vehicle-data", label: t('nav.vehicleData'), icon: Database },
+    { href: "/settings", label: t('nav.settings'), icon: Settings },
   ];
 
   const toggleLang = () => {
     const newLang = lang === 'ar' ? 'en' : 'ar';
     setLang(newLang);
-    document.documentElement.dir = newLang === 'ar' ? 'rtl' : 'ltr';
-    document.documentElement.lang = newLang;
   };
 
   return (
@@ -82,7 +81,7 @@ export default function LayoutShell({ children, onLogout }: LayoutShellProps) {
               data-testid="button-logout"
             >
               <LogOut className="w-4 h-4" />
-              <span className="text-sm font-medium">{lang === 'ar' ? 'تسجيل الخروج' : 'Logout'}</span>
+              <span className="text-sm font-medium">{t('nav.logout')}</span>
             </button>
           )}
         </div>
@@ -103,7 +102,7 @@ export default function LayoutShell({ children, onLogout }: LayoutShellProps) {
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 rtl:left-3 rtl:right-auto" />
             <input 
               className="w-full pl-4 pr-10 py-2 rounded-lg bg-slate-100 dark:bg-slate-900 border-transparent focus:bg-white focus:border-accent focus:ring-0 transition-all text-sm rtl:pr-4 rtl:pl-10"
-              placeholder={lang === 'ar' ? 'ابحث هني...' : 'Search inspections...'}
+              placeholder={t('inspections.search')}
             />
           </div>
 
