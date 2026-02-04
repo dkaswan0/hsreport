@@ -695,6 +695,101 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
   );
 };
 
+// Car Section Photos Component - Interactive gallery for door/hood/trunk photos
+const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
+  const [selectedPhoto, setSelectedPhoto] = useState<{ src: string; label: string } | null>(null);
+  
+  const sections = [
+    { key: 'rearLeftDoorPhoto', label: 'الباب الخلفي يسار', labelEn: 'Rear Left Door', photo: inspection.rearLeftDoorPhoto },
+    { key: 'rearRightDoorPhoto', label: 'الباب الخلفي يمين', labelEn: 'Rear Right Door', photo: inspection.rearRightDoorPhoto },
+    { key: 'frontLeftDoorPhoto', label: 'الباب الأمامي يسار', labelEn: 'Front Left Door', photo: inspection.frontLeftDoorPhoto },
+    { key: 'frontRightDoorPhoto', label: 'الباب الأمامي يمين', labelEn: 'Front Right Door', photo: inspection.frontRightDoorPhoto },
+    { key: 'hoodPhoto', label: 'الكبوت / حجرة المحرك', labelEn: 'Hood / Engine Bay', photo: inspection.hoodPhoto },
+    { key: 'trunkPhoto', label: 'الشنطة / الشاصي', labelEn: 'Trunk / Chassis', photo: inspection.trunkPhoto },
+  ];
+
+  const hasAnyPhoto = sections.some(s => s.photo);
+  if (!hasAnyPhoto) return null;
+
+  return (
+    <>
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="bg-gradient-to-l from-primary to-primary/80 text-white px-6 py-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+            <Car className="w-5 h-5" />
+          </div>
+          <div className="text-right">
+            <h3 className="font-bold text-lg font-arabic">صور أقسام السيارة</h3>
+            <p className="text-white/70 text-xs">Car Section Photos</p>
+          </div>
+        </div>
+        <div className="p-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {sections.map((section) => (
+              <button
+                key={section.key}
+                onClick={() => section.photo && setSelectedPhoto({ src: section.photo, label: section.label })}
+                disabled={!section.photo}
+                className={cn(
+                  "relative rounded-2xl overflow-hidden border-2 transition-all",
+                  section.photo 
+                    ? "border-primary/30 hover:border-primary hover:shadow-lg cursor-pointer" 
+                    : "border-slate-200 bg-slate-50 cursor-not-allowed opacity-60"
+                )}
+                data-testid={`button-view-${section.key}`}
+              >
+                {section.photo ? (
+                  <img 
+                    src={section.photo} 
+                    alt={section.label}
+                    className="w-full h-28 object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-28 flex items-center justify-center bg-slate-100">
+                    <Car className="w-8 h-8 text-slate-300" />
+                  </div>
+                )}
+                <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                  <p className="text-white text-xs font-arabic text-center">{section.label}</p>
+                  <p className="text-white/60 text-[10px] text-center">{section.labelEn}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Photo Modal */}
+      {selectedPhoto && (
+        <div 
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedPhoto(null)}
+        >
+          <div className="relative max-w-4xl w-full">
+            <button
+              onClick={() => setSelectedPhoto(null)}
+              className="absolute -top-12 right-0 text-white hover:text-primary transition-colors"
+              data-testid="button-close-photo-modal"
+            >
+              <XCircle className="w-8 h-8" />
+            </button>
+            <div className="bg-white rounded-2xl overflow-hidden shadow-2xl">
+              <div className="bg-primary text-white px-4 py-3 text-center">
+                <p className="font-bold font-arabic">{selectedPhoto.label}</p>
+              </div>
+              <img 
+                src={selectedPhoto.src} 
+                alt={selectedPhoto.label}
+                className="w-full max-h-[70vh] object-contain bg-slate-100"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
 // Helper to format phone number for WhatsApp
 const formatWhatsAppLink = (phone: string) => {
   const cleaned = phone.replace(/[^0-9+]/g, '');
@@ -1745,6 +1840,9 @@ export default function InteractiveReport() {
           </div>
           <CustomerInfoCard inspection={inspection} />
         </div>
+
+        {/* Car Section Photos Gallery */}
+        <CarSectionPhotosGallery inspection={inspection} />
 
         {/* Inspection Results */}
         <InspectionResults inspection={inspection} highlightedCategory={highlightedCategory} />

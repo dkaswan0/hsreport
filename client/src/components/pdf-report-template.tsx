@@ -28,6 +28,13 @@ interface Inspection {
   customerSignature?: string | null;
   createdAt?: string | Date | null;
   items?: InspectionItem[];
+  mainCarPhoto?: string | null;
+  rearLeftDoorPhoto?: string | null;
+  rearRightDoorPhoto?: string | null;
+  frontLeftDoorPhoto?: string | null;
+  frontRightDoorPhoto?: string | null;
+  hoodPhoto?: string | null;
+  trunkPhoto?: string | null;
 }
 
 interface PdfReportTemplateProps {
@@ -701,6 +708,97 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
               }}
             />
           </div>
+
+          {/* Main Car Photo with HS Watermark Frame */}
+          {inspection.mainCarPhoto && (
+            <div style={{ 
+              position: 'relative',
+              width: '140px',
+              height: '100px',
+              borderRadius: '8px', 
+              overflow: 'hidden',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+              border: `3px solid ${BRAND.accent}`,
+              background: BRAND.primary,
+            }}>
+              <img 
+                src={inspection.mainCarPhoto} 
+                alt="Vehicle Photo" 
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
+                }}
+              />
+              {/* HS Watermark Overlay */}
+              <div style={{
+                position: 'absolute',
+                bottom: '4px',
+                right: '4px',
+                background: 'rgba(12, 26, 40, 0.85)',
+                borderRadius: '4px',
+                padding: '2px 6px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+                border: `1px solid ${BRAND.accent}`,
+              }}>
+                <img 
+                  src={logoPath} 
+                  alt="HS" 
+                  style={{
+                    width: '16px',
+                    height: '16px',
+                    objectFit: 'contain',
+                  }}
+                />
+                <span style={{
+                  fontSize: '6px',
+                  color: BRAND.accent,
+                  fontWeight: 'bold',
+                  letterSpacing: '0.5px',
+                }}>HIGH SAFETY</span>
+              </div>
+              {/* Corner Accents */}
+              <div style={{
+                position: 'absolute',
+                top: '0',
+                left: '0',
+                width: '12px',
+                height: '12px',
+                borderTop: `2px solid ${BRAND.accent}`,
+                borderLeft: `2px solid ${BRAND.accent}`,
+              }} />
+              <div style={{
+                position: 'absolute',
+                top: '0',
+                right: '0',
+                width: '12px',
+                height: '12px',
+                borderTop: `2px solid ${BRAND.accent}`,
+                borderRight: `2px solid ${BRAND.accent}`,
+              }} />
+              <div style={{
+                position: 'absolute',
+                bottom: '0',
+                left: '0',
+                width: '12px',
+                height: '12px',
+                borderBottom: `2px solid ${BRAND.accent}`,
+                borderLeft: `2px solid ${BRAND.accent}`,
+              }} />
+              <div style={{
+                position: 'absolute',
+                bottom: '0',
+                right: '0',
+                width: '12px',
+                height: '12px',
+                borderBottom: `2px solid ${BRAND.accent}`,
+                borderRight: `2px solid ${BRAND.accent}`,
+              }} />
+            </div>
+          )}
         </div>
 
         {/* Main Content */}
