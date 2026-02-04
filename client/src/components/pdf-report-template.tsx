@@ -687,40 +687,18 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
             </div>
           </div>
 
-          {/* High Safety Car Branding - Professional Fixed Display */}
+          {/* Main Car Photo with HS Watermark Frame - Replaces Black Car */}
           <div style={{ 
-            width: '140px',
-            height: '90px',
-            borderRadius: '6px', 
+            position: 'relative',
+            width: '160px',
+            height: '110px',
+            borderRadius: '8px', 
             overflow: 'hidden',
             boxShadow: '0 4px 16px rgba(0,0,0,0.4), inset 0 0 20px rgba(197,133,44,0.1)',
-            border: `2px solid ${BRAND.accent}`,
+            border: `3px solid ${BRAND.accent}`,
             background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)',
           }}>
-            <img 
-              src={hsCarBranding} 
-              alt="High Safety" 
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                display: 'block',
-              }}
-            />
-          </div>
-
-          {/* Main Car Photo with HS Watermark Frame */}
-          {inspection.mainCarPhoto && (
-            <div style={{ 
-              position: 'relative',
-              width: '140px',
-              height: '100px',
-              borderRadius: '8px', 
-              overflow: 'hidden',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
-              border: `3px solid ${BRAND.accent}`,
-              background: BRAND.primary,
-            }}>
+            {inspection.mainCarPhoto ? (
               <img 
                 src={inspection.mainCarPhoto} 
                 alt="Vehicle Photo" 
@@ -731,32 +709,44 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
                   display: 'block',
                 }}
               />
-              {/* HS Watermark Overlay */}
-              <div style={{
-                position: 'absolute',
-                bottom: '4px',
-                right: '4px',
-                background: 'rgba(12, 26, 40, 0.85)',
-                borderRadius: '4px',
-                padding: '2px 6px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '3px',
-                border: `1px solid ${BRAND.accent}`,
-              }}>
-                <img 
-                  src={logoPath} 
-                  alt="HS" 
-                  style={{
-                    width: '16px',
-                    height: '16px',
-                    objectFit: 'contain',
-                  }}
-                />
-                <span style={{
-                  fontSize: '6px',
-                  color: BRAND.accent,
-                  fontWeight: 'bold',
+            ) : (
+              <img 
+                src={hsCarBranding} 
+                alt="High Safety" 
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
+                }}
+              />
+            )}
+            {/* HS Watermark Overlay */}
+            <div style={{
+              position: 'absolute',
+              bottom: '4px',
+              right: '4px',
+              background: 'rgba(12, 26, 40, 0.9)',
+              borderRadius: '4px',
+              padding: '3px 8px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              border: `1px solid ${BRAND.accent}`,
+            }}>
+              <img 
+                src={logoPath} 
+                alt="HS" 
+                style={{
+                  width: '18px',
+                  height: '18px',
+                  objectFit: 'contain',
+                }}
+              />
+              <span style={{
+                fontSize: '7px',
+                color: BRAND.accent,
+                fontWeight: 'bold',
                   letterSpacing: '0.5px',
                 }}>HIGH SAFETY</span>
               </div>
@@ -797,8 +787,7 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
                 borderBottom: `2px solid ${BRAND.accent}`,
                 borderRight: `2px solid ${BRAND.accent}`,
               }} />
-            </div>
-          )}
+          </div>
         </div>
 
         {/* Main Content */}

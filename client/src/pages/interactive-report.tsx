@@ -18,7 +18,8 @@ import {
   XCircle,
   Fuel,
   RotateCcw,
-  Palette
+  Palette,
+  ZoomIn
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -765,10 +766,13 @@ const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
           </div>
         </div>
         <div className="p-4">
+          <p className="text-xs text-slate-500 font-arabic mb-3 text-center">
+            <ZoomIn className="w-3 h-3 inline ml-1" />
+            اضغط على أي قسم لعرض الصورة الخارجية والداخلية
+          </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {sections.map((section) => {
               const hasPhotos = section.exteriorPhoto || section.interiorPhoto;
-              const photoCount = (section.exteriorPhoto ? 1 : 0) + (section.interiorPhoto ? 1 : 0);
               return (
                 <button
                   key={section.key}
@@ -790,13 +794,13 @@ const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
                   {section.exteriorPhoto ? (
                     <img 
                       src={section.exteriorPhoto} 
-                      alt={section.label}
+                      alt={`${section.label} - خارجية`}
                       className="w-full h-28 object-cover"
                     />
                   ) : section.interiorPhoto ? (
                     <img 
                       src={section.interiorPhoto} 
-                      alt={section.label}
+                      alt={`${section.label} - داخلية`}
                       className="w-full h-28 object-cover"
                     />
                   ) : (
@@ -804,9 +808,14 @@ const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
                       <Car className="w-8 h-8 text-slate-300" />
                     </div>
                   )}
-                  {photoCount > 0 && (
-                    <div className="absolute top-2 left-2 bg-primary text-white text-xs px-2 py-0.5 rounded-full">
-                      {photoCount} صور
+                  {(section.exteriorPhoto || section.interiorPhoto) && (
+                    <div className="absolute top-2 left-2 flex gap-1">
+                      {section.exteriorPhoto && (
+                        <span className="bg-blue-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">خارجية</span>
+                      )}
+                      {section.interiorPhoto && (
+                        <span className="bg-green-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">داخلية</span>
+                      )}
                     </div>
                   )}
                   <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-2">
