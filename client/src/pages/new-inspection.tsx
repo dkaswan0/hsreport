@@ -976,7 +976,9 @@ export default function NewInspection() {
             <button
               type="submit"
               disabled={isPending}
-              className="px-8 py-3 rounded-xl font-semibold bg-accent text-slate-900 shadow-lg shadow-accent/25 hover:shadow-xl hover:shadow-accent/30 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              data-testid="button-start-inspection"
+              className="px-8 py-3 rounded-xl font-semibold bg-accent text-slate-900 shadow-lg shadow-accent/25 hover:shadow-xl hover:shadow-accent/30 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed transition-all touch-manipulation"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               {isPending ? (
                 <span className="flex items-center gap-2">
