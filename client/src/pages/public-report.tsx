@@ -183,6 +183,167 @@ const ANATOMY_POSITIONS_BY_VIEW: Record<ViewAngle, Record<string, { top: string;
   },
 };
 
+// Mobile-friendly swipeable photo modal for section photos
+const SectionPhotoModal = ({ 
+  selectedSection, 
+  onClose 
+}: { 
+  selectedSection: { label: string; labelEn: string; exteriorPhoto: string | null; interiorPhoto: string | null; };
+  onClose: () => void;
+}) => {
+  const [activeTab, setActiveTab] = useState<'exterior' | 'interior'>('exterior');
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  
+  const minSwipeDistance = 50;
+  
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+  
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+  
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    
+    if (isLeftSwipe && activeTab === 'exterior' && selectedSection.interiorPhoto) {
+      setActiveTab('interior');
+    } else if (isRightSwipe && activeTab === 'interior' && selectedSection.exteriorPhoto) {
+      setActiveTab('exterior');
+    }
+  };
+
+  const hasExterior = !!selectedSection.exteriorPhoto;
+  const hasInterior = !!selectedSection.interiorPhoto;
+  const hasBoth = hasExterior && hasInterior;
+
+  return (
+    <div 
+      className="fixed inset-0 bg-black/95 z-50 flex flex-col"
+      onClick={onClose}
+    >
+      {/* Header with close button */}
+      <div className="flex items-center justify-between p-4 bg-black/50" onClick={(e) => e.stopPropagation()}>
+        <div className="text-white text-right flex-1">
+          <p className="font-bold font-arabic text-lg">{selectedSection.label}</p>
+          <p className="text-white/60 text-sm">{selectedSection.labelEn}</p>
+        </div>
+        <button
+          onClick={onClose}
+          className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors touch-manipulation"
+          data-testid="button-close-photo-modal"
+          style={{ WebkitTapHighlightColor: 'transparent' }}
+        >
+          <X className="w-7 h-7 text-white" />
+        </button>
+      </div>
+
+      {/* Photo tabs */}
+      {hasBoth && (
+        <div className="flex gap-2 justify-center p-3 bg-black/30" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => setActiveTab('exterior')}
+            className={cn(
+              "px-6 py-2 rounded-full font-arabic text-sm transition-all touch-manipulation",
+              activeTab === 'exterior' 
+                ? "bg-blue-500 text-white shadow-lg" 
+                : "bg-white/10 text-white/70"
+            )}
+          >
+            <span className="inline-block w-2 h-2 rounded-full bg-blue-300 ml-2"></span>
+            خارجية
+          </button>
+          <button
+            onClick={() => setActiveTab('interior')}
+            className={cn(
+              "px-6 py-2 rounded-full font-arabic text-sm transition-all touch-manipulation",
+              activeTab === 'interior' 
+                ? "bg-green-500 text-white shadow-lg" 
+                : "bg-white/10 text-white/70"
+            )}
+          >
+            <span className="inline-block w-2 h-2 rounded-full bg-green-300 ml-2"></span>
+            داخلية
+          </button>
+        </div>
+      )}
+
+      {/* Photo display area */}
+      <div 
+        className="flex-1 flex items-center justify-center p-4 overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        {activeTab === 'exterior' && hasExterior && (
+          <img 
+            src={selectedSection.exteriorPhoto!}
+            alt={`${selectedSection.label} - خارجية`}
+            className="max-w-full max-h-full object-contain rounded-xl"
+          />
+        )}
+        {activeTab === 'interior' && hasInterior && (
+          <img 
+            src={selectedSection.interiorPhoto!}
+            alt={`${selectedSection.label} - داخلية`}
+            className="max-w-full max-h-full object-contain rounded-xl"
+          />
+        )}
+        {activeTab === 'exterior' && !hasExterior && hasInterior && (
+          <img 
+            src={selectedSection.interiorPhoto!}
+            alt={`${selectedSection.label} - داخلية`}
+            className="max-w-full max-h-full object-contain rounded-xl"
+          />
+        )}
+        {activeTab === 'interior' && !hasInterior && hasExterior && (
+          <img 
+            src={selectedSection.exteriorPhoto!}
+            alt={`${selectedSection.label} - خارجية`}
+            className="max-w-full max-h-full object-contain rounded-xl"
+          />
+        )}
+      </div>
+
+      {/* Swipe indicator for mobile */}
+      {hasBoth && (
+        <div className="p-4 text-center bg-black/30" onClick={(e) => e.stopPropagation()}>
+          <div className="flex justify-center gap-2 mb-2">
+            <div className={cn(
+              "w-2 h-2 rounded-full transition-all",
+              activeTab === 'exterior' ? "bg-blue-500 w-4" : "bg-white/30"
+            )}></div>
+            <div className={cn(
+              "w-2 h-2 rounded-full transition-all",
+              activeTab === 'interior' ? "bg-green-500 w-4" : "bg-white/30"
+            )}></div>
+          </div>
+          <p className="text-white/50 text-xs font-arabic">اسحب يميناً أو يساراً للتبديل</p>
+        </div>
+      )}
+
+      {/* Close button at bottom for easy mobile access */}
+      <div className="p-4 pb-8 flex justify-center" onClick={(e) => e.stopPropagation()}>
+        <button
+          onClick={onClose}
+          className="px-8 py-3 bg-white text-slate-800 rounded-full font-bold font-arabic shadow-lg hover:shadow-xl transition-all touch-manipulation"
+          data-testid="button-close-modal-bottom"
+          style={{ WebkitTapHighlightColor: 'transparent' }}
+        >
+          إغلاق ومتابعة القراءة
+        </button>
+      </div>
+    </div>
+  );
+};
+
 // Car Section Photos Gallery Component - For displaying exterior/interior photos in public reports
 const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
   const [selectedSection, setSelectedSection] = useState<{ 
@@ -317,69 +478,12 @@ const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
         </div>
       </div>
 
-      {/* Section Photos Modal - Shows both exterior and interior photos */}
+      {/* Section Photos Modal - Mobile swipeable gallery */}
       {selectedSection && (
-        <div 
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
-          onClick={() => setSelectedSection(null)}
-        >
-          <div className="relative max-w-5xl w-full" onClick={(e) => e.stopPropagation()}>
-            <button
-              onClick={() => setSelectedSection(null)}
-              className="absolute -top-12 right-0 text-white hover:text-primary transition-colors"
-              data-testid="button-close-section-modal"
-            >
-              <X className="w-8 h-8" />
-            </button>
-            <div className="bg-white rounded-2xl overflow-hidden shadow-2xl">
-              <div className="bg-primary text-white px-4 py-3 text-center">
-                <p className="font-bold font-arabic text-lg">{selectedSection.label}</p>
-                <p className="text-white/70 text-sm">{selectedSection.labelEn}</p>
-              </div>
-              <div className="p-4 bg-slate-50">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Exterior Photo */}
-                  <div className="text-center">
-                    <h4 className="font-bold text-slate-700 mb-2 font-arabic flex items-center justify-center gap-2">
-                      <span className="w-3 h-3 bg-blue-500 rounded-full"></span>
-                      صورة خارجية
-                    </h4>
-                    {selectedSection.exteriorPhoto ? (
-                      <img 
-                        src={selectedSection.exteriorPhoto} 
-                        alt={`${selectedSection.label} - خارجية`}
-                        className="w-full max-h-[50vh] object-contain rounded-xl border-2 border-blue-300 bg-white"
-                      />
-                    ) : (
-                      <div className="w-full h-48 bg-slate-200 rounded-xl flex items-center justify-center">
-                        <p className="text-slate-400 font-arabic">لا توجد صورة</p>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Interior Photo */}
-                  <div className="text-center">
-                    <h4 className="font-bold text-slate-700 mb-2 font-arabic flex items-center justify-center gap-2">
-                      <span className="w-3 h-3 bg-green-500 rounded-full"></span>
-                      صورة داخلية
-                    </h4>
-                    {selectedSection.interiorPhoto ? (
-                      <img 
-                        src={selectedSection.interiorPhoto} 
-                        alt={`${selectedSection.label} - داخلية`}
-                        className="w-full max-h-[50vh] object-contain rounded-xl border-2 border-green-300 bg-white"
-                      />
-                    ) : (
-                      <div className="w-full h-48 bg-slate-200 rounded-xl flex items-center justify-center">
-                        <p className="text-slate-400 font-arabic">لا توجد صورة</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <SectionPhotoModal 
+          selectedSection={selectedSection} 
+          onClose={() => setSelectedSection(null)} 
+        />
       )}
     </>
   );
