@@ -390,26 +390,7 @@ export default function NewInspection() {
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
-        <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
-            const errorMessages = Object.entries(errors).map(([field, error]) => {
-              const fieldNames: Record<string, string> = {
-                vin: 'رقم الشاصي',
-                make: 'الشركة المصنعة',
-                model: 'الموديل',
-                year: 'سنة الصنع',
-                color: 'اللون',
-                odometer: 'المسافة المقطوعة',
-                customerName: 'اسم العميل',
-                customerPhone: 'رقم الجوال'
-              };
-              return `${fieldNames[field] || field}: ${error?.message || 'خطأ'}`;
-            });
-            toast({
-              title: "يرجى التحقق من البيانات",
-              description: errorMessages.join('\n') || "بعض الحقول المطلوبة غير مكتملة",
-              variant: "destructive",
-            });
-          })} className="space-y-8">
+        <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
           
           {/* Vehicle Information Section */}
           <div>
@@ -974,9 +955,32 @@ export default function NewInspection() {
 
           <div className="pt-6 border-t border-slate-100 flex justify-end">
             <button
-              type="submit"
+              type="button"
               disabled={isPending}
               data-testid="button-start-inspection"
+              onClick={(e) => {
+                e.preventDefault();
+                form.handleSubmit(onSubmit, (errors) => {
+                  const errorMessages = Object.entries(errors).map(([field, error]) => {
+                    const fieldNames: Record<string, string> = {
+                      vin: 'رقم الشاصي',
+                      make: 'الشركة المصنعة',
+                      model: 'الموديل',
+                      year: 'سنة الصنع',
+                      color: 'اللون',
+                      odometer: 'المسافة المقطوعة',
+                      customerName: 'اسم العميل',
+                      customerPhone: 'رقم الجوال'
+                    };
+                    return `${fieldNames[field] || field}: ${error?.message || 'خطأ'}`;
+                  });
+                  toast({
+                    title: "يرجى التحقق من البيانات",
+                    description: errorMessages.join('\n') || "بعض الحقول المطلوبة غير مكتملة",
+                    variant: "destructive",
+                  });
+                })();
+              }}
               className="px-8 py-3 rounded-xl font-semibold bg-accent text-slate-900 shadow-lg shadow-accent/25 hover:shadow-xl hover:shadow-accent/30 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed transition-all touch-manipulation"
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
