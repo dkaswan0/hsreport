@@ -32,12 +32,20 @@ export const inspections = pgTable("inspections", {
   shareToken: text("share_token"), // Unique token for public sharing
   // Car section photos for interactive report
   mainCarPhoto: text("main_car_photo"), // Main professional car photo for PDF
-  rearLeftDoorPhoto: text("rear_left_door_photo"), // صور داخل الباب الخلفي يسار
-  rearRightDoorPhoto: text("rear_right_door_photo"), // صور داخل الباب الخلفي يمين
-  frontLeftDoorPhoto: text("front_left_door_photo"), // صور داخل الباب الأمامي يسار
-  frontRightDoorPhoto: text("front_right_door_photo"), // صور داخل الباب الأمامي يمين
-  hoodPhoto: text("hood_photo"), // صور حجرة المحرك
-  trunkPhoto: text("trunk_photo"), // صور داخل الشنطة والشاصي
+  // Exterior photos (outside the section)
+  rearLeftDoorPhoto: text("rear_left_door_photo"), // صورة خارجية الباب الخلفي يسار
+  rearRightDoorPhoto: text("rear_right_door_photo"), // صورة خارجية الباب الخلفي يمين
+  frontLeftDoorPhoto: text("front_left_door_photo"), // صورة خارجية الباب الأمامي يسار
+  frontRightDoorPhoto: text("front_right_door_photo"), // صورة خارجية الباب الأمامي يمين
+  hoodPhoto: text("hood_photo"), // صورة خارجية الكبوت
+  trunkPhoto: text("trunk_photo"), // صورة خارجية الشنطة
+  // Interior photos (inside the section)
+  rearLeftDoorInteriorPhoto: text("rear_left_door_interior_photo"), // صورة داخلية الباب الخلفي يسار
+  rearRightDoorInteriorPhoto: text("rear_right_door_interior_photo"), // صورة داخلية الباب الخلفي يمين
+  frontLeftDoorInteriorPhoto: text("front_left_door_interior_photo"), // صورة داخلية الباب الأمامي يسار
+  frontRightDoorInteriorPhoto: text("front_right_door_interior_photo"), // صورة داخلية الباب الأمامي يمين
+  hoodInteriorPhoto: text("hood_interior_photo"), // صورة داخلية حجرة المحرك
+  trunkInteriorPhoto: text("trunk_interior_photo"), // صورة داخلية الشنطة والشاصي
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

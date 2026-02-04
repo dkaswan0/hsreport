@@ -42,9 +42,26 @@ export default function NewInspection() {
   const signatureCanvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   
-  // Car section photos
+  // Car section photos (exterior)
   const [mainCarPhoto, setMainCarPhoto] = useState<string | null>(null);
   const [carSectionPhotos, setCarSectionPhotos] = useState<{
+    rearLeftDoor: string | null;
+    rearRightDoor: string | null;
+    frontLeftDoor: string | null;
+    frontRightDoor: string | null;
+    hood: string | null;
+    trunk: string | null;
+  }>({
+    rearLeftDoor: null,
+    rearRightDoor: null,
+    frontLeftDoor: null,
+    frontRightDoor: null,
+    hood: null,
+    trunk: null,
+  });
+  
+  // Car section photos (interior)
+  const [carSectionInteriorPhotos, setCarSectionInteriorPhotos] = useState<{
     rearLeftDoor: string | null;
     rearRightDoor: string | null;
     frontLeftDoor: string | null;
@@ -151,6 +168,27 @@ export default function NewInspection() {
 
   const removeCarSectionPhoto = (section: keyof typeof carSectionPhotos) => {
     setCarSectionPhotos(prev => ({
+      ...prev,
+      [section]: null
+    }));
+  };
+
+  // Interior photo handlers
+  const handleCarSectionInteriorPhotoChange = (section: keyof typeof carSectionInteriorPhotos, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setCarSectionInteriorPhotos(prev => ({
+        ...prev,
+        [section]: event.target?.result as string
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeCarSectionInteriorPhoto = (section: keyof typeof carSectionInteriorPhotos) => {
+    setCarSectionInteriorPhotos(prev => ({
       ...prev,
       [section]: null
     }));
@@ -292,6 +330,13 @@ export default function NewInspection() {
       frontRightDoorPhoto: carSectionPhotos.frontRightDoor || undefined,
       hoodPhoto: carSectionPhotos.hood || undefined,
       trunkPhoto: carSectionPhotos.trunk || undefined,
+      // Interior photos
+      rearLeftDoorInteriorPhoto: carSectionInteriorPhotos.rearLeftDoor || undefined,
+      rearRightDoorInteriorPhoto: carSectionInteriorPhotos.rearRightDoor || undefined,
+      frontLeftDoorInteriorPhoto: carSectionInteriorPhotos.frontLeftDoor || undefined,
+      frontRightDoorInteriorPhoto: carSectionInteriorPhotos.frontRightDoor || undefined,
+      hoodInteriorPhoto: carSectionInteriorPhotos.hood || undefined,
+      trunkInteriorPhoto: carSectionInteriorPhotos.trunk || undefined,
     };
     
     mutate(submissionData as any, {
@@ -717,8 +762,8 @@ export default function NewInspection() {
               )}
             </div>
 
-            {/* Car Section Photos Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {/* Car Section Photos Grid - Each section has 2 photos (exterior + interior) */}
+            <div className="space-y-6">
               {[
                 { key: 'rearLeftDoor', label: 'الباب الخلفي يسار', labelEn: 'Rear Left Door' },
                 { key: 'rearRightDoor', label: 'الباب الخلفي يمين', labelEn: 'Rear Right Door' },
@@ -727,39 +772,83 @@ export default function NewInspection() {
                 { key: 'hood', label: 'الكبوت / حجرة المحرك', labelEn: 'Hood / Engine Bay' },
                 { key: 'trunk', label: 'الشنطة / الشاصي', labelEn: 'Trunk / Chassis' },
               ].map((section) => (
-                <div key={section.key} className="relative">
-                  <label className="block text-sm font-medium text-slate-700 mb-2 font-arabic">
+                <div key={section.key} className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                  <h4 className="font-bold text-slate-800 mb-3 font-arabic text-center border-b pb-2">
                     {section.label}
-                  </label>
-                  {carSectionPhotos[section.key as keyof typeof carSectionPhotos] ? (
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Exterior Photo */}
                     <div className="relative">
-                      <img 
-                        src={carSectionPhotos[section.key as keyof typeof carSectionPhotos]!} 
-                        alt={section.label}
-                        className="w-full h-32 object-cover rounded-xl border-2 border-green-300"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeCarSectionPhoto(section.key as keyof typeof carSectionPhotos)}
-                        className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full shadow-lg"
-                        data-testid={`button-remove-${section.key}`}
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
+                      <label className="block text-xs font-medium text-slate-600 mb-2 font-arabic text-center">
+                        صورة خارجية
+                      </label>
+                      {carSectionPhotos[section.key as keyof typeof carSectionPhotos] ? (
+                        <div className="relative">
+                          <img 
+                            src={carSectionPhotos[section.key as keyof typeof carSectionPhotos]!} 
+                            alt={`${section.label} - خارجية`}
+                            className="w-full h-28 object-cover rounded-xl border-2 border-blue-300"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeCarSectionPhoto(section.key as keyof typeof carSectionPhotos)}
+                            className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full shadow-lg"
+                            data-testid={`button-remove-exterior-${section.key}`}
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center h-28 border-2 border-dashed border-blue-300 rounded-xl cursor-pointer bg-blue-50 hover:bg-blue-100 transition-colors">
+                          <Camera className="w-5 h-5 text-blue-400 mb-1" />
+                          <p className="text-xs text-blue-500 font-arabic">رفع صورة</p>
+                          <input 
+                            type="file" 
+                            accept="image/*"
+                            className="hidden" 
+                            onChange={(e) => handleCarSectionPhotoChange(section.key as keyof typeof carSectionPhotos, e)}
+                            data-testid={`input-exterior-${section.key}`}
+                          />
+                        </label>
+                      )}
                     </div>
-                  ) : (
-                    <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors">
-                      <Camera className="w-6 h-6 text-slate-400 mb-1" />
-                      <p className="text-xs text-slate-500 font-arabic">رفع صورة</p>
-                      <input 
-                        type="file" 
-                        accept="image/*"
-                        className="hidden" 
-                        onChange={(e) => handleCarSectionPhotoChange(section.key as keyof typeof carSectionPhotos, e)}
-                        data-testid={`input-${section.key}`}
-                      />
-                    </label>
-                  )}
+                    
+                    {/* Interior Photo */}
+                    <div className="relative">
+                      <label className="block text-xs font-medium text-slate-600 mb-2 font-arabic text-center">
+                        صورة داخلية
+                      </label>
+                      {carSectionInteriorPhotos[section.key as keyof typeof carSectionInteriorPhotos] ? (
+                        <div className="relative">
+                          <img 
+                            src={carSectionInteriorPhotos[section.key as keyof typeof carSectionInteriorPhotos]!} 
+                            alt={`${section.label} - داخلية`}
+                            className="w-full h-28 object-cover rounded-xl border-2 border-green-300"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeCarSectionInteriorPhoto(section.key as keyof typeof carSectionInteriorPhotos)}
+                            className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full shadow-lg"
+                            data-testid={`button-remove-interior-${section.key}`}
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center h-28 border-2 border-dashed border-green-300 rounded-xl cursor-pointer bg-green-50 hover:bg-green-100 transition-colors">
+                          <Camera className="w-5 h-5 text-green-400 mb-1" />
+                          <p className="text-xs text-green-500 font-arabic">رفع صورة</p>
+                          <input 
+                            type="file" 
+                            accept="image/*"
+                            className="hidden" 
+                            onChange={(e) => handleCarSectionInteriorPhotoChange(section.key as keyof typeof carSectionInteriorPhotos, e)}
+                            data-testid={`input-interior-${section.key}`}
+                          />
+                        </label>
+                      )}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
