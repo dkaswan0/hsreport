@@ -9,6 +9,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { VinScannerModal } from "@/components/vin-scanner-modal";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 // Inspection types
 const INSPECTION_TYPES = [
@@ -29,6 +30,7 @@ type FormValues = z.infer<typeof formSchema>;
 export default function NewInspection() {
   const [, setLocation] = useLocation();
   const { mutate, isPending } = useCreateInspection();
+  const { toast } = useToast();
   const [vinQuery, setVinQuery] = useState("");
   const [showScanner, setShowScanner] = useState(false);
   const [odometerPhoto, setOdometerPhoto] = useState<string | null>(null);
@@ -341,7 +343,28 @@ export default function NewInspection() {
     
     mutate(submissionData as any, {
       onSuccess: (newInspection) => {
-        setLocation(`/inspections/${newInspection.id}`);
+        if (newInspection && newInspection.id) {
+          toast({
+            title: "تم حفظ الفحص بنجاح",
+            description: "جاري الانتقال لصفحة الفحص...",
+          });
+          setTimeout(() => {
+            setLocation(`/inspections/${newInspection.id}`);
+          }, 100);
+        } else {
+          toast({
+            title: "خطأ غير متوقع",
+            description: "تم الحفظ لكن لم يتم استلام معرف الفحص",
+            variant: "destructive",
+          });
+        }
+      },
+      onError: (error) => {
+        toast({
+          title: "خطأ في حفظ الفحص",
+          description: error instanceof Error ? error.message : "حدث خطأ أثناء حفظ بيانات الفحص. حاول مرة أخرى.",
+          variant: "destructive",
+        });
       }
     });
   };
@@ -367,7 +390,26 @@ export default function NewInspection() {
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
+            const errorMessages = Object.entries(errors).map(([field, error]) => {
+              const fieldNames: Record<string, string> = {
+                vin: 'رقم الشاصي',
+                make: 'الشركة المصنعة',
+                model: 'الموديل',
+                year: 'سنة الصنع',
+                color: 'اللون',
+                odometer: 'المسافة المقطوعة',
+                customerName: 'اسم العميل',
+                customerPhone: 'رقم الجوال'
+              };
+              return `${fieldNames[field] || field}: ${error?.message || 'خطأ'}`;
+            });
+            toast({
+              title: "يرجى التحقق من البيانات",
+              description: errorMessages.join('\n') || "بعض الحقول المطلوبة غير مكتملة",
+              variant: "destructive",
+            });
+          })} className="space-y-8">
           
           {/* Vehicle Information Section */}
           <div>
