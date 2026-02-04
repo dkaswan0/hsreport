@@ -42,6 +42,24 @@ export default function NewInspection() {
   const signatureCanvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   
+  // Car section photos
+  const [mainCarPhoto, setMainCarPhoto] = useState<string | null>(null);
+  const [carSectionPhotos, setCarSectionPhotos] = useState<{
+    rearLeftDoor: string | null;
+    rearRightDoor: string | null;
+    frontLeftDoor: string | null;
+    frontRightDoor: string | null;
+    hood: string | null;
+    trunk: string | null;
+  }>({
+    rearLeftDoor: null,
+    rearRightDoor: null,
+    frontLeftDoor: null,
+    frontRightDoor: null,
+    hood: null,
+    trunk: null,
+  });
+  
   const { data: vinData, isFetching: isDecoding } = useVinDecoder(vinQuery);
 
   const form = useForm<FormValues>({
@@ -105,6 +123,37 @@ export default function NewInspection() {
     if (vinPhotoRef.current) {
       vinPhotoRef.current.value = "";
     }
+  };
+
+  // Car section photo handlers
+  const handleMainCarPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setMainCarPhoto(event.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCarSectionPhotoChange = (section: keyof typeof carSectionPhotos, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setCarSectionPhotos(prev => ({
+        ...prev,
+        [section]: event.target?.result as string
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeCarSectionPhoto = (section: keyof typeof carSectionPhotos) => {
+    setCarSectionPhotos(prev => ({
+      ...prev,
+      [section]: null
+    }));
   };
 
   // Signature canvas functions
@@ -234,7 +283,15 @@ export default function NewInspection() {
       odometerPhoto: odometerPhoto || undefined,
       vinPhoto: vinPhoto || undefined,
       inspectionType: inspectionTypeLabel,
-      customerSignature: customerSignature || undefined
+      customerSignature: customerSignature || undefined,
+      // Car section photos
+      mainCarPhoto: mainCarPhoto || undefined,
+      rearLeftDoorPhoto: carSectionPhotos.rearLeftDoor || undefined,
+      rearRightDoorPhoto: carSectionPhotos.rearRightDoor || undefined,
+      frontLeftDoorPhoto: carSectionPhotos.frontLeftDoor || undefined,
+      frontRightDoorPhoto: carSectionPhotos.frontRightDoor || undefined,
+      hoodPhoto: carSectionPhotos.hood || undefined,
+      trunkPhoto: carSectionPhotos.trunk || undefined,
     };
     
     mutate(submissionData as any, {
@@ -611,10 +668,107 @@ export default function NewInspection() {
             </div>
           </div>
 
-          {/* Inspection Type Section */}
+          {/* Car Section Photos */}
           <div>
             <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-primary border-b pb-2 font-arabic">
               <span className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center text-sm">3</span>
+              <Camera className="w-5 h-5" />
+              صور أقسام السيارة
+            </h3>
+            <p className="text-sm text-slate-500 mb-4 font-arabic">ارفع صور لأجزاء السيارة - تظهر في التقرير التفاعلي والـ PDF</p>
+            
+            {/* Main Car Photo */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-slate-700 mb-2 font-arabic flex items-center gap-2">
+                <Car className="w-4 h-4 text-primary" />
+                صورة السيارة الرئيسية (للـ PDF)
+              </label>
+              {mainCarPhoto ? (
+                <div className="relative inline-block">
+                  <img 
+                    src={mainCarPhoto} 
+                    alt="صورة السيارة" 
+                    className="w-full max-w-lg h-56 object-cover rounded-xl border-4 border-primary/30 shadow-lg"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setMainCarPhoto(null)}
+                    className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full shadow-lg"
+                    data-testid="button-remove-main-photo"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center h-48 max-w-lg border-2 border-dashed border-primary/50 rounded-xl cursor-pointer bg-primary/5 hover:bg-primary/10 transition-colors">
+                  <div className="p-4 bg-primary/20 rounded-full mb-3">
+                    <Car className="w-10 h-10 text-primary" />
+                  </div>
+                  <p className="text-sm text-primary font-arabic font-bold mb-1">ارفع صورة السيارة الرئيسية</p>
+                  <p className="text-xs text-slate-400 font-arabic">ستظهر بشكل احترافي في تقرير PDF</p>
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    className="hidden" 
+                    onChange={handleMainCarPhotoChange}
+                    data-testid="input-main-car-photo"
+                  />
+                </label>
+              )}
+            </div>
+
+            {/* Car Section Photos Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {[
+                { key: 'rearLeftDoor', label: 'الباب الخلفي يسار', labelEn: 'Rear Left Door' },
+                { key: 'rearRightDoor', label: 'الباب الخلفي يمين', labelEn: 'Rear Right Door' },
+                { key: 'frontLeftDoor', label: 'الباب الأمامي يسار', labelEn: 'Front Left Door' },
+                { key: 'frontRightDoor', label: 'الباب الأمامي يمين', labelEn: 'Front Right Door' },
+                { key: 'hood', label: 'الكبوت / حجرة المحرك', labelEn: 'Hood / Engine Bay' },
+                { key: 'trunk', label: 'الشنطة / الشاصي', labelEn: 'Trunk / Chassis' },
+              ].map((section) => (
+                <div key={section.key} className="relative">
+                  <label className="block text-sm font-medium text-slate-700 mb-2 font-arabic">
+                    {section.label}
+                  </label>
+                  {carSectionPhotos[section.key as keyof typeof carSectionPhotos] ? (
+                    <div className="relative">
+                      <img 
+                        src={carSectionPhotos[section.key as keyof typeof carSectionPhotos]!} 
+                        alt={section.label}
+                        className="w-full h-32 object-cover rounded-xl border-2 border-green-300"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeCarSectionPhoto(section.key as keyof typeof carSectionPhotos)}
+                        className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full shadow-lg"
+                        data-testid={`button-remove-${section.key}`}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors">
+                      <Camera className="w-6 h-6 text-slate-400 mb-1" />
+                      <p className="text-xs text-slate-500 font-arabic">رفع صورة</p>
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        className="hidden" 
+                        onChange={(e) => handleCarSectionPhotoChange(section.key as keyof typeof carSectionPhotos, e)}
+                        data-testid={`input-${section.key}`}
+                      />
+                    </label>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Inspection Type Section */}
+          <div>
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-primary border-b pb-2 font-arabic">
+              <span className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center text-sm">4</span>
               <FileCheck className="w-5 h-5" />
               نوع الفحص
             </h3>
@@ -646,7 +800,7 @@ export default function NewInspection() {
           {/* Customer Signature Section */}
           <div>
             <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-primary border-b pb-2 font-arabic">
-              <span className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center text-sm">4</span>
+              <span className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center text-sm">5</span>
               <PenTool className="w-5 h-5" />
               توقيع العميل
             </h3>

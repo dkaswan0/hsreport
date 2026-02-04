@@ -30,6 +30,14 @@ export const inspections = pgTable("inspections", {
   status: text("status").default("draft"), // draft, completed
   notes: text("notes"),
   shareToken: text("share_token"), // Unique token for public sharing
+  // Car section photos for interactive report
+  mainCarPhoto: text("main_car_photo"), // Main professional car photo for PDF
+  rearLeftDoorPhoto: text("rear_left_door_photo"), // صور داخل الباب الخلفي يسار
+  rearRightDoorPhoto: text("rear_right_door_photo"), // صور داخل الباب الخلفي يمين
+  frontLeftDoorPhoto: text("front_left_door_photo"), // صور داخل الباب الأمامي يسار
+  frontRightDoorPhoto: text("front_right_door_photo"), // صور داخل الباب الأمامي يمين
+  hoodPhoto: text("hood_photo"), // صور حجرة المحرك
+  trunkPhoto: text("trunk_photo"), // صور داخل الشنطة والشاصي
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
