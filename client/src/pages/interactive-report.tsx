@@ -697,18 +697,59 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
 
 // Car Section Photos Component - Interactive gallery for door/hood/trunk photos
 const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
-  const [selectedPhoto, setSelectedPhoto] = useState<{ src: string; label: string } | null>(null);
+  const [selectedSection, setSelectedSection] = useState<{ 
+    label: string; 
+    labelEn: string;
+    exteriorPhoto: string | null; 
+    interiorPhoto: string | null;
+  } | null>(null);
   
   const sections = [
-    { key: 'rearLeftDoorPhoto', label: 'الباب الخلفي يسار', labelEn: 'Rear Left Door', photo: inspection.rearLeftDoorPhoto },
-    { key: 'rearRightDoorPhoto', label: 'الباب الخلفي يمين', labelEn: 'Rear Right Door', photo: inspection.rearRightDoorPhoto },
-    { key: 'frontLeftDoorPhoto', label: 'الباب الأمامي يسار', labelEn: 'Front Left Door', photo: inspection.frontLeftDoorPhoto },
-    { key: 'frontRightDoorPhoto', label: 'الباب الأمامي يمين', labelEn: 'Front Right Door', photo: inspection.frontRightDoorPhoto },
-    { key: 'hoodPhoto', label: 'الكبوت / حجرة المحرك', labelEn: 'Hood / Engine Bay', photo: inspection.hoodPhoto },
-    { key: 'trunkPhoto', label: 'الشنطة / الشاصي', labelEn: 'Trunk / Chassis', photo: inspection.trunkPhoto },
+    { 
+      key: 'rearLeftDoor', 
+      label: 'الباب الخلفي يسار', 
+      labelEn: 'Rear Left Door', 
+      exteriorPhoto: inspection.rearLeftDoorPhoto,
+      interiorPhoto: inspection.rearLeftDoorInteriorPhoto
+    },
+    { 
+      key: 'rearRightDoor', 
+      label: 'الباب الخلفي يمين', 
+      labelEn: 'Rear Right Door', 
+      exteriorPhoto: inspection.rearRightDoorPhoto,
+      interiorPhoto: inspection.rearRightDoorInteriorPhoto
+    },
+    { 
+      key: 'frontLeftDoor', 
+      label: 'الباب الأمامي يسار', 
+      labelEn: 'Front Left Door', 
+      exteriorPhoto: inspection.frontLeftDoorPhoto,
+      interiorPhoto: inspection.frontLeftDoorInteriorPhoto
+    },
+    { 
+      key: 'frontRightDoor', 
+      label: 'الباب الأمامي يمين', 
+      labelEn: 'Front Right Door', 
+      exteriorPhoto: inspection.frontRightDoorPhoto,
+      interiorPhoto: inspection.frontRightDoorInteriorPhoto
+    },
+    { 
+      key: 'hood', 
+      label: 'الكبوت / حجرة المحرك', 
+      labelEn: 'Hood / Engine Bay', 
+      exteriorPhoto: inspection.hoodPhoto,
+      interiorPhoto: inspection.hoodInteriorPhoto
+    },
+    { 
+      key: 'trunk', 
+      label: 'الشنطة / الشاصي', 
+      labelEn: 'Trunk / Chassis', 
+      exteriorPhoto: inspection.trunkPhoto,
+      interiorPhoto: inspection.trunkInteriorPhoto
+    },
   ];
 
-  const hasAnyPhoto = sections.some(s => s.photo);
+  const hasAnyPhoto = sections.some(s => s.exteriorPhoto || s.interiorPhoto);
   if (!hasAnyPhoto) return null;
 
   return (
@@ -725,49 +766,69 @@ const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
         </div>
         <div className="p-4">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {sections.map((section) => (
-              <button
-                key={section.key}
-                onClick={() => section.photo && setSelectedPhoto({ src: section.photo, label: section.label })}
-                disabled={!section.photo}
-                className={cn(
-                  "relative rounded-2xl overflow-hidden border-2 transition-all",
-                  section.photo 
-                    ? "border-primary/30 hover:border-primary hover:shadow-lg cursor-pointer" 
-                    : "border-slate-200 bg-slate-50 cursor-not-allowed opacity-60"
-                )}
-                data-testid={`button-view-${section.key}`}
-              >
-                {section.photo ? (
-                  <img 
-                    src={section.photo} 
-                    alt={section.label}
-                    className="w-full h-28 object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-28 flex items-center justify-center bg-slate-100">
-                    <Car className="w-8 h-8 text-slate-300" />
+            {sections.map((section) => {
+              const hasPhotos = section.exteriorPhoto || section.interiorPhoto;
+              const photoCount = (section.exteriorPhoto ? 1 : 0) + (section.interiorPhoto ? 1 : 0);
+              return (
+                <button
+                  key={section.key}
+                  onClick={() => hasPhotos && setSelectedSection({ 
+                    label: section.label, 
+                    labelEn: section.labelEn,
+                    exteriorPhoto: section.exteriorPhoto,
+                    interiorPhoto: section.interiorPhoto
+                  })}
+                  disabled={!hasPhotos}
+                  className={cn(
+                    "relative rounded-2xl overflow-hidden border-2 transition-all",
+                    hasPhotos 
+                      ? "border-primary/30 hover:border-primary hover:shadow-lg cursor-pointer" 
+                      : "border-slate-200 bg-slate-50 cursor-not-allowed opacity-60"
+                  )}
+                  data-testid={`button-view-${section.key}`}
+                >
+                  {section.exteriorPhoto ? (
+                    <img 
+                      src={section.exteriorPhoto} 
+                      alt={section.label}
+                      className="w-full h-28 object-cover"
+                    />
+                  ) : section.interiorPhoto ? (
+                    <img 
+                      src={section.interiorPhoto} 
+                      alt={section.label}
+                      className="w-full h-28 object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-28 flex items-center justify-center bg-slate-100">
+                      <Car className="w-8 h-8 text-slate-300" />
+                    </div>
+                  )}
+                  {photoCount > 0 && (
+                    <div className="absolute top-2 left-2 bg-primary text-white text-xs px-2 py-0.5 rounded-full">
+                      {photoCount} صور
+                    </div>
+                  )}
+                  <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                    <p className="text-white text-xs font-arabic text-center">{section.label}</p>
+                    <p className="text-white/60 text-[10px] text-center">{section.labelEn}</p>
                   </div>
-                )}
-                <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-2">
-                  <p className="text-white text-xs font-arabic text-center">{section.label}</p>
-                  <p className="text-white/60 text-[10px] text-center">{section.labelEn}</p>
-                </div>
-              </button>
-            ))}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
 
-      {/* Photo Modal */}
-      {selectedPhoto && (
+      {/* Section Photos Modal - Shows both exterior and interior photos */}
+      {selectedSection && (
         <div 
           className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
-          onClick={() => setSelectedPhoto(null)}
+          onClick={() => setSelectedSection(null)}
         >
-          <div className="relative max-w-4xl w-full">
+          <div className="relative max-w-5xl w-full" onClick={(e) => e.stopPropagation()}>
             <button
-              onClick={() => setSelectedPhoto(null)}
+              onClick={() => setSelectedSection(null)}
               className="absolute -top-12 right-0 text-white hover:text-primary transition-colors"
               data-testid="button-close-photo-modal"
             >
@@ -775,13 +836,50 @@ const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
             </button>
             <div className="bg-white rounded-2xl overflow-hidden shadow-2xl">
               <div className="bg-primary text-white px-4 py-3 text-center">
-                <p className="font-bold font-arabic">{selectedPhoto.label}</p>
+                <p className="font-bold font-arabic text-lg">{selectedSection.label}</p>
+                <p className="text-white/70 text-sm">{selectedSection.labelEn}</p>
               </div>
-              <img 
-                src={selectedPhoto.src} 
-                alt={selectedPhoto.label}
-                className="w-full max-h-[70vh] object-contain bg-slate-100"
-              />
+              <div className="p-4 bg-slate-50">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Exterior Photo */}
+                  <div className="text-center">
+                    <h4 className="font-bold text-slate-700 mb-2 font-arabic flex items-center justify-center gap-2">
+                      <span className="w-3 h-3 bg-blue-500 rounded-full"></span>
+                      صورة خارجية
+                    </h4>
+                    {selectedSection.exteriorPhoto ? (
+                      <img 
+                        src={selectedSection.exteriorPhoto} 
+                        alt={`${selectedSection.label} - خارجية`}
+                        className="w-full max-h-[50vh] object-contain rounded-xl border-2 border-blue-300 bg-white"
+                      />
+                    ) : (
+                      <div className="w-full h-48 bg-slate-200 rounded-xl flex items-center justify-center">
+                        <p className="text-slate-400 font-arabic">لا توجد صورة</p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Interior Photo */}
+                  <div className="text-center">
+                    <h4 className="font-bold text-slate-700 mb-2 font-arabic flex items-center justify-center gap-2">
+                      <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+                      صورة داخلية
+                    </h4>
+                    {selectedSection.interiorPhoto ? (
+                      <img 
+                        src={selectedSection.interiorPhoto} 
+                        alt={`${selectedSection.label} - داخلية`}
+                        className="w-full max-h-[50vh] object-contain rounded-xl border-2 border-green-300 bg-white"
+                      />
+                    ) : (
+                      <div className="w-full h-48 bg-slate-200 rounded-xl flex items-center justify-center">
+                        <p className="text-slate-400 font-arabic">لا توجد صورة</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
