@@ -248,7 +248,7 @@ export async function registerRoutes(
       res.json({ 
         detectedPart: "Car Part",
         detectedPartArabic: "جزء السيارة",
-        category: "البودي",
+        category: "الهيكل الخارجي",
         suggestedFaults: []
       });
     }
@@ -323,7 +323,7 @@ export async function registerRoutes(
     if (!vin || vin.length !== 17) {
       return res.status(400).json({
         error: true,
-        message: "رقم الشاصي يجب أن يكون 17 حرف - VIN must be 17 characters",
+        message: "رقم الهيكل يجب أن يكون 17 حرفًا - VIN must be 17 characters",
         make: "",
         model: "",
         year: 2024,

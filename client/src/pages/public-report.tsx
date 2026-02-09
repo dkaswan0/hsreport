@@ -56,12 +56,12 @@ const ANATOMY_POSITIONS_BY_VIEW: Record<ViewAngle, Record<string, { top: string;
     brake_system: { top: "68%", left: "22%", label: "الفرامل" },
     ac_cooling: { top: "38%", left: "35%", label: "التكييف" },
     fuel_exhaust: { top: "58%", left: "60%", label: "العادم" },
-    misc_mechanical: { top: "45%", left: "55%", label: "ميكانيكا" },
+    misc_mechanical: { top: "45%", left: "55%", label: "أجزاء ميكانيكية" },
     // Body
-    hood: { top: "30%", left: "42%", label: "البونيت" },
+    hood: { top: "30%", left: "42%", label: "غطاء المحرك" },
     front_bumper: { top: "58%", left: "15%", label: "الصدام الأمامي" },
     bumper_frame_front: { top: "62%", left: "18%", label: "جسر الصدام" },
-    fender_front_left: { top: "48%", left: "20%", label: "المدقار" },
+    fender_front_left: { top: "48%", left: "20%", label: "الرفرف" },
     front_chest: { top: "55%", left: "35%", label: "صدر السيارة" },
     roof: { top: "22%", left: "58%", label: "السقف" },
     pillars: { top: "28%", left: "52%", label: "القوائم" },
@@ -69,14 +69,14 @@ const ANATOMY_POSITIONS_BY_VIEW: Record<ViewAngle, Record<string, { top: string;
     battery: { top: "35%", left: "30%", label: "البطارية" },
     electrical_system: { top: "40%", left: "48%", label: "الكهرباء" },
     exterior_lighting: { top: "52%", left: "12%", label: "الإضاءة" },
-    wire_harness: { top: "44%", left: "45%", label: "الوايرات" },
+    wire_harness: { top: "44%", left: "45%", label: "الأسلاك" },
     // Other
     tires_rims: { top: "72%", left: "25%", label: "الإطارات" },
     windows: { top: "25%", left: "62%", label: "الزجاج" },
     glass_mirrors: { top: "32%", left: "18%", label: "المرايا" },
     interior: { top: "35%", left: "55%", label: "الداخلية" },
     safety_systems: { top: "38%", left: "58%", label: "السلامة" },
-    chassis_frame: { top: "65%", left: "45%", label: "الشاصي" },
+    chassis_frame: { top: "65%", left: "45%", label: "الهيكل" },
   },
   
   // Right side view: Shows right doors, right fenders, right wheels, side profile
@@ -89,17 +89,17 @@ const ANATOMY_POSITIONS_BY_VIEW: Record<ViewAngle, Record<string, { top: string;
     brake_system: { top: "68%", left: "25%", label: "الفرامل" },
     steering_system: { top: "55%", left: "18%", label: "التوجيه" },
     ac_cooling: { top: "38%", left: "20%", label: "التكييف" },
-    misc_mechanical: { top: "55%", left: "50%", label: "ميكانيكا" },
+    misc_mechanical: { top: "55%", left: "50%", label: "أجزاء ميكانيكية" },
     // Body - Right side
     door_front_right: { top: "38%", left: "32%", label: "الباب الأمامي يمين" },
     door_rear_right: { top: "38%", left: "55%", label: "الباب الخلفي يمين" },
-    fender_front_right: { top: "50%", left: "18%", label: "المدقار الأمامي" },
-    fender_rear_right: { top: "50%", left: "78%", label: "المدقار الخلفي" },
-    hood: { top: "32%", left: "12%", label: "البونيت" },
-    trunk: { top: "35%", left: "88%", label: "الدبة" },
+    fender_front_right: { top: "50%", left: "18%", label: "الرفرف الأمامي" },
+    fender_rear_right: { top: "50%", left: "78%", label: "الرفرف الخلفي" },
+    hood: { top: "32%", left: "12%", label: "غطاء المحرك" },
+    trunk: { top: "35%", left: "88%", label: "صندوق الأمتعة" },
     roof: { top: "20%", left: "45%", label: "السقف" },
     pillars: { top: "25%", left: "40%", label: "القوائم" },
-    quarter_panel: { top: "42%", left: "75%", label: "الفخد" },
+    quarter_panel: { top: "42%", left: "75%", label: "اللوح الجانبي" },
     front_bumper: { top: "55%", left: "8%", label: "الصدام الأمامي" },
     rear_bumper: { top: "55%", left: "92%", label: "الصدام الخلفي" },
     // Electric
@@ -112,7 +112,7 @@ const ANATOMY_POSITIONS_BY_VIEW: Record<ViewAngle, Record<string, { top: string;
     windows: { top: "28%", left: "42%", label: "الزجاج" },
     glass_mirrors: { top: "32%", left: "25%", label: "المرايا" },
     interior: { top: "35%", left: "45%", label: "الداخلية" },
-    chassis_frame: { top: "62%", left: "50%", label: "الشاصي" },
+    chassis_frame: { top: "62%", left: "50%", label: "الهيكل" },
   },
   
   // Rear-Right view: Shows trunk, rear bumper, exhaust, rear lights
@@ -122,14 +122,14 @@ const ANATOMY_POSITIONS_BY_VIEW: Record<ViewAngle, Record<string, { top: string;
     suspension_system: { top: "65%", left: "72%", label: "التعليق" },
     brake_system: { top: "70%", left: "75%", label: "الفرامل" },
     transmission_system: { top: "55%", left: "48%", label: "ناقل الحركة" },
-    misc_mechanical: { top: "58%", left: "55%", label: "ميكانيكا" },
+    misc_mechanical: { top: "58%", left: "55%", label: "أجزاء ميكانيكية" },
     // Body - Rear
-    trunk: { top: "32%", left: "50%", label: "الدبة" },
+    trunk: { top: "32%", left: "50%", label: "صندوق الأمتعة" },
     rear_bumper: { top: "58%", left: "52%", label: "الصدام الخلفي" },
     bumper_frame_rear: { top: "62%", left: "50%", label: "جسر الصدام" },
     rear_chest: { top: "45%", left: "48%", label: "صدر السيارة الخلفي" },
-    quarter_panel: { top: "40%", left: "70%", label: "الفخد" },
-    fender_rear_right: { top: "48%", left: "75%", label: "المدقار الخلفي" },
+    quarter_panel: { top: "40%", left: "70%", label: "اللوح الجانبي" },
+    fender_rear_right: { top: "48%", left: "75%", label: "الرفرف الخلفي" },
     roof: { top: "22%", left: "50%", label: "السقف" },
     pillars: { top: "28%", left: "62%", label: "القوائم" },
     door_rear_right: { top: "38%", left: "78%", label: "الباب الخلفي يمين" },
@@ -142,7 +142,7 @@ const ANATOMY_POSITIONS_BY_VIEW: Record<ViewAngle, Record<string, { top: string;
     windows: { top: "28%", left: "55%", label: "الزجاج الخلفي" },
     interior: { top: "35%", left: "52%", label: "الداخلية" },
     safety_systems: { top: "38%", left: "45%", label: "السلامة" },
-    chassis_frame: { top: "65%", left: "55%", label: "الشاصي" },
+    chassis_frame: { top: "65%", left: "55%", label: "الهيكل" },
   },
   
   // Left side view: Shows left doors, left fenders, left wheels (mirror of right)
@@ -155,17 +155,17 @@ const ANATOMY_POSITIONS_BY_VIEW: Record<ViewAngle, Record<string, { top: string;
     brake_system: { top: "68%", left: "75%", label: "الفرامل" },
     steering_system: { top: "55%", left: "82%", label: "التوجيه" },
     ac_cooling: { top: "38%", left: "80%", label: "التكييف" },
-    misc_mechanical: { top: "55%", left: "50%", label: "ميكانيكا" },
+    misc_mechanical: { top: "55%", left: "50%", label: "أجزاء ميكانيكية" },
     // Body - Left side
     door_front_left: { top: "38%", left: "68%", label: "الباب الأمامي يسار" },
     door_rear_left: { top: "38%", left: "45%", label: "الباب الخلفي يسار" },
-    fender_front_left: { top: "50%", left: "82%", label: "المدقار الأمامي" },
-    fender_rear_left: { top: "50%", left: "22%", label: "المدقار الخلفي" },
-    hood: { top: "32%", left: "88%", label: "البونيت" },
-    trunk: { top: "35%", left: "12%", label: "الدبة" },
+    fender_front_left: { top: "50%", left: "82%", label: "الرفرف الأمامي" },
+    fender_rear_left: { top: "50%", left: "22%", label: "الرفرف الخلفي" },
+    hood: { top: "32%", left: "88%", label: "غطاء المحرك" },
+    trunk: { top: "35%", left: "12%", label: "صندوق الأمتعة" },
     roof: { top: "20%", left: "55%", label: "السقف" },
     pillars: { top: "25%", left: "60%", label: "القوائم" },
-    quarter_panel: { top: "42%", left: "25%", label: "الفخد" },
+    quarter_panel: { top: "42%", left: "25%", label: "اللوح الجانبي" },
     front_bumper: { top: "55%", left: "92%", label: "الصدام الأمامي" },
     rear_bumper: { top: "55%", left: "8%", label: "الصدام الخلفي" },
     // Electric
@@ -179,7 +179,7 @@ const ANATOMY_POSITIONS_BY_VIEW: Record<ViewAngle, Record<string, { top: string;
     windows: { top: "28%", left: "58%", label: "الزجاج" },
     glass_mirrors: { top: "32%", left: "75%", label: "المرايا" },
     interior: { top: "35%", left: "55%", label: "الداخلية" },
-    chassis_frame: { top: "62%", left: "50%", label: "الشاصي" },
+    chassis_frame: { top: "62%", left: "50%", label: "الهيكل" },
   },
 };
 
@@ -384,14 +384,14 @@ const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
     },
     { 
       key: 'hood', 
-      label: 'الكبوت / حجرة المحرك', 
+      label: 'غطاء المحرك / حجرة المحرك', 
       labelEn: 'Hood / Engine Bay', 
       exteriorPhoto: inspection.hoodPhoto,
       interiorPhoto: inspection.hoodInteriorPhoto
     },
     { 
       key: 'trunk', 
-      label: 'الشنطة / الشاصي', 
+      label: 'صندوق الأمتعة / الهيكل السفلي', 
       labelEn: 'Trunk / Chassis', 
       exteriorPhoto: inspection.trunkPhoto,
       interiorPhoto: inspection.trunkInteriorPhoto
@@ -820,8 +820,8 @@ export default function PublicReport() {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-center bg-white/10 backdrop-blur-lg rounded-3xl p-12">
           <XCircle className="w-20 h-20 text-red-400 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-white mb-2 font-arabic">التقرير مو موجود</h1>
-          <p className="text-white/60 font-arabic">اللينك غلط أو انتهت صلاحيته</p>
+          <h1 className="text-2xl font-bold text-white mb-2 font-arabic">التقرير غير موجود</h1>
+          <p className="text-white/60 font-arabic">الرابط غير صحيح أو انتهت صلاحيته</p>
         </div>
       </div>
     );
@@ -934,7 +934,7 @@ export default function PublicReport() {
                 <Car className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <h3 className="font-bold text-slate-800 font-arabic text-sm">رقم الشاصي (VIN)</h3>
+                <h3 className="font-bold text-slate-800 font-arabic text-sm">رقم الهيكل (VIN)</h3>
                 {inspection.vinPhoto && (
                   <p className="text-xs text-primary font-arabic flex items-center gap-1">
                     <ZoomIn className="w-3 h-3" />
@@ -1091,8 +1091,8 @@ export default function PublicReport() {
         {issueItems.length === 0 && (
           <div className="bg-emerald-50 border border-emerald-200 rounded-3xl p-8 text-center">
             <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-emerald-800 font-arabic mb-2">السيارة حالتها ممتازة</h3>
-            <p className="text-emerald-600 font-arabic">المركبة بحالة ممتازة</p>
+            <h3 className="text-xl font-bold text-emerald-800 font-arabic mb-2">المركبة في حالة ممتازة</h3>
+            <p className="text-emerald-600 font-arabic">لا توجد ملاحظات على المركبة</p>
           </div>
         )}
 

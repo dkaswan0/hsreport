@@ -21,7 +21,7 @@ export default function Dashboard() {
   const handleDelete = async (id: number, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (confirm(lang === 'ar' ? "متأكد تبي تمسح هالفحص؟" : "Are you sure you want to delete this inspection?")) {
+    if (confirm(lang === 'ar' ? "هل أنت متأكد من حذف هذا الفحص؟" : "Are you sure you want to delete this inspection?")) {
       setDeletingId(id);
       deleteMutation.mutate(id, {
         onSuccess: () => {
@@ -39,7 +39,7 @@ export default function Dashboard() {
 
   const handleDeleteSelected = async () => {
     if (selectedIds.length === 0) return;
-    if (confirm(lang === 'ar' ? `متأكد تبي تمسح ${selectedIds.length} فحص؟` : `Are you sure you want to delete ${selectedIds.length} inspections?`)) {
+    if (confirm(lang === 'ar' ? `هل أنت متأكد من حذف ${selectedIds.length} فحص؟` : `Are you sure you want to delete ${selectedIds.length} inspections?`)) {
       deleteMultipleMutation.mutate(selectedIds, {
         onSuccess: (result) => {
           toast({ title: lang === 'ar' ? "تم الحذف" : "Deleted", description: lang === 'ar' ? `تم حذف ${result.deleted} فحص بنجاح` : `${result.deleted} inspections deleted successfully` });
@@ -77,7 +77,7 @@ export default function Dashboard() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{t('nav.dashboard')}</h1>
-          <p className="text-slate-500 mt-1">{lang === 'ar' ? 'شوف آخر الفحوصات' : 'View recent inspections'}</p>
+          <p className="text-slate-500 mt-1">{lang === 'ar' ? 'عرض أحدث الفحوصات' : 'View recent inspections'}</p>
         </div>
         <Link href="/inspections/new" className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl flex items-center gap-2 font-semibold shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5">
           <Plus className="w-5 h-5" />
@@ -91,7 +91,7 @@ export default function Dashboard() {
             <ClipboardCheck className="w-8 h-8" />
           </div>
           <div>
-            <p className="text-slate-500 text-sm font-medium">{lang === 'ar' ? 'كل الفحوصات' : 'All Inspections'}</p>
+            <p className="text-slate-500 text-sm font-medium">{lang === 'ar' ? 'جميع الفحوصات' : 'All Inspections'}</p>
             <h3 className="text-3xl font-bold text-slate-900">{total}</h3>
           </div>
         </div>
@@ -118,7 +118,7 @@ export default function Dashboard() {
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="p-4 md:p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex items-center gap-4">
-            <h3 className="text-xl font-bold">{lang === 'ar' ? 'الفحوصات الأخيرة' : 'Recent Inspections'}</h3>
+            <h3 className="text-xl font-bold">{lang === 'ar' ? 'أحدث الفحوصات' : 'Recent Inspections'}</h3>
             {selectedIds.length > 0 && (
               <Button
                 onClick={handleDeleteSelected}
@@ -133,7 +133,7 @@ export default function Dashboard() {
                 ) : (
                   <Trash2 className="w-4 h-4" />
                 )}
-                <span>{lang === 'ar' ? `امسح المحدد (${selectedIds.length})` : `Delete Selected (${selectedIds.length})`}</span>
+                <span>{lang === 'ar' ? `حذف المحدد (${selectedIds.length})` : `Delete Selected (${selectedIds.length})`}</span>
               </Button>
             )}
           </div>
@@ -142,7 +142,7 @@ export default function Dashboard() {
              <input 
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder={lang === 'ar' ? "ابحث بالشاصي أو اسم الكستمر..." : "Search by VIN or customer name..."}
+                placeholder={lang === 'ar' ? "البحث برقم الهيكل أو اسم العميل..." : "Search by VIN or customer name..."}
                 className="w-full pl-4 pr-10 py-2 rounded-lg bg-slate-50 border border-slate-200 focus:border-accent focus:ring-0 text-sm rtl:pr-4 rtl:pl-10"
                 data-testid="input-search"
              />
@@ -178,7 +178,7 @@ export default function Dashboard() {
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-slate-400">{lang === 'ar' ? 'جاري التحميل...' : 'Loading...'}</td>
+                  <td colSpan={7} className="px-6 py-8 text-center text-slate-400">{lang === 'ar' ? 'جارٍ التحميل...' : 'Loading...'}</td>
                 </tr>
               ) : inspections?.length === 0 ? (
                 <tr>
@@ -237,13 +237,13 @@ export default function Dashboard() {
                           className="text-primary hover:text-accent font-medium text-sm transition-colors"
                           data-testid={`link-view-${inspection.id}`}
                         >
-                          شوف
+                          عرض
                         </Link>
                         <button
                           onClick={(e) => handleDelete(inspection.id, e)}
                           disabled={deletingId === inspection.id}
                           className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50"
-                          title="امسح"
+                          title="حذف"
                           data-testid={`button-delete-inspection-${inspection.id}`}
                         >
                           {deletingId === inspection.id ? (

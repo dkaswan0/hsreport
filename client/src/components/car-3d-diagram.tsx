@@ -19,7 +19,7 @@ interface CarPart {
 const CAR_PARTS: CarPart[] = [
   // Front
   { id: "front_bumper", label: "الدعامية الأمامية", labelEn: "Front Bumper", category: "front_bumper", path: "M 80 120 Q 150 100 220 120 L 230 140 Q 150 130 70 140 Z" },
-  { id: "hood", label: "الكبوت", labelEn: "Hood", category: "hood", path: "M 75 140 Q 150 125 225 140 L 220 200 Q 150 185 80 200 Z" },
+  { id: "hood", label: "غطاء المحرك", labelEn: "Hood", category: "hood", path: "M 75 140 Q 150 125 225 140 L 220 200 Q 150 185 80 200 Z" },
   { id: "front_left_fender", label: "الرفرف الأمامي أيسر", labelEn: "Front Left Fender", category: "front_left_fender", path: "M 60 140 L 75 140 L 80 200 L 60 210 Q 50 175 60 140" },
   { id: "front_right_fender", label: "الرفرف الأمامي أيمن", labelEn: "Front Right Fender", category: "front_right_fender", path: "M 240 140 L 225 140 L 220 200 L 240 210 Q 250 175 240 140" },
   { id: "front_left_headlight", label: "الأنوار الأمامية يسار", labelEn: "Left Headlight", category: "front_lights", path: "M 85 115 L 110 110 L 115 130 L 85 135 Z" },

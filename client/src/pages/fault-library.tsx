@@ -28,35 +28,35 @@ import { useLanguage } from "@/contexts/language-context";
 
 const CATEGORY_LABELS: Record<string, { ar: string; en: string }> = {
   // الفئات الأساسية - لهجة إماراتية
-  engine: { ar: "الماكينة", en: "Engine" },
-  transmission: { ar: "القير", en: "Transmission" },
-  chassis: { ar: "الشاصي", en: "Chassis" },
-  body: { ar: "البودي", en: "Body" },
-  tires: { ar: "التواير", en: "Tires" },
-  brakes: { ar: "البريك", en: "Brakes" },
+  engine: { ar: "المحرك", en: "Engine" },
+  transmission: { ar: "ناقل الحركة", en: "Transmission" },
+  chassis: { ar: "الهيكل", en: "Chassis" },
+  body: { ar: "الهيكل الخارجي", en: "Body" },
+  tires: { ar: "الإطارات", en: "Tires" },
+  brakes: { ar: "الفرامل", en: "Brakes" },
   electric: { ar: "الكهرباء", en: "Electrical" },
-  wheels: { ar: "الرنقات", en: "Wheels" },
-  suspension: { ar: "السسبنشن", en: "Suspension" },
+  wheels: { ar: "الجنوط", en: "Wheels" },
+  suspension: { ar: "نظام التعليق", en: "Suspension" },
   ac: { ar: "المكيف", en: "AC/Cooling" },
-  exhaust: { ar: "الاكزوز", en: "Exhaust" },
-  safety: { ar: "السيفتي", en: "Safety" },
+  exhaust: { ar: "العادم", en: "Exhaust" },
+  safety: { ar: "السلامة", en: "Safety" },
   interior: { ar: "الداخلية", en: "Interior" },
-  steering: { ar: "الستيرنق", en: "Steering" },
-  fuel: { ar: "البترول", en: "Fuel" },
+  steering: { ar: "التوجيه", en: "Steering" },
+  fuel: { ar: "الوقود", en: "Fuel" },
   // الكهرباء - فئات فرعية
   "ac_electrical": { ar: "كهرباء المكيف", en: "AC Electrical" },
   "battery": { ar: "البطارية", en: "Battery" },
-  "charging_system": { ar: "الشارجنق سيستم", en: "Charging System" },
-  "driver_assist": { ar: "مساعدات السواقة", en: "Driver Assist" },
+  "charging_system": { ar: "نظام الشحن", en: "Charging System" },
+  "driver_assist": { ar: "مساعدات القيادة", en: "Driver Assist" },
   "ecu_computers": { ar: "الكمبيوتر", en: "ECU & Computers" },
-  "entertainment": { ar: "السيستم والشاشة", en: "Entertainment" },
+  "entertainment": { ar: "نظام الترفيه", en: "Entertainment" },
   "ignition_system": { ar: "الاشتعال", en: "Ignition System" },
   "interior_electrical": { ar: "كهرباء الداخلية", en: "Interior Electrical" },
-  "lighting": { ar: "الليتات", en: "Lighting" },
-  "safety_systems": { ar: "السيفتي سيستم", en: "Safety Systems" },
+  "lighting": { ar: "الإضاءة", en: "Lighting" },
+  "safety_systems": { ar: "أنظمة السلامة", en: "Safety Systems" },
   "sensors": { ar: "السنسرات", en: "Sensors" },
   "starting_system": { ar: "السلف", en: "Starting System" },
-  "wiring": { ar: "الوايرات", en: "Wiring" },
+  "wiring": { ar: "الأسلاك", en: "Wiring" },
   // قطع السيارة - لهجة إماراتية
   "الدعامية الأمامية": { ar: "الدعامية الأمامية", en: "Front Bumper" },
   "الدعامية الخلفية": { ar: "الدعامية الخلفية", en: "Rear Bumper" },
@@ -65,34 +65,34 @@ const CATEGORY_LABELS: Record<string, { ar: string; en: string }> = {
   "صدر السيارة الأمامي": { ar: "صدر السيارة الأمامي", en: "Front Body" },
   "صدر السيارة الامامي": { ar: "صدر السيارة الأمامي", en: "Front Body" },
   "صدر السيارة الخلفي": { ar: "صدر السيارة الخلفي", en: "Rear Body" },
-  "البونيت": { ar: "البونيت", en: "Hood" },
-  "الشاصي": { ar: "الشاصي", en: "Chassis" },
-  "الماكينة": { ar: "الماكينة", en: "Engine" },
-  "القير": { ar: "القير", en: "Transmission" },
+  "البونيت": { ar: "غطاء المحرك", en: "Hood" },
+  "الشاصي": { ar: "الهيكل", en: "Chassis" },
+  "الماكينة": { ar: "المحرك", en: "Engine" },
+  "القير": { ar: "ناقل الحركة", en: "Transmission" },
   "الاكسلات": { ar: "الاكسلات", en: "Axles" },
   "الشافت": { ar: "الشافت", en: "Drive Shaft" },
   "الديفرايشن": { ar: "الديفرايشن", en: "Differential" },
-  "البريك": { ar: "البريك", en: "Brakes" },
+  "البريك": { ar: "الفرامل", en: "Brakes" },
   "الدرامات": { ar: "الدرامات", en: "Drums" },
-  "الفخد": { ar: "الفخد", en: "Fender" },
-  "المدقار الأمامي يسار": { ar: "المدقار الأمامي يسار", en: "Front Left Fender" },
-  "المدقار الأمامي يمين": { ar: "المدقار الأمامي يمين", en: "Front Right Fender" },
-  "المدقار الخلفي يسار": { ar: "المدقار الخلفي يسار", en: "Rear Left Fender" },
-  "المدقار الخلفي يمين": { ar: "المدقار الخلفي يمين", en: "Rear Right Fender" },
+  "الفخد": { ar: "اللوح الجانبي", en: "Fender" },
+  "المدقار الأمامي يسار": { ar: "الرفرف الأمامي الأيسر", en: "Front Left Fender" },
+  "المدقار الأمامي يمين": { ar: "الرفرف الأمامي الأيمن", en: "Front Right Fender" },
+  "المدقار الخلفي يسار": { ar: "الرفرف الخلفي الأيسر", en: "Rear Left Fender" },
+  "المدقار الخلفي يمين": { ar: "الرفرف الخلفي الأيمن", en: "Rear Right Fender" },
   "الباب الأمامي يسار": { ar: "الباب الأمامي يسار", en: "Front Left Door" },
   "الباب الأمامي يمين": { ar: "الباب الأمامي يمين", en: "Front Right Door" },
   "الباب الخلفي يسار": { ar: "الباب الخلفي يسار", en: "Rear Left Door" },
   "الباب الخلفي يمين": { ar: "الباب الخلفي يمين", en: "Rear Right Door" },
   "القوائم": { ar: "القوائم", en: "Pillars" },
   "السقف": { ar: "السقف", en: "Roof" },
-  "الجامات": { ar: "الجامات", en: "Glass" },
-  "الجانبينات": { ar: "الجانبينات", en: "Side Panels" },
-  "الشيالات": { ar: "الشيالات", en: "Carriers" },
-  "الليتات": { ar: "الليتات", en: "Lights" },
-  "الليتات الأمامية": { ar: "الليتات الأمامية", en: "Front Lights" },
-  "الليتات الخلفية": { ar: "الليتات الخلفية", en: "Rear Lights" },
-  "الرينقات": { ar: "الرنقات", en: "Rims" },
-  "التواير": { ar: "التواير", en: "Tires" },
+  "الجامات": { ar: "الزجاج", en: "Glass" },
+  "الجانبينات": { ar: "الألواح الجانبية", en: "Side Panels" },
+  "الشيالات": { ar: "حوامل السقف", en: "Carriers" },
+  "الليتات": { ar: "الإضاءة", en: "Lights" },
+  "الليتات الأمامية": { ar: "الأضواء الأمامية", en: "Front Lights" },
+  "الليتات الخلفية": { ar: "الأضواء الخلفية", en: "Rear Lights" },
+  "الرينقات": { ar: "الجنوط", en: "Rims" },
+  "التواير": { ar: "الإطارات", en: "Tires" },
   "الدبل": { ar: "الدبل", en: "Control Arms" },
   "التايررود": { ar: "التايررود", en: "Tie Rods" },
   "الاستبلايزرلينك رود": { ar: "الاستبلايزر لينك", en: "Stabilizer Link Rod" },
@@ -103,15 +103,15 @@ const CATEGORY_LABELS: Record<string, { ar: string; en: string }> = {
   "الوتربمب": { ar: "الوتربمب", en: "Water Pump" },
   "الترموستات": { ar: "الترموستات", en: "Thermostat" },
   "الكوندنسيور": { ar: "الكوندنسر", en: "Condenser" },
-  "الاكزوز": { ar: "الاكزوز", en: "Exhaust" },
-  "الدبة": { ar: "الدبة", en: "Muffler" },
+  "الاكزوز": { ar: "العادم", en: "Exhaust" },
+  "الدبة": { ar: "كاتم الصوت", en: "Muffler" },
   "التيربو": { ar: "التيربو", en: "Turbo" },
-  "الفيول بمب": { ar: "طرمبة البترول", en: "Fuel Pump" },
-  "تانك البترول": { ar: "تانكي البترول", en: "Fuel Tank" },
+  "الفيول بمب": { ar: "مضخة الوقود", en: "Fuel Pump" },
+  "تانك البترول": { ar: "خزان الوقود", en: "Fuel Tank" },
   "الداخلية": { ar: "الداخلية", en: "Interior" },
   "داخلية السيارة": { ar: "الداخلية", en: "Car Interior" },
   // الكهرباء - فئات إضافية
-  "تيب الوايرات": { ar: "تيب الوايرات", en: "Wire Harness" },
+  "تيب الوايرات": { ar: "أسلاك التوصيل", en: "Wire Harness" },
   "زر تحكم المرايا": { ar: "زر تحكم المرايا", en: "Mirror Controls" },
   "النظام الكهربائي": { ar: "النظام الكهربائي", en: "Electrical System" },
   "البطارية": { ar: "البطارية", en: "Battery" },
@@ -124,7 +124,7 @@ const CATEGORY_LABELS: Record<string, { ar: string; en: string }> = {
   "نظام التكييف": { ar: "نظام التكييف", en: "AC System" },
   "نظام الوقود والعادم": { ar: "نظام الوقود والعادم", en: "Fuel & Exhaust" },
   "ناقل الحركة": { ar: "ناقل الحركة", en: "Transmission" },
-  "الهيكل والشاصي": { ar: "الهيكل والشاصي", en: "Chassis & Frame" },
+  "الهيكل والشاصي": { ar: "الهيكل والإطار", en: "Chassis & Frame" },
   "أنظمة السلامة": { ar: "أنظمة السلامة", en: "Safety Systems" },
   "الإطارات والجنوط": { ar: "الإطارات والجنوط", en: "Tires & Rims" },
   "الزجاج والمرايا": { ar: "الزجاج والمرايا", en: "Glass & Mirrors" },
@@ -133,7 +133,7 @@ const CATEGORY_LABELS: Record<string, { ar: string; en: string }> = {
   "أعطال متنوعة": { ar: "أعطال متنوعة", en: "Misc" },
   // السوائل
   "زيت المحرك": { ar: "زيت المحرك", en: "Engine Oil" },
-  "زيت القير": { ar: "زيت القير", en: "Transmission Oil" },
+  "زيت القير": { ar: "زيت ناقل الحركة", en: "Transmission Oil" },
   "زيت الفرامل": { ar: "زيت الفرامل", en: "Brake Fluid" },
   "زيت الباور": { ar: "زيت الباور", en: "Power Steering Fluid" },
   "سائل التبريد": { ar: "سائل التبريد", en: "Coolant" },
@@ -311,7 +311,7 @@ export default function FaultLibrary() {
     return (
       <div className="flex flex-col items-center justify-center h-96" dir="rtl">
         <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
-        <p className="text-muted-foreground font-arabic">يحمل الأعطال...</p>
+        <p className="text-muted-foreground font-arabic">جارٍ تحميل الأعطال...</p>
       </div>
     );
   }
@@ -336,7 +336,7 @@ export default function FaultLibrary() {
           {reseedMutation.isPending ? (
             <>
               <Loader2 className="w-5 h-5 ml-2 animate-spin" />
-              يحمل الأعطال...
+              جارٍ تحميل الأعطال...
             </>
           ) : (
             <>
@@ -367,7 +367,7 @@ export default function FaultLibrary() {
               {reseedMutation.isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                  يحمل...
+                  جارٍ التحميل...
                 </>
               ) : (
                 <>
@@ -606,7 +606,7 @@ export default function FaultLibrary() {
                                       onClick={() => handleDeleteFault(fault.id, fault.faultName)}
                                       disabled={deletingId === fault.id}
                                       className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50"
-                                      title="امسح"
+                                      title="حذف"
                                       data-testid={`button-delete-fault-${fault.id}`}
                                     >
                                       {deletingId === fault.id ? (
@@ -634,8 +634,8 @@ export default function FaultLibrary() {
       {filteredFaults.length === 0 && (
         <div className="text-center py-12">
           <AlertTriangle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-bold font-arabic">ما لقينا شي</h3>
-          <p className="text-muted-foreground font-arabic">جرب تغير البحث</p>
+          <h3 className="text-lg font-bold font-arabic">لا توجد نتائج</h3>
+          <p className="text-muted-foreground font-arabic">حاول تعديل معايير البحث</p>
         </div>
       )}
     </div>

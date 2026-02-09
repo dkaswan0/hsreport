@@ -66,16 +66,16 @@ export default function InspectionDetails() {
   if (isLoading) return <div className="flex justify-center items-center h-96"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>;
   if (!inspection && error) return (
     <div className="text-center p-12">
-      <div className="text-red-500 text-xl mb-4">صار خطأ في التحميل</div>
-      <p className="text-slate-500 mb-4">تأكد من النت وجرب مرة ثانية</p>
-      <button onClick={() => window.location.reload()} className="px-4 py-2 bg-primary text-white rounded-lg">جرب مرة ثانية</button>
+      <div className="text-red-500 text-xl mb-4">حدث خطأ أثناء التحميل</div>
+      <p className="text-slate-500 mb-4">تأكد من الاتصال بالإنترنت وحاول مرة أخرى</p>
+      <button onClick={() => window.location.reload()} className="px-4 py-2 bg-primary text-white rounded-lg">إعادة المحاولة</button>
     </div>
   );
   if (!inspection) return (
     <div className="text-center p-12">
-      <div className="text-amber-500 text-xl mb-4">الفحص مو موجود</div>
-      <p className="text-slate-500 mb-4">يمكن انمسح أو اللينك غلط</p>
-      <a href="/" className="px-4 py-2 bg-primary text-white rounded-lg inline-block">رجع للرئيسية</a>
+      <div className="text-amber-500 text-xl mb-4">الفحص غير موجود</div>
+      <p className="text-slate-500 mb-4">قد يكون قد حُذف أو أن الرابط غير صحيح</p>
+      <a href="/" className="px-4 py-2 bg-primary text-white rounded-lg inline-block">العودة للرئيسية</a>
     </div>
   );
 
@@ -94,7 +94,7 @@ export default function InspectionDetails() {
         }
       },
       onError: () => {
-        toast({ title: "خطأ", description: "ما قدر يحدث الفحص، جرب مرة ثانية", variant: "destructive" });
+        toast({ title: "خطأ", description: "تعذر تحديث الفحص، يرجى المحاولة مرة أخرى", variant: "destructive" });
       }
     });
   };
@@ -306,11 +306,11 @@ export default function InspectionDetails() {
                 )}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-right" dir="rtl">
                   <div className="bg-white p-3 rounded-xl border border-slate-100">
-                    <div className="text-[10px] text-slate-400 font-arabic">الماكينة</div>
+                    <div className="text-[10px] text-slate-400 font-arabic">المحرك</div>
                     <div className="text-xs font-bold truncate">{specs.engine || "N/A"}</div>
                   </div>
                   <div className="bg-white p-3 rounded-xl border border-slate-100">
-                    <div className="text-[10px] text-slate-400 font-arabic">القير</div>
+                    <div className="text-[10px] text-slate-400 font-arabic">ناقل الحركة</div>
                     <div className="text-xs font-bold truncate">{specs.transmission || "N/A"}</div>
                   </div>
                   <div className="bg-white p-3 rounded-xl border border-slate-100">
@@ -530,7 +530,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
         setFormData(prev => ({ ...prev, imageUrl: compressed }));
       } catch (err) {
         console.error("Photo compression failed:", err);
-        toast({ title: "خطأ", description: "ما قدرنا نحمل الصورة، جرب مرة ثانية", variant: "destructive" });
+        toast({ title: "خطأ", description: "تعذر تحميل الصورة، يرجى المحاولة مرة أخرى", variant: "destructive" });
       }
       // Reset input to allow re-selection
       e.target.value = '';
@@ -553,11 +553,11 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
           setAiSuggestions(result.suggestedFaults || []);
         } catch (err) {
           console.error("AI analysis failed:", err);
-          toast({ title: "تنبيه", description: "ما قدرنا نحلل الصورة، لكن الصورة انحفظت", variant: "default" });
+          toast({ title: "تنبيه", description: "تعذر تحليل الصورة، لكن تم حفظ الصورة", variant: "default" });
         }
       } catch (err) {
         console.error("Photo compression failed:", err);
-        toast({ title: "خطأ", description: "ما قدرنا نحمل الصورة، جرب مرة ثانية", variant: "destructive" });
+        toast({ title: "خطأ", description: "تعذر تحميل الصورة، يرجى المحاولة مرة أخرى", variant: "destructive" });
       }
       // Reset input to allow re-selection
       e.target.value = '';
@@ -580,24 +580,24 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
     rear_bumper: ['الدعامية الخلفية'],
     bumper_frame_front: ['جسر الدعامية الأمامية'],
     bumper_frame_rear: ['جسر الدعامية الخلفية'],
-    hood: ['البونيت'],
+    hood: ['غطاء المحرك'],
     front_chest: ['صدر السيارة الأمامي'],
     rear_chest: ['صدر السيارة الخلفي'],
-    fender_front_right: ['المدقار الأمامي يمين'],
-    fender_front_left: ['المدقار الأمامي يسار'],
-    fender_rear_right: ['المدقار الخلفي يمين'],
-    fender_rear_left: ['المدقار الخلفي يسار'],
+    fender_front_right: ['الرفرف الأمامي الأيمن'],
+    fender_front_left: ['الرفرف الأمامي الأيسر'],
+    fender_rear_right: ['الرفرف الخلفي الأيمن'],
+    fender_rear_left: ['الرفرف الخلفي الأيسر'],
     door_front_right: ['الباب الأمامي يمين'],
     door_front_left: ['الباب الأمامي يسار'],
     door_rear_right: ['الباب الخلفي يمين'],
     door_rear_left: ['الباب الخلفي يسار'],
-    trunk: ['الدبة'],
-    quarter_panel: ['الفخد'],
+    trunk: ['صندوق الأمتعة'],
+    quarter_panel: ['اللوح الجانبي'],
     roof: ['السقف'],
     pillars: ['القوائم'],
-    windows: ['الجامات'],
-    lights_front: ['الليتات الأمامية'],
-    lights_rear: ['الليتات الخلفية'],
+    windows: ['النوافذ'],
+    lights_front: ['الأضواء الأمامية'],
+    lights_rear: ['الأضواء الخلفية'],
     interior: ['الداخلية'],
   };
   
@@ -639,7 +639,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
       },
       onError: (error) => {
         console.error("Failed to add item:", error);
-        toast({ title: "خطأ", description: "ما قدرنا نضيف الملاحظة، جرب مرة ثانية", variant: "destructive" });
+        toast({ title: "خطأ", description: "تعذرت إضافة الملاحظة، يرجى المحاولة مرة أخرى", variant: "destructive" });
       }
     });
   };
@@ -670,11 +670,11 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm animate-in fade-in" />
         <Dialog.Content className="fixed bottom-0 left-0 right-0 md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 bg-white rounded-t-3xl md:rounded-2xl shadow-2xl p-4 md:p-6 w-full md:max-w-lg z-50 animate-in slide-in-from-bottom md:zoom-in-95 duration-200 overflow-y-auto max-h-[85vh] md:max-h-[90vh]">
-          <Dialog.Title className="text-xl font-bold mb-4 text-slate-900">زيد ملاحظة يديدة</Dialog.Title>
+          <Dialog.Title className="text-xl font-bold mb-4 text-slate-900">إضافة ملاحظة جديدة</Dialog.Title>
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">اختار العطل</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">اختر العطل</label>
               <div className="relative">
                 <div className="flex items-center border border-slate-200 rounded-xl px-3 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10">
                   <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -701,7 +701,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
                       </button>
                     </div>
                     {filteredFaults.length === 0 ? (
-                      <div className="py-4 text-center text-sm text-slate-500">ما لقينا شي</div>
+                      <div className="py-4 text-center text-sm text-slate-500">لا توجد نتائج</div>
                     ) : (
                       filteredFaults.slice(0, 200).map(fault => (
                         <button
@@ -866,7 +866,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
                 <div className="mt-2 p-2 bg-green-50 rounded-xl border border-green-200">
                   <div className="flex items-center gap-2 text-green-700">
                     <Sparkles className="w-4 h-4" />
-                    <span className="text-sm font-bold font-arabic">لقينا: {detectedPart}</span>
+                    <span className="text-sm font-bold font-arabic">تم التعرف على: {detectedPart}</span>
                   </div>
                   {aiSuggestions.length > 0 && (
                     <div className="mt-2 space-y-1 max-h-[120px] overflow-y-auto">
@@ -906,7 +906,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
                 disabled={createMutation.isPending || !formData.faultName}
                 className="flex-1 py-3 rounded-xl font-medium bg-primary text-white shadow-lg shadow-primary/25 hover:bg-primary/90 transition-colors disabled:opacity-50"
               >
-                {createMutation.isPending ? "يحفظ..." : "احفظ"}
+                {createMutation.isPending ? "جارٍ الحفظ..." : "حفظ"}
               </button>
             </div>
           </form>

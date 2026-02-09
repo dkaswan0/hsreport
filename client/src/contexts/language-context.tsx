@@ -32,7 +32,7 @@ const translations: Record<string, Record<Language, string>> = {
   'inspections.new': { ar: 'فحص جديد', en: 'New Inspection' },
   'inspections.search': { ar: 'ابحث عن فحص...', en: 'Search inspections...' },
   'inspections.noResults': { ar: 'لا توجد نتائج', en: 'No results found' },
-  'inspections.loading': { ar: 'جاري التحميل...', en: 'Loading...' },
+  'inspections.loading': { ar: 'جارٍ التحميل...', en: 'Loading...' },
   'inspections.view': { ar: 'عرض', en: 'View' },
   'inspections.edit': { ar: 'تعديل', en: 'Edit' },
   'inspections.delete': { ar: 'حذف', en: 'Delete' },
@@ -123,7 +123,7 @@ const translations: Record<string, Record<Language, string>> = {
   'common.edit': { ar: 'تعديل', en: 'Edit' },
   'common.add': { ar: 'إضافة', en: 'Add' },
   'common.search': { ar: 'بحث', en: 'Search' },
-  'common.loading': { ar: 'جاري التحميل...', en: 'Loading...' },
+  'common.loading': { ar: 'جارٍ التحميل...', en: 'Loading...' },
   'common.error': { ar: 'حدث خطأ', en: 'An error occurred' },
   'common.success': { ar: 'تم بنجاح', en: 'Success' },
   'common.confirm': { ar: 'تأكيد', en: 'Confirm' },
@@ -150,7 +150,7 @@ const translations: Record<string, Record<Language, string>> = {
   'login.password': { ar: 'كلمة المرور', en: 'Password' },
   'login.submit': { ar: 'تسجيل الدخول', en: 'Login' },
   'login.error': { ar: 'اسم المستخدم أو كلمة المرور غير صحيحة', en: 'Invalid username or password' },
-  'login.logging': { ar: 'جاري تسجيل الدخول...', en: 'Logging in...' },
+  'login.logging': { ar: 'جارٍ تسجيل الدخول...', en: 'Logging in...' },
 };
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);

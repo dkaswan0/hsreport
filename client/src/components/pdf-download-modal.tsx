@@ -116,7 +116,7 @@ export function PdfDownloadModal({
                   {isDownloading ? (
                     <>
                       <Loader2 className="w-6 h-6 animate-spin" />
-                      جاري التحضير...
+                      جارٍ التحضير...
                     </>
                   ) : (
                     <>

@@ -79,7 +79,7 @@ export function VinScannerModal({ isOpen, onClose, onVinScanned }: VinScannerMod
       setError(null);
     } catch (err) {
       console.error('Camera access error:', err);
-      setError('ما قدر يفتح الكاميرا - سمح بالوصول أو ارفع صورة');
+      setError('تعذر فتح الكاميرا - يرجى السماح بالوصول أو رفع صورة');
       setMode('upload');
     }
   }, []);
@@ -112,11 +112,11 @@ export function VinScannerModal({ isOpen, onClose, onVinScanned }: VinScannerMod
         setScannedVin(vin);
         setError(null);
       } else {
-        setError('ما لقينا رقم شاصي - جرب مرة ثانية');
+        setError('لم يتم العثور على رقم الهيكل - حاول مرة أخرى');
       }
     } catch (err) {
       console.error('OCR error:', err);
-      setError('ما قدر يقرأ الصورة');
+      setError('تعذرت قراءة الصورة');
     } finally {
       setIsScanning(false);
     }
@@ -199,10 +199,10 @@ export function VinScannerModal({ isOpen, onClose, onVinScanned }: VinScannerMod
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white">
             <Dialog.Title className="text-xl font-bold flex items-center gap-2">
               <ScanLine className="w-6 h-6" />
-              سكان رقم الشاصي
+              مسح رقم الهيكل
             </Dialog.Title>
             <p className="text-blue-100 text-sm mt-1">
-              صوب الكاميرا على رقم الشاصي أو ارفع صورة
+              وجّه الكاميرا نحو رقم الهيكل أو ارفع صورة
             </p>
           </div>
 
@@ -238,14 +238,14 @@ export function VinScannerModal({ isOpen, onClose, onVinScanned }: VinScannerMod
             {scannedVin ? (
               <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-6 text-center">
                 <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                <p className="text-sm text-green-600 dark:text-green-400 mb-2">لقينا رقم الشاصي</p>
+                <p className="text-sm text-green-600 dark:text-green-400 mb-2">تم العثور على رقم الهيكل</p>
                 <p className="text-2xl font-mono font-bold text-green-700 dark:text-green-300 tracking-wider" dir="ltr">
                   {scannedVin}
                 </p>
                 <div className="flex gap-2 mt-4">
                   <Button variant="outline" onClick={handleRetry} className="flex-1" data-testid="button-retry-scan">
                     <RefreshCw className="w-4 h-4 ml-2" />
-                    سكان مرة ثانية
+                    مسح مرة أخرى
                   </Button>
                   <Button onClick={handleConfirm} className="flex-1 bg-green-600 hover:bg-green-700" data-testid="button-confirm-vin">
                     <CheckCircle2 className="w-4 h-4 ml-2" />
@@ -322,7 +322,7 @@ export function VinScannerModal({ isOpen, onClose, onVinScanned }: VinScannerMod
                   ) : (
                     <>
                       <Camera className="w-5 h-5 ml-2" />
-                      صور وسكان
+                      التقاط ومسح
                     </>
                   )}
                 </Button>

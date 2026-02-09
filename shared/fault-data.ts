@@ -206,29 +206,29 @@ const BODY_PARTS = [
   { ar: 'جوانات الباب', en: 'Door Seals', cat: 'door_front_right' },
   { ar: 'مانع الصدمات الباب', en: 'Door Check', cat: 'door_front_right' },
   
-  // البونيت
-  { ar: 'صاج البونيت', en: 'Hood Panel', cat: 'hood' },
-  { ar: 'مفصلات البونيت', en: 'Hood Hinges', cat: 'hood' },
-  { ar: 'قفل البونيت', en: 'Hood Latch', cat: 'hood' },
-  { ar: 'كابل البونيت', en: 'Hood Cable', cat: 'hood' },
-  { ar: 'دعامة البونيت', en: 'Hood Strut', cat: 'hood' },
-  { ar: 'عازل حرارة البونيت', en: 'Hood Insulation', cat: 'hood' },
+  // غطاء المحرك
+  { ar: 'صاج غطاء المحرك', en: 'Hood Panel', cat: 'hood' },
+  { ar: 'مفصلات غطاء المحرك', en: 'Hood Hinges', cat: 'hood' },
+  { ar: 'قفل غطاء المحرك', en: 'Hood Latch', cat: 'hood' },
+  { ar: 'كابل غطاء المحرك', en: 'Hood Cable', cat: 'hood' },
+  { ar: 'دعامة غطاء المحرك', en: 'Hood Strut', cat: 'hood' },
+  { ar: 'عازل حرارة غطاء المحرك', en: 'Hood Insulation', cat: 'hood' },
   
-  // الدبة
-  { ar: 'صاج الدبة', en: 'Trunk Panel', cat: 'trunk' },
-  { ar: 'مفصلات الدبة', en: 'Trunk Hinges', cat: 'trunk' },
-  { ar: 'قفل الدبة', en: 'Trunk Latch', cat: 'trunk' },
-  { ar: 'دعامة الدبة', en: 'Trunk Strut', cat: 'trunk' },
-  { ar: 'بطانة الدبة', en: 'Trunk Liner', cat: 'trunk' },
-  { ar: 'جوانات الدبة', en: 'Trunk Seals', cat: 'trunk' },
+  // صندوق الأمتعة
+  { ar: 'صاج صندوق الأمتعة', en: 'Trunk Panel', cat: 'trunk' },
+  { ar: 'مفصلات صندوق الأمتعة', en: 'Trunk Hinges', cat: 'trunk' },
+  { ar: 'قفل صندوق الأمتعة', en: 'Trunk Latch', cat: 'trunk' },
+  { ar: 'دعامة صندوق الأمتعة', en: 'Trunk Strut', cat: 'trunk' },
+  { ar: 'بطانة صندوق الأمتعة', en: 'Trunk Liner', cat: 'trunk' },
+  { ar: 'جوانات صندوق الأمتعة', en: 'Trunk Seals', cat: 'trunk' },
   
-  // الرفارف والفخد
+  // الرفارف واللوح جانبي
   { ar: 'رفرف أمامي يمين', en: 'Front Right Fender', cat: 'fender_front_right' },
   { ar: 'رفرف أمامي يسار', en: 'Front Left Fender', cat: 'fender_front_left' },
   { ar: 'رفرف خلفي يمين', en: 'Rear Right Fender', cat: 'fender_rear_right' },
   { ar: 'رفرف خلفي يسار', en: 'Rear Left Fender', cat: 'fender_rear_left' },
-  { ar: 'فخد يمين', en: 'Right Quarter Panel', cat: 'quarter_panel_right' },
-  { ar: 'فخد يسار', en: 'Left Quarter Panel', cat: 'quarter_panel_left' },
+  { ar: 'لوح جانبي يمين', en: 'Right Quarter Panel', cat: 'quarter_panel_right' },
+  { ar: 'لوح جانبي يسار', en: 'Left Quarter Panel', cat: 'quarter_panel_left' },
   { ar: 'تجويف العجلة أمامي يمين', en: 'Front Right Wheel Well', cat: 'fender_front_right' },
   { ar: 'تجويف العجلة أمامي يسار', en: 'Front Left Wheel Well', cat: 'fender_front_left' },
   { ar: 'تجويف العجلة خلفي يمين', en: 'Rear Right Wheel Well', cat: 'fender_rear_right' },
@@ -251,7 +251,7 @@ const BODY_PARTS = [
   { ar: 'صدر السيارة الأمامي', en: 'Front Frame Rail', cat: 'front_chest' },
   { ar: 'صدر السيارة الخلفي', en: 'Rear Frame Rail', cat: 'rear_chest' },
   { ar: 'حوض الردياتر', en: 'Radiator Support', cat: 'front_chest' },
-  { ar: 'حوض الدبة', en: 'Trunk Floor', cat: 'rear_chest' },
+  { ar: 'حوض صندوق الأمتعة', en: 'Trunk Floor', cat: 'rear_chest' },
   
   // الدعاميات والجسور
   { ar: 'دعامية أمامية', en: 'Front Bumper Cover', cat: 'front_bumper' },
@@ -263,14 +263,14 @@ const BODY_PARTS = [
   { ar: 'شبك الدعامية الأمامية', en: 'Front Grille', cat: 'front_bumper' },
   { ar: 'فوق العادم', en: 'Exhaust Cover', cat: 'rear_bumper' },
   
-  // المداقر
-  { ar: 'مدقار أمامي يمين', en: 'Front Right Wing', cat: 'fender_front' },
-  { ar: 'مدقار أمامي يسار', en: 'Front Left Wing', cat: 'fender_front' },
-  { ar: 'مدقار خلفي يمين', en: 'Rear Right Wing', cat: 'fender_rear' },
-  { ar: 'مدقار خلفي يسار', en: 'Rear Left Wing', cat: 'fender_rear' },
+  // الرفارف
+  { ar: 'رفرف أمامي يمين', en: 'Front Right Wing', cat: 'fender_front' },
+  { ar: 'رفرف أمامي يسار', en: 'Front Left Wing', cat: 'fender_front' },
+  { ar: 'رفرف خلفي يمين', en: 'Rear Right Wing', cat: 'fender_rear' },
+  { ar: 'رفرف خلفي يسار', en: 'Rear Left Wing', cat: 'fender_rear' },
 ];
 
-// ==================== الشاصي ====================
+// ==================== الهيكل ====================
 const CHASSIS_PARTS = [
   { ar: 'شاصي أمامي يمين', en: 'Front Right Frame', cat: 'chassis_frame' },
   { ar: 'شاصي أمامي يسار', en: 'Front Left Frame', cat: 'chassis_frame' },
@@ -288,15 +288,15 @@ const CHASSIS_PARTS = [
   { ar: 'كامبر غير منتظم', en: 'Uneven Camber', cat: 'chassis_alignment' },
   { ar: 'توي غير منتظم', en: 'Uneven Toe', cat: 'chassis_alignment' },
   { ar: 'سحب المقود', en: 'Steering Pull', cat: 'chassis_alignment' },
-  { ar: 'آثار قص في الشاصي', en: 'Frame Cutting Evidence', cat: 'chassis_welding' },
+  { ar: 'آثار قص في الهيكل', en: 'Frame Cutting Evidence', cat: 'chassis_welding' },
   { ar: 'لحام غير أصلي', en: 'Non-Original Welding', cat: 'chassis_welding' },
-  { ar: 'معجون على الشاصي', en: 'Body Filler on Frame', cat: 'chassis_welding' },
+  { ar: 'معجون على الهيكل', en: 'Body Filler on Frame', cat: 'chassis_welding' },
   { ar: 'تقوية غير أصلية', en: 'Non-Original Reinforcement', cat: 'chassis_welding' },
   { ar: 'آثار حادث أمامي', en: 'Front Collision Damage', cat: 'chassis_accident' },
   { ar: 'آثار حادث خلفي', en: 'Rear Collision Damage', cat: 'chassis_accident' },
   { ar: 'آثار حادث جانبي يمين', en: 'Right Side Collision', cat: 'chassis_accident' },
   { ar: 'آثار حادث جانبي يسار', en: 'Left Side Collision', cat: 'chassis_accident' },
-  { ar: 'انثناء في الشاصي', en: 'Frame Bend', cat: 'chassis_accident' },
+  { ar: 'انثناء في الهيكل', en: 'Frame Bend', cat: 'chassis_accident' },
   { ar: 'تلف هيكلي شديد', en: 'Severe Structural Damage', cat: 'chassis_accident' },
 ];
 
@@ -311,9 +311,9 @@ const ELECTRIC_PARTS = [
   { ar: 'سلف', en: 'Starter Motor', cat: 'electrical_system' },
   { ar: 'صندوق الفيوزات', en: 'Fuse Box', cat: 'electrical_system' },
   { ar: 'ريلي', en: 'Relay', cat: 'electrical_system' },
-  { ar: 'تيب الوايرات الرئيسي', en: 'Main Wiring Harness', cat: 'wire_harness' },
-  { ar: 'تيب وايرات المحرك', en: 'Engine Harness', cat: 'wire_harness' },
-  { ar: 'تيب وايرات الأبواب', en: 'Door Harness', cat: 'wire_harness' },
+  { ar: 'تيب الأسلاك الرئيسي', en: 'Main Wiring Harness', cat: 'wire_harness' },
+  { ar: 'تيب أسلاك المحرك', en: 'Engine Harness', cat: 'wire_harness' },
+  { ar: 'تيب أسلاك الأبواب', en: 'Door Harness', cat: 'wire_harness' },
   { ar: 'فيش كهربائي', en: 'Electrical Connector', cat: 'wire_harness' },
   { ar: 'لمبة الهيدلايت يمين', en: 'Right Headlight', cat: 'lights_front' },
   { ar: 'لمبة الهيدلايت يسار', en: 'Left Headlight', cat: 'lights_front' },
@@ -344,7 +344,7 @@ const ELECTRIC_PARTS = [
   { ar: 'إضاءة داخلية', en: 'Interior Lighting', cat: 'exterior_lighting' },
   { ar: 'إضاءة الطبلون', en: 'Dashboard Lighting', cat: 'exterior_lighting' },
   { ar: 'إضاءة صندوق القفازات', en: 'Glove Box Light', cat: 'exterior_lighting' },
-  { ar: 'إضاءة الدبة', en: 'Trunk Light', cat: 'exterior_lighting' },
+  { ar: 'إضاءة صندوق الأمتعة', en: 'Trunk Light', cat: 'exterior_lighting' },
 ];
 
 // ==================== الداخلية والسلامة ====================

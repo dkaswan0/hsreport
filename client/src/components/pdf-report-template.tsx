@@ -61,7 +61,7 @@ const MAIN_SECTIONS_PDF = [
   { id: 'mechanic', ar: 'الأجزاء الميكانيكية', en: 'MECHANIC' },
   { id: 'transmission', ar: 'ناقل الحركة', en: 'TRANSMISSION' },
   { id: 'body', ar: 'الهيكل الخارجي', en: 'BODY' },
-  { id: 'chassis', ar: 'الشاصي', en: 'CHASSIS' },
+  { id: 'chassis', ar: 'الهيكل', en: 'CHASSIS' },
   { id: 'electric', ar: 'الأجزاء الكهربائية', en: 'ELECTRIC' },
   { id: 'interior', ar: 'الداخلية والسلامة', en: 'INTERIOR & SAFETY' },
 ];
@@ -96,14 +96,14 @@ const CATEGORIES: Record<string, { ar: string; en: string; section?: string }> =
   door_front_right: { ar: 'الباب الأمامي يمين', en: 'Front Right Door', section: 'body' },
   door_rear_left: { ar: 'الباب الخلفي يسار', en: 'Rear Left Door', section: 'body' },
   door_rear_right: { ar: 'الباب الخلفي يمين', en: 'Rear Right Door', section: 'body' },
-  hood: { ar: 'البونيت', en: 'Hood', section: 'body' },
-  trunk: { ar: 'الدبة', en: 'Trunk', section: 'body' },
+  hood: { ar: 'غطاء المحرك', en: 'Hood', section: 'body' },
+  trunk: { ar: 'صندوق الأمتعة', en: 'Trunk', section: 'body' },
   fender_front_left: { ar: 'الرفرف الأمامي يسار', en: 'Front Left Fender', section: 'body' },
   fender_front_right: { ar: 'الرفرف الأمامي يمين', en: 'Front Right Fender', section: 'body' },
   fender_rear_left: { ar: 'الرفرف الخلفي يسار', en: 'Rear Left Fender', section: 'body' },
   fender_rear_right: { ar: 'الرفرف الخلفي يمين', en: 'Rear Right Fender', section: 'body' },
-  quarter_panel_left: { ar: 'الفخد يسار', en: 'Left Quarter Panel', section: 'body' },
-  quarter_panel_right: { ar: 'الفخد يمين', en: 'Right Quarter Panel', section: 'body' },
+  quarter_panel_left: { ar: 'اللوح الجانبي الأيسر', en: 'Left Quarter Panel', section: 'body' },
+  quarter_panel_right: { ar: 'اللوح الجانبي الأيمن', en: 'Right Quarter Panel', section: 'body' },
   roof: { ar: 'السقف', en: 'Roof', section: 'body' },
   pillars: { ar: 'القوائم', en: 'Pillars', section: 'body' },
   front_chest: { ar: 'الصدر الأمامي', en: 'Front Frame', section: 'body' },
@@ -112,15 +112,15 @@ const CATEGORIES: Record<string, { ar: string; en: string; section?: string }> =
   rear_bumper: { ar: 'الدعامية الخلفية', en: 'Rear Bumper', section: 'body' },
   bumper_frame_front: { ar: 'جسر الدعامية الأمامية', en: 'Front Bumper Frame', section: 'body' },
   bumper_frame_rear: { ar: 'جسر الدعامية الخلفية', en: 'Rear Bumper Frame', section: 'body' },
-  fender_front: { ar: 'المدقار الأمامي', en: 'Front Fender', section: 'body' },
-  fender_rear: { ar: 'المدقار الخلفي', en: 'Rear Fender', section: 'body' },
+  fender_front: { ar: 'الرفرف الأمامي', en: 'Front Fender', section: 'body' },
+  fender_rear: { ar: 'الرفرف الخلفي', en: 'Rear Fender', section: 'body' },
   // Legacy body categories
   doors: { ar: 'الابواب', en: 'Doors', section: 'body' },
   fenders: { ar: 'الرفارف', en: 'Fenders', section: 'body' },
   
   // CHASSIS Section
   chassis: { ar: 'الشاسيه', en: 'Chassis', section: 'chassis' },
-  chassis_frame: { ar: 'الهيكل والشاصي', en: 'Chassis & Frame', section: 'chassis' },
+  chassis_frame: { ar: 'الهيكل والإطار', en: 'Chassis & Frame', section: 'chassis' },
   chassis_alignment: { ar: 'الاستقامة', en: 'Alignment', section: 'chassis' },
   chassis_welding: { ar: 'القص واللحام', en: 'Cutting & Welding', section: 'chassis' },
   chassis_accident: { ar: 'آثار الحوادث القوية', en: 'Accident Damage', section: 'chassis' },
@@ -130,9 +130,9 @@ const CATEGORIES: Record<string, { ar: string; en: string; section?: string }> =
   electrical_system: { ar: 'النظام الكهربائي', en: 'Electrical System', section: 'electric' },
   battery: { ar: 'البطارية', en: 'Battery', section: 'electric' },
   exterior_lighting: { ar: 'الإضاءة الخارجية', en: 'Exterior Lighting', section: 'electric' },
-  lights_front: { ar: 'الليتات الأمامية', en: 'Front Lights', section: 'electric' },
-  lights_rear: { ar: 'الليتات الخلفية', en: 'Rear Lights', section: 'electric' },
-  wire_harness: { ar: 'تيب الوايرات', en: 'Wire Harness', section: 'electric' },
+  lights_front: { ar: 'الأضواء الأمامية', en: 'Front Lights', section: 'electric' },
+  lights_rear: { ar: 'الأضواء الخلفية', en: 'Rear Lights', section: 'electric' },
+  wire_harness: { ar: 'أسلاك التوصيل', en: 'Wire Harness', section: 'electric' },
   mirror_controls: { ar: 'زر تحكم المرايا', en: 'Mirror Controls', section: 'electric' },
   computer_sensors: { ar: 'فحص الكمبيوتر والحساسات', en: 'Computer & Sensors', section: 'electric' },
   lights: { ar: 'الاضاءة', en: 'Lights', section: 'electric' },
@@ -142,7 +142,7 @@ const CATEGORIES: Record<string, { ar: string; en: string; section?: string }> =
   safety: { ar: 'السلامة', en: 'Safety', section: 'interior' },
   safety_systems: { ar: 'أنظمة السلامة', en: 'Safety Systems', section: 'interior' },
   tires_rims: { ar: 'الإطارات والجنوط', en: 'Tires & Rims', section: 'interior' },
-  windows: { ar: 'الزجاج والجامات', en: 'Glass & Windows', section: 'interior' },
+  windows: { ar: 'الزجاج والنوافذ', en: 'Glass & Windows', section: 'interior' },
   mirrors: { ar: 'المرايا', en: 'Mirrors', section: 'interior' },
   accessories: { ar: 'الإكسسوارات والملحقات', en: 'Accessories', section: 'interior' },
   documentation: { ar: 'الوثائق والتوثيق', en: 'Documentation', section: 'interior' },
@@ -815,7 +815,7 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
                 <span style={{ color: '#fff', fontSize: '36px' }}>&#10003;</span>
               </div>
               <h2 style={{ color: '#166534', fontSize: '22px', fontWeight: 'bold', margin: '0 0 8px 0', ...textStyle }}>
-                المركبة بحالة ممتازة
+                لا توجد ملاحظات على المركبة
               </h2>
               <p style={{ color: '#15803d', fontSize: '14px', margin: 0, ...englishStyle }}>
                 Vehicle in Excellent Condition - No Issues Found

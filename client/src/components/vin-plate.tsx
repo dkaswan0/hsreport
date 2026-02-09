@@ -36,7 +36,7 @@ export function VinPlate({ vin, make, model, year, vinPhoto, className }: VinPla
       }}
       role={vinPhoto ? "button" : undefined}
       tabIndex={vinPhoto ? 0 : undefined}
-      aria-label={vinPhoto ? "اضغط لعرض صورة لوحة الشاصي" : "لوحة الشاصي"}
+      aria-label={vinPhoto ? "اضغط لعرض صورة لوحة الهيكل" : "لوحة الهيكل"}
     >
       <div 
         className="absolute inset-0 opacity-30"
@@ -162,7 +162,7 @@ export function VinPlate({ vin, make, model, year, vinPhoto, className }: VinPla
         <div className="max-w-lg w-full space-y-4" onClick={e => e.stopPropagation()}>
           {/* Header */}
           <div className="text-center">
-            <h3 className="text-white text-xl font-bold font-arabic mb-1">رقم الشاصي (VIN)</h3>
+            <h3 className="text-white text-xl font-bold font-arabic mb-1">رقم الهيكل (VIN)</h3>
             <p className="text-neutral-400 text-sm font-arabic">Vehicle Identification Number</p>
           </div>
           
@@ -176,7 +176,7 @@ export function VinPlate({ vin, make, model, year, vinPhoto, className }: VinPla
             <div className="relative aspect-video rounded-xl overflow-hidden bg-black">
               <img 
                 src={vinPhoto} 
-                alt="صورة لوحة الشاصي الأصلية" 
+                alt="صورة لوحة الهيكل الأصلية" 
                 className="w-full h-full object-contain animate-slow-rotate"
               />
             </div>
@@ -216,7 +216,7 @@ export function VinPlate({ vin, make, model, year, vinPhoto, className }: VinPla
         </button>
         <img
           src={vinPhoto}
-          alt="صورة لوحة الشاصي الأصلية - الحجم الكامل"
+          alt="صورة لوحة الهيكل الأصلية - الحجم الكامل"
           className="max-w-full max-h-full object-contain"
         />
       </div>

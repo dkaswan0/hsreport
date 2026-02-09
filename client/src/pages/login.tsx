@@ -118,7 +118,7 @@ export default function Login({ onLoginSuccess }: { onLoginSuccess: () => void }
               {loginMutation.isPending ? (
                 <div className="flex items-center gap-2">
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>جاري الدخول...</span>
+                  <span>جارٍ تسجيل الدخول...</span>
                 </div>
               ) : (
                 <div className="flex items-center justify-center gap-2">

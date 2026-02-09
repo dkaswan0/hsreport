@@ -37,7 +37,7 @@ export default function VehicleData() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500 text-right" dir="rtl">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-slate-900 font-arabic">فك رموز الشاصي</h1>
+        <h1 className="text-3xl font-bold text-slate-900 font-arabic">فك رموز الهيكل</h1>
         <div className="flex gap-2">
           <Globe className="w-6 h-6 text-primary" />
           <Car className="w-10 h-10 text-primary" />
@@ -52,7 +52,7 @@ export default function VehicleData() {
               <Input 
                 value={vin} 
                 onChange={(e) => setVin(e.target.value.toUpperCase())}
-                placeholder="حط رقم الشاصي (17 حرف)..." 
+                placeholder="أدخل رقم الهيكل (17 حرفًا)..." 
                 className="pr-10 h-12 rounded-xl text-left font-mono"
                 maxLength={17}
               />
@@ -74,7 +74,7 @@ export default function VehicleData() {
         <Card className="rounded-3xl border-red-200 shadow-sm bg-red-50">
           <CardContent className="p-8 text-center">
             <AlertCircle className="w-16 h-16 mx-auto mb-4 text-red-500" />
-            <h3 className="text-xl font-bold text-red-700 mb-2 font-arabic">ما قدر يفك رموز الشاصي</h3>
+            <h3 className="text-xl font-bold text-red-700 mb-2 font-arabic">تعذرت قراءة رقم الهيكل</h3>
             <p className="text-red-600 mb-4 font-arabic">{(vinData as any).message}</p>
             <p className="text-red-500 text-sm font-arabic">
               تأكد من API Key أو تواصل مع الدعم
@@ -108,11 +108,11 @@ export default function VehicleData() {
                   <p className="font-bold">{vinData.year}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-slate-400 font-arabic">الماكينة | Engine</p>
+                  <p className="text-slate-400 font-arabic">المحرك | Engine</p>
                   <p className="font-bold">{specs.engine || specs.engine_displacement || "N/A"}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-slate-400 font-arabic">القير | Transmission</p>
+                  <p className="text-slate-400 font-arabic">ناقل الحركة | Transmission</p>
                   <p className="font-bold">{specs.transmission || "N/A"}</p>
                 </div>
                 <div className="space-y-1">
@@ -120,7 +120,7 @@ export default function VehicleData() {
                   <p className="font-bold">{specs.drivetrain || "N/A"}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-slate-400 font-arabic">البترول | Fuel</p>
+                  <p className="text-slate-400 font-arabic">الوقود | Fuel</p>
                   <p className="font-bold">{specs.fuel_type || "N/A"}</p>
                 </div>
                 <div className="space-y-1">
@@ -305,7 +305,7 @@ export default function VehicleData() {
             <CardContent className="p-6 flex items-center justify-between gap-8">
               <div className="flex-1 space-y-2">
                 <h4 className="font-bold font-arabic text-lg">تقنيات التعرف الذكي | Smart Recognition</h4>
-                <p className="text-slate-500 text-sm font-arabic">نستخدم تقنيات OCR لاستخراج رقم الشاصي من الصور والتعرف على لوحات الأرقام (Plate Recognition) بدقة عالية.</p>
+                <p className="text-slate-500 text-sm font-arabic">نستخدم تقنيات OCR لاستخراج رقم الهيكل من الصور والتعرف على لوحات الأرقام (Plate Recognition) بدقة عالية.</p>
               </div>
               <div className="flex gap-4">
                 <div className="p-4 bg-slate-50 rounded-2xl flex flex-col items-center gap-2">
@@ -325,7 +325,7 @@ export default function VehicleData() {
           <Activity className="w-16 h-16 mx-auto mb-6 text-accent animate-pulse" />
           <h3 className="text-2xl font-bold mb-4 font-arabic">نظام فك الرموز العالمي المتكامل</h3>
           <p className="text-slate-400 max-w-2xl mx-auto font-arabic text-lg leading-relaxed">
-            أدخل رقم الشاصي (VIN) للوصول إلى تقارير القيمة السوقية، سجل الحوادث، الاستدعاءات الأمنية، والمواصفات الفنية التفصيلية المزودة من CarsXE.
+            أدخل رقم الهيكل (VIN) للوصول إلى تقارير القيمة السوقية، سجل الحوادث، الاستدعاءات الأمنية، والمواصفات الفنية التفصيلية المزودة من CarsXE.
           </p>
           <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 text-[10px] text-slate-500">
             <div className="p-2 border border-slate-800 rounded-lg">Decode worldwide</div>

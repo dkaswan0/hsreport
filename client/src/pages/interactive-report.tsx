@@ -546,7 +546,7 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
       <div className="absolute bottom-4 left-0 right-0 space-y-2">
         <div className="flex justify-center">
           <div className="bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5 text-[10px] text-white/60 font-arabic">
-            {isDragging ? "جاري التدوير..." : "اسحب أو استخدم الأسهم للتدوير 360° • اضغط على النقاط لعرض التفاصيل"}
+            {isDragging ? "جارٍ التدوير..." : "اسحب أو استخدم الأسهم للتدوير 360° - اضغط على النقاط لعرض التفاصيل"}
           </div>
         </div>
         <div className="flex justify-center gap-6 text-xs font-bold font-arabic text-white/80">
@@ -736,14 +736,14 @@ const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
     },
     { 
       key: 'hood', 
-      label: 'الكبوت / حجرة المحرك', 
+      label: 'غطاء المحرك / حجرة المحرك', 
       labelEn: 'Hood / Engine Bay', 
       exteriorPhoto: inspection.hoodPhoto,
       interiorPhoto: inspection.hoodInteriorPhoto
     },
     { 
       key: 'trunk', 
-      label: 'الشنطة / الشاصي', 
+      label: 'صندوق الأمتعة / الهيكل السفلي', 
       labelEn: 'Trunk / Chassis', 
       exteriorPhoto: inspection.trunkPhoto,
       interiorPhoto: inspection.trunkInteriorPhoto
@@ -1015,8 +1015,8 @@ const InspectionResults = ({ inspection, highlightedCategory }: { inspection: an
       {items.length === 0 && (
         <div className="bg-emerald-50 border border-emerald-200 rounded-3xl p-8 text-center">
           <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-emerald-800 font-arabic mb-2">السيارة حالتها ممتازة</h3>
-          <p className="text-emerald-600 font-arabic">المركبة بحالة ممتازة</p>
+          <h3 className="text-xl font-bold text-emerald-800 font-arabic mb-2">المركبة في حالة ممتازة</h3>
+          <p className="text-emerald-600 font-arabic">لا توجد ملاحظات على المركبة</p>
         </div>
       )}
     </div>
@@ -1045,7 +1045,7 @@ export default function InteractiveReport() {
     const element = document.getElementById('report-content');
     if (!element) return;
     
-    toast({ title: "يجهز", description: "يسوي نسخة PDF من التقرير..." });
+    toast({ title: "جارٍ التحضير", description: "جارٍ إنشاء نسخة PDF من التقرير..." });
     
     try {
       const canvas = await html2canvas(element, { 
@@ -1075,9 +1075,9 @@ export default function InteractiveReport() {
       }
       
       pdf.save(`تقرير_الفحص_${inspection?.vin || 'HS'}.pdf`);
-      toast({ title: "تم", description: "انحفظ التقرير PDF" });
+      toast({ title: "تم بنجاح", description: "تم حفظ التقرير بصيغة PDF" });
     } catch (error) {
-      toast({ title: "خطأ", description: "صار خطأ في سوي ملف PDF", variant: "destructive" });
+      toast({ title: "خطأ", description: "حدث خطأ أثناء إنشاء ملف PDF", variant: "destructive" });
     }
   };
 
@@ -1102,7 +1102,7 @@ export default function InteractiveReport() {
   const handleNewPdfDownload = async () => {
     if (!inspection || !pdfTemplateRef.current) return;
     
-    toast({ title: "يجهز", description: "يسوي تقرير PDF احترافي... جاري تحميل الصور" });
+    toast({ title: "جارٍ التحضير", description: "جارٍ إنشاء تقرير PDF احترافي... يتم تحميل الصور" });
     
     try {
       const element = pdfTemplateRef.current;
@@ -1120,7 +1120,7 @@ export default function InteractiveReport() {
       // Additional delay to ensure rendering is complete
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      toast({ title: "يجهز", description: "يلتقط التقرير..." });
+      toast({ title: "جارٍ التحضير", description: "جارٍ التقاط التقرير..." });
       
       // Capture with html2canvas at high quality (scale 3 for clarity)
       const canvas = await html2canvas(element, {
@@ -1160,7 +1160,7 @@ export default function InteractiveReport() {
       toast({ title: "تم التحميل", description: "تم تحميل ملف PDF بجودة عالية مع جميع الصور" });
     } catch (error) {
       console.error('PDF error:', error);
-      toast({ title: "خطأ", description: "صار خطأ في إنشاء التقرير", variant: "destructive" });
+      toast({ title: "خطأ", description: "حدث خطأ أثناء إنشاء التقرير", variant: "destructive" });
     }
   };
 
@@ -1168,7 +1168,7 @@ export default function InteractiveReport() {
   const handleTextPDF = async () => {
     if (!inspection) return;
     
-    toast({ title: "يجهز", description: "يسوي تقرير PDF احترافي..." });
+    toast({ title: "جارٍ التحضير", description: "جارٍ إنشاء تقرير PDF احترافي..." });
     
     try {
       // Load pdfmake and fonts
@@ -1263,7 +1263,7 @@ export default function InteractiveReport() {
       
       if (issueItems.length === 0) {
         findingsContent.push({
-          text: 'المركبة بحالة ممتازة',
+          text: 'لا توجد ملاحظات على المركبة',
           style: 'successText',
           alignment: 'center',
           margin: [0, 20, 0, 20]
@@ -1328,7 +1328,7 @@ export default function InteractiveReport() {
       const findingsRows: any[] = [];
       if (issueItems.length === 0) {
         findingsRows.push([
-          { text: 'المركبة بحالة ممتازة', style: 'successText', colSpan: 3, alignment: 'center', margin: [0, 10, 0, 10] }, {}, {}
+          { text: 'لا توجد ملاحظات على المركبة', style: 'successText', colSpan: 3, alignment: 'center', margin: [0, 10, 0, 10] }, {}, {}
         ]);
       } else {
         for (const cat of INSPECTION_CATEGORIES) {
@@ -1407,7 +1407,7 @@ export default function InteractiveReport() {
                     [{ text: 'سنة الصنع:', style: 'fieldLabel', margin: [5, 4, 5, 4] }, { text: String(inspection.year || '-'), style: 'fieldValue', margin: [5, 4, 5, 4] }],
                     [{ text: 'اللون:', style: 'fieldLabel', margin: [5, 4, 5, 4] }, { text: primaryColor, style: 'fieldValue', margin: [5, 4, 5, 4] }],
                     [{ text: 'عداد الكيلومتر:', style: 'fieldLabel', margin: [5, 4, 5, 4] }, { text: `${inspection.odometer?.toLocaleString() || '-'} كم`, style: 'fieldValue', margin: [5, 4, 5, 4] }],
-                    [{ text: 'رقم الشاصي VIN:', style: 'fieldLabel', margin: [5, 4, 5, 4] }, { text: inspection.vin || '-', style: 'vinValue', margin: [5, 4, 5, 4] }]
+                    [{ text: 'رقم الهيكل VIN:', style: 'fieldLabel', margin: [5, 4, 5, 4] }, { text: inspection.vin || '-', style: 'vinValue', margin: [5, 4, 5, 4] }]
                   ]
                 },
                 layout: { hLineWidth: () => 0.5, vLineWidth: () => 0, hLineColor: () => '#e2e8f0', paddingLeft: () => 0, paddingRight: () => 0 }
@@ -1531,7 +1531,7 @@ export default function InteractiveReport() {
       });
     } catch (error) {
       console.error('PDF error:', error);
-      toast({ title: "خطأ", description: "صار خطأ في إنشاء التقرير", variant: "destructive" });
+      toast({ title: "خطأ", description: "حدث خطأ أثناء إنشاء التقرير", variant: "destructive" });
     }
   };
 
@@ -1539,7 +1539,7 @@ export default function InteractiveReport() {
   const handleDetailedPDF = async () => {
     if (!inspection) return;
     
-    toast({ title: "يجهز", description: "يسوي التقرير المفصل..." });
+    toast({ title: "جارٍ التحضير", description: "جارٍ إنشاء التقرير المفصل..." });
     
     try {
       // Load pdfmake and fonts
@@ -1614,7 +1614,7 @@ export default function InteractiveReport() {
       
       if (items.length === 0) {
         findingsContent.push({
-          text: 'المركبة بحالة ممتازة',
+          text: 'لا توجد ملاحظات على المركبة',
           style: 'success',
           alignment: 'center',
           margin: [0, 10, 0, 10]
@@ -1743,7 +1743,7 @@ export default function InteractiveReport() {
                         [{ text: 'الشركة المصنعة:', style: 'label' }, { text: inspection.make || '-', style: 'value' }],
                         [{ text: 'الموديل:', style: 'label' }, { text: inspection.model || '-', style: 'value' }],
                         [{ text: 'سنة الصنع:', style: 'label' }, { text: String(inspection.year || '-'), style: 'value' }],
-                        [{ text: 'رقم الشاصي:', style: 'label' }, { text: inspection.vin || '-', style: 'vinValue' }],
+                        [{ text: 'رقم الهيكل:', style: 'label' }, { text: inspection.vin || '-', style: 'vinValue' }],
                         [{ text: 'العداد:', style: 'label' }, { text: `${inspection.odometer?.toLocaleString() || '-'} كم`, style: 'value' }],
                         [{ text: 'اللون:', style: 'label' }, { text: primaryColor, style: 'value' }]
                       ]
@@ -1845,7 +1845,7 @@ export default function InteractiveReport() {
       });
     } catch (error) {
       console.error('PDF generation error:', error);
-      toast({ title: "خطأ", description: "صار خطأ في سوي ملف PDF", variant: "destructive" });
+      toast({ title: "خطأ", description: "حدث خطأ أثناء إنشاء ملف PDF", variant: "destructive" });
     }
   };
 
@@ -1867,15 +1867,15 @@ export default function InteractiveReport() {
       } else {
         await navigator.clipboard.writeText(shareUrl);
         toast({ 
-          title: "انسخ اللينك", 
-          description: "لينك للتقرير - الكستمر يقدر يشوفه بدون تسجيل" 
+          title: "نسخ الرابط", 
+          description: "رابط التقرير - يمكن للعميل عرضه بدون تسجيل دخول" 
         });
       }
     } catch (err) {
       console.error("Error sharing:", err);
       toast({ 
         title: "خطأ", 
-        description: "ما قدر يسوي لينك المشاركة",
+        description: "تعذر إنشاء رابط المشاركة",
         variant: "destructive"
       });
     }
@@ -1885,7 +1885,7 @@ export default function InteractiveReport() {
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-slate-50 font-arabic">
         <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-        <span className="text-primary font-bold">يحمل التقرير...</span>
+        <span className="text-primary font-bold">جارٍ تحميل التقرير...</span>
       </div>
     );
   }
@@ -1894,8 +1894,8 @@ export default function InteractiveReport() {
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-slate-50">
         <AlertTriangle className="w-16 h-16 text-red-500 mb-4" />
-        <h2 className="text-xl font-bold text-slate-900 font-arabic">التقرير مو موجود</h2>
-        <p className="text-slate-500 font-arabic mt-2">تأكد من اللينك</p>
+        <h2 className="text-xl font-bold text-slate-900 font-arabic">التقرير غير موجود</h2>
+        <p className="text-slate-500 font-arabic mt-2">تأكد من صحة الرابط</p>
       </div>
     );
   }

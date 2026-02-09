@@ -183,7 +183,7 @@ export function useVinDecoder(vin: string) {
         data = await res.json();
       } catch {
         // Non-JSON response - return error structure
-        return { error: true, message: "فشل في فك رموز الشاصي - VIN decode failed", make: "", model: "", year: 2024, color: "" };
+        return { error: true, message: "تعذر فك رموز الهيكل - VIN decode failed", make: "", model: "", year: 2024, color: "" };
       }
       
       // If response has error flag, return it as-is for frontend to display
