@@ -35,6 +35,12 @@ interface Inspection {
   frontRightDoorPhoto?: string | null;
   hoodPhoto?: string | null;
   trunkPhoto?: string | null;
+  rearLeftDoorInteriorPhoto?: string | null;
+  rearRightDoorInteriorPhoto?: string | null;
+  frontLeftDoorInteriorPhoto?: string | null;
+  frontRightDoorInteriorPhoto?: string | null;
+  hoodInteriorPhoto?: string | null;
+  trunkInteriorPhoto?: string | null;
 }
 
 interface PdfReportTemplateProps {
@@ -1154,3 +1160,301 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
 );
 
 PdfReportTemplate.displayName = 'PdfReportTemplate';
+
+interface CarPhotoSection {
+  key: string;
+  ar: string;
+  en: string;
+  exteriorPhoto?: string | null;
+  interiorPhoto?: string | null;
+}
+
+export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProps>(
+  ({ inspection }, ref) => {
+    const sections: CarPhotoSection[] = [
+      {
+        key: 'frontRight',
+        ar: 'الباب الأمامي الأيمن',
+        en: 'Front Right Door',
+        exteriorPhoto: inspection.frontRightDoorPhoto,
+        interiorPhoto: inspection.frontRightDoorInteriorPhoto,
+      },
+      {
+        key: 'frontLeft',
+        ar: 'الباب الأمامي الأيسر',
+        en: 'Front Left Door',
+        exteriorPhoto: inspection.frontLeftDoorPhoto,
+        interiorPhoto: inspection.frontLeftDoorInteriorPhoto,
+      },
+      {
+        key: 'rearRight',
+        ar: 'الباب الخلفي الأيمن',
+        en: 'Rear Right Door',
+        exteriorPhoto: inspection.rearRightDoorPhoto,
+        interiorPhoto: inspection.rearRightDoorInteriorPhoto,
+      },
+      {
+        key: 'rearLeft',
+        ar: 'الباب الخلفي الأيسر',
+        en: 'Rear Left Door',
+        exteriorPhoto: inspection.rearLeftDoorPhoto,
+        interiorPhoto: inspection.rearLeftDoorInteriorPhoto,
+      },
+      {
+        key: 'hood',
+        ar: 'غطاء المحرك',
+        en: 'Hood / Engine Bay',
+        exteriorPhoto: inspection.hoodPhoto,
+        interiorPhoto: inspection.hoodInteriorPhoto,
+      },
+      {
+        key: 'trunk',
+        ar: 'صندوق الأمتعة',
+        en: 'Trunk',
+        exteriorPhoto: inspection.trunkPhoto,
+        interiorPhoto: inspection.trunkInteriorPhoto,
+      },
+    ];
+
+    const hasAnyPhoto = sections.some(s => s.exteriorPhoto || s.interiorPhoto);
+    if (!hasAnyPhoto) return null;
+
+    const inspectionDate = inspection.createdAt ? new Date(inspection.createdAt) : new Date();
+    const englishDate = inspectionDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
+    return (
+      <div
+        ref={ref}
+        dir="rtl"
+        style={{
+          width: '794px',
+          height: '1123px',
+          backgroundColor: '#ffffff',
+          padding: '0',
+          margin: '0',
+          boxSizing: 'border-box',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          ...textStyle,
+        }}
+      >
+        {/* Page Header */}
+        <div style={{
+          background: `linear-gradient(135deg, ${BRAND.primary} 0%, ${BRAND.secondary} 100%)`,
+          padding: '12px 24px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexShrink: 0,
+          borderBottom: `4px solid ${BRAND.accent}`,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '8px',
+              overflow: 'hidden',
+              border: `2px solid ${BRAND.accent}`,
+            }}>
+              <img src={logoPath} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+            <div>
+              <h1 style={{ color: '#ffffff', fontSize: '16px', fontWeight: 'bold', margin: 0, ...textStyle }}>
+                صور أقسام المركبة
+              </h1>
+              <p style={{ color: BRAND.accentLight, fontSize: '10px', margin: '2px 0 0 0', ...englishStyle, fontWeight: '600' }}>
+                Vehicle Section Photos
+              </p>
+            </div>
+          </div>
+          <div style={{ textAlign: 'left' }}>
+            <p style={{ color: '#ffffff', fontSize: '11px', fontWeight: 'bold', margin: 0, ...englishStyle }}>
+              {inspection.make} {inspection.model} {inspection.year}
+            </p>
+            <p style={{ color: '#94a3b8', fontSize: '9px', margin: '2px 0 0 0', ...englishStyle }}>
+              HS-{inspection.id} | {englishDate}
+            </p>
+          </div>
+        </div>
+
+        {/* Photos Grid */}
+        <div style={{
+          flex: 1,
+          padding: '14px 20px',
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gridTemplateRows: 'repeat(3, 1fr)',
+          gap: '10px',
+          overflow: 'hidden',
+        }}>
+          {sections.map((section) => {
+            const hasExterior = !!section.exteriorPhoto;
+            const hasInterior = !!section.interiorPhoto;
+            const hasBoth = hasExterior && hasInterior;
+
+            return (
+              <div
+                key={section.key}
+                style={{
+                  border: `1px solid ${BRAND.border}`,
+                  borderRadius: '8px',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  backgroundColor: '#ffffff',
+                }}
+              >
+                {/* Section Title */}
+                <div style={{
+                  background: `linear-gradient(135deg, ${BRAND.primary} 0%, ${BRAND.secondary} 100%)`,
+                  padding: '6px 12px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexShrink: 0,
+                }}>
+                  <span style={{ color: '#ffffff', fontSize: '11px', fontWeight: 'bold', ...textStyle }}>
+                    {section.ar}
+                  </span>
+                  <span style={{ color: BRAND.accentLight, fontSize: '9px', ...englishStyle }}>
+                    {section.en}
+                  </span>
+                </div>
+
+                {/* Photos Container */}
+                <div style={{
+                  flex: 1,
+                  display: 'flex',
+                  gap: '4px',
+                  padding: '4px',
+                  minHeight: 0,
+                }}>
+                  {hasExterior && (
+                    <div style={{
+                      flex: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      minWidth: 0,
+                    }}>
+                      <span style={{
+                        fontSize: '8px',
+                        color: BRAND.muted,
+                        textAlign: 'center',
+                        padding: '2px 0',
+                        flexShrink: 0,
+                        ...textStyle,
+                      }}>
+                        خارجي | Exterior
+                      </span>
+                      <div style={{
+                        flex: 1,
+                        borderRadius: '4px',
+                        overflow: 'hidden',
+                        border: `1px solid ${BRAND.border}`,
+                        minHeight: 0,
+                      }}>
+                        <img
+                          src={section.exteriorPhoto!}
+                          alt={`${section.en} Exterior`}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            display: 'block',
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {hasInterior && (
+                    <div style={{
+                      flex: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      minWidth: 0,
+                    }}>
+                      <span style={{
+                        fontSize: '8px',
+                        color: BRAND.muted,
+                        textAlign: 'center',
+                        padding: '2px 0',
+                        flexShrink: 0,
+                        ...textStyle,
+                      }}>
+                        داخلي | Interior
+                      </span>
+                      <div style={{
+                        flex: 1,
+                        borderRadius: '4px',
+                        overflow: 'hidden',
+                        border: `1px solid ${BRAND.border}`,
+                        minHeight: 0,
+                      }}>
+                        <img
+                          src={section.interiorPhoto!}
+                          alt={`${section.en} Interior`}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            display: 'block',
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {!hasExterior && !hasInterior && (
+                    <div style={{
+                      flex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: BRAND.light,
+                      borderRadius: '4px',
+                      border: `1px dashed ${BRAND.border}`,
+                    }}>
+                      <span style={{ color: BRAND.muted, fontSize: '10px', ...textStyle }}>
+                        لا توجد صور
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Footer */}
+        <div style={{
+          background: `linear-gradient(135deg, ${BRAND.primary} 0%, ${BRAND.secondary} 100%)`,
+          padding: '10px 24px',
+          flexShrink: 0,
+          borderTop: `3px solid ${BRAND.accent}`,
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <img src={logoPath} alt="Logo" style={{ width: '22px', height: '22px', borderRadius: '4px', border: `1px solid ${BRAND.accent}` }} />
+              <span style={{ color: '#ffffff', fontSize: '10px', fontWeight: 'bold', ...textStyle }}>
+                مركز الامان العالي
+              </span>
+              <span style={{ color: BRAND.accentLight, fontSize: '8px', ...englishStyle }}>
+                High Safety Center
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <span style={{ color: '#94a3b8', fontSize: '8px', ...englishStyle }}>Report: HS-{inspection.id}</span>
+              <span style={{ color: '#94a3b8', fontSize: '8px', ...englishStyle }}>VIN: {inspection.vin}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+);
+
+PdfCarPhotosPage.displayName = 'PdfCarPhotosPage';

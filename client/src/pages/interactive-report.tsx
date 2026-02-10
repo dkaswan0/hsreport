@@ -28,7 +28,7 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import logoPath from "@assets/hs-logo.png";
-import { PdfReportTemplate } from "@/components/pdf-report-template";
+import { PdfReportTemplate, PdfCarPhotosPage } from "@/components/pdf-report-template";
 import carVisualizationPath from "@assets/generated_images/professional_car_anatomy_diagram.png";
 import carFrontView from "@assets/generated_images/car_front_view_diagram.png";
 import carRightView from "@assets/generated_images/car_right_side_view.png";
@@ -1031,6 +1031,7 @@ export default function InteractiveReport() {
   const { toast } = useToast();
   const [highlightedCategory, setHighlightedCategory] = useState<string | null>(null);
   const pdfTemplateRef = useRef<HTMLDivElement>(null);
+  const pdfPhotosPageRef = useRef<HTMLDivElement>(null);
 
   const handleCategoryClick = (catId: string) => {
     setHighlightedCategory(catId);
@@ -1105,25 +1106,21 @@ export default function InteractiveReport() {
     toast({ title: "جارٍ التحضير", description: "جارٍ إنشاء تقرير PDF احترافي... يتم تحميل الصور" });
     
     try {
-      const element = pdfTemplateRef.current;
       const A4_WIDTH = 794;
       const A4_HEIGHT = 1123;
       
-      // Wait for fonts to load
       if (document.fonts && document.fonts.ready) {
         await document.fonts.ready;
       }
       
-      // Wait for ALL images to load completely
+      const element = pdfTemplateRef.current;
       await waitForImages(element);
       
-      // Additional delay to ensure rendering is complete
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       toast({ title: "جارٍ التحضير", description: "جارٍ التقاط التقرير..." });
       
-      // Capture with html2canvas at high quality (scale 3 for clarity)
-      const canvas = await html2canvas(element, {
+      const canvasOpts = {
         scale: 3,
         useCORS: true,
         allowTaint: true,
@@ -1132,18 +1129,19 @@ export default function InteractiveReport() {
         width: A4_WIDTH,
         height: A4_HEIGHT,
         windowWidth: A4_WIDTH,
-        imageTimeout: 30000, // Increased timeout for images
-        onclone: (clonedDoc) => {
-          // Ensure images in cloned document have proper dimensions
+        imageTimeout: 30000,
+        onclone: (clonedDoc: Document) => {
           const clonedImages = clonedDoc.querySelectorAll('img');
           clonedImages.forEach((img) => {
             if (img.style.width) img.setAttribute('width', img.style.width);
             if (img.style.height) img.setAttribute('height', img.style.height);
           });
         },
-      });
+      };
 
-      const imgData = canvas.toDataURL('image/png', 1.0);
+      const canvas1 = await html2canvas(element, canvasOpts);
+      const imgData1 = canvas1.toDataURL('image/png', 1.0);
+      
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -1153,8 +1151,19 @@ export default function InteractiveReport() {
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
       
-      // Single page - fit to A4
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.addImage(imgData1, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      
+      if (pdfPhotosPageRef.current) {
+        toast({ title: "جارٍ التحضير", description: "جارٍ إضافة صفحة صور الأقسام..." });
+        await waitForImages(pdfPhotosPageRef.current);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        const canvas2 = await html2canvas(pdfPhotosPageRef.current, canvasOpts);
+        const imgData2 = canvas2.toDataURL('image/png', 1.0);
+        
+        pdf.addPage();
+        pdf.addImage(imgData2, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      }
       
       pdf.save(`Inspection_Report_${inspection.vin}_HS${inspection.id}.pdf`);
       toast({ title: "تم التحميل", description: "تم تحميل ملف PDF بجودة عالية مع جميع الصور" });
@@ -2056,9 +2065,10 @@ export default function InteractiveReport() {
         </div>
       </div>
 
-      {/* Hidden PDF Template */}
+      {/* Hidden PDF Templates */}
       <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', opacity: 0, pointerEvents: 'none' }}>
         <PdfReportTemplate ref={pdfTemplateRef} inspection={inspection} />
+        <PdfCarPhotosPage ref={pdfPhotosPageRef} inspection={inspection} />
       </div>
     </div>
   );
