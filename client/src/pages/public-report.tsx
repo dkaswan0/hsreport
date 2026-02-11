@@ -1140,20 +1140,6 @@ export default function PublicReport() {
           </div>
         </div>
 
-        {/* Customer Signature */}
-        {inspection.customerSignature && (
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-            <h2 className="text-lg font-bold mb-4 font-arabic text-slate-800 text-center">توقيع العميل</h2>
-            <div className="flex justify-center">
-              <img 
-                src={inspection.customerSignature} 
-                alt="توقيع العميل" 
-                className="max-h-24 border border-slate-200 rounded-lg bg-white p-2"
-              />
-            </div>
-          </div>
-        )}
-
         {/* Footer with WhatsApp CTA */}
         <div className="bg-gradient-to-br from-[#0C1A28] via-[#0f1f2e] to-[#0C1A28] rounded-2xl p-8 text-center text-white border border-[#C5852C]/20">
           <img src={logoPath} alt="High Safety" className="h-16 mx-auto mb-4 drop-shadow-lg" />

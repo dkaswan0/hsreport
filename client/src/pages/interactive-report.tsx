@@ -1507,23 +1507,6 @@ export default function InteractiveReport() {
           // Findings with images
           ...findingsContent,
           
-          // Customer Signature Section (if available)
-          ...((inspection as any).customerSignature ? [
-            { text: '', margin: [0, 10, 0, 0] },
-            {
-              columns: [
-                { text: '', width: '*' },
-                { 
-                  stack: [
-                    { text: 'توقيع العميل', style: 'fieldLabel', alignment: 'center', margin: [0, 0, 0, 5] },
-                    { image: (inspection as any).customerSignature, width: 100, height: 40, alignment: 'center' }
-                  ],
-                  width: 120
-                }
-              ]
-            }
-          ] : []),
-          
           // Footer with contact info
           { text: '', margin: [0, 10, 0, 0] },
           { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 555, y2: 0, lineWidth: 1, lineColor: '#1e3a5f' }] },

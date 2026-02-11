@@ -242,16 +242,19 @@ const getFaultTranslation = (faultName: string): string => {
 };
 
 const textStyle: React.CSSProperties = {
-  fontFamily: 'Tahoma, "Segoe UI", Arial, sans-serif',
+  fontFamily: '"Segoe UI", Tahoma, "Noto Sans Arabic", "Noto Kufi Arabic", Arial, sans-serif',
   letterSpacing: '0',
   wordSpacing: '2px',
-  lineHeight: '1.4',
+  lineHeight: '1.6',
+  WebkitFontSmoothing: 'antialiased',
 };
 
 const englishStyle: React.CSSProperties = {
   fontFamily: 'Arial, Helvetica, sans-serif',
   letterSpacing: '0.3px',
 };
+
+const arTextStyle = textStyle;
 
 export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplateProps>(
   ({ inspection, lang = 'ar' }, ref) => {
@@ -1012,47 +1015,6 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
           )}
         </div>
 
-        {/* Signature */}
-        {(inspection.signature || inspection.customerSignature) && (
-          <div style={{ 
-            padding: '10px 24px', 
-            borderTop: `1px solid ${BRAND.border}`,
-            flexShrink: 0,
-          }}>
-            <div style={{
-              backgroundColor: BRAND.light,
-              borderRadius: '10px',
-              padding: '10px 16px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              border: `1px solid ${BRAND.border}`,
-            }}>
-              <div>
-                <p style={{ color: BRAND.muted, fontSize: '8px', margin: '0 0 3px 0' }}>
-                  {isAr ? (
-                    <><span style={textStyle}>توقيع العميل</span><span style={{ ...englishStyle, marginRight: '6px' }}>| Customer Signature</span></>
-                  ) : (
-                    <><span style={englishStyle}>Customer Signature</span><span style={{ ...textStyle, marginLeft: '6px' }}>| توقيع العميل</span></>
-                  )}
-                </p>
-                <p style={{ color: BRAND.dark, fontSize: '12px', fontWeight: 'bold', margin: 0, ...(isAr ? textStyle : englishStyle) }}>
-                  {inspection.customerName || (isAr ? 'العميل' : 'Customer')}
-                </p>
-              </div>
-              <img 
-                src={inspection.signature || inspection.customerSignature || ''} 
-                alt="Signature" 
-                style={{ 
-                  height: '45px', 
-                  maxWidth: '130px',
-                  objectFit: 'contain',
-                }} 
-              />
-            </div>
-          </div>
-        )}
-
         {/* Terms & Conditions */}
         <div style={{
           padding: '14px 24px',
@@ -1234,7 +1196,10 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
     if (!hasAnyPhoto) return null;
 
     const inspectionDate = inspection.createdAt ? new Date(inspection.createdAt) : new Date();
+    const reportTime = inspectionDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
     const englishDate = inspectionDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    const inspectionTypeLabel = getInspectionTypeLabel(inspection.inspectionType);
+    const vehicleColor = getVehicleColor(inspection.color);
 
     return (
       <div
@@ -1253,59 +1218,230 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
           ...(isAr ? textStyle : englishStyle),
         }}
       >
-        {/* Page Header */}
+        {/* Header with branding */}
         <div style={{
           background: `linear-gradient(135deg, ${BRAND.primary} 0%, ${BRAND.secondary} 100%)`,
-          padding: '12px 24px',
+          padding: '14px 24px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           flexShrink: 0,
           borderBottom: `4px solid ${BRAND.accent}`,
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <div style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '8px',
+              width: '50px',
+              height: '50px',
+              borderRadius: '10px',
               overflow: 'hidden',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
               border: `2px solid ${BRAND.accent}`,
             }}>
               <img src={logoPath} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
             <div>
-              <h1 style={{ color: '#ffffff', fontSize: '16px', fontWeight: 'bold', margin: 0, ...(isAr ? textStyle : englishStyle) }}>
-                {isAr ? 'صور أقسام المركبة' : 'Vehicle Section Photos'}
+              <h1 style={{ color: '#ffffff', fontSize: '18px', fontWeight: 'bold', margin: 0, ...arTextStyle }}>
+                {isAr ? 'مركز الأمان العالي' : 'HIGH SAFETY CENTER'}
               </h1>
-              <p style={{ color: BRAND.accentLight, fontSize: '10px', margin: '2px 0 0 0', ...(isAr ? englishStyle : textStyle), fontWeight: '600' }}>
-                {isAr ? 'Vehicle Section Photos' : 'صور أقسام المركبة'}
+              <p style={{ color: BRAND.accentLight, fontSize: '10px', margin: '2px 0 0 0', ...(isAr ? englishStyle : arTextStyle), fontWeight: '600' }}>
+                {isAr ? 'HIGH SAFETY CENTER' : 'مركز الأمان العالي'}
               </p>
             </div>
           </div>
           <div style={{ textAlign: isAr ? 'left' : 'right' }}>
-            <p style={{ color: '#ffffff', fontSize: '11px', fontWeight: 'bold', margin: 0, ...englishStyle }}>
-              {inspection.make} {inspection.model} {inspection.year}
-            </p>
-            <p style={{ color: '#94a3b8', fontSize: '9px', margin: '2px 0 0 0', ...englishStyle }}>
-              HS-{inspection.id} | {englishDate}
+            <div style={{
+              background: `linear-gradient(135deg, ${BRAND.accent} 0%, ${BRAND.accentLight} 100%)`,
+              color: BRAND.primary,
+              padding: '5px 14px',
+              borderRadius: '20px',
+              fontSize: '10px',
+              fontWeight: 'bold',
+              marginBottom: '5px',
+              boxShadow: '0 2px 8px rgba(197,133,44,0.4)',
+            }}>
+              {isAr ? (
+                <>
+                  <span style={arTextStyle}>{inspectionTypeLabel.ar}</span>
+                  <span style={{ ...englishStyle, marginRight: '6px', fontSize: '9px' }}>| {inspectionTypeLabel.en}</span>
+                </>
+              ) : (
+                <>
+                  <span style={englishStyle}>{inspectionTypeLabel.en}</span>
+                  <span style={{ ...arTextStyle, marginLeft: '6px', fontSize: '9px' }}>| {inspectionTypeLabel.ar}</span>
+                </>
+              )}
+            </div>
+            <p style={{ color: '#94a3b8', fontSize: '9px', margin: 0, ...englishStyle }}>
+              {englishDate} | {reportTime}
             </p>
           </div>
+        </div>
+
+        {/* Vehicle Info Bar */}
+        <div style={{
+          backgroundColor: BRAND.light,
+          padding: '10px 24px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: '12px',
+          borderBottom: `1px solid ${BRAND.border}`,
+          flexShrink: 0,
+          flexWrap: 'wrap',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+            <div>
+              <p style={{ color: BRAND.muted, fontSize: '7px', margin: '0 0 2px 0', ...englishStyle }}>
+                {isAr ? 'المركبة | Vehicle' : 'Vehicle | المركبة'}
+              </p>
+              <p style={{ color: BRAND.dark, fontSize: '14px', fontWeight: 'bold', margin: 0, ...englishStyle }}>
+                {inspection.make} {inspection.model}
+              </p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{
+                backgroundColor: '#ffffff',
+                border: `1px solid ${BRAND.border}`,
+                borderRadius: '12px',
+                padding: '3px 10px',
+                fontSize: '11px',
+                fontWeight: 'bold',
+                color: BRAND.dark,
+                ...englishStyle,
+              }}>
+                {inspection.year}
+              </span>
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                backgroundColor: '#ffffff',
+                border: `1px solid ${BRAND.border}`,
+                padding: '3px 10px',
+                borderRadius: '12px',
+                fontSize: '10px',
+              }}>
+                <span style={{
+                  width: '10px',
+                  height: '10px',
+                  borderRadius: '50%',
+                  backgroundColor: vehicleColor.hex,
+                  border: vehicleColor.hex === '#FFFFFF' ? '1px solid #ccc' : 'none',
+                  display: 'inline-block',
+                  flexShrink: 0,
+                }}></span>
+                <span style={{ color: BRAND.dark, ...arTextStyle }}>{vehicleColor.ar}</span>
+                <span style={{ color: BRAND.muted, ...englishStyle, fontSize: '9px' }}>{vehicleColor.en}</span>
+              </span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            {inspection.customerName && (
+              <div style={{ textAlign: isAr ? 'left' : 'right' }}>
+                <p style={{ color: BRAND.muted, fontSize: '7px', margin: '0 0 2px 0' }}>
+                  {isAr ? 'العميل | Customer' : 'Customer | العميل'}
+                </p>
+                <p style={{ color: BRAND.dark, fontSize: '12px', fontWeight: 'bold', margin: 0, ...arTextStyle }}>
+                  {inspection.customerName}
+                </p>
+              </div>
+            )}
+            {(inspection.odometer || inspection.mileage) && (
+              <div style={{
+                background: '#0a0a0a',
+                borderRadius: '6px',
+                padding: '4px 8px',
+                border: '1px solid #333',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                  {String(inspection.odometer || inspection.mileage || 0).padStart(6, '0').split('').map((digit, i) => (
+                    <div key={i} style={{
+                      width: '9px',
+                      height: '13px',
+                      background: i < 5 ? 'linear-gradient(180deg, #1a1a1a, #2a2a2a, #1a1a1a)' : 'linear-gradient(180deg, #ff2222, #cc0000, #aa0000)',
+                      borderRadius: '1px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: '1px solid #333',
+                    }}>
+                      <span style={{ color: '#fff', fontSize: '9px', fontWeight: 'bold', fontFamily: 'Arial' }}>{digit}</span>
+                    </div>
+                  ))}
+                  <span style={{ color: '#888', fontSize: '6px', marginLeft: '3px', ...englishStyle }}>km</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* VIN Bar */}
+        <div style={{
+          padding: '6px 24px',
+          backgroundColor: '#ffffff',
+          borderBottom: `1px solid ${BRAND.border}`,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '12px',
+          flexShrink: 0,
+        }}>
+          <span style={{ color: BRAND.muted, fontSize: '7px', letterSpacing: '0.5px', ...englishStyle }}>VIN</span>
+          <div style={{
+            background: 'linear-gradient(180deg, #f5f5f5, #e8e8e8, #f0f0f0)',
+            borderRadius: '3px',
+            padding: '4px 12px',
+            border: '1px solid #bbb',
+          }}>
+            <span style={{
+              fontFamily: "'Courier New', 'Consolas', monospace",
+              fontWeight: 900,
+              fontSize: '11px',
+              color: '#1a1a1a',
+              letterSpacing: '2.5px',
+            }}>
+              {inspection.vin}
+            </span>
+          </div>
+          <span style={{ color: BRAND.muted, fontSize: '7px', ...englishStyle }}>HS-{inspection.id}</span>
+        </div>
+
+        {/* Section Title */}
+        <div style={{
+          padding: '8px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          flexShrink: 0,
+        }}>
+          <div style={{
+            width: '4px',
+            height: '18px',
+            backgroundColor: BRAND.accent,
+            borderRadius: '3px',
+          }}></div>
+          <h2 style={{ color: BRAND.dark, fontSize: '13px', fontWeight: 'bold', margin: 0, ...(isAr ? arTextStyle : englishStyle) }}>
+            {isAr ? 'صور أقسام المركبة' : 'Vehicle Section Photos'}
+          </h2>
+          <span style={{ color: BRAND.muted, fontSize: '10px', ...(isAr ? englishStyle : arTextStyle) }}>
+            {isAr ? 'Vehicle Section Photos' : 'صور أقسام المركبة'}
+          </span>
         </div>
 
         {/* Photos Grid */}
         <div style={{
           flex: 1,
-          padding: '14px 20px',
+          padding: '0 20px 10px',
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
           gridTemplateRows: 'repeat(3, 1fr)',
-          gap: '10px',
+          gap: '8px',
           overflow: 'hidden',
         }}>
           {sections.map((section) => {
             const hasExterior = !!section.exteriorPhoto;
             const hasInterior = !!section.interiorPhoto;
-            const hasBoth = hasExterior && hasInterior;
 
             return (
               <div
@@ -1319,45 +1455,38 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
                   backgroundColor: '#ffffff',
                 }}
               >
-                {/* Section Title */}
                 <div style={{
                   background: `linear-gradient(135deg, ${BRAND.primary} 0%, ${BRAND.secondary} 100%)`,
-                  padding: '6px 12px',
+                  padding: '5px 10px',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   flexShrink: 0,
                 }}>
-                  <span style={{ color: '#ffffff', fontSize: '11px', fontWeight: 'bold', ...(isAr ? textStyle : englishStyle) }}>
+                  <span style={{ color: '#ffffff', fontSize: '10px', fontWeight: 'bold', ...(isAr ? arTextStyle : englishStyle) }}>
                     {isAr ? section.ar : section.en}
                   </span>
-                  <span style={{ color: BRAND.accentLight, fontSize: '9px', ...(isAr ? englishStyle : textStyle) }}>
+                  <span style={{ color: BRAND.accentLight, fontSize: '8px', ...(isAr ? englishStyle : arTextStyle) }}>
                     {isAr ? section.en : section.ar}
                   </span>
                 </div>
 
-                {/* Photos Container */}
                 <div style={{
                   flex: 1,
                   display: 'flex',
-                  gap: '4px',
-                  padding: '4px',
+                  gap: '3px',
+                  padding: '3px',
                   minHeight: 0,
                 }}>
                   {hasExterior && (
-                    <div style={{
-                      flex: 1,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      minWidth: 0,
-                    }}>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                       <span style={{
-                        fontSize: '8px',
+                        fontSize: '7px',
                         color: BRAND.muted,
                         textAlign: 'center',
-                        padding: '2px 0',
+                        padding: '1px 0',
                         flexShrink: 0,
-                        ...(isAr ? textStyle : englishStyle),
+                        ...(isAr ? arTextStyle : englishStyle),
                       }}>
                         {isAr ? 'خارجي | Exterior' : 'Exterior | خارجي'}
                       </span>
@@ -1371,30 +1500,20 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
                         <img
                           src={section.exteriorPhoto!}
                           alt={`${section.en} Exterior`}
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            display: 'block',
-                          }}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                         />
                       </div>
                     </div>
                   )}
                   {hasInterior && (
-                    <div style={{
-                      flex: 1,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      minWidth: 0,
-                    }}>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                       <span style={{
-                        fontSize: '8px',
+                        fontSize: '7px',
                         color: BRAND.muted,
                         textAlign: 'center',
-                        padding: '2px 0',
+                        padding: '1px 0',
                         flexShrink: 0,
-                        ...(isAr ? textStyle : englishStyle),
+                        ...(isAr ? arTextStyle : englishStyle),
                       }}>
                         {isAr ? 'داخلي | Interior' : 'Interior | داخلي'}
                       </span>
@@ -1408,12 +1527,7 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
                         <img
                           src={section.interiorPhoto!}
                           alt={`${section.en} Interior`}
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            display: 'block',
-                          }}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                         />
                       </div>
                     </div>
@@ -1428,7 +1542,7 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
                       borderRadius: '4px',
                       border: `1px dashed ${BRAND.border}`,
                     }}>
-                      <span style={{ color: BRAND.muted, fontSize: '10px', ...(isAr ? textStyle : englishStyle) }}>
+                      <span style={{ color: BRAND.muted, fontSize: '9px', ...(isAr ? arTextStyle : englishStyle) }}>
                         {isAr ? 'لا توجد صور' : 'No Photos'}
                       </span>
                     </div>
@@ -1453,16 +1567,16 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <img src={logoPath} alt="Logo" style={{ width: '22px', height: '22px', borderRadius: '4px', border: `1px solid ${BRAND.accent}` }} />
-              <span style={{ color: '#ffffff', fontSize: '10px', fontWeight: 'bold', ...(isAr ? textStyle : englishStyle) }}>
-                {isAr ? 'مركز الامان العالي' : 'High Safety Center'}
+              <span style={{ color: '#ffffff', fontSize: '10px', fontWeight: 'bold', ...arTextStyle }}>
+                {isAr ? 'مركز الأمان العالي' : 'High Safety Center'}
               </span>
-              <span style={{ color: BRAND.accentLight, fontSize: '8px', ...(isAr ? englishStyle : textStyle) }}>
-                {isAr ? 'High Safety Center' : 'مركز الامان العالي'}
+              <span style={{ color: BRAND.accentLight, fontSize: '8px', ...(isAr ? englishStyle : arTextStyle) }}>
+                {isAr ? 'High Safety Center' : 'مركز الأمان العالي'}
               </span>
             </div>
             <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-              <span style={{ color: '#94a3b8', fontSize: '8px', ...englishStyle }}>Report: HS-{inspection.id}</span>
-              <span style={{ color: '#94a3b8', fontSize: '8px', ...englishStyle }}>VIN: {inspection.vin}</span>
+              <span style={{ color: '#94a3b8', fontSize: '8px', ...englishStyle }}>Tel: 0542206000</span>
+              <span style={{ color: '#94a3b8', fontSize: '8px', ...englishStyle }}>highsafety2021@gmail.com</span>
             </div>
           </div>
         </div>
