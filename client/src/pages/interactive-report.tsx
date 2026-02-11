@@ -1032,6 +1032,8 @@ export default function InteractiveReport() {
   const [highlightedCategory, setHighlightedCategory] = useState<string | null>(null);
   const pdfTemplateRef = useRef<HTMLDivElement>(null);
   const pdfPhotosPageRef = useRef<HTMLDivElement>(null);
+  const pdfTemplateEnRef = useRef<HTMLDivElement>(null);
+  const pdfPhotosPageEnRef = useRef<HTMLDivElement>(null);
 
   const handleCategoryClick = (catId: string) => {
     setHighlightedCategory(catId);
@@ -1099,11 +1101,19 @@ export default function InteractiveReport() {
     await Promise.all(imagePromises);
   };
 
-  // New professional single-page PDF with html2canvas - high quality
-  const handleNewPdfDownload = async () => {
-    if (!inspection || !pdfTemplateRef.current) return;
+  const handleNewPdfDownload = async (pdfLang: 'ar' | 'en' = 'ar') => {
+    if (!inspection) return;
     
-    toast({ title: "جارٍ التحضير", description: "جارٍ إنشاء تقرير PDF احترافي... يتم تحميل الصور" });
+    const isAr = pdfLang === 'ar';
+    const reportRef = isAr ? pdfTemplateRef : pdfTemplateEnRef;
+    const photosRef = isAr ? pdfPhotosPageRef : pdfPhotosPageEnRef;
+    
+    if (!reportRef.current) return;
+    
+    toast({ 
+      title: isAr ? "جارٍ التحضير" : "Preparing",
+      description: isAr ? "جارٍ إنشاء تقرير PDF احترافي... يتم تحميل الصور" : "Creating professional PDF report..."
+    });
     
     try {
       const A4_WIDTH = 794;
@@ -1113,12 +1123,15 @@ export default function InteractiveReport() {
         await document.fonts.ready;
       }
       
-      const element = pdfTemplateRef.current;
+      const element = reportRef.current;
       await waitForImages(element);
       
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      toast({ title: "جارٍ التحضير", description: "جارٍ التقاط التقرير..." });
+      toast({ 
+        title: isAr ? "جارٍ التحضير" : "Processing",
+        description: isAr ? "جارٍ التقاط التقرير..." : "Capturing report..."
+      });
       
       const canvasOpts = {
         scale: 3,
@@ -1139,9 +1152,6 @@ export default function InteractiveReport() {
         },
       };
 
-      const canvas1 = await html2canvas(element, canvasOpts);
-      const imgData1 = canvas1.toDataURL('image/png', 1.0);
-      
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -1151,25 +1161,54 @@ export default function InteractiveReport() {
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
       
-      pdf.addImage(imgData1, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      let pageAdded = false;
       
-      if (pdfPhotosPageRef.current) {
-        toast({ title: "جارٍ التحضير", description: "جارٍ إضافة صفحة صور الأقسام..." });
-        await waitForImages(pdfPhotosPageRef.current);
+      const hasAnyPhotos = inspection.rearLeftDoorPhoto || inspection.rearRightDoorPhoto || 
+        inspection.frontLeftDoorPhoto || inspection.frontRightDoorPhoto || 
+        inspection.hoodPhoto || inspection.trunkPhoto ||
+        inspection.rearLeftDoorInteriorPhoto || inspection.rearRightDoorInteriorPhoto ||
+        inspection.frontLeftDoorInteriorPhoto || inspection.frontRightDoorInteriorPhoto ||
+        inspection.hoodInteriorPhoto || inspection.trunkInteriorPhoto;
+      
+      if (hasAnyPhotos && photosRef.current) {
+        toast({ 
+          title: isAr ? "جارٍ التحضير" : "Processing",
+          description: isAr ? "جارٍ إضافة صفحة صور الأقسام..." : "Adding vehicle photos page..."
+        });
+        await waitForImages(photosRef.current);
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        const canvas2 = await html2canvas(pdfPhotosPageRef.current, canvasOpts);
-        const imgData2 = canvas2.toDataURL('image/png', 1.0);
+        const canvasPhotos = await html2canvas(photosRef.current, canvasOpts);
+        const imgDataPhotos = canvasPhotos.toDataURL('image/png', 1.0);
         
-        pdf.addPage();
-        pdf.addImage(imgData2, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.addImage(imgDataPhotos, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pageAdded = true;
       }
       
-      pdf.save(`Inspection_Report_${inspection.vin}_HS${inspection.id}.pdf`);
-      toast({ title: "تم التحميل", description: "تم تحميل ملف PDF بجودة عالية مع جميع الصور" });
+      const canvasReport = await html2canvas(element, canvasOpts);
+      const imgDataReport = canvasReport.toDataURL('image/png', 1.0);
+      
+      if (pageAdded) {
+        pdf.addPage();
+      }
+      pdf.addImage(imgDataReport, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      
+      const fileName = isAr 
+        ? `تقرير_فحص_${inspection.vin}_HS${inspection.id}.pdf`
+        : `Inspection_Report_${inspection.vin}_HS${inspection.id}.pdf`;
+      
+      pdf.save(fileName);
+      toast({ 
+        title: isAr ? "تم التحميل" : "Downloaded",
+        description: isAr ? "تم تحميل ملف PDF بجودة عالية مع جميع الصور" : "PDF report downloaded successfully with all photos"
+      });
     } catch (error) {
       console.error('PDF error:', error);
-      toast({ title: "خطأ", description: "حدث خطأ أثناء إنشاء التقرير", variant: "destructive" });
+      toast({ 
+        title: isAr ? "خطأ" : "Error",
+        description: isAr ? "حدث خطأ أثناء إنشاء التقرير" : "Error generating PDF report",
+        variant: "destructive"
+      });
     }
   };
 
@@ -1930,9 +1969,13 @@ export default function InteractiveReport() {
               <Printer className="w-4 h-4 ml-1" />
               <span className="hidden md:inline">طباعة</span>
             </Button>
-            <Button variant="default" size="sm" onClick={handleNewPdfDownload} className="font-arabic bg-primary hover:bg-primary/90">
+            <Button variant="default" size="sm" onClick={() => handleNewPdfDownload('ar')} className="font-arabic" data-testid="button-download-pdf-ar">
               <Download className="w-4 h-4 ml-1" />
-              تحميل PDF
+              PDF عربي
+            </Button>
+            <Button variant="default" size="sm" onClick={() => handleNewPdfDownload('en')} data-testid="button-download-pdf-en">
+              <Download className="w-4 h-4 ml-1" />
+              English PDF
             </Button>
           </div>
         </div>
@@ -2067,8 +2110,10 @@ export default function InteractiveReport() {
 
       {/* Hidden PDF Templates */}
       <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', opacity: 0, pointerEvents: 'none' }}>
-        <PdfReportTemplate ref={pdfTemplateRef} inspection={inspection} />
-        <PdfCarPhotosPage ref={pdfPhotosPageRef} inspection={inspection} />
+        <PdfReportTemplate ref={pdfTemplateRef} inspection={inspection} lang="ar" />
+        <PdfCarPhotosPage ref={pdfPhotosPageRef} inspection={inspection} lang="ar" />
+        <PdfReportTemplate ref={pdfTemplateEnRef} inspection={inspection} lang="en" />
+        <PdfCarPhotosPage ref={pdfPhotosPageEnRef} inspection={inspection} lang="en" />
       </div>
     </div>
   );

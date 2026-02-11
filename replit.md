@@ -17,7 +17,9 @@ Preferred communication style: Simple, everyday language.
 - **Styling**: Tailwind CSS with custom CSS variables for theming
 - **UI Components**: shadcn/ui component library built on Radix UI primitives
 - **Forms**: React Hook Form with Zod validation
-- **PDF Generation**: jsPDF with html2canvas for client-side report generation
+- **PDF Generation**: jsPDF with html2canvas for client-side report generation (bilingual AR/EN support)
+- **PDF Page Order**: Car section photos page first, then faults/inspection report page second
+- **PDF Language**: Dual download buttons - Arabic PDF and English PDF with full bilingual templates
 - **OCR**: Tesseract.js for VIN scanning from images
 
 ### Backend Architecture
