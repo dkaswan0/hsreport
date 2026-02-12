@@ -75,11 +75,12 @@ export async function registerRoutes(
       const input = api.inspections.create.input.parse(req.body);
       const inspection = await storage.createInspection(input);
       res.status(201).json(inspection);
-    } catch (err) {
+    } catch (err: any) {
       if (err instanceof z.ZodError) {
         return res.status(400).json({ message: err.errors[0].message });
       }
-      throw err;
+      console.error(`Create inspection error: ${err?.message || err}`);
+      return res.status(500).json({ message: err?.message || 'Failed to create inspection' });
     }
   });
 

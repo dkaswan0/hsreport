@@ -11,6 +11,32 @@ import { VinScannerModal } from "@/components/vin-scanner-modal";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
+const compressImage = (dataUrl: string, maxWidth = 1200, quality = 0.7): Promise<string> => {
+  return new Promise((resolve) => {
+    const img = new window.Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let w = img.width;
+      let h = img.height;
+      if (w > maxWidth) {
+        h = Math.round((h * maxWidth) / w);
+        w = maxWidth;
+      }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      } else {
+        resolve(dataUrl);
+      }
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+};
+
 // Inspection types
 const INSPECTION_TYPES = [
   { id: 'full', label: 'فحص شامل', description: 'فحص كامل لجميع أجزاء المركبة' },
@@ -107,10 +133,11 @@ export default function NewInspection() {
     if (!file) return;
     
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       const result = event.target?.result as string;
-      setOdometerPhoto(result);
-      setOdometerPhotoPreview(result);
+      const compressed = await compressImage(result, 1200, 0.7);
+      setOdometerPhoto(compressed);
+      setOdometerPhotoPreview(compressed);
     };
     reader.readAsDataURL(file);
   };
@@ -128,10 +155,11 @@ export default function NewInspection() {
     if (!file) return;
     
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       const result = event.target?.result as string;
-      setVinPhoto(result);
-      setVinPhotoPreview(result);
+      const compressed = await compressImage(result, 1200, 0.7);
+      setVinPhoto(compressed);
+      setVinPhotoPreview(compressed);
     };
     reader.readAsDataURL(file);
   };
@@ -149,8 +177,9 @@ export default function NewInspection() {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (event) => {
-      setMainCarPhoto(event.target?.result as string);
+    reader.onload = async (event) => {
+      const compressed = await compressImage(event.target?.result as string, 1200, 0.7);
+      setMainCarPhoto(compressed);
     };
     reader.readAsDataURL(file);
   };
@@ -159,10 +188,11 @@ export default function NewInspection() {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
+      const compressed = await compressImage(event.target?.result as string, 1200, 0.7);
       setCarSectionPhotos(prev => ({
         ...prev,
-        [section]: event.target?.result as string
+        [section]: compressed
       }));
     };
     reader.readAsDataURL(file);
@@ -180,10 +210,11 @@ export default function NewInspection() {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
+      const compressed = await compressImage(event.target?.result as string, 1200, 0.7);
       setCarSectionInteriorPhotos(prev => ({
         ...prev,
-        [section]: event.target?.result as string
+        [section]: compressed
       }));
     };
     reader.readAsDataURL(file);
