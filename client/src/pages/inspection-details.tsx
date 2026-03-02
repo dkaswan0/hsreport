@@ -19,7 +19,7 @@ import {
   Search,
   Check
 } from "lucide-react";
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback, useDeferredValue } from "react";
 import { cn } from "@/lib/utils";
 import * as Dialog from "@radix-ui/react-dialog";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -36,9 +36,76 @@ export default function InspectionDetails() {
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [isAddItemOpen, setIsAddItemOpen] = useState(false);
+  const [globalSearch, setGlobalSearch] = useState("");
+  const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
+  const [prefilledFault, setPrefilledFault] = useState<FaultLibrary | null>(null);
+  const globalSearchRef = useRef<HTMLInputElement>(null);
+  const globalSearchContainerRef = useRef<HTMLDivElement>(null);
   const updateInspection = useUpdateInspection();
   
   const { toast } = useToast();
+
+  const { data: allFaults = [] } = useQuery<FaultLibrary[]>({ 
+    queryKey: ['/api/fault-library'],
+  });
+
+  const deferredSearch = useDeferredValue(globalSearch);
+
+  const faultIndex = useMemo(() => {
+    return allFaults.map(fault => ({
+      fault,
+      nameLower: fault.faultName.toLowerCase(),
+      descLower: (fault.description || '').toLowerCase(),
+      catLower: (fault.category || '').toLowerCase(),
+    }));
+  }, [allFaults]);
+
+  const globalSearchResults = useMemo(() => {
+    if (!deferredSearch.trim()) return [];
+    const q = deferredSearch.trim().toLowerCase();
+    const words = q.split(/\s+/);
+    const scored: Array<{ fault: FaultLibrary; score: number }> = [];
+    for (const item of faultIndex) {
+      let score = 0;
+      if (item.nameLower === q) { score = 100; }
+      else if (item.nameLower.startsWith(q)) { score = 80; }
+      else {
+        let allMatch = true;
+        for (const w of words) {
+          if (item.nameLower.includes(w)) { score += 30; }
+          else if (item.descLower.includes(w)) { score += 15; }
+          else if (item.catLower.includes(w)) { score += 10; }
+          else { allMatch = false; }
+        }
+        if (!allMatch) score = 0;
+      }
+      if (score > 0) scored.push({ fault: item.fault, score });
+    }
+    scored.sort((a, b) => b.score - a.score);
+    return scored.slice(0, 50).map(s => s.fault);
+  }, [deferredSearch, faultIndex]);
+
+  useEffect(() => {
+    if (!globalSearchOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (globalSearchContainerRef.current && !globalSearchContainerRef.current.contains(e.target as Node)) {
+        setGlobalSearchOpen(false);
+      }
+    };
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { setGlobalSearchOpen(false); setGlobalSearch(""); }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEsc);
+    return () => { document.removeEventListener('mousedown', handleClickOutside); document.removeEventListener('keydown', handleEsc); };
+  }, [globalSearchOpen]);
+
+  const handleGlobalFaultSelect = useCallback((fault: FaultLibrary) => {
+    setPrefilledFault(fault);
+    setGlobalSearch("");
+    setGlobalSearchOpen(false);
+    setIsAddItemOpen(true);
+  }, []);
   
   const getCategoriesForSection = (sectionId: string) => {
     const group = CATEGORY_GROUPS.find(g => g.sectionId === sectionId);
@@ -306,9 +373,74 @@ export default function InspectionDetails() {
             );
           })()}
 
-          <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+          <div className="p-3 md:p-4 border-b border-slate-100 bg-white relative" ref={globalSearchContainerRef}>
+            <div className="relative">
+              <div className="flex items-center border-2 border-primary/30 rounded-xl px-3 bg-primary/5 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+                <Search className="ml-2 h-5 w-5 text-primary shrink-0" />
+                <input
+                  ref={globalSearchRef}
+                  type="text"
+                  placeholder="ابحث في كل الأعطال (9,639 عطل)..."
+                  value={globalSearch}
+                  onChange={(e) => { setGlobalSearch(e.target.value); setGlobalSearchOpen(true); }}
+                  onFocus={() => { if (globalSearch.trim()) setGlobalSearchOpen(true); }}
+                  className="flex h-12 w-full bg-transparent py-3 text-sm outline-none placeholder:text-primary/40 text-right font-medium"
+                  data-testid="input-global-fault-search"
+                />
+                {globalSearch && (
+                  <button type="button" onClick={() => { setGlobalSearch(""); setGlobalSearchOpen(false); }} className="p-1 text-slate-400 hover:text-slate-600">
+                    <XCircle className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
+              {globalSearchOpen && globalSearch.trim() && (
+                <div className="absolute inset-x-0 top-full mt-1 bg-white border-2 border-primary/20 rounded-xl shadow-2xl z-[100] max-h-[60vh] overflow-y-auto">
+                  <div className="sticky top-0 flex items-center justify-between px-4 py-2.5 border-b bg-primary/5 rounded-t-xl z-10">
+                    <span className="text-sm font-bold text-primary">{globalSearchResults.length} نتيجة</span>
+                    <button type="button" onClick={() => setGlobalSearchOpen(false)} className="p-1 text-slate-400 hover:text-slate-600">
+                      <XCircle className="w-5 h-5" />
+                    </button>
+                  </div>
+                  {globalSearchResults.length === 0 ? (
+                    <div className="py-8 text-center text-sm text-slate-400">لا توجد نتائج مطابقة</div>
+                  ) : (
+                    globalSearchResults.map(fault => (
+                      <button
+                        key={fault.id}
+                        type="button"
+                        onClick={() => handleGlobalFaultSelect(fault)}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-right hover:bg-primary/5 active:bg-primary/10 transition-colors border-b border-slate-50 last:border-b-0"
+                        data-testid={`global-fault-${fault.id}`}
+                      >
+                        <div className="p-1.5 rounded-lg bg-slate-100 shrink-0">
+                          <Plus className="w-4 h-4 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold text-sm text-slate-900 truncate">{fault.faultName}</div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-xs text-slate-400">{getCategoryLabel(fault.category) || fault.category}</span>
+                            {fault.severity && (
+                              <span className={cn(
+                                "text-[10px] px-1.5 py-0.5 rounded-full font-medium",
+                                fault.severity === 'high' ? "bg-red-100 text-red-600" :
+                                fault.severity === 'medium' ? "bg-amber-100 text-amber-600" :
+                                "bg-green-100 text-green-600"
+                              )}>{fault.severity === 'high' ? 'عالي' : fault.severity === 'medium' ? 'متوسط' : 'منخفض'}</span>
+                            )}
+                          </div>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-slate-300 rtl:rotate-180 shrink-0" />
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="px-4 md:px-6 py-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
             <div>
-              <h3 className="text-lg font-bold flex items-center gap-2">
+              <h3 className="text-base font-bold flex items-center gap-2">
                 {INSPECTION_CATEGORIES.find(c => c.id === activeCategory)?.label}
                 <span className="text-sm font-normal text-slate-400 bg-white px-2 py-0.5 rounded-full border">
                   {filteredItems.length} عنصر
@@ -316,7 +448,7 @@ export default function InspectionDetails() {
               </h3>
             </div>
             <button 
-              onClick={() => setIsAddItemOpen(true)}
+              onClick={() => { setPrefilledFault(null); setIsAddItemOpen(true); }}
               className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 text-sm font-medium"
             >
               <Plus className="w-4 h-4" />
@@ -330,7 +462,7 @@ export default function InspectionDetails() {
                 <Car className="w-16 h-16 mx-auto mb-4 opacity-20" />
                 <p>لا توجد بيانات</p>
                 <button 
-                  onClick={() => setIsAddItemOpen(true)}
+                  onClick={() => { setPrefilledFault(null); setIsAddItemOpen(true); }}
                   className="mt-4 text-primary hover:underline"
                 >
                   إضافة عنصر
@@ -349,7 +481,7 @@ export default function InspectionDetails() {
       {/* Mobile Fixed Bottom Action Bar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-3 z-50 flex gap-2 safe-area-pb">
         <button 
-          onClick={() => setIsAddItemOpen(true)}
+          onClick={() => { setPrefilledFault(null); setIsAddItemOpen(true); }}
           className="flex-1 px-4 py-3 bg-primary text-white rounded-xl flex items-center justify-center gap-2 text-sm font-bold active:scale-95 transition-transform"
           data-testid="button-add-item-mobile"
         >
@@ -378,9 +510,11 @@ export default function InspectionDetails() {
 
       <AddItemDialog 
         isOpen={isAddItemOpen} 
-        onClose={() => setIsAddItemOpen(false)} 
+        onClose={() => { setIsAddItemOpen(false); setPrefilledFault(null); }} 
         category={activeCategory}
         inspectionId={id}
+        prefilledFault={prefilledFault}
+        sharedFaults={allFaults}
       />
     </div>
   );
@@ -443,7 +577,7 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
   );
 }
 
-function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: boolean, onClose: () => void, category: string, inspectionId: number }) {
+function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault, sharedFaults }: { isOpen: boolean, onClose: () => void, category: string, inspectionId: number, prefilledFault?: FaultLibrary | null, sharedFaults?: FaultLibrary[] }) {
   const [formData, setFormData] = useState<Partial<CreateInspectionItemRequest>>({
     status: 'fail',
     severity: 'medium',
@@ -461,16 +595,25 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
   
   const photoAnalysis = usePhotoAnalysis();
 
-  // Reset state when dialog opens/closes or category changes
   useEffect(() => {
     if (isOpen) {
-      setFormData({ status: 'fail', severity: 'medium', faultName: '', description: '', category });
+      if (prefilledFault) {
+        setFormData({
+          status: 'fail',
+          severity: (prefilledFault.severity as any) || 'medium',
+          faultName: prefilledFault.faultName,
+          description: prefilledFault.description || '',
+          category: prefilledFault.category || category
+        });
+      } else {
+        setFormData({ status: 'fail', severity: 'medium', faultName: '', description: '', category });
+      }
       setPhoto(null);
       setAiSuggestions([]);
       setDetectedPart("");
       setSearchQuery("");
     }
-  }, [isOpen, category]);
+  }, [isOpen, category, prefilledFault]);
 
   // Compress image to reduce size
   const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<string> => {
@@ -547,10 +690,11 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
   const simplePhotoInputRef = useRef<HTMLInputElement>(null);
 
   const createMutation = useCreateInspectionItem();
-  const { data: library = [] } = useQuery<FaultLibrary[]>({ 
+  const { data: fetchedLibrary = [] } = useQuery<FaultLibrary[]>({ 
     queryKey: ['/api/fault-library'],
-    enabled: isOpen
+    enabled: isOpen && (!sharedFaults || sharedFaults.length === 0)
   });
+  const library = (sharedFaults && sharedFaults.length > 0) ? sharedFaults : fetchedLibrary;
 
   const { toast } = useToast();
 
@@ -602,7 +746,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId }: { isOpen: bo
 
     createMutation.mutate({
       inspectionId,
-      category,
+      category: formData.category || category,
       faultName: formData.faultName!,
       status: formData.status as any,
       description: formData.description,
