@@ -44,6 +44,8 @@ export default function InspectionDetails() {
   const globalSearchRef = useRef<HTMLInputElement>(null);
   const globalSearchContainerRef = useRef<HTMLDivElement>(null);
   const updateInspection = useUpdateInspection();
+  const [isEditingInfo, setIsEditingInfo] = useState(false);
+  const [editInfo, setEditInfo] = useState<Record<string, any>>({});
   
   const { toast } = useToast();
 
@@ -281,16 +283,160 @@ export default function InspectionDetails() {
         
         {/* Top Vehicle Info Card - Mobile Optimized */}
         <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-slate-100">
+          {isEditingInfo ? (
+            <div className="space-y-4" data-testid="edit-info-form">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-bold text-primary text-base flex items-center gap-2">
+                  <Pencil className="w-4 h-4" />
+                  تعديل بيانات الفحص
+                </h3>
+                <button onClick={() => setIsEditingInfo(false)} className="p-1.5 rounded-lg hover:bg-slate-200 transition-colors" data-testid="btn-cancel-edit-info">
+                  <X className="w-4 h-4 text-slate-500" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 mb-1 block">الشركة المصنعة</label>
+                  <input value={editInfo.make || ''} onChange={(e) => setEditInfo(d => ({ ...d, make: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" dir="auto" data-testid="input-edit-make" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 mb-1 block">الطراز</label>
+                  <input value={editInfo.model || ''} onChange={(e) => setEditInfo(d => ({ ...d, model: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" dir="auto" data-testid="input-edit-model" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 mb-1 block">سنة الصنع</label>
+                  <input type="number" value={editInfo.year || ''} onChange={(e) => setEditInfo(d => ({ ...d, year: e.target.value ? parseInt(e.target.value) : null }))}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" data-testid="input-edit-year" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 mb-1 block">اللون</label>
+                  <input value={editInfo.color || ''} onChange={(e) => setEditInfo(d => ({ ...d, color: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" dir="auto" data-testid="input-edit-color" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 mb-1 block">رقم الهيكل (VIN)</label>
+                  <input value={editInfo.vin || ''} onChange={(e) => setEditInfo(d => ({ ...d, vin: e.target.value.toUpperCase() }))}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm font-mono focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" dir="ltr" data-testid="input-edit-vin" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 mb-1 block">عداد المسافة</label>
+                  <input type="number" value={editInfo.odometer || ''} onChange={(e) => setEditInfo(d => ({ ...d, odometer: e.target.value ? parseInt(e.target.value) : null }))}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" data-testid="input-edit-odometer" />
+                </div>
+              </div>
+
+              <div className="border-t border-slate-100 pt-3">
+                <div className="text-xs font-bold text-slate-400 mb-2">بيانات العميل</div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-slate-500 mb-1 block">اسم العميل</label>
+                    <input value={editInfo.customerName || ''} onChange={(e) => setEditInfo(d => ({ ...d, customerName: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" dir="auto" data-testid="input-edit-customer-name" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-500 mb-1 block">رقم الهاتف</label>
+                    <input value={editInfo.customerPhone || ''} onChange={(e) => setEditInfo(d => ({ ...d, customerPhone: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none" dir="ltr" data-testid="input-edit-customer-phone" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-500 mb-1 block">نوع الفحص</label>
+                    <select value={editInfo.inspectionType || ''} onChange={(e) => setEditInfo(d => ({ ...d, inspectionType: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-primary/30 outline-none bg-white" data-testid="select-edit-inspection-type">
+                      <option value="فحص شامل">فحص شامل</option>
+                      <option value="ميكانيكا+كومبيوتر">ميكانيكا+كومبيوتر</option>
+                      <option value="الأجزاء الأساسية">الأجزاء الأساسية</option>
+                      <option value="فحوصات متنوعة">فحوصات متنوعة</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2 border-t border-slate-200">
+                <button
+                  onClick={() => {
+                    const updates: Record<string, any> = {};
+                    if (editInfo.make !== inspection.make) updates.make = editInfo.make;
+                    if (editInfo.model !== inspection.model) updates.model = editInfo.model;
+                    if (editInfo.year !== inspection.year) updates.year = editInfo.year;
+                    if (editInfo.color !== inspection.color) updates.color = editInfo.color;
+                    if (editInfo.vin !== inspection.vin) updates.vin = editInfo.vin;
+                    if (editInfo.odometer !== inspection.odometer) updates.odometer = editInfo.odometer;
+                    if (editInfo.customerName !== inspection.customerName) updates.customerName = editInfo.customerName;
+                    if (editInfo.customerPhone !== inspection.customerPhone) updates.customerPhone = editInfo.customerPhone;
+                    if (editInfo.inspectionType !== inspection.inspectionType) updates.inspectionType = editInfo.inspectionType;
+                    
+                    if (Object.keys(updates).length === 0) {
+                      setIsEditingInfo(false);
+                      return;
+                    }
+                    updateInspection.mutate({ id, ...updates }, {
+                      onSuccess: () => {
+                        setIsEditingInfo(false);
+                        toast({ title: "تم تحديث البيانات بنجاح" });
+                      },
+                      onError: () => {
+                        toast({ title: "خطأ", description: "تعذر تحديث البيانات", variant: "destructive" });
+                      }
+                    });
+                  }}
+                  disabled={updateInspection.isPending}
+                  className="flex-1 px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  data-testid="btn-save-edit-info"
+                >
+                  {updateInspection.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                  حفظ التعديلات
+                </button>
+                <button
+                  onClick={() => setIsEditingInfo(false)}
+                  className="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-sm font-medium hover:bg-slate-200 transition-colors"
+                  data-testid="btn-discard-edit-info"
+                >
+                  إلغاء
+                </button>
+              </div>
+            </div>
+          ) : (
           <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-            <div>
+            <div className="flex-1">
               <div className="flex items-center gap-2 mb-1 flex-wrap">
                 <h2 className="text-lg md:text-2xl font-bold text-slate-900">{inspection.make} {inspection.model} {inspection.year}</h2>
                 <StatusBadge status={inspection.status || 'draft'} />
               </div>
-              <p className="text-slate-500 font-mono tracking-wider text-sm">{inspection.vin}</p>
+              <p className="text-slate-500 font-mono tracking-wider text-sm mb-2">{inspection.vin}</p>
+              <div className="flex flex-wrap gap-3 text-sm text-slate-500">
+                {inspection.color && <span className="bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100">اللون: {inspection.color}</span>}
+                {inspection.odometer && <span className="bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100">العداد: {inspection.odometer?.toLocaleString()} كم</span>}
+                {inspection.customerName && <span className="bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100">العميل: {inspection.customerName}</span>}
+                {inspection.customerPhone && <span className="bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100">{inspection.customerPhone}</span>}
+                {inspection.inspectionType && <span className="bg-primary/5 text-primary px-2 py-0.5 rounded-lg border border-primary/10">{inspection.inspectionType}</span>}
+              </div>
             </div>
             {/* Desktop Action Buttons - Hidden on mobile (moved to bottom bar) */}
             <div className="hidden md:flex gap-3">
+              <button
+                onClick={() => {
+                  setEditInfo({
+                    make: inspection.make || '',
+                    model: inspection.model || '',
+                    year: inspection.year || '',
+                    color: inspection.color || '',
+                    vin: inspection.vin || '',
+                    odometer: inspection.odometer || '',
+                    customerName: inspection.customerName || '',
+                    customerPhone: inspection.customerPhone || '',
+                    inspectionType: inspection.inspectionType || 'فحص شامل',
+                  });
+                  setIsEditingInfo(true);
+                }}
+                className="p-3 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-600 transition-colors"
+                title="تعديل البيانات"
+                data-testid="button-edit-info"
+              >
+                <Pencil className="w-5 h-5" />
+              </button>
               <button 
                 onClick={() => window.location.href = `/reports/${id}`}
                 className="p-3 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
@@ -324,6 +470,7 @@ export default function InspectionDetails() {
               )}
             </div>
           </div>
+          )}
         </div>
 
         {/* Category Items */}
@@ -489,6 +636,27 @@ export default function InspectionDetails() {
         >
           <Plus className="w-5 h-5" />
           إضافة
+        </button>
+        <button
+          onClick={() => {
+            setEditInfo({
+              make: inspection.make || '',
+              model: inspection.model || '',
+              year: inspection.year || '',
+              color: inspection.color || '',
+              vin: inspection.vin || '',
+              odometer: inspection.odometer || '',
+              customerName: inspection.customerName || '',
+              customerPhone: inspection.customerPhone || '',
+              inspectionType: inspection.inspectionType || 'فحص شامل',
+            });
+            setIsEditingInfo(true);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          className="px-4 py-3 bg-amber-500 text-white rounded-xl flex items-center justify-center gap-2 text-sm font-bold active:scale-95 transition-transform"
+          data-testid="button-edit-info-mobile"
+        >
+          <Pencil className="w-5 h-5" />
         </button>
         <button 
           onClick={() => window.location.href = `/reports/${id}`}
