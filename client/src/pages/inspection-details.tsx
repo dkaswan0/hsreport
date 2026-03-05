@@ -1,4 +1,4 @@
-import { useInspection, useCreateInspectionItem, useDeleteInspectionItem, useUpdateInspection, useFaultSuggestions, usePhotoAnalysis } from "@/hooks/use-inspections";
+import { useInspection, useCreateInspectionItem, useDeleteInspectionItem, useUpdateInspectionItem, useUpdateInspection, useFaultSuggestions, usePhotoAnalysis } from "@/hooks/use-inspections";
 import { useRoute } from "wouter";
 import { 
   Car, 
@@ -17,7 +17,9 @@ import {
   Wand2,
   FileText,
   Search,
-  Check
+  Check,
+  Pencil,
+  X
 } from "lucide-react";
 import { useState, useRef, useEffect, useMemo, useCallback, useDeferredValue } from "react";
 import { cn } from "@/lib/utils";
@@ -522,10 +524,192 @@ export default function InspectionDetails() {
 
 function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, inspectionId: number }) {
   const deleteMutation = useDeleteInspectionItem();
+  const updateMutation = useUpdateInspectionItem();
+  const { toast } = useToast();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({
+    faultName: item.faultName,
+    description: item.description || '',
+    status: item.status,
+    severity: item.severity || 'medium',
+    notes: item.notes || '',
+    category: item.category,
+  });
+  const [editPhoto, setEditPhoto] = useState<string | null>(null);
+  const editFileRef = useRef<HTMLInputElement>(null);
   
   const [arabic, english] = item.faultName.split(" - ");
   const isGood = item.status === 'pass';
   const isWarning = item.status === 'warning';
+
+  const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<string> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth) { height = (height * maxWidth) / width; width = maxWidth; }
+        canvas.width = width;
+        canvas.height = height;
+        ctx?.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const handleSaveEdit = () => {
+    updateMutation.mutate({
+      id: item.id,
+      inspectionId,
+      ...editData,
+      ...(editPhoto ? { imageUrl: editPhoto } : {}),
+    }, {
+      onSuccess: () => {
+        setIsEditing(false);
+        setEditPhoto(null);
+        toast({ title: "تم تحديث البند بنجاح" });
+      }
+    });
+  };
+
+  if (isEditing) {
+    return (
+      <div className="flex flex-col gap-4 p-5 rounded-2xl border-2 border-primary/40 bg-primary/5 shadow-md" data-testid={`edit-card-${item.id}`}>
+        <div className="flex items-center justify-between mb-1">
+          <h4 className="font-bold text-base text-primary">تعديل البند</h4>
+          <button onClick={() => { setIsEditing(false); setEditPhoto(null); }} className="p-1.5 rounded-lg hover:bg-slate-200 transition-colors" data-testid={`btn-cancel-edit-${item.id}`}>
+            <X className="w-4 h-4 text-slate-500" />
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs font-semibold text-slate-500 mb-1 block">اسم العطل</label>
+            <input
+              value={editData.faultName}
+              onChange={(e) => setEditData(d => ({ ...d, faultName: e.target.value }))}
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none"
+              dir="auto"
+              data-testid={`input-edit-faultname-${item.id}`}
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-slate-500 mb-1 block">الوصف</label>
+            <textarea
+              value={editData.description}
+              onChange={(e) => setEditData(d => ({ ...d, description: e.target.value }))}
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none resize-none"
+              rows={2}
+              dir="auto"
+              data-testid={`input-edit-description-${item.id}`}
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-slate-500 mb-1 block">ملاحظات</label>
+            <textarea
+              value={editData.notes}
+              onChange={(e) => setEditData(d => ({ ...d, notes: e.target.value }))}
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none resize-none"
+              rows={2}
+              dir="auto"
+              placeholder="أضف ملاحظات إضافية..."
+              data-testid={`input-edit-notes-${item.id}`}
+            />
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="text-xs font-semibold text-slate-500 mb-1 block">الحالة</label>
+              <select
+                value={editData.status}
+                onChange={(e) => setEditData(d => ({ ...d, status: e.target.value }))}
+                className="w-full px-2 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-primary/30 outline-none bg-white"
+                data-testid={`select-edit-status-${item.id}`}
+              >
+                <option value="fail">غير مقبول</option>
+                <option value="warning">تحذير</option>
+                <option value="pass">جيد</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-500 mb-1 block">الخطورة</label>
+              <select
+                value={editData.severity}
+                onChange={(e) => setEditData(d => ({ ...d, severity: e.target.value }))}
+                className="w-full px-2 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-primary/30 outline-none bg-white"
+                data-testid={`select-edit-severity-${item.id}`}
+              >
+                <option value="low">منخفضة</option>
+                <option value="medium">متوسطة</option>
+                <option value="high">مرتفعة</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-500 mb-1 block">القسم</label>
+              <select
+                value={editData.category}
+                onChange={(e) => setEditData(d => ({ ...d, category: e.target.value }))}
+                className="w-full px-2 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-primary/30 outline-none bg-white"
+                data-testid={`select-edit-category-${item.id}`}
+              >
+                {INSPECTION_CATEGORIES.map(cat => (
+                  <option key={cat} value={cat}>{getCategoryLabel(cat)}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-slate-500 mb-1 block">الصورة</label>
+            <div className="flex items-center gap-3">
+              {(editPhoto || item.imageUrl) && (
+                <img src={editPhoto || item.imageUrl!} alt="" className="w-20 h-14 rounded-lg object-cover border border-slate-200" />
+              )}
+              <input type="file" accept="image/*" ref={editFileRef} className="hidden" onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const compressed = await compressImage(file);
+                  setEditPhoto(compressed);
+                }
+              }} />
+              <button
+                onClick={() => editFileRef.current?.click()}
+                className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 hover:bg-slate-100 transition-colors flex items-center gap-1.5"
+                data-testid={`btn-edit-photo-${item.id}`}
+              >
+                <Camera className="w-3.5 h-3.5" />
+                {item.imageUrl || editPhoto ? 'تغيير الصورة' : 'إضافة صورة'}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-2 pt-2 border-t border-slate-200">
+          <button
+            onClick={handleSaveEdit}
+            disabled={updateMutation.isPending}
+            className="flex-1 px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            data-testid={`btn-save-edit-${item.id}`}
+          >
+            {updateMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+            حفظ التعديلات
+          </button>
+          <button
+            onClick={() => { setIsEditing(false); setEditPhoto(null); }}
+            className="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-sm font-medium hover:bg-slate-200 transition-colors"
+            data-testid={`btn-discard-edit-${item.id}`}
+          >
+            إلغاء
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4 p-5 rounded-2xl border bg-white hover:border-primary/20 transition-all group relative shadow-sm">
@@ -557,14 +741,40 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
               <p className="text-sm text-slate-600">{item.description}</p>
             </div>
           )}
+
+          {item.notes && (
+            <div className="mt-1.5 bg-amber-50 rounded-xl p-3 border border-amber-100">
+              <p className="text-sm text-amber-700">{item.notes}</p>
+            </div>
+          )}
         </div>
 
-        <button 
-          onClick={() => deleteMutation.mutate({ id: item.id, inspectionId })}
-          className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100 shrink-0"
-        >
-          <Trash2 className="w-5 h-5" />
-        </button>
+        <div className="flex flex-col gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-all">
+          <button
+            onClick={() => {
+              setEditData({
+                faultName: item.faultName,
+                description: item.description || '',
+                status: item.status,
+                severity: item.severity || 'medium',
+                notes: item.notes || '',
+                category: item.category,
+              });
+              setIsEditing(true);
+            }}
+            className="p-2 text-slate-300 hover:text-primary hover:bg-primary/10 rounded-xl transition-all"
+            data-testid={`btn-edit-item-${item.id}`}
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+          <button 
+            onClick={() => deleteMutation.mutate({ id: item.id, inspectionId })}
+            className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+            data-testid={`btn-delete-item-${item.id}`}
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {item.imageUrl && (
