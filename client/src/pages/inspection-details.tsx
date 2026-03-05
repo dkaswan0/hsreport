@@ -537,10 +537,36 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
   });
   const [editPhoto, setEditPhoto] = useState<string | null>(null);
   const editFileRef = useRef<HTMLInputElement>(null);
+  const editAiFileRef = useRef<HTMLInputElement>(null);
+  const [categorySearch, setCategorySearch] = useState('');
+  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
+  const categoryDropdownRef = useRef<HTMLDivElement>(null);
+  const [aiSuggestions, setAiSuggestions] = useState<Array<{faultName: string, severity: string, description?: string}>>([]);
+  const [aiDetectedPart, setAiDetectedPart] = useState('');
+  const [aiAnalyzing, setAiAnalyzing] = useState(false);
+  const photoAnalysis = usePhotoAnalysis();
   
   const [arabic, english] = item.faultName.split(" - ");
   const isGood = item.status === 'pass';
   const isWarning = item.status === 'warning';
+
+  const filteredCategories = useMemo(() => {
+    if (!categorySearch.trim()) return INSPECTION_CATEGORIES;
+    const q = categorySearch.toLowerCase();
+    return INSPECTION_CATEGORIES.filter(cat => 
+      cat.label.includes(q) || cat.labelEn.toLowerCase().includes(q) || cat.id.includes(q)
+    );
+  }, [categorySearch]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(e.target as Node)) {
+        setCategoryDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<string> => {
     return new Promise((resolve) => {
@@ -560,6 +586,40 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
     });
   };
 
+  const handleEditPhotoWithAI = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const compressed = await compressImage(file);
+      setEditPhoto(compressed);
+      setAiAnalyzing(true);
+      try {
+        const result = await photoAnalysis.mutateAsync(compressed);
+        setAiDetectedPart(result.detectedPartArabic || result.detectedPart || '');
+        setAiSuggestions(result.suggestedFaults || []);
+      } catch {
+        toast({ title: "تنبيه", description: "تعذر تحليل الصورة، لكن تم حفظ الصورة" });
+      }
+      setAiAnalyzing(false);
+    } catch {
+      toast({ title: "خطأ", description: "تعذر تحميل الصورة", variant: "destructive" });
+      setAiAnalyzing(false);
+    }
+    e.target.value = '';
+  };
+
+  const handleEditPhotoSimple = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const compressed = await compressImage(file);
+      setEditPhoto(compressed);
+    } catch {
+      toast({ title: "خطأ", description: "تعذر تحميل الصورة", variant: "destructive" });
+    }
+    e.target.value = '';
+  };
+
   const handleSaveEdit = () => {
     updateMutation.mutate({
       id: item.id,
@@ -570,17 +630,21 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
       onSuccess: () => {
         setIsEditing(false);
         setEditPhoto(null);
+        setAiSuggestions([]);
+        setAiDetectedPart('');
         toast({ title: "تم تحديث البند بنجاح" });
       }
     });
   };
+
+  const selectedCatLabel = INSPECTION_CATEGORIES.find(c => c.id === editData.category)?.label || editData.category;
 
   if (isEditing) {
     return (
       <div className="flex flex-col gap-4 p-5 rounded-2xl border-2 border-primary/40 bg-primary/5 shadow-md" data-testid={`edit-card-${item.id}`}>
         <div className="flex items-center justify-between mb-1">
           <h4 className="font-bold text-base text-primary">تعديل البند</h4>
-          <button onClick={() => { setIsEditing(false); setEditPhoto(null); }} className="p-1.5 rounded-lg hover:bg-slate-200 transition-colors" data-testid={`btn-cancel-edit-${item.id}`}>
+          <button onClick={() => { setIsEditing(false); setEditPhoto(null); setAiSuggestions([]); setAiDetectedPart(''); }} className="p-1.5 rounded-lg hover:bg-slate-200 transition-colors" data-testid={`btn-cancel-edit-${item.id}`}>
             <X className="w-4 h-4 text-slate-500" />
           </button>
         </div>
@@ -622,7 +686,7 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-semibold text-slate-500 mb-1 block">الحالة</label>
               <select
@@ -649,44 +713,150 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
                 <option value="high">مرتفعة</option>
               </select>
             </div>
-            <div>
-              <label className="text-xs font-semibold text-slate-500 mb-1 block">القسم</label>
-              <select
-                value={editData.category}
-                onChange={(e) => setEditData(d => ({ ...d, category: e.target.value }))}
-                className="w-full px-2 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-primary/30 outline-none bg-white"
-                data-testid={`select-edit-category-${item.id}`}
-              >
-                {INSPECTION_CATEGORIES.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.label}</option>
-                ))}
-              </select>
+          </div>
+
+          <div ref={categoryDropdownRef} className="relative">
+            <label className="text-xs font-semibold text-slate-500 mb-1 block">القسم</label>
+            <div
+              onClick={() => setCategoryDropdownOpen(!categoryDropdownOpen)}
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm cursor-pointer bg-white hover:border-primary/50 transition-colors flex items-center justify-between"
+              data-testid={`select-edit-category-${item.id}`}
+            >
+              <span>{selectedCatLabel}</span>
+              <ChevronDown className="w-4 h-4 text-slate-400" />
             </div>
+            {categoryDropdownOpen && (
+              <div className="absolute z-50 top-full mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-64 overflow-hidden">
+                <div className="p-2 border-b border-slate-100 sticky top-0 bg-white">
+                  <div className="relative">
+                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      value={categorySearch}
+                      onChange={(e) => setCategorySearch(e.target.value)}
+                      placeholder="ابحث عن القسم..."
+                      className="w-full pl-3 pr-9 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none"
+                      dir="auto"
+                      autoFocus
+                      data-testid={`input-search-category-${item.id}`}
+                    />
+                  </div>
+                </div>
+                <div className="overflow-y-auto max-h-48">
+                  {MAIN_SECTIONS.map(section => {
+                    const sectionCats = filteredCategories.filter(c => c.section === section.id);
+                    if (sectionCats.length === 0) return null;
+                    return (
+                      <div key={section.id}>
+                        <div className="px-3 py-1.5 text-xs font-bold text-primary bg-primary/5 sticky top-0">{section.label}</div>
+                        {sectionCats.map(cat => (
+                          <button
+                            key={cat.id}
+                            onClick={() => {
+                              setEditData(d => ({ ...d, category: cat.id }));
+                              setCategoryDropdownOpen(false);
+                              setCategorySearch('');
+                            }}
+                            className={cn(
+                              "w-full text-right px-4 py-2 text-sm hover:bg-primary/10 transition-colors flex items-center justify-between",
+                              editData.category === cat.id && "bg-primary/10 text-primary font-semibold"
+                            )}
+                          >
+                            <span className="text-xs text-slate-400 font-mono">{cat.labelEn}</span>
+                            <span>{cat.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    );
+                  })}
+                  {filteredCategories.length === 0 && (
+                    <div className="p-4 text-center text-sm text-slate-400">لا توجد نتائج</div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           <div>
             <label className="text-xs font-semibold text-slate-500 mb-1 block">الصورة</label>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 flex-wrap">
               {(editPhoto || item.imageUrl) && (
                 <img src={editPhoto || item.imageUrl!} alt="" className="w-20 h-14 rounded-lg object-cover border border-slate-200" />
               )}
-              <input type="file" accept="image/*" ref={editFileRef} className="hidden" onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  const compressed = await compressImage(file);
-                  setEditPhoto(compressed);
-                }
-              }} />
+              <input type="file" accept="image/*" ref={editFileRef} className="hidden" onChange={handleEditPhotoSimple} />
+              <input type="file" accept="image/*" ref={editAiFileRef} className="hidden" onChange={handleEditPhotoWithAI} />
               <button
                 onClick={() => editFileRef.current?.click()}
                 className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 hover:bg-slate-100 transition-colors flex items-center gap-1.5"
                 data-testid={`btn-edit-photo-${item.id}`}
               >
                 <Camera className="w-3.5 h-3.5" />
-                {item.imageUrl || editPhoto ? 'تغيير الصورة' : 'إضافة صورة'}
+                تغيير الصورة
+              </button>
+              <button
+                onClick={() => editAiFileRef.current?.click()}
+                disabled={aiAnalyzing}
+                className="px-3 py-1.5 text-xs font-medium rounded-lg border border-purple-300 bg-purple-50 hover:bg-purple-100 text-purple-700 transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                data-testid={`btn-edit-photo-ai-${item.id}`}
+              >
+                {aiAnalyzing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
+                {aiAnalyzing ? 'جارٍ التحليل...' : 'تحليل بالذكاء'}
               </button>
             </div>
           </div>
+
+          {aiAnalyzing && (
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-purple-50 border border-purple-200">
+              <Loader2 className="w-4 h-4 animate-spin text-purple-600" />
+              <span className="text-sm text-purple-700">جارٍ تحليل الصورة بالذكاء الاصطناعي...</span>
+            </div>
+          )}
+
+          {aiDetectedPart && (
+            <div className="p-3 rounded-xl bg-blue-50 border border-blue-200">
+              <div className="text-xs font-semibold text-blue-600 mb-1">الجزء المكتشف:</div>
+              <div className="text-sm font-bold text-blue-800">{aiDetectedPart}</div>
+            </div>
+          )}
+
+          {aiSuggestions.length > 0 && (
+            <div className="space-y-2">
+              <div className="text-xs font-semibold text-purple-600 flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5" />
+                اقتراحات الذكاء الاصطناعي:
+              </div>
+              {aiSuggestions.map((suggestion, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setEditData(d => ({
+                      ...d,
+                      faultName: suggestion.faultName,
+                      severity: suggestion.severity || d.severity,
+                      description: suggestion.description || d.description,
+                    }));
+                    toast({ title: "تم تطبيق الاقتراح" });
+                  }}
+                  className="w-full text-right p-3 rounded-xl border border-purple-200 bg-white hover:bg-purple-50 hover:border-purple-400 transition-all"
+                  data-testid={`btn-ai-suggestion-${item.id}-${idx}`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className={cn(
+                      "text-xs px-2 py-0.5 rounded-full font-medium",
+                      suggestion.severity === 'high' ? 'bg-red-100 text-red-700' :
+                      suggestion.severity === 'medium' ? 'bg-amber-100 text-amber-700' :
+                      'bg-green-100 text-green-700'
+                    )}>
+                      {suggestion.severity === 'high' ? 'مرتفعة' : suggestion.severity === 'medium' ? 'متوسطة' : 'منخفضة'}
+                    </span>
+                    <span className="text-sm font-semibold text-slate-800">{suggestion.faultName}</span>
+                  </div>
+                  {suggestion.description && (
+                    <p className="text-xs text-slate-500 mt-1">{suggestion.description}</p>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex gap-2 pt-2 border-t border-slate-200">
@@ -700,7 +870,7 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
             حفظ التعديلات
           </button>
           <button
-            onClick={() => { setIsEditing(false); setEditPhoto(null); }}
+            onClick={() => { setIsEditing(false); setEditPhoto(null); setAiSuggestions([]); setAiDetectedPart(''); }}
             className="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-sm font-medium hover:bg-slate-200 transition-colors"
             data-testid={`btn-discard-edit-${item.id}`}
           >
