@@ -711,42 +711,42 @@ const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
       label: 'الباب الخلفي يسار', 
       labelEn: 'Rear Left Door', 
       exteriorPhoto: inspection.rearLeftDoorPhoto,
-      interiorPhoto: inspection.rearLeftDoorInteriorPhoto
+      interiorPhoto: null
     },
     { 
       key: 'rearRightDoor', 
       label: 'الباب الخلفي يمين', 
       labelEn: 'Rear Right Door', 
       exteriorPhoto: inspection.rearRightDoorPhoto,
-      interiorPhoto: inspection.rearRightDoorInteriorPhoto
+      interiorPhoto: null
     },
     { 
       key: 'frontLeftDoor', 
       label: 'الباب الأمامي يسار', 
       labelEn: 'Front Left Door', 
       exteriorPhoto: inspection.frontLeftDoorPhoto,
-      interiorPhoto: inspection.frontLeftDoorInteriorPhoto
+      interiorPhoto: null
     },
     { 
       key: 'frontRightDoor', 
       label: 'الباب الأمامي يمين', 
       labelEn: 'Front Right Door', 
       exteriorPhoto: inspection.frontRightDoorPhoto,
-      interiorPhoto: inspection.frontRightDoorInteriorPhoto
+      interiorPhoto: null
     },
     { 
       key: 'hood', 
       label: 'غطاء المحرك / حجرة المحرك', 
       labelEn: 'Hood / Engine Bay', 
       exteriorPhoto: inspection.hoodPhoto,
-      interiorPhoto: inspection.hoodInteriorPhoto
+      interiorPhoto: null
     },
     { 
       key: 'trunk', 
       label: 'صندوق الأمتعة / الهيكل السفلي', 
       labelEn: 'Trunk / Chassis', 
       exteriorPhoto: inspection.trunkPhoto,
-      interiorPhoto: inspection.trunkInteriorPhoto
+      interiorPhoto: null
     },
   ];
 
@@ -1165,10 +1165,7 @@ export default function InteractiveReport() {
       
       const hasAnyPhotos = inspection.rearLeftDoorPhoto || inspection.rearRightDoorPhoto || 
         inspection.frontLeftDoorPhoto || inspection.frontRightDoorPhoto || 
-        inspection.hoodPhoto || inspection.trunkPhoto ||
-        inspection.rearLeftDoorInteriorPhoto || inspection.rearRightDoorInteriorPhoto ||
-        inspection.frontLeftDoorInteriorPhoto || inspection.frontRightDoorInteriorPhoto ||
-        inspection.hoodInteriorPhoto || inspection.trunkInteriorPhoto;
+        inspection.hoodPhoto || inspection.trunkPhoto;
       
       if (hasAnyPhotos && photosRef.current) {
         toast({ 
