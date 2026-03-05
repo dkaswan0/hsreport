@@ -658,7 +658,7 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
                 data-testid={`select-edit-category-${item.id}`}
               >
                 {INSPECTION_CATEGORIES.map(cat => (
-                  <option key={cat} value={cat}>{getCategoryLabel(cat)}</option>
+                  <option key={cat.id} value={cat.id}>{cat.label}</option>
                 ))}
               </select>
             </div>
