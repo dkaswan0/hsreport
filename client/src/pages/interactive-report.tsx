@@ -1986,37 +1986,63 @@ export default function InteractiveReport() {
         {/* Inspection Results */}
         <InspectionResults inspection={inspection} highlightedCategory={highlightedCategory} />
 
-        {/* OBD Codes Section - Customer View */}
+        {/* OBD Codes Section - Professional HS Report */}
         {(() => {
           const obdCodes = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string}> | null) || [];
           if (obdCodes.length === 0) return null;
+          const getCodeType = (code: string) => {
+            const p = code.charAt(0).toUpperCase();
+            if (p === 'P') return { color: 'bg-red-600', label: 'Powertrain', labelAr: 'المحرك وناقل الحركة' };
+            if (p === 'C') return { color: 'bg-amber-600', label: 'Chassis', labelAr: 'الشاصي' };
+            if (p === 'B') return { color: 'bg-blue-600', label: 'Body', labelAr: 'الهيكل' };
+            if (p === 'U') return { color: 'bg-purple-600', label: 'Network', labelAr: 'شبكة الاتصال' };
+            return { color: 'bg-slate-600', label: 'Other', labelAr: 'أخرى' };
+          };
           return (
-            <div className="bg-white rounded-3xl overflow-hidden shadow-lg border border-slate-200">
-              <div className="bg-gradient-to-l from-emerald-700 to-emerald-900 text-white px-6 py-4 text-center">
-                <h3 className="text-xl font-black font-arabic">قراءة أعطال كمبيوتر السيارة</h3>
-                <p className="text-emerald-200 text-sm mt-1">OBD-II Diagnostic Trouble Codes</p>
+            <div className="bg-white rounded-3xl overflow-hidden shadow-lg border border-slate-200" data-testid="obd-report-section">
+              <div className="bg-gradient-to-l from-slate-800 via-slate-900 to-black text-white p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
+                      <span className="text-white font-black text-xs">HS</span>
+                    </div>
+                    <div>
+                      <div className="text-[10px] text-slate-400 font-mono" dir="ltr">HIGH SAFETY</div>
+                      <div className="text-[10px] text-slate-400 font-mono" dir="ltr">DIAGNOSTIC REPORT</div>
+                    </div>
+                  </div>
+                  <div className="text-left" dir="ltr">
+                    <div className="text-[10px] text-slate-400 font-mono">CODES FOUND</div>
+                    <div className="text-2xl font-black text-emerald-400">{obdCodes.length}</div>
+                  </div>
+                </div>
+                <div className="text-center border-t border-white/10 pt-3">
+                  <h3 className="text-lg font-black font-arabic">تقرير فحص كمبيوتر السيارة</h3>
+                  <p className="text-slate-400 text-xs font-mono mt-0.5" dir="ltr">OBD-II Diagnostic Trouble Codes Report</p>
+                </div>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm" dir="rtl">
-                  <thead>
-                    <tr className="bg-slate-100 border-b-2 border-slate-200">
-                      <th className="px-4 py-3 text-right font-bold text-slate-700 font-arabic whitespace-nowrap">كود العطل</th>
-                      <th className="px-4 py-3 text-right font-bold text-slate-700 whitespace-nowrap">English</th>
-                      <th className="px-4 py-3 text-right font-bold text-slate-700 font-arabic whitespace-nowrap">العربية</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {obdCodes.map((obd, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-4 py-3">
-                          <span className="font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg text-xs border border-emerald-200">{obd.code}</span>
-                        </td>
-                        <td className="px-4 py-3 text-slate-600 font-mono text-xs" dir="ltr">{obd.nameEn}</td>
-                        <td className="px-4 py-3 text-slate-800 font-arabic font-medium">{obd.nameAr}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+
+              <div className="divide-y divide-slate-100">
+                {obdCodes.map((obd, idx) => {
+                  const type = getCodeType(obd.code);
+                  return (
+                    <div key={idx} className="px-4 py-3 flex items-start gap-3 hover:bg-slate-50 transition-colors">
+                      <div className="shrink-0 pt-0.5">
+                        <div className={`font-mono font-black text-white text-sm px-3 py-1.5 rounded-lg ${type.color} shadow-sm min-w-[70px] text-center`}>{obd.code}</div>
+                        <div className="text-[9px] text-center text-slate-400 mt-1 font-arabic">{type.labelAr}</div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-bold text-slate-900 font-arabic leading-snug">{obd.nameAr}</div>
+                        <div className="text-xs text-slate-500 font-mono mt-0.5 leading-snug" dir="ltr">{obd.nameEn}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="bg-slate-50 border-t border-slate-200 px-4 py-2.5 flex items-center justify-between">
+                <span className="text-[10px] text-slate-400 font-mono" dir="ltr">HIGH SAFETY INSPECTION CENTER</span>
+                <span className="text-[10px] text-slate-400 font-mono" dir="ltr">HS-OBD-{String(inspection.id).padStart(4, '0')}</span>
               </div>
             </div>
           );
