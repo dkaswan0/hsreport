@@ -1758,13 +1758,13 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
   };
 
   return (
-    <div className="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-sm flex items-end md:items-center justify-center" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="w-full md:max-w-2xl bg-white md:rounded-2xl md:shadow-2xl max-h-[95vh] md:max-h-[90vh] flex flex-col overflow-hidden rounded-t-3xl animate-in slide-in-from-bottom-4 duration-300" dir="rtl">
+    <div className="fixed inset-0 z-[60] bg-white md:bg-slate-900/60 md:backdrop-blur-sm md:flex md:items-center md:justify-center" dir="rtl">
+      <div className="w-full h-full md:h-auto md:max-w-2xl md:max-h-[90vh] bg-white md:rounded-2xl md:shadow-2xl flex flex-col overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-l from-emerald-600 via-emerald-700 to-emerald-800 text-white px-5 py-4 shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
                 <Monitor className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -1772,25 +1772,25 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
                 <p className="text-emerald-200 text-xs font-mono" dir="ltr">OBD-II Diagnostic Scanner</p>
               </div>
             </div>
-            <button onClick={onClose} className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center hover:bg-white/30 transition-colors" data-testid="btn-close-obd">
+            <button onClick={onClose} className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center hover:bg-white/30 transition-colors" data-testid="btn-close-obd">
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {obdCodes.length > 0 && (
-            <div className="mt-3 flex items-center gap-3 bg-white/10 rounded-xl px-3 py-2">
+            <div className="mt-3 flex items-center gap-4 bg-white/10 rounded-xl px-4 py-2.5">
               <div className="text-center">
-                <div className="text-2xl font-black">{obdCodes.length}</div>
-                <div className="text-[10px] text-emerald-200">أعطال</div>
+                <div className="text-3xl font-black">{obdCodes.length}</div>
+                <div className="text-xs text-emerald-200">أعطال</div>
               </div>
-              <div className="h-8 w-px bg-white/20"></div>
+              <div className="h-10 w-px bg-white/20"></div>
               <div className="flex gap-2 flex-wrap">
                 {['P', 'C', 'B', 'U'].map(prefix => {
                   const count = obdCodes.filter(c => c.code.startsWith(prefix)).length;
                   if (count === 0) return null;
                   const colors = getSeverityColor(prefix + '0000');
                   return (
-                    <span key={prefix} className={`px-2 py-0.5 rounded-md text-[10px] font-bold text-white ${colors.badge}`}>
+                    <span key={prefix} className={`px-3 py-1 rounded-lg text-xs font-bold text-white ${colors.badge}`}>
                       {prefix}: {count}
                     </span>
                   );
@@ -1810,17 +1810,17 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
                 onChange={(e) => setManualCode(e.target.value.toUpperCase())}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleManualAdd(); }}
                 placeholder="DTC"
-                className="flex-1 px-3 py-2.5 rounded-xl border border-slate-300 text-sm font-mono text-center focus:ring-2 focus:ring-emerald-300 focus:border-emerald-500 outline-none bg-white"
+                className="flex-1 px-3 py-3 rounded-xl border border-slate-300 text-base font-mono text-center focus:ring-2 focus:ring-emerald-300 focus:border-emerald-500 outline-none bg-white"
                 dir="ltr"
                 data-testid="input-obd-code"
               />
               <button
                 onClick={handleManualAdd}
                 disabled={isLookingUp || !manualCode.trim()}
-                className="px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap active:scale-95"
+                className="px-5 py-3 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center gap-2 whitespace-nowrap active:scale-95"
                 data-testid="btn-add-obd-code"
               >
-                {isLookingUp ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                {isLookingUp ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
                 إضافة
               </button>
             </div>
@@ -1829,10 +1829,10 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
               <button
                 onClick={() => obdImageRef.current?.click()}
                 disabled={isExtracting}
-                className="px-4 py-2.5 bg-slate-800 text-white rounded-xl text-sm font-bold hover:bg-slate-900 transition-colors disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap active:scale-95"
+                className="h-full px-5 py-3 bg-slate-800 text-white rounded-xl text-sm font-bold hover:bg-slate-900 transition-colors disabled:opacity-50 flex items-center gap-2 whitespace-nowrap active:scale-95"
                 data-testid="btn-obd-scan-image"
               >
-                {isExtracting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+                {isExtracting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5" />}
                 {isExtracting ? 'جارٍ التحليل...' : 'تصوير'}
               </button>
             </div>
@@ -1840,11 +1840,11 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
         </div>
 
         {/* Codes List */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto bg-slate-50">
           {obdCodes.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full min-h-[300px] p-8">
-              <div className="w-20 h-20 bg-slate-100 rounded-2xl flex items-center justify-center mb-4">
-                <Monitor className="w-10 h-10 text-slate-300" />
+            <div className="flex flex-col items-center justify-center h-full min-h-[200px] p-8">
+              <div className="w-16 h-16 bg-slate-200 rounded-2xl flex items-center justify-center mb-3">
+                <Monitor className="w-8 h-8 text-slate-400" />
               </div>
               <p className="text-base font-bold text-slate-500">لا توجد أكواد أعطال</p>
             </div>
@@ -1854,36 +1854,36 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
                 const colors = getSeverityColor(obd.code);
                 const isExpanded = expandedCode === obd.code;
                 return (
-                  <div key={obd.code} className={`rounded-xl border ${colors.border} overflow-hidden transition-all`}>
-                    <div className={`flex items-center gap-3 px-3 py-3 ${colors.bg}`}>
+                  <div key={obd.code} className={`rounded-xl border-2 ${colors.border} overflow-hidden bg-white shadow-sm`}>
+                    <div className={`flex items-center gap-3 px-4 py-3.5`}>
                       <div className="shrink-0">
-                        <span className={`font-mono font-black text-sm px-3 py-1.5 rounded-lg text-white ${colors.badge} shadow-sm`}>{obd.code}</span>
+                        <span className={`font-mono font-black text-base px-4 py-2 rounded-xl text-white ${colors.badge} shadow-sm inline-block`}>{obd.code}</span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-bold text-slate-900 leading-tight">{obd.nameAr}</div>
-                        <div className="text-xs text-slate-500 font-mono mt-0.5 truncate" dir="ltr">{obd.nameEn}</div>
+                        <div className="text-base font-bold text-slate-900 leading-snug">{obd.nameAr}</div>
+                        <div className="text-sm text-slate-500 font-mono mt-1" dir="ltr">{obd.nameEn}</div>
                       </div>
-                      <div className="flex items-center gap-1 shrink-0">
+                      <div className="flex items-center gap-1.5 shrink-0">
                         {obd.diagnosis && (
                           <button
                             onClick={() => setExpandedCode(isExpanded ? null : obd.code)}
-                            className={`p-2 rounded-lg transition-colors ${isExpanded ? 'bg-white shadow-sm text-emerald-600' : 'text-slate-400 hover:text-slate-700 hover:bg-white/60'}`}
+                            className={`p-2.5 rounded-xl transition-colors ${isExpanded ? 'bg-emerald-100 text-emerald-600' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'}`}
                             data-testid={`btn-toggle-obd-details-${obd.code}`}
                           >
-                            {isExpanded ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            {isExpanded ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                           </button>
                         )}
                         <button
                           onClick={() => handleDeleteCode(obd.code)}
-                          className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                          className="p-2.5 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                           data-testid={`btn-delete-obd-${obd.code}`}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-5 h-5" />
                         </button>
                       </div>
                     </div>
                     {isExpanded && obd.diagnosis && (
-                      <div className="px-3 pb-3 pt-1 space-y-2 bg-white border-t border-slate-100">
+                      <div className="px-4 pb-4 pt-1 space-y-2 border-t border-slate-100">
                         <div className="p-3 rounded-xl bg-blue-50 border border-blue-100">
                           <div className="text-xs font-bold text-blue-600 mb-1">التشخيص</div>
                           <div className="text-sm text-blue-800 leading-relaxed">{obd.diagnosis}</div>

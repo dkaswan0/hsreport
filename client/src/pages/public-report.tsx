@@ -1102,33 +1102,33 @@ export default function PublicReport() {
           if (obdCodes.length === 0) return null;
           const getCodeType = (code: string) => {
             const p = code.charAt(0).toUpperCase();
-            if (p === 'P') return { color: 'bg-red-600', label: 'Powertrain', labelAr: 'المحرك وناقل الحركة' };
-            if (p === 'C') return { color: 'bg-amber-600', label: 'Chassis', labelAr: 'الشاصي' };
-            if (p === 'B') return { color: 'bg-blue-600', label: 'Body', labelAr: 'الهيكل' };
-            if (p === 'U') return { color: 'bg-purple-600', label: 'Network', labelAr: 'شبكة الاتصال' };
-            return { color: 'bg-slate-600', label: 'Other', labelAr: 'أخرى' };
+            if (p === 'P') return { color: 'bg-red-600', labelAr: 'المحرك وناقل الحركة' };
+            if (p === 'C') return { color: 'bg-amber-600', labelAr: 'الشاصي' };
+            if (p === 'B') return { color: 'bg-blue-600', labelAr: 'الهيكل' };
+            if (p === 'U') return { color: 'bg-purple-600', labelAr: 'شبكة الاتصال' };
+            return { color: 'bg-slate-600', labelAr: 'أخرى' };
           };
           return (
-            <div className="bg-white rounded-3xl overflow-hidden shadow-lg border border-slate-200" data-testid="obd-report-section">
-              <div className="bg-gradient-to-l from-slate-800 via-slate-900 to-black text-white p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
-                      <span className="text-white font-black text-xs">HS</span>
+            <div className="bg-white rounded-3xl overflow-hidden shadow-xl border-2 border-slate-200" data-testid="obd-report-section">
+              <div className="bg-gradient-to-l from-slate-800 via-slate-900 to-black text-white p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
+                      <span className="text-white font-black text-sm">HS</span>
                     </div>
                     <div>
-                      <div className="text-[10px] text-slate-400 font-mono" dir="ltr">HIGH SAFETY</div>
-                      <div className="text-[10px] text-slate-400 font-mono" dir="ltr">DIAGNOSTIC REPORT</div>
+                      <div className="text-xs text-slate-300 font-mono font-bold tracking-wider" dir="ltr">HIGH SAFETY</div>
+                      <div className="text-xs text-slate-400 font-mono tracking-wider" dir="ltr">DIAGNOSTIC REPORT</div>
                     </div>
                   </div>
-                  <div className="text-left" dir="ltr">
-                    <div className="text-[10px] text-slate-400 font-mono">CODES FOUND</div>
-                    <div className="text-2xl font-black text-emerald-400">{obdCodes.length}</div>
+                  <div className="text-left bg-white/10 rounded-xl px-4 py-2" dir="ltr">
+                    <div className="text-xs text-slate-400 font-mono">CODES FOUND</div>
+                    <div className="text-3xl font-black text-emerald-400">{obdCodes.length}</div>
                   </div>
                 </div>
-                <div className="text-center border-t border-white/10 pt-3">
-                  <h3 className="text-lg font-black font-arabic">تقرير فحص كمبيوتر السيارة</h3>
-                  <p className="text-slate-400 text-xs font-mono mt-0.5" dir="ltr">OBD-II Diagnostic Trouble Codes Report</p>
+                <div className="text-center border-t border-white/10 pt-4">
+                  <h3 className="text-xl font-black font-arabic">تقرير فحص كمبيوتر السيارة</h3>
+                  <p className="text-slate-400 text-sm font-mono mt-1" dir="ltr">OBD-II Diagnostic Trouble Codes Report</p>
                 </div>
               </div>
 
@@ -1136,23 +1136,23 @@ export default function PublicReport() {
                 {obdCodes.map((obd, idx) => {
                   const type = getCodeType(obd.code);
                   return (
-                    <div key={idx} className="px-4 py-3 flex items-start gap-3 hover:bg-slate-50 transition-colors">
-                      <div className="shrink-0 pt-0.5">
-                        <div className={`font-mono font-black text-white text-sm px-3 py-1.5 rounded-lg ${type.color} shadow-sm min-w-[70px] text-center`}>{obd.code}</div>
-                        <div className="text-[9px] text-center text-slate-400 mt-1 font-arabic">{type.labelAr}</div>
+                    <div key={idx} className="px-5 py-4 flex items-center gap-4">
+                      <div className="shrink-0">
+                        <div className={`font-mono font-black text-white text-lg px-4 py-2 rounded-xl ${type.color} shadow-md min-w-[85px] text-center`}>{obd.code}</div>
+                        <div className="text-[10px] text-center text-slate-400 mt-1.5 font-arabic font-medium">{type.labelAr}</div>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-bold text-slate-900 font-arabic leading-snug">{obd.nameAr}</div>
-                        <div className="text-xs text-slate-500 font-mono mt-0.5 leading-snug" dir="ltr">{obd.nameEn}</div>
+                        <div className="text-base font-bold text-slate-900 font-arabic leading-snug">{obd.nameAr}</div>
+                        <div className="text-sm text-slate-500 font-mono mt-1" dir="ltr">{obd.nameEn}</div>
                       </div>
                     </div>
                   );
                 })}
               </div>
 
-              <div className="bg-slate-50 border-t border-slate-200 px-4 py-2.5 flex items-center justify-between">
-                <span className="text-[10px] text-slate-400 font-mono" dir="ltr">HIGH SAFETY INSPECTION CENTER</span>
-                <span className="text-[10px] text-slate-400 font-mono" dir="ltr">HS-OBD-{String(inspection.id).padStart(4, '0')}</span>
+              <div className="bg-slate-100 border-t-2 border-slate-200 px-5 py-3 flex items-center justify-between">
+                <span className="text-xs text-slate-500 font-mono font-bold" dir="ltr">HIGH SAFETY INSPECTION CENTER</span>
+                <span className="text-xs text-slate-400 font-mono" dir="ltr">HS-OBD-{String(inspection.id).padStart(4, '0')}</span>
               </div>
             </div>
           );

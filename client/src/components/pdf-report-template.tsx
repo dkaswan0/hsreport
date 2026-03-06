@@ -1021,35 +1021,35 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
           if (obdCodes.length === 0) return null;
           const getCodeColor = (code: string) => {
             const p = code.charAt(0).toUpperCase();
-            if (p === 'P') return { bg: '#dc2626', labelAr: 'المحرك' };
+            if (p === 'P') return { bg: '#dc2626', labelAr: 'المحرك وناقل الحركة' };
             if (p === 'C') return { bg: '#d97706', labelAr: 'الشاصي' };
             if (p === 'B') return { bg: '#2563eb', labelAr: 'الهيكل' };
-            if (p === 'U') return { bg: '#9333ea', labelAr: 'الشبكة' };
+            if (p === 'U') return { bg: '#9333ea', labelAr: 'شبكة الاتصال' };
             return { bg: '#475569', labelAr: 'أخرى' };
           };
           return (
-            <div style={{ borderTop: `2px solid ${BRAND.accent}`, flexShrink: 0 }}>
-              <div style={{ background: 'linear-gradient(to left, #1e293b, #0f172a, #000000)', padding: '14px 24px', color: 'white' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ width: '28px', height: '28px', backgroundColor: '#10b981', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <span style={{ color: 'white', fontWeight: '900', fontSize: '8px', fontFamily: 'Arial, sans-serif' }}>HS</span>
+            <div style={{ borderTop: `3px solid ${BRAND.accent}`, flexShrink: 0 }}>
+              <div style={{ background: 'linear-gradient(to left, #1e293b, #0f172a, #000000)', padding: '18px 24px', color: 'white' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: '36px', height: '36px', backgroundColor: '#10b981', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ color: 'white', fontWeight: '900', fontSize: '11px', fontFamily: 'Arial, sans-serif' }}>HS</span>
                     </div>
                     <div>
-                      <div style={{ fontSize: '7px', color: '#94a3b8', fontFamily: 'monospace', letterSpacing: '1px' }}>HIGH SAFETY</div>
-                      <div style={{ fontSize: '7px', color: '#94a3b8', fontFamily: 'monospace', letterSpacing: '1px' }}>DIAGNOSTIC REPORT</div>
+                      <div style={{ fontSize: '9px', color: '#cbd5e1', fontFamily: 'monospace', letterSpacing: '1.5px', fontWeight: 'bold' }}>HIGH SAFETY</div>
+                      <div style={{ fontSize: '8px', color: '#94a3b8', fontFamily: 'monospace', letterSpacing: '1px' }}>DIAGNOSTIC REPORT</div>
                     </div>
                   </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '7px', color: '#94a3b8', fontFamily: 'monospace' }}>CODES FOUND</div>
-                    <div style={{ fontSize: '18px', fontWeight: '900', color: '#34d399', fontFamily: 'monospace' }}>{obdCodes.length}</div>
+                  <div style={{ textAlign: 'right', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '8px', padding: '6px 12px' }}>
+                    <div style={{ fontSize: '8px', color: '#94a3b8', fontFamily: 'monospace' }}>CODES FOUND</div>
+                    <div style={{ fontSize: '22px', fontWeight: '900', color: '#34d399', fontFamily: 'monospace' }}>{obdCodes.length}</div>
                   </div>
                 </div>
-                <div style={{ textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '8px' }}>
-                  <div style={{ ...textStyle, fontSize: '12px', fontWeight: '900', color: 'white' }}>
+                <div style={{ textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '10px' }}>
+                  <div style={{ ...textStyle, fontSize: '14px', fontWeight: '900', color: 'white' }}>
                     {isAr ? 'تقرير فحص كمبيوتر السيارة' : 'Vehicle Computer Diagnostic Report'}
                   </div>
-                  <div style={{ fontSize: '8px', color: '#94a3b8', fontFamily: 'monospace', marginTop: '2px' }}>
+                  <div style={{ fontSize: '9px', color: '#94a3b8', fontFamily: 'monospace', marginTop: '3px' }}>
                     OBD-II Diagnostic Trouble Codes Report
                   </div>
                 </div>
@@ -1059,23 +1059,23 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
                 {obdCodes.map((obd, idx) => {
                   const codeColor = getCodeColor(obd.code);
                   return (
-                    <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', padding: '8px 24px', borderBottom: '1px solid #f1f5f9', backgroundColor: idx % 2 === 0 ? '#ffffff' : '#fafafa' }}>
+                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 24px', borderBottom: '1px solid #e2e8f0', backgroundColor: idx % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
                       <div style={{ flexShrink: 0, textAlign: 'center' }}>
-                        <div style={{ fontFamily: 'monospace', fontWeight: '900', color: 'white', fontSize: '9px', padding: '4px 10px', borderRadius: '6px', backgroundColor: codeColor.bg, minWidth: '55px', textAlign: 'center' }}>{obd.code}</div>
-                        <div style={{ ...textStyle, fontSize: '7px', color: '#94a3b8', marginTop: '2px' }}>{codeColor.labelAr}</div>
+                        <div style={{ fontFamily: 'monospace', fontWeight: '900', color: 'white', fontSize: '11px', padding: '5px 12px', borderRadius: '8px', backgroundColor: codeColor.bg, minWidth: '65px', textAlign: 'center' }}>{obd.code}</div>
+                        <div style={{ ...textStyle, fontSize: '8px', color: '#94a3b8', marginTop: '3px' }}>{codeColor.labelAr}</div>
                       </div>
                       <div style={{ flex: 1 }}>
-                        <div style={{ ...textStyle, fontSize: '10px', fontWeight: 'bold', color: '#0f172a' }}>{obd.nameAr}</div>
-                        <div style={{ ...englishStyle, fontSize: '8px', color: '#64748b', marginTop: '1px' }}>{obd.nameEn}</div>
+                        <div style={{ ...textStyle, fontSize: '11px', fontWeight: 'bold', color: '#0f172a', lineHeight: '1.4' }}>{obd.nameAr}</div>
+                        <div style={{ ...englishStyle, fontSize: '9px', color: '#64748b', marginTop: '2px' }}>{obd.nameEn}</div>
                       </div>
                     </div>
                   );
                 })}
               </div>
 
-              <div style={{ backgroundColor: '#f8fafc', borderTop: '1px solid #e2e8f0', padding: '6px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '7px', color: '#94a3b8', fontFamily: 'monospace', letterSpacing: '0.5px' }}>HIGH SAFETY INSPECTION CENTER</span>
-                <span style={{ fontSize: '7px', color: '#94a3b8', fontFamily: 'monospace' }}>HS-OBD-{String(inspection.id).padStart(4, '0')}</span>
+              <div style={{ backgroundColor: '#f1f5f9', borderTop: '2px solid #e2e8f0', padding: '8px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '8px', color: '#64748b', fontFamily: 'monospace', letterSpacing: '0.5px', fontWeight: 'bold' }}>HIGH SAFETY INSPECTION CENTER</span>
+                <span style={{ fontSize: '8px', color: '#94a3b8', fontFamily: 'monospace' }}>HS-OBD-{String(inspection.id).padStart(4, '0')}</span>
               </div>
             </div>
           );
