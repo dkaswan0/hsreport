@@ -19,16 +19,21 @@ import {
   Search,
   Check,
   Pencil,
-  X
+  X,
+  Monitor,
+  Upload,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { useState, useRef, useEffect, useMemo, useCallback, useDeferredValue } from "react";
 import { cn } from "@/lib/utils";
 import * as Dialog from "@radix-ui/react-dialog";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useToast } from "@/hooks/use-toast";
-import type { InspectionItem, CreateInspectionItemRequest, FaultLibrary } from "@shared/schema";
-import { useQuery } from "@tanstack/react-query";
+import type { InspectionItem, CreateInspectionItemRequest, FaultLibrary, Inspection } from "@shared/schema";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { INSPECTION_CATEGORIES, CATEGORY_GROUPS, MAIN_SECTIONS, getCategoryLabel } from "@shared/categories";
+import { queryClient } from "@/lib/queryClient";
 
 export default function InspectionDetails() {
   const [, params] = useRoute("/inspections/:id");
@@ -624,6 +629,9 @@ export default function InspectionDetails() {
             )}
           </div>
         </div>
+
+        {/* OBD Codes Section */}
+        <ObdCodesSection inspection={inspection} inspectionId={id} />
       </div>
       </div>
 
@@ -1585,5 +1593,236 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
+  );
+}
+
+interface ObdCode {
+  code: string;
+  nameEn: string;
+  nameAr: string;
+  diagnosis?: string;
+  causes?: string;
+  solutions?: string;
+}
+
+function ObdCodesSection({ inspection, inspectionId }: { inspection: InspectionResponse; inspectionId: number }) {
+  const { toast } = useToast();
+  const updateInspection = useUpdateInspection();
+  const [manualCode, setManualCode] = useState('');
+  const [isLookingUp, setIsLookingUp] = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [expandedCode, setExpandedCode] = useState<string | null>(null);
+  const obdImageRef = useRef<HTMLInputElement>(null);
+
+  const obdCodes: ObdCode[] = (inspection.obdCodes as ObdCode[] | null) || [];
+
+  const compressImage = (file: File, maxWidth = 1200, quality = 0.8): Promise<string> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth) { height = (height * maxWidth) / width; width = maxWidth; }
+        canvas.width = width;
+        canvas.height = height;
+        ctx?.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const saveObdCodes = (newCodes: ObdCode[]) => {
+    updateInspection.mutate({ id: inspectionId, obdCodes: newCodes as any }, {
+      onSuccess: () => {
+        toast({ title: "تم حفظ أكواد الأعطال" });
+      },
+      onError: () => {
+        toast({ title: "خطأ", description: "تعذر حفظ الأكواد", variant: "destructive" });
+      }
+    });
+  };
+
+  const handleManualAdd = async () => {
+    const code = manualCode.trim().toUpperCase();
+    if (!code) return;
+    if (obdCodes.some(c => c.code === code)) {
+      toast({ title: "الكود موجود مسبقاً", variant: "destructive" });
+      return;
+    }
+
+    setIsLookingUp(true);
+    try {
+      const res = await fetch('/api/obd/lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ codes: [code] })
+      });
+      const data = await res.json();
+      if (data.codes && data.codes.length > 0) {
+        const newCodes = [...obdCodes, ...data.codes];
+        saveObdCodes(newCodes);
+      } else {
+        const fallback: ObdCode = { code, nameEn: 'Unknown Code', nameAr: 'كود غير معروف' };
+        saveObdCodes([...obdCodes, fallback]);
+      }
+      setManualCode('');
+    } catch {
+      toast({ title: "خطأ", description: "تعذر البحث عن الكود", variant: "destructive" });
+    }
+    setIsLookingUp(false);
+  };
+
+  const handleImageExtract = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+
+    setIsExtracting(true);
+    try {
+      const compressed = await compressImage(file);
+      const res = await fetch('/api/obd/extract-from-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ imageBase64: compressed })
+      });
+      const data = await res.json();
+      if (data.codes && data.codes.length > 0) {
+        const existingCodes = new Set(obdCodes.map(c => c.code));
+        const newOnly = data.codes.filter((c: ObdCode) => !existingCodes.has(c.code));
+        if (newOnly.length > 0) {
+          saveObdCodes([...obdCodes, ...newOnly]);
+          toast({ title: `تم استخراج ${newOnly.length} كود جديد` });
+        } else {
+          toast({ title: "جميع الأكواد المستخرجة موجودة مسبقاً" });
+        }
+      } else {
+        toast({ title: "لم يتم العثور على أكواد في الصورة", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "خطأ", description: "تعذر استخراج الأكواد من الصورة", variant: "destructive" });
+    }
+    setIsExtracting(false);
+  };
+
+  const handleDeleteCode = (codeToDelete: string) => {
+    const filtered = obdCodes.filter(c => c.code !== codeToDelete);
+    saveObdCodes(filtered);
+  };
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+      <div className="p-4 md:p-5 bg-gradient-to-l from-emerald-50 to-white border-b border-slate-100">
+        <div className="flex items-center justify-between">
+          <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <Monitor className="w-5 h-5 text-emerald-600" />
+            قراءة أعطال كمبيوتر السيارة OBD
+            {obdCodes.length > 0 && (
+              <span className="text-xs font-medium bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">{obdCodes.length}</span>
+            )}
+          </h3>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-2 mt-3">
+          <div className="flex-1 flex gap-2">
+            <input
+              value={manualCode}
+              onChange={(e) => setManualCode(e.target.value.toUpperCase())}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleManualAdd(); }}
+              placeholder="أدخل كود العطل مثل P0128"
+              className="flex-1 px-3 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:ring-2 focus:ring-emerald-300 focus:border-emerald-500 outline-none"
+              dir="ltr"
+              data-testid="input-obd-code"
+            />
+            <button
+              onClick={handleManualAdd}
+              disabled={isLookingUp || !manualCode.trim()}
+              className="px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap"
+              data-testid="btn-add-obd-code"
+            >
+              {isLookingUp ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+              إضافة
+            </button>
+          </div>
+          <div>
+            <input type="file" accept="image/*" ref={obdImageRef} className="hidden" onChange={handleImageExtract} />
+            <button
+              onClick={() => obdImageRef.current?.click()}
+              disabled={isExtracting}
+              className="w-full sm:w-auto px-4 py-2.5 bg-purple-600 text-white rounded-xl text-sm font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5 whitespace-nowrap"
+              data-testid="btn-obd-scan-image"
+            >
+              {isExtracting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+              {isExtracting ? 'جارٍ الاستخراج...' : 'صورة جهاز الفحص'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {obdCodes.length === 0 ? (
+        <div className="p-8 text-center text-slate-400">
+          <Monitor className="w-12 h-12 mx-auto mb-3 opacity-20" />
+          <p className="text-sm">لا توجد أكواد أعطال</p>
+          <p className="text-xs mt-1">أدخل الكود يدوياً أو صور شاشة جهاز الفحص</p>
+        </div>
+      ) : (
+        <div className="divide-y divide-slate-100">
+          {obdCodes.map((obd) => (
+            <div key={obd.code} className="group">
+              <div className="flex items-center gap-3 px-4 md:px-5 py-3 hover:bg-slate-50 transition-colors">
+                <span className="font-mono font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-lg text-sm border border-emerald-200 shrink-0">{obd.code}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-slate-800 truncate">{obd.nameAr}</div>
+                  <div className="text-xs text-slate-400 font-mono truncate">{obd.nameEn}</div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  {obd.diagnosis && (
+                    <button
+                      onClick={() => setExpandedCode(expandedCode === obd.code ? null : obd.code)}
+                      className="p-1.5 rounded-lg hover:bg-slate-200 transition-colors text-slate-400 hover:text-slate-700"
+                      title="عرض التفاصيل"
+                      data-testid={`btn-toggle-obd-details-${obd.code}`}
+                    >
+                      {expandedCode === obd.code ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleDeleteCode(obd.code)}
+                    className="p-1.5 rounded-lg hover:bg-red-50 transition-colors text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100"
+                    data-testid={`btn-delete-obd-${obd.code}`}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              {expandedCode === obd.code && obd.diagnosis && (
+                <div className="px-5 pb-4 space-y-2 bg-slate-50 border-t border-slate-100 animate-in slide-in-from-top-2 duration-200">
+                  <div className="p-3 rounded-xl bg-blue-50 border border-blue-100">
+                    <div className="text-xs font-bold text-blue-600 mb-1">التشخيص</div>
+                    <div className="text-sm text-blue-800">{obd.diagnosis}</div>
+                  </div>
+                  {obd.causes && (
+                    <div className="p-3 rounded-xl bg-amber-50 border border-amber-100">
+                      <div className="text-xs font-bold text-amber-600 mb-1">الأسباب المحتملة</div>
+                      <div className="text-sm text-amber-800">{obd.causes}</div>
+                    </div>
+                  )}
+                  {obd.solutions && (
+                    <div className="p-3 rounded-xl bg-green-50 border border-green-100">
+                      <div className="text-xs font-bold text-green-600 mb-1">الحلول المقترحة</div>
+                      <div className="text-sm text-green-800">{obd.solutions}</div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

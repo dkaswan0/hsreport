@@ -1015,6 +1015,52 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
           )}
         </div>
 
+        {/* OBD Codes Section */}
+        {(() => {
+          const obdCodes = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string}> | null) || [];
+          if (obdCodes.length === 0) return null;
+          return (
+            <div style={{ padding: '16px 24px', borderTop: `2px solid ${BRAND.accent}`, flexShrink: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                <div style={{ width: '5px', height: '20px', backgroundColor: '#059669', borderRadius: '3px' }}></div>
+                <h3 style={{ color: BRAND.dark, fontSize: '12px', fontWeight: 'bold', margin: 0 }}>
+                  {isAr ? (
+                    <><span style={textStyle}>قراءة أعطال كمبيوتر السيارة</span><span style={{ ...englishStyle, marginRight: '10px', color: BRAND.muted }}>| OBD Diagnostic Codes</span></>
+                  ) : (
+                    <><span style={englishStyle}>OBD Diagnostic Codes</span><span style={{ ...textStyle, marginLeft: '10px', color: BRAND.muted }}>| قراءة أعطال كمبيوتر السيارة</span></>
+                  )}
+                </h3>
+              </div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#ecfdf5', borderBottom: '2px solid #a7f3d0' }}>
+                    <th style={{ padding: '6px 10px', textAlign: isAr ? 'right' : 'left', fontWeight: 'bold', color: '#065f46', ...textStyle }}>
+                      {isAr ? 'كود العطل' : 'Code'}
+                    </th>
+                    <th style={{ padding: '6px 10px', textAlign: 'left', fontWeight: 'bold', color: '#065f46', ...englishStyle }}>
+                      English
+                    </th>
+                    <th style={{ padding: '6px 10px', textAlign: 'right', fontWeight: 'bold', color: '#065f46', ...textStyle }}>
+                      العربية
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {obdCodes.map((obd, idx) => (
+                    <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: idx % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
+                      <td style={{ padding: '5px 10px' }}>
+                        <span style={{ fontFamily: 'monospace', fontWeight: 'bold', color: '#059669', backgroundColor: '#ecfdf5', padding: '2px 6px', borderRadius: '4px', fontSize: '9px', border: '1px solid #a7f3d0' }}>{obd.code}</span>
+                      </td>
+                      <td style={{ padding: '5px 10px', textAlign: 'left', color: '#475569', ...englishStyle, fontSize: '9px' }}>{obd.nameEn}</td>
+                      <td style={{ padding: '5px 10px', textAlign: 'right', color: '#1e293b', ...textStyle, fontWeight: '600' }}>{obd.nameAr}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        })()}
+
         {/* Terms & Conditions */}
         <div style={{
           padding: '14px 24px',

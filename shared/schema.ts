@@ -46,6 +46,7 @@ export const inspections = pgTable("inspections", {
   frontRightDoorInteriorPhoto: text("front_right_door_interior_photo"), // صورة داخلية الباب الأمامي يمين
   hoodInteriorPhoto: text("hood_interior_photo"), // صورة داخلية حجرة المحرك
   trunkInteriorPhoto: text("trunk_interior_photo"), // صورة داخلية الشنطة والشاصي
+  obdCodes: jsonb("obd_codes"), // Array of OBD fault codes: [{code, nameEn, nameAr, diagnosis, causes, solutions}]
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

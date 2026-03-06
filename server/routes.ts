@@ -255,6 +255,125 @@ export async function registerRoutes(
     }
   });
 
+  // OBD Code Lookup - Get descriptions for fault codes using AI
+  app.post("/api/obd/lookup", async (req, res) => {
+    try {
+      const { codes } = req.body;
+      if (!codes || !Array.isArray(codes) || codes.length === 0) {
+        return res.status(400).json({ error: "No codes provided" });
+      }
+
+      const codeList = codes.map((c: string) => c.trim().toUpperCase()).filter(Boolean);
+      
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are an expert automotive OBD-II diagnostics specialist. You must provide accurate DTC (Diagnostic Trouble Code) information.
+For each code, provide:
+- nameEn: Official English fault name (concise)
+- nameAr: Arabic translation of the fault name (Modern Standard Arabic - الفصحى المبسطة)
+- diagnosis: Detailed technical diagnosis explanation in Arabic
+- causes: Common causes in Arabic (comma separated)
+- solutions: Recommended repair solutions in Arabic (comma separated)
+
+Return a JSON array. Be precise and technical.`
+          },
+          {
+            role: "user",
+            content: `Provide full details for these OBD-II fault codes: ${codeList.join(', ')}
+
+Return JSON array format:
+[{"code":"P0128","nameEn":"Coolant Thermostat Below Regulating Temperature","nameAr":"منظم حرارة سائل التبريد أقل من درجة التنظيم","diagnosis":"...","causes":"...","solutions":"..."}]`
+          }
+        ],
+        max_tokens: 2000
+      });
+
+      const content = response.choices[0].message.content || "[]";
+      const jsonMatch = content.match(/\[[\s\S]*\]/);
+      const result = JSON.parse(jsonMatch ? jsonMatch[0] : "[]");
+      res.json({ codes: result });
+    } catch (error: any) {
+      console.error("OBD Lookup Error:", error?.message || error);
+      res.status(500).json({ error: "Failed to lookup OBD codes" });
+    }
+  });
+
+  // OBD Extract from Image - Use AI vision to read codes from OBD scanner screen
+  app.post("/api/obd/extract-from-image", async (req, res) => {
+    try {
+      const { imageBase64 } = req.body;
+      if (!imageBase64) {
+        return res.status(400).json({ error: "No image provided" });
+      }
+
+      const imageUrl = imageBase64.startsWith('data:') ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`;
+
+      const extractResponse = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are an expert at reading OBD-II diagnostic scanner screens. Extract ALL fault codes visible in the image.
+OBD codes follow patterns like: P0xxx, P1xxx, P2xxx, P3xxx, C0xxx, C1xxx, C2xxx, B0xxx, B1xxx, U0xxx, U1xxx, etc.
+Return ONLY a JSON array of the codes found. If no codes are found, return an empty array.`
+          },
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: `Extract all OBD-II fault codes from this diagnostic scanner image. Return JSON: {"codes":["P0128","C1201"]}`
+              },
+              {
+                type: "image_url",
+                image_url: { url: imageUrl, detail: "high" }
+              }
+            ]
+          }
+        ],
+        max_tokens: 500
+      });
+
+      const extractContent = extractResponse.choices[0].message.content || "{}";
+      const extractJson = extractContent.match(/\{[\s\S]*\}/);
+      const extracted = JSON.parse(extractJson ? extractJson[0] : '{"codes":[]}');
+      const extractedCodes: string[] = extracted.codes || [];
+
+      if (extractedCodes.length === 0) {
+        return res.json({ codes: [], message: "لم يتم العثور على أكواد أعطال في الصورة" });
+      }
+
+      const lookupResponse = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are an expert automotive OBD-II diagnostics specialist. Provide accurate DTC information.
+For each code provide: nameEn (English name), nameAr (Arabic - الفصحى المبسطة), diagnosis (Arabic), causes (Arabic), solutions (Arabic).
+Return a JSON array.`
+          },
+          {
+            role: "user",
+            content: `Provide full details for: ${extractedCodes.join(', ')}
+Return: [{"code":"P0128","nameEn":"...","nameAr":"...","diagnosis":"...","causes":"...","solutions":"..."}]`
+          }
+        ],
+        max_tokens: 2000
+      });
+
+      const lookupContent = lookupResponse.choices[0].message.content || "[]";
+      const lookupJson = lookupContent.match(/\[[\s\S]*\]/);
+      const result = JSON.parse(lookupJson ? lookupJson[0] : "[]");
+      res.json({ codes: result });
+    } catch (error: any) {
+      console.error("OBD Extract Error:", error?.message || error);
+      res.status(500).json({ error: "Failed to extract OBD codes from image" });
+    }
+  });
+
   app.get(api.faultLibrary.list.path, async (req, res) => {
     const list = await storage.getFaultLibrary(req.query.search as string);
     res.json(list);

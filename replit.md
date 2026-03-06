@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a bilingual (Arabic/English) vehicle inspection management system built for automotive safety assessment. The application enables examiners to create detailed vehicle inspections, document faults with photos, and generate professional PDF reports. It features VIN decoding, OCR-based VIN scanning, AI-powered fault suggestions, and an interactive visual car diagram showing inspection results by category.
+This is a bilingual (Arabic/English) vehicle inspection management system built for automotive safety assessment. The application enables examiners to create detailed vehicle inspections, document faults with photos, and generate professional PDF reports. It features VIN decoding, OCR-based VIN scanning, AI-powered fault suggestions, OBD-II diagnostic code reading (manual entry + image extraction from scanner screens), and an interactive visual car diagram showing inspection results by category.
 
 ## User Preferences
 
@@ -58,7 +58,7 @@ The system organizes vehicle inspections into **6 main sections** with subcatego
 ### AI Integrations
 - **OpenAI API**: Used via Replit AI Integrations for chat completions and image generation
 - **Environment Variables**: `AI_INTEGRATIONS_OPENAI_API_KEY`, `AI_INTEGRATIONS_OPENAI_BASE_URL`
-- **Features**: AI-powered fault suggestions, image generation for reports
+- **Features**: AI-powered fault suggestions, image generation for reports, OBD code lookup and image extraction
 
 ### Database
 - **PostgreSQL**: Primary data store, connection via `DATABASE_URL` environment variable

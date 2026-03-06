@@ -1096,6 +1096,42 @@ export default function PublicReport() {
           </div>
         )}
 
+        {/* OBD Codes Section - Customer View */}
+        {(() => {
+          const obdCodes = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string}> | null) || [];
+          if (obdCodes.length === 0) return null;
+          return (
+            <div className="bg-white rounded-3xl overflow-hidden shadow-lg border border-slate-200">
+              <div className="bg-gradient-to-l from-emerald-700 to-emerald-900 text-white px-6 py-4 text-center">
+                <h3 className="text-xl font-black font-arabic">قراءة أعطال كمبيوتر السيارة</h3>
+                <p className="text-emerald-200 text-sm mt-1">OBD-II Diagnostic Trouble Codes</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm" dir="rtl">
+                  <thead>
+                    <tr className="bg-slate-100 border-b-2 border-slate-200">
+                      <th className="px-4 py-3 text-right font-bold text-slate-700 font-arabic whitespace-nowrap">كود العطل</th>
+                      <th className="px-4 py-3 text-right font-bold text-slate-700 whitespace-nowrap">English</th>
+                      <th className="px-4 py-3 text-right font-bold text-slate-700 font-arabic whitespace-nowrap">العربية</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {obdCodes.map((obd, idx) => (
+                      <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-4 py-3">
+                          <span className="font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg text-xs border border-emerald-200">{obd.code}</span>
+                        </td>
+                        <td className="px-4 py-3 text-slate-600 font-mono text-xs" dir="ltr">{obd.nameEn}</td>
+                        <td className="px-4 py-3 text-slate-800 font-arabic font-medium">{obd.nameAr}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Terms and Conditions */}
         <div className="bg-slate-50 rounded-3xl p-6 border border-slate-200">
           <h3 className="text-lg font-bold text-slate-800 mb-4 text-center font-arabic">
