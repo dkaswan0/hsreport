@@ -22,6 +22,9 @@ declare module "express-session" {
   }
 }
 
+// Trust proxy for production (Replit deployment)
+app.set("trust proxy", 1);
+
 // Session middleware for authentication
 app.use(
   session({
@@ -34,6 +37,7 @@ app.use(
     cookie: {
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
+      sameSite: "lax" as const,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
   })
