@@ -374,6 +374,145 @@ Return: [{"code":"P0128","nameEn":"...","nameAr":"...","diagnosis":"...","causes
     }
   });
 
+  // === Autel Report Import from Gmail ===
+  app.post("/api/autel/import/:inspectionId", requireAuth, async (req, res) => {
+    try {
+      const inspectionId = Number(req.params.inspectionId);
+      if (isNaN(inspectionId)) {
+        return res.status(400).json({ error: "رقم الفحص غير صالح" });
+      }
+
+      const existingInspection = await storage.getInspection(inspectionId);
+      if (!existingInspection) {
+        return res.status(404).json({ error: "الفحص غير موجود" });
+      }
+
+      const emailUser = process.env.EMAIL_USER;
+      const emailPass = process.env.EMAIL_PASS;
+      if (!emailUser || !emailPass) {
+        return res.status(500).json({ error: "لم يتم تهيئة بيانات البريد الإلكتروني" });
+      }
+
+      const { ImapFlow } = await import("imapflow");
+      const { simpleParser } = await import("mailparser");
+
+      const client = new ImapFlow({
+        host: "imap.gmail.com",
+        port: 993,
+        secure: true,
+        auth: { user: emailUser, pass: emailPass },
+        logger: false,
+      });
+
+      await client.connect();
+      const lock = await client.getMailboxLock("INBOX");
+      
+      try {
+        const messages = await client.search({
+          from: "autelhighsafety@gmail.com",
+        });
+
+        if (!messages || messages.length === 0) {
+          await lock.release();
+          await client.logout();
+          return res.status(404).json({ error: "لا توجد رسائل من جهاز Autel" });
+        }
+
+        const lastMessageUid = messages[messages.length - 1];
+        const download = await client.download(lastMessageUid, undefined, { uid: true });
+
+        const chunks: Buffer[] = [];
+        for await (const chunk of download.content) {
+          chunks.push(chunk as Buffer);
+        }
+        const emailBuffer = Buffer.concat(chunks);
+        const parsed = await simpleParser(emailBuffer);
+
+        let pdfAttachment: { filename: string; content: Buffer } | null = null;
+        if (parsed.attachments) {
+          for (const att of parsed.attachments) {
+            if (
+              att.contentType === "application/pdf" ||
+              (att.filename && att.filename.toLowerCase().endsWith(".pdf"))
+            ) {
+              pdfAttachment = { filename: att.filename || "autel-report.pdf", content: att.content };
+              break;
+            }
+          }
+        }
+
+        if (!pdfAttachment) {
+          await lock.release();
+          await client.logout();
+          return res.status(404).json({ error: "لا يوجد ملف PDF مرفق في آخر رسالة من Autel" });
+        }
+
+        const pdfBase64 = pdfAttachment.content.toString("base64");
+        const filename = pdfAttachment.filename;
+
+        await storage.updateInspection(inspectionId, {
+          autelReportPdf: pdfBase64,
+          autelReportName: filename,
+        } as any);
+
+        await lock.release();
+        await client.logout();
+
+        res.json({ 
+          success: true, 
+          filename,
+          message: `تم استيراد تقرير Autel: ${filename}` 
+        });
+      } catch (innerError) {
+        await lock.release();
+        await client.logout();
+        throw innerError;
+      }
+    } catch (error: any) {
+      console.error("Autel Import Error:", error?.message || error);
+      res.status(500).json({ error: `فشل استيراد تقرير Autel: ${error?.message || "خطأ غير معروف"}` });
+    }
+  });
+
+  // Serve Autel Report PDF (authenticated)
+  app.get("/api/autel/report/:inspectionId", requireAuth, async (req, res) => {
+    try {
+      const inspectionId = Number(req.params.inspectionId);
+      const inspection = await storage.getInspection(inspectionId);
+      if (!inspection || !inspection.autelReportPdf) {
+        return res.status(404).json({ error: "لا يوجد تقرير Autel لهذا الفحص" });
+      }
+
+      const pdfBuffer = Buffer.from(inspection.autelReportPdf, "base64");
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `inline; filename="${inspection.autelReportName || 'autel-report.pdf'}"`);
+      res.setHeader("Content-Length", pdfBuffer.length);
+      res.send(pdfBuffer);
+    } catch (error: any) {
+      console.error("Autel Report Serve Error:", error?.message || error);
+      res.status(500).json({ error: "فشل تحميل تقرير Autel" });
+    }
+  });
+
+  // Serve Autel Report by share token (public access)
+  app.get("/api/autel/report/public/:token", async (req, res) => {
+    try {
+      const inspection = await storage.getInspectionByToken(req.params.token);
+      if (!inspection || !inspection.autelReportPdf) {
+        return res.status(404).json({ error: "لا يوجد تقرير Autel لهذا الفحص" });
+      }
+
+      const pdfBuffer = Buffer.from(inspection.autelReportPdf, "base64");
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `inline; filename="${inspection.autelReportName || 'autel-report.pdf'}"`);
+      res.setHeader("Content-Length", pdfBuffer.length);
+      res.send(pdfBuffer);
+    } catch (error: any) {
+      console.error("Autel Public Report Error:", error?.message || error);
+      res.status(500).json({ error: "فشل تحميل تقرير Autel" });
+    }
+  });
+
   app.get(api.faultLibrary.list.path, async (req, res) => {
     const list = await storage.getFaultLibrary(req.query.search as string);
     res.json(list);

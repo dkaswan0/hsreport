@@ -47,6 +47,8 @@ export const inspections = pgTable("inspections", {
   hoodInteriorPhoto: text("hood_interior_photo"), // صورة داخلية حجرة المحرك
   trunkInteriorPhoto: text("trunk_interior_photo"), // صورة داخلية الشنطة والشاصي
   obdCodes: jsonb("obd_codes"), // Array of OBD fault codes: [{code, nameEn, nameAr, diagnosis, causes, solutions}]
+  autelReportPdf: text("autel_report_pdf"), // Base64 encoded Autel PDF report
+  autelReportName: text("autel_report_name"), // Original filename of Autel report
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

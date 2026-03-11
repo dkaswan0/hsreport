@@ -23,7 +23,9 @@ import {
   Monitor,
   Upload,
   Eye,
-  EyeOff
+  EyeOff,
+  Download,
+  ExternalLink,
 } from "lucide-react";
 import { useState, useRef, useEffect, useMemo, useCallback, useDeferredValue } from "react";
 import { cn } from "@/lib/utils";
@@ -1637,6 +1639,7 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
   const [manualCode, setManualCode] = useState('');
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
+  const [isImportingAutel, setIsImportingAutel] = useState(false);
   const [expandedCode, setExpandedCode] = useState<string | null>(null);
   const obdImageRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -1746,6 +1749,28 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
     saveObdCodes(filtered);
   };
 
+  const handleAutelImport = async () => {
+    setIsImportingAutel(true);
+    try {
+      const res = await fetch(`/api/autel/import/${inspectionId}`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast({ title: "تم استيراد تقرير Autel", description: data.filename });
+        queryClient.invalidateQueries({ queryKey: ['/api/inspections', inspectionId] });
+      } else {
+        toast({ title: "خطأ", description: data.error || "فشل الاستيراد", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "خطأ", description: "فشل الاتصال بالسيرفر", variant: "destructive" });
+    }
+    setIsImportingAutel(false);
+  };
+
+  const hasAutelReport = !!(inspection.autelReportPdf);
+
   const getSeverityColor = (code: string) => {
     const prefix = code.charAt(0).toUpperCase();
     switch (prefix) {
@@ -1837,6 +1862,31 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
               </button>
             </div>
           </div>
+          <button
+            onClick={handleAutelImport}
+            disabled={isImportingAutel}
+            className="w-full mt-2 px-4 py-3 bg-gradient-to-l from-orange-500 to-orange-600 text-white rounded-xl text-sm font-bold hover:from-orange-600 hover:to-orange-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98] shadow-sm"
+            data-testid="btn-import-autel"
+          >
+            {isImportingAutel ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
+            {isImportingAutel ? 'جارٍ الاستيراد من البريد...' : 'استيراد تقرير Autel من البريد'}
+          </button>
+          {hasAutelReport && (
+            <div className="mt-2 flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+              <span className="text-sm font-bold text-emerald-800 flex-1">{inspection.autelReportName || 'تقرير Autel'}</span>
+              <a
+                href={`/api/autel/report/${inspectionId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors flex items-center gap-1"
+                data-testid="btn-view-autel-report"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                فتح
+              </a>
+            </div>
+          )}
         </div>
 
         {/* Codes List */}

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a bilingual (Arabic/English) vehicle inspection management system built for automotive safety assessment. The application enables examiners to create detailed vehicle inspections, document faults with photos, and generate professional PDF reports. It features VIN decoding, OCR-based VIN scanning, AI-powered fault suggestions, OBD-II diagnostic code reading (manual entry + image extraction from scanner screens), and an interactive visual car diagram showing inspection results by category.
+This is a bilingual (Arabic/English) vehicle inspection management system built for automotive safety assessment. The application enables examiners to create detailed vehicle inspections, document faults with photos, and generate professional PDF reports. It features VIN decoding, OCR-based VIN scanning, AI-powered fault suggestions, OBD-II diagnostic code reading (manual entry + image extraction from scanner screens), Autel diagnostic report import from Gmail, and an interactive visual car diagram showing inspection results by category.
 
 ## User Preferences
 

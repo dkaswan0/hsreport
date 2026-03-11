@@ -46,3 +46,5 @@ integrations = ["javascript_openai_ai_integrations:2.0.0"]
 [userenv.shared]
 ADMIN_USERNAME = "hs"
 ADMIN_PASSWORD = "ahmed"
+EMAIL_USER = "1medommedo@gmail.com"
+EMAIL_PASS = "mcgn bunh idyh jxyv"

@@ -19,7 +19,9 @@ import {
   Fuel,
   RotateCcw,
   Palette,
-  ZoomIn
+  ZoomIn,
+  Monitor,
+  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -2047,6 +2049,40 @@ export default function InteractiveReport() {
             </div>
           );
         })()}
+
+        {/* Autel Computer Report Section */}
+        {inspection.autelReportPdf && (
+          <div className="bg-white rounded-3xl overflow-hidden shadow-xl border-2 border-orange-200" data-testid="autel-report-section">
+            <div className="bg-gradient-to-l from-orange-600 to-orange-700 px-6 py-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-black text-white font-arabic">تقرير فحص الكمبيوتر</h3>
+                  <p className="text-orange-200 text-sm font-mono mt-1" dir="ltr">Autel Computer Diagnostic Report</p>
+                </div>
+                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+                  <Monitor className="w-6 h-6 text-white" />
+                </div>
+              </div>
+            </div>
+            <div className="p-6 text-center">
+              <p className="text-slate-600 font-arabic mb-4">تقرير فحص الكمبيوتر الشامل من جهاز Autel</p>
+              <a
+                href={`/api/autel/report/${inspection.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-xl font-bold hover:bg-orange-700 transition-colors shadow-md"
+                data-testid="btn-open-autel-pdf"
+              >
+                <ExternalLink className="w-5 h-5" />
+                فتح تقرير Autel
+              </a>
+            </div>
+            <div className="bg-orange-50 border-t-2 border-orange-200 px-5 py-3 flex items-center justify-between">
+              <span className="text-xs text-orange-600 font-mono font-bold" dir="ltr">HIGH SAFETY INSPECTION CENTER</span>
+              <span className="text-xs text-orange-400 font-mono" dir="ltr">AUTEL-{String(inspection.id).padStart(4, '0')}</span>
+            </div>
+          </div>
+        )}
 
         {/* Terms and Conditions */}
         <div className="bg-slate-50 rounded-3xl p-6 border border-slate-200">
