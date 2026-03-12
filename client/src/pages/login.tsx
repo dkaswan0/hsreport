@@ -48,11 +48,15 @@ export default function Login({ onLoginSuccess }: { onLoginSuccess: () => void }
         <CardHeader className="text-center space-y-4 pb-2">
           <div className="flex justify-center">
             <div className="relative">
-              <div className="absolute inset-0 bg-[#C5852C]/20 rounded-full blur-2xl" />
+              {/* Outer glow ring */}
+              <div className="absolute -inset-3 rounded-full bg-gradient-to-br from-yellow-400/40 via-[#C5852C]/30 to-yellow-600/40 blur-xl animate-pulse" />
+              {/* Mid glow */}
+              <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-yellow-300/20 to-[#C5852C]/30 blur-md" />
               <img 
                 src={logoPath} 
                 alt="High Safety" 
-                className="h-24 w-24 object-contain relative z-10"
+                className="h-28 w-28 object-contain relative z-10 drop-shadow-[0_0_18px_rgba(197,133,44,0.7)]"
+                style={{ filter: 'drop-shadow(0 0 12px rgba(197,133,44,0.8)) drop-shadow(0 4px 20px rgba(0,0,0,0.6))' }}
               />
             </div>
           </div>

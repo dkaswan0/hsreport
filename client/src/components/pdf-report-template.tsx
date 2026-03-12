@@ -367,12 +367,12 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
             <div style={{
               width: '55px',
               height: '55px',
-              borderRadius: '10px',
+              borderRadius: '50%',
               overflow: 'hidden',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-              border: `2px solid ${BRAND.accent}`,
+              boxShadow: `0 0 18px rgba(197,133,44,0.8), 0 4px 14px rgba(0,0,0,0.5)`,
+              background: 'transparent',
             }}>
-              <img src={logoPath} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src={logoPath} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
             <div>
               <h1 style={{ color: '#ffffff', fontSize: '20px', fontWeight: 'bold', margin: 0, ...(isAr ? textStyle : englishStyle) }}>
@@ -1158,7 +1158,7 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
             alignItems: 'center',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <img src={logoPath} alt="Logo" style={{ width: '28px', height: '28px', borderRadius: '6px', border: `1px solid ${BRAND.accent}` }} />
+              <img src={logoPath} alt="Logo" style={{ width: '28px', height: '28px', borderRadius: '50%', filter: `drop-shadow(0 0 4px rgba(197,133,44,0.8))` }} />
               <div>
                 <span style={{ color: '#ffffff', fontSize: '11px', fontWeight: 'bold', ...(isAr ? textStyle : englishStyle) }}>
                   {isAr ? 'مركز الامان العالي' : 'High Safety Center'}
@@ -1298,12 +1298,12 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
             <div style={{
               width: '50px',
               height: '50px',
-              borderRadius: '10px',
+              borderRadius: '50%',
               overflow: 'hidden',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-              border: `2px solid ${BRAND.accent}`,
+              boxShadow: `0 0 18px rgba(197,133,44,0.8), 0 4px 14px rgba(0,0,0,0.5)`,
+              background: 'transparent',
             }}>
-              <img src={logoPath} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src={logoPath} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
             <div>
               <h1 style={{ color: '#ffffff', fontSize: '18px', fontWeight: 'bold', margin: 0, ...arTextStyle }}>
@@ -1632,7 +1632,7 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
             alignItems: 'center',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <img src={logoPath} alt="Logo" style={{ width: '22px', height: '22px', borderRadius: '4px', border: `1px solid ${BRAND.accent}` }} />
+              <img src={logoPath} alt="Logo" style={{ width: '22px', height: '22px', borderRadius: '50%', filter: `drop-shadow(0 0 3px rgba(197,133,44,0.8))` }} />
               <span style={{ color: '#ffffff', fontSize: '10px', fontWeight: 'bold', ...arTextStyle }}>
                 {isAr ? 'مركز الأمان العالي' : 'High Safety Center'}
               </span>

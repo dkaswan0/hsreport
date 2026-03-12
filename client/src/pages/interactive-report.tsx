@@ -579,11 +579,15 @@ const CompanyHeader = () => (
     <div className="relative z-10 flex flex-col md:flex-row-reverse items-center justify-between gap-6">
       {/* Logo and Name */}
       <div className="flex items-center gap-4">
-        <img 
-          src={logoPath} 
-          alt="High Safety Logo" 
-          className="w-20 h-20 object-contain rounded-2xl bg-white p-1 shadow-lg"
-        />
+        <div className="relative">
+          <div className="absolute -inset-2 rounded-full bg-gradient-to-br from-yellow-400/50 via-[#C5852C]/40 to-yellow-600/50 blur-lg" />
+          <img 
+            src={logoPath} 
+            alt="High Safety Logo" 
+            className="w-20 h-20 object-contain relative z-10"
+            style={{ filter: 'drop-shadow(0 0 10px rgba(197,133,44,0.9)) drop-shadow(0 2px 12px rgba(0,0,0,0.7))' }}
+          />
+        </div>
         <div className="text-right">
           <h1 className="text-2xl md:text-3xl font-black tracking-tight">مركز الأمان العالي الدولي</h1>
           <p className="text-sm text-white/80 font-bold">HIGH SAFETY INTERNATIONAL</p>
@@ -1936,7 +1940,7 @@ export default function InteractiveReport() {
       <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3">
         <div className="max-w-6xl mx-auto flex justify-between items-center gap-4">
           <div className="flex items-center gap-3">
-            <img src={logoPath} alt="Logo" className="w-10 h-10 object-contain rounded-xl" />
+            <img src={logoPath} alt="Logo" className="w-10 h-10 object-contain" style={{ filter: 'drop-shadow(0 0 6px rgba(197,133,44,0.7))' }} />
             <div className="text-right">
               <h1 className="text-lg font-black text-slate-900 font-arabic">تقرير الفحص التفاعلي</h1>
               <p className="text-xs text-slate-400 font-mono">{inspection.vin}</p>
@@ -2139,7 +2143,7 @@ export default function InteractiveReport() {
           <div className="relative z-10">
             {/* Logo and Name */}
             <div className="flex items-center justify-center gap-3 mb-4">
-              <img src={logoPath} alt="Logo" className="w-12 h-12 object-contain rounded-xl shadow-lg" />
+              <img src={logoPath} alt="Logo" className="w-12 h-12 object-contain" style={{ filter: 'drop-shadow(0 0 8px rgba(197,133,44,0.8))' }} />
               <div className="text-right">
                 <span className="font-bold font-arabic text-lg block">مركز الأمان العالي الدولي</span>
                 <span className="text-xs text-white/50">HIGH SAFETY INTERNATIONAL</span>

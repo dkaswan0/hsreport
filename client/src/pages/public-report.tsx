@@ -868,9 +868,20 @@ export default function PublicReport() {
           
           <div className="relative z-10">
             <div className="text-center mb-6">
+              <div className="flex items-center justify-center mb-5">
+                <div className="relative">
+                  <div className="absolute -inset-3 rounded-full bg-gradient-to-br from-yellow-400/50 via-[#C5852C]/40 to-yellow-600/50 blur-xl animate-pulse" />
+                  <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-yellow-300/30 to-[#C5852C]/40 blur-md" />
+                  <img 
+                    src={logoPath} 
+                    alt="High Safety" 
+                    className="w-24 h-24 md:w-28 md:h-28 object-contain relative z-10"
+                    style={{ filter: 'drop-shadow(0 0 14px rgba(197,133,44,0.9)) drop-shadow(0 4px 20px rgba(0,0,0,0.7))' }}
+                  />
+                </div>
+              </div>
               <div className="flex items-center justify-center gap-4 mb-4">
                 <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#C5852C] to-transparent" />
-                <ShieldCheck className="w-10 h-10 text-[#C5852C]" />
                 <div className="h-px flex-1 bg-gradient-to-l from-transparent via-[#C5852C] to-transparent" />
               </div>
               
@@ -1240,7 +1251,12 @@ export default function PublicReport() {
 
         {/* Footer with WhatsApp CTA */}
         <div className="bg-gradient-to-br from-[#0C1A28] via-[#0f1f2e] to-[#0C1A28] rounded-2xl p-8 text-center text-white border border-[#C5852C]/20">
-          <img src={logoPath} alt="High Safety" className="h-16 mx-auto mb-4 drop-shadow-lg" />
+          <div className="flex justify-center mb-4">
+            <div className="relative">
+              <div className="absolute -inset-2 rounded-full bg-gradient-to-br from-yellow-400/40 via-[#C5852C]/30 to-yellow-600/40 blur-lg" />
+              <img src={logoPath} alt="High Safety" className="h-16 w-16 object-contain relative z-10" style={{ filter: 'drop-shadow(0 0 10px rgba(197,133,44,0.8))' }} />
+            </div>
+          </div>
           <div className="bg-[#C5852C]/10 rounded-xl px-6 py-3 inline-block mb-3 border border-[#C5852C]/30">
             <h3 className="text-xl md:text-2xl font-black font-arabic text-[#C5852C] tracking-wide drop-shadow-sm">
               هاي سيفتي انترناشيونال
