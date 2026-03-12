@@ -408,35 +408,58 @@ Return: [{"code":"P0128","nameEn":"...","nameAr":"...","diagnosis":"...","causes
       const lock = await client.getMailboxLock("INBOX");
       
       try {
-        const messages = await client.search({
-          from: "autelhighsafety@gmail.com",
-        });
+        // Search returns sequence numbers (not UIDs)
+        const seqList = await client.search({ from: "autelhighsafety@gmail.com" });
+        console.log(`Autel: found ${seqList?.length || 0} messages from autelhighsafety@gmail.com`);
 
-        if (!messages || messages.length === 0) {
+        if (!seqList || seqList.length === 0) {
           await lock.release();
           await client.logout();
-          return res.status(404).json({ error: "لا توجد رسائل من جهاز Autel" });
+          return res.status(404).json({ error: "لا توجد رسائل من جهاز Autel في البريد الوارد" });
         }
 
-        const lastMessageUid = messages[messages.length - 1];
-        const download = await client.download(lastMessageUid, undefined, { uid: true });
+        // Use the latest message (last in the array)
+        const lastSeq = seqList[seqList.length - 1];
+        console.log(`Autel: fetching message seq=${lastSeq}`);
 
-        const chunks: Buffer[] = [];
-        for await (const chunk of download.content) {
-          chunks.push(chunk as Buffer);
+        // Fetch full message source (most reliable method)
+        const msg = await client.fetchOne(String(lastSeq), { source: true });
+
+        if (!msg || !msg.source) {
+          await lock.release();
+          await client.logout();
+          return res.status(500).json({ error: "فشل تحميل محتوى الرسالة" });
         }
-        const emailBuffer = Buffer.concat(chunks);
-        const parsed = await simpleParser(emailBuffer);
 
-        let pdfAttachment: { filename: string; content: Buffer } | null = null;
+        const parsed = await simpleParser(msg.source);
+        console.log(`Autel: parsed email subject="${parsed.subject}", attachments=${parsed.attachments?.length || 0}`);
+
+        // Log all attachments for debugging
         if (parsed.attachments) {
           for (const att of parsed.attachments) {
-            if (
-              att.contentType === "application/pdf" ||
-              (att.filename && att.filename.toLowerCase().endsWith(".pdf"))
-            ) {
+            console.log(`  attachment: filename="${att.filename}" contentType="${att.contentType}" size=${att.size}`);
+          }
+        }
+
+        // Find PDF attachment — check multiple content types
+        let pdfAttachment: { filename: string; content: Buffer } | null = null;
+        const PDF_TYPES = ["application/pdf", "application/x-pdf", "application/octet-stream", "binary/octet-stream"];
+        
+        if (parsed.attachments && parsed.attachments.length > 0) {
+          for (const att of parsed.attachments) {
+            const isPdfByType = PDF_TYPES.includes(att.contentType?.toLowerCase() || "");
+            const isPdfByName = att.filename?.toLowerCase().endsWith(".pdf");
+            if (isPdfByType || isPdfByName) {
               pdfAttachment = { filename: att.filename || "autel-report.pdf", content: att.content };
               break;
+            }
+          }
+          // If still not found, take first attachment that has content (fallback)
+          if (!pdfAttachment) {
+            const first = parsed.attachments[0];
+            if (first?.content && first.content.length > 0) {
+              pdfAttachment = { filename: first.filename || "autel-report.pdf", content: first.content };
+              console.log(`Autel: using first attachment as fallback: "${first.filename}"`);
             }
           }
         }
@@ -444,11 +467,14 @@ Return: [{"code":"P0128","nameEn":"...","nameAr":"...","diagnosis":"...","causes
         if (!pdfAttachment) {
           await lock.release();
           await client.logout();
-          return res.status(404).json({ error: "لا يوجد ملف PDF مرفق في آخر رسالة من Autel" });
+          return res.status(404).json({ 
+            error: `لا يوجد ملف PDF في آخر رسالة من Autel. الموضوع: "${parsed.subject}", المرفقات: ${parsed.attachments?.length || 0}` 
+          });
         }
 
         const pdfBase64 = pdfAttachment.content.toString("base64");
         const filename = pdfAttachment.filename;
+        console.log(`Autel: saving PDF "${filename}" (${pdfAttachment.content.length} bytes) to inspection ${inspectionId}`);
 
         await storage.updateInspection(inspectionId, {
           autelReportPdf: pdfBase64,
@@ -464,8 +490,8 @@ Return: [{"code":"P0128","nameEn":"...","nameAr":"...","diagnosis":"...","causes
           message: `تم استيراد تقرير Autel: ${filename}` 
         });
       } catch (innerError) {
-        await lock.release();
-        await client.logout();
+        try { await lock.release(); } catch {}
+        try { await client.logout(); } catch {}
         throw innerError;
       }
     } catch (error: any) {
