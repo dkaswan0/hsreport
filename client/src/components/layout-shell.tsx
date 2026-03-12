@@ -14,6 +14,7 @@ import {
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/language-context";
+import logoPath from "@assets/hs-logo.png";
 
 interface LayoutShellProps {
   children: React.ReactNode;
@@ -42,8 +43,16 @@ export default function LayoutShell({ children, onLogout }: LayoutShellProps) {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       {/* Sidebar Desktop */}
       <aside className="hidden md:flex w-64 flex-col bg-slate-900 text-white shadow-2xl z-20">
-        <div className="h-16 flex items-center px-6 border-b border-slate-700">
-          <img src="/images/logo.png" alt="High Safety Logo" className="h-8 w-auto mr-3" />
+        <div className="h-16 flex items-center px-6 border-b border-slate-700 gap-3">
+          <div className="relative shrink-0">
+            <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-yellow-400/40 via-[#C5852C]/30 to-yellow-600/40 blur-md" />
+            <img 
+              src={logoPath} 
+              alt="High Safety Logo" 
+              className="h-9 w-9 object-contain relative z-10"
+              style={{ filter: 'drop-shadow(0 0 6px rgba(197,133,44,0.9))' }}
+            />
+          </div>
           <span className="font-display font-bold text-lg tracking-wider text-accent">HIGH SAFETY</span>
         </div>
         
