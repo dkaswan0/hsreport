@@ -3,11 +3,11 @@ import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 import session from "express-session";
-import MemoryStore from "memorystore";
+import connectPgSimple from "connect-pg-simple";
 
 const app = express();
 const httpServer = createServer(app);
-const MemoryStoreSession = MemoryStore(session);
+const PgSession = connectPgSimple(session);
 
 declare module "http" {
   interface IncomingMessage {
@@ -31,8 +31,10 @@ app.use(
     secret: process.env.SESSION_SECRET || "high-safety-secret-key-2024",
     resave: false,
     saveUninitialized: false,
-    store: new MemoryStoreSession({
-      checkPeriod: 86400000, // prune expired entries every 24h
+    store: new PgSession({
+      conString: process.env.DATABASE_URL,
+      createTableIfMissing: true,
+      tableName: "user_sessions",
     }),
     cookie: {
       secure: process.env.NODE_ENV === "production",
