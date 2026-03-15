@@ -40,138 +40,133 @@ export default function Login({ onLoginSuccess }: { onLoginSuccess: () => void }
   return (
     <div
       className="min-h-screen flex items-center justify-center p-4"
-      style={{ background: "linear-gradient(160deg, #060e16 0%, #0C1A28 40%, #0f2035 70%, #0C1A28 100%)" }}
+      style={{ background: "linear-gradient(160deg, #050d15 0%, #0C1A28 50%, #0a1620 100%)" }}
     >
-      {/* Ambient background effects */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#C5852C]/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-[#C5852C]/5 rounded-full blur-3xl" />
-      </div>
-
-      <div className="w-full max-w-md relative z-10">
-        {/* Card */}
+      <div className="w-full max-w-sm relative z-10">
         <div
-          className="rounded-3xl overflow-hidden shadow-2xl"
-          style={{ border: '1px solid rgba(197,133,44,0.25)', background: 'rgba(12,26,40,0.97)' }}
+          className="rounded-2xl overflow-hidden shadow-2xl"
+          style={{ border: '1px solid rgba(180,140,50,0.3)', background: '#0d1e2d' }}
         >
-          {/* Company Banner */}
-          <div className="relative overflow-hidden">
+          {/* Banner — full width, no overlap */}
+          <div className="w-full overflow-hidden" style={{ borderBottom: '2px solid rgba(180,140,50,0.4)' }}>
             <img
               src={hsBannerPath}
               alt="High Safety International Center"
               className="w-full object-cover"
-              style={{ height: '100px', objectPosition: 'center' }}
+              style={{ height: '88px', objectPosition: 'center' }}
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0C1A28]/80" />
           </div>
 
-          {/* Logo Section */}
-          <div className="flex flex-col items-center pt-6 pb-4 px-8">
-            <div className="relative -mt-16 mb-4">
-              {/* Outer animated glow */}
-              <div className="absolute -inset-4 rounded-2xl bg-gradient-to-br from-yellow-400/30 via-[#C5852C]/25 to-yellow-600/30 blur-xl animate-pulse" />
-              {/* Border ring */}
-              <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-br from-[#C5852C] via-yellow-400 to-[#C5852C] opacity-60" />
-              <img
-                src={logoPath}
-                alt="High Safety"
-                className="relative z-10 rounded-2xl object-cover"
+          {/* Logo + Name — separate section below banner */}
+          <div className="flex flex-col items-center pt-6 pb-5 px-7">
+            <div className="relative mb-4">
+              <div
+                className="rounded-xl overflow-hidden"
                 style={{
-                  width: '120px',
-                  height: '120px',
-                  filter: 'drop-shadow(0 0 16px rgba(197,133,44,0.6))',
+                  width: '88px',
+                  height: '88px',
+                  border: '1.5px solid rgba(180,140,50,0.5)',
+                  boxShadow: '0 0 20px rgba(180,140,50,0.25), 0 4px 16px rgba(0,0,0,0.5)',
                 }}
-              />
+              >
+                <img
+                  src={logoPath}
+                  alt="High Safety"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                />
+              </div>
             </div>
 
             {/* Company Name */}
-            <div className="text-center space-y-1">
-              <h1 className="text-xl font-black text-white font-arabic leading-tight">
-                مركز الأمان العالي الدولي
-              </h1>
-              <p className="text-[#C5852C] text-xs font-bold tracking-widest uppercase">
-                HIGH SAFETY INTERNATIONAL CENTER L.L.C
-              </p>
-              <p className="text-white/40 text-xs font-arabic">
-                للفحص الفني للمركبات والمعدات والآليات
-              </p>
-            </div>
+            <h1 className="text-lg font-black text-white font-arabic text-center leading-snug mb-1">
+              مركز الأمان العالي الدولي
+            </h1>
+            <p className="text-xs font-semibold text-center tracking-widest mb-1"
+               style={{ color: '#b48c32' }}>
+              HIGH SAFETY INTERNATIONAL CENTER
+            </p>
+            <p className="text-xs text-center font-arabic" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              للفحص الفني للمركبات والمعدات والآليات
+            </p>
 
-            {/* Golden Divider */}
-            <div className="flex items-center gap-3 w-full mt-5 mb-5">
-              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-[#C5852C]/60 to-transparent" />
-              <div className="w-1.5 h-1.5 rounded-full bg-[#C5852C]" />
-              <div className="flex-1 h-px bg-gradient-to-l from-transparent via-[#C5852C]/60 to-transparent" />
-            </div>
+            {/* Divider */}
+            <div className="w-full mt-5 mb-5" style={{ height: '1px', background: 'linear-gradient(to right, transparent, rgba(180,140,50,0.4), transparent)' }} />
 
             {/* Login Form */}
-            <form onSubmit={handleSubmit} className="w-full space-y-4">
+            <form onSubmit={handleSubmit} className="w-full space-y-3">
               <div className="relative">
-                <User className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#C5852C]" />
+                <User className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: '#b48c32' }} />
                 <Input
                   type="text"
                   placeholder="اسم المستخدم"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="pr-11 bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-[#C5852C] text-right font-arabic h-12 rounded-xl"
+                  className="pr-10 text-right font-arabic h-11 rounded-xl text-white placeholder:text-white/30"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
                   data-testid="input-username"
                   required
                 />
               </div>
 
               <div className="relative">
-                <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#C5852C]" />
+                <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: '#b48c32' }} />
                 <Input
                   type={showPassword ? "text" : "password"}
                   placeholder="كلمة المرور"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pr-11 pl-11 bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-[#C5852C] text-right font-arabic h-12 rounded-xl"
+                  className="pr-10 pl-10 text-right font-arabic h-11 rounded-xl text-white placeholder:text-white/30"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
                   data-testid="input-password"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-[#C5852C] transition-colors"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 transition-colors"
+                  style={{ color: 'rgba(255,255,255,0.3)' }}
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
 
               {error && (
-                <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-red-400 text-sm text-center font-arabic">
+                <div className="rounded-xl p-3 text-sm text-center font-arabic"
+                     style={{ background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(220,38,38,0.25)', color: '#f87171' }}>
                   {error}
                 </div>
               )}
 
-              <Button
+              <button
                 type="submit"
                 disabled={loginMutation.isPending}
-                className="w-full h-12 font-bold font-arabic text-base rounded-xl shadow-lg shadow-[#C5852C]/20"
-                style={{ background: 'linear-gradient(135deg, #C5852C 0%, #d4943b 50%, #C5852C 100%)', color: '#ffffff' }}
                 data-testid="button-login"
+                className="w-full h-11 font-bold font-arabic text-sm rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+                style={{
+                  background: 'linear-gradient(135deg, #8a6420 0%, #b48c32 50%, #8a6420 100%)',
+                  color: '#fff8e8',
+                  border: '1px solid rgba(180,140,50,0.5)',
+                  boxShadow: '0 2px 12px rgba(140,100,20,0.3)',
+                  opacity: loginMutation.isPending ? 0.7 : 1,
+                }}
               >
                 {loginMutation.isPending ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     <span>جارٍ تسجيل الدخول...</span>
-                  </div>
+                  </>
                 ) : (
-                  <div className="flex items-center justify-center gap-2">
-                    <Shield className="w-5 h-5" />
+                  <>
+                    <Shield className="w-4 h-4" />
                     <span>تسجيل الدخول</span>
-                  </div>
+                  </>
                 )}
-              </Button>
+              </button>
             </form>
 
-            {/* Footer */}
-            <div className="mt-6 pb-2 text-center">
-              <p className="text-white/25 text-xs font-arabic">
-                نظام محمي · للمستخدمين المصرح لهم فقط
-              </p>
-            </div>
+            <p className="mt-5 text-center text-xs font-arabic" style={{ color: 'rgba(255,255,255,0.2)' }}>
+              نظام محمي · للمستخدمين المصرح لهم فقط
+            </p>
           </div>
         </div>
       </div>
