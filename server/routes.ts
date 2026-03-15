@@ -600,192 +600,201 @@ Return: [{"code":"P0128","nameEn":"...","nameAr":"...","diagnosis":"...","causes
     }
   });
 
-  // === VIN Decoder using FREE NHTSA VPIC API ===
+  // === VIN Decoder — CarsXE + NHTSA combined ===
   app.get(api.vin.decode.path, async (req, res) => {
     const { vin } = req.params;
+    const CARSXE_KEY = process.env.CARSXE_API_KEY || "";
 
-    // Validate VIN format (must be 17 characters)
     if (!vin || vin.length !== 17) {
       return res.status(400).json({
         error: true,
         message: "رقم الهيكل يجب أن يكون 17 حرفًا - VIN must be 17 characters",
-        make: "",
-        model: "",
-        year: 2024,
-        color: ""
+        make: "", model: "", year: 2024, color: ""
       });
     }
 
     try {
-      // Use FREE NHTSA VPIC API - no API key required!
-      const nhtsaUrl = `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValuesExtended/${vin}?format=json`;
-      const response = await fetch(nhtsaUrl);
-      
-      if (!response.ok) {
-        console.error("NHTSA API HTTP error:", response.status);
-        return res.status(500).json({
-          error: true,
-          message: "فشل الاتصال بخادم NHTSA - NHTSA server error",
-          make: "",
-          model: "",
-          year: 2024,
-          color: ""
-        });
+      // ── Step 1: NHTSA decode + CarsXE specs in parallel ──────────────────
+      const [nhtsaRes, carsxeSpecsRes, carsxeHistoryRes] = await Promise.allSettled([
+        fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValuesExtended/${vin}?format=json`),
+        fetch(`https://api.carsxe.com/specs?vin=${vin}&key=${CARSXE_KEY}`),
+        fetch(`https://api.carsxe.com/history?vin=${vin}&key=${CARSXE_KEY}`),
+      ]);
+
+      // ── Parse NHTSA ───────────────────────────────────────────────────────
+      let nhtsaResult: any = {};
+      if (nhtsaRes.status === "fulfilled" && nhtsaRes.value.ok) {
+        const d = await nhtsaRes.value.json();
+        nhtsaResult = d.Results?.[0] || {};
       }
 
-      const data = await response.json();
-
-      if (!data.Results || data.Results.length === 0) {
-        return res.status(400).json({
-          error: true,
-          message: "رقم الشاصي غير صالح - Invalid VIN",
-          make: "",
-          model: "",
-          year: 2024,
-          color: ""
-        });
+      // ── Parse CarsXE specs ────────────────────────────────────────────────
+      let cxAttrs: any = {};
+      if (carsxeSpecsRes.status === "fulfilled" && carsxeSpecsRes.value.ok) {
+        const d = await carsxeSpecsRes.value.json();
+        if (d.success) cxAttrs = d.attributes || {};
       }
 
-      const result = data.Results[0];
-
-      // Check for critical errors in NHTSA response (ErrorCode > 0 and no Make found)
-      if (result.ErrorCode && result.ErrorCode !== "0" && !result.Make) {
-        console.log("NHTSA Error:", result.ErrorCode, result.ErrorText);
-        return res.status(400).json({
-          error: true,
-          message: result.ErrorText || "رقم الشاصي غير صالح - Invalid VIN",
-          make: "",
-          model: "",
-          year: 2024,
-          color: ""
-        });
-      }
-
-      // Extract vehicle specs from NHTSA response
-      const specs = {
-        year: result.ModelYear || "",
-        make: result.Make || "",
-        model: result.Model || "",
-        trim: result.Trim || result.Series || "",
-        style: result.BodyClass || "",
-        type: result.VehicleType || "",
-        made_in: result.PlantCountry || "",
-        made_in_city: result.PlantCity || "",
-        doors: result.Doors || "",
-        fuel_type: result.FuelTypePrimary || "",
-        engine: `${result.DisplacementL || ""}L ${result.EngineCylinders || ""} cyl ${result.EngineModel || ""}`.trim(),
-        engine_size: result.DisplacementL || "",
-        engine_cylinders: result.EngineCylinders || "",
-        transmission: result.TransmissionStyle || "",
-        drivetrain: result.DriveType || "",
-        gross_vehicle_weight_rating: result.GVWR || "",
-        manufacturer: result.Manufacturer || "",
-        plant_company_name: result.PlantCompanyName || "",
-        // Safety features
-        abs: result.ABS || "",
-        air_bag_front: result.AirBagLocFront || "",
-        air_bag_side: result.AirBagLocSide || "",
-        // Additional specs
-        steering_type: result.SteeringLocation || "",
-        wheelbase: result.WheelBaseShort || "",
-        wheels: result.Wheels || "",
-        windows: result.Windows || "",
-        seat_belts: result.SeatBeltsAll || "",
-        // Electric vehicle info
-        battery_type: result.BatteryType || "",
-        battery_kwh: result.BatteryKWh || "",
-        charger_level: result.ChargerLevel || "",
-        ev_drive_unit: result.EVDriveUnit || "",
-      };
-
-      // Fetch recalls from NHTSA (also FREE!)
-      let recalls: any[] = [];
-      try {
-        const recallsUrl = `https://api.nhtsa.gov/recalls/recallsByVehicle?make=${encodeURIComponent(result.Make)}&model=${encodeURIComponent(result.Model)}&modelYear=${result.ModelYear}`;
-        const recallsResponse = await fetch(recallsUrl);
-        const recallsData = await recallsResponse.json();
-        if (recallsData.results && recallsData.results.length > 0) {
-          recalls = recallsData.results.slice(0, 10).map((r: any) => ({
-            component: r.Component,
-            summary: r.Summary,
-            consequence: r.Consequence,
-            remedy: r.Remedy,
-            manufacturer: r.Manufacturer,
-            reportReceivedDate: r.ReportReceivedDate
+      // ── Parse CarsXE history (salvage/junk/theft) ─────────────────────────
+      let salvageRecords: any[] = [];
+      if (carsxeHistoryRes.status === "fulfilled" && carsxeHistoryRes.value.ok) {
+        const d = await carsxeHistoryRes.value.json();
+        if (d.success && d.junkAndSalvageInformation) {
+          salvageRecords = d.junkAndSalvageInformation.map((r: any) => ({
+            entity: r.ReportingEntityAbstract?.EntityName || "",
+            city: r.ReportingEntityAbstract?.LocationCityName || "",
+            state: r.ReportingEntityAbstract?.LocationStateUSPostalServiceCode || "",
+            date: r.VehicleObtainedDate ? r.VehicleObtainedDate.substring(0, 10) : "",
+            disposition: r.VehicleDispositionText || "",
+            category: r.ReportingEntityAbstract?.ReportingEntityCategoryText || "",
           }));
         }
-      } catch (e) {
-        console.log("Recalls fetch failed (optional):", e);
       }
 
-      // Create Arabic summary for display
-      const summaryParts: string[] = [];
-      
-      if (specs.year && specs.make && specs.model) {
-        summaryParts.push(`${specs.year} ${specs.make} ${specs.model}`);
-      }
-      if (specs.trim) {
-        summaryParts.push(`الفئة: ${specs.trim}`);
-      }
-      if (specs.engine && specs.engine.trim()) {
-        summaryParts.push(`المحرك: ${specs.engine}`);
-      }
-      if (specs.transmission) {
-        summaryParts.push(`ناقل الحركة: ${specs.transmission}`);
-      }
-      if (specs.drivetrain) {
-        const driveTypeAr = specs.drivetrain.includes('4') || specs.drivetrain.includes('AWD') ? 'دفع رباعي' 
-          : specs.drivetrain.includes('Front') || specs.drivetrain.includes('FWD') ? 'دفع أمامي' 
-          : specs.drivetrain.includes('Rear') || specs.drivetrain.includes('RWD') ? 'دفع خلفي' 
-          : specs.drivetrain;
-        summaryParts.push(`نظام الدفع: ${driveTypeAr}`);
-      }
-      if (specs.fuel_type) {
-        const fuelTypeAr = specs.fuel_type.includes('Gasoline') ? 'بنزين' 
-          : specs.fuel_type.includes('Diesel') ? 'ديزل'
-          : specs.fuel_type.includes('Electric') ? 'كهربائي'
-          : specs.fuel_type.includes('Hybrid') ? 'هجين'
-          : specs.fuel_type;
-        summaryParts.push(`الوقود: ${fuelTypeAr}`);
-      }
-      if (specs.made_in) {
-        summaryParts.push(`بلد الصنع: ${specs.made_in}`);
-      }
-      if (specs.style) {
-        summaryParts.push(`نوع الهيكل: ${specs.style}`);
-      }
-      if (recalls && recalls.length > 0) {
-        summaryParts.push(`تنبيه: يوجد ${recalls.length} استدعاءات أمان`);
+      // ── Merge specs (NHTSA fills gaps left by CarsXE) ────────────────────
+      const make  = cxAttrs.make  || nhtsaResult.Make  || "";
+      const model = cxAttrs.model || nhtsaResult.Model || "";
+      const year  = cxAttrs.year  || nhtsaResult.ModelYear || "";
+
+      if (!make) {
+        return res.status(400).json({
+          error: true,
+          message: "رقم الشاصي غير صالح أو غير معروف — Invalid or unknown VIN",
+          make: "", model: "", year: 2024, color: ""
+        });
       }
 
-      const arabicSummary = summaryParts.join(' | ');
+      // ── Step 2: Fetch images + market value + NHTSA recalls in parallel ──
+      const [imagesRes, marketRes, recallsRes] = await Promise.allSettled([
+        fetch(`https://api.carsxe.com/images?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&year=${year}&key=${CARSXE_KEY}`),
+        fetch(`https://api.carsxe.com/marketvalue?vin=${vin}&key=${CARSXE_KEY}`),
+        fetch(`https://api.nhtsa.gov/recalls/recallsByVehicle?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&modelYear=${year}`),
+      ]);
 
-      // Store specs as JSON with Arabic summary included
-      const notesData = {
-        ...specs,
-        arabicSummary,
-        recalls: recalls
+      // ── Parse images ──────────────────────────────────────────────────────
+      let images: any[] = [];
+      if (imagesRes.status === "fulfilled" && imagesRes.value.ok) {
+        const d = await imagesRes.value.json();
+        if (d.images) {
+          images = d.images.slice(0, 6).map((img: any) => ({
+            link: img.link,
+            thumbnail: img.thumbnailLink,
+            width: img.width,
+            height: img.height,
+          }));
+        }
+      }
+
+      // ── Parse market value ────────────────────────────────────────────────
+      let marketValue: any = null;
+      if (marketRes.status === "fulfilled" && marketRes.value.ok) {
+        const d = await marketRes.value.json();
+        if (d.tradeInValues?.length > 0 || d.auctionValues) {
+          marketValue = {
+            tradeIn: d.tradeInValues || [],
+            auction: d.auctionValues || {},
+          };
+        }
+      }
+
+      // ── Parse NHTSA recalls ───────────────────────────────────────────────
+      let recalls: any[] = [];
+      if (recallsRes.status === "fulfilled" && recallsRes.value.ok) {
+        const d = await recallsRes.value.json();
+        if (d.results?.length > 0) {
+          recalls = d.results.slice(0, 15).map((r: any) => ({
+            component: r.Component || "",
+            summary: r.Summary || "",
+            consequence: r.Consequence || "",
+            remedy: r.Remedy || "",
+            manufacturer: r.Manufacturer || "",
+            date: r.ReportReceivedDate || "",
+          }));
+        }
+      }
+
+      // ── Build final specs object ──────────────────────────────────────────
+      const specs: any = {
+        year,
+        make,
+        model,
+        trim:         cxAttrs.series        || nhtsaResult.Trim || nhtsaResult.Series || "",
+        style:        cxAttrs.body          || nhtsaResult.BodyClass || "",
+        type:         nhtsaResult.VehicleType || "",
+        made_in:      cxAttrs.plant_country || nhtsaResult.PlantCountry || "",
+        made_in_city: nhtsaResult.PlantCity  || "",
+        doors:        cxAttrs.no_of_doors   || nhtsaResult.Doors || "",
+        seats:        cxAttrs.no_of_seats   || "",
+        fuel_type:    cxAttrs.fuel_type     || nhtsaResult.FuelTypePrimary || "",
+        engine:       nhtsaResult.DisplacementL
+                        ? `${nhtsaResult.DisplacementL}L ${nhtsaResult.EngineCylinders || ""}cyl ${nhtsaResult.EngineModel || ""}`.trim()
+                        : "",
+        engine_size:      nhtsaResult.DisplacementL || "",
+        engine_cylinders: nhtsaResult.EngineCylinders || "",
+        engine_manufacturer: cxAttrs.engine_manufacturer || "",
+        transmission:     cxAttrs.gears      || nhtsaResult.TransmissionStyle || "",
+        drivetrain:       nhtsaResult.DriveType || "",
+        manufacturer:     cxAttrs.manufacturer || nhtsaResult.Manufacturer || "",
+        manufacturer_address: cxAttrs.manufacturer_address || "",
+        // Dimensions
+        wheelbase_mm:   cxAttrs.wheelbase_mm   || "",
+        length_mm:      cxAttrs.length_mm      || "",
+        width_mm:       cxAttrs.width_mm       || "",
+        height_mm:      cxAttrs.height_mm      || "",
+        weight_empty_kg: cxAttrs.weight_empty_kg || "",
+        max_weight_kg:   cxAttrs.max_weight_kg  || "",
+        max_speed_kmh:   cxAttrs.max_speed_kmh  || "",
+        trunk_capacity:  cxAttrs.max_trunk_capacity_liters || "",
+        // Safety
+        abs:           cxAttrs.abs             || nhtsaResult.ABS || "",
+        emission:      cxAttrs.emission_standard || "",
+        air_bag_front: nhtsaResult.AirBagLocFront || "",
+        air_bag_side:  nhtsaResult.AirBagLocSide  || "",
+        // EV
+        battery_type:  nhtsaResult.BatteryType  || "",
+        battery_kwh:   nhtsaResult.BatteryKWh   || "",
+        ev_drive_unit: nhtsaResult.EVDriveUnit   || "",
+        // Collections
+        recalls,
+        salvage: salvageRecords,
+        images,
+        marketValue,
       };
 
+      // ── Arabic summary ────────────────────────────────────────────────────
+      const fuelAr = (f: string) =>
+        f.includes("Gasoline") ? "بنزين" : f.includes("Diesel") ? "ديزل"
+          : f.includes("Electric") ? "كهربائي" : f.includes("Hybrid") ? "هجين" : f;
+      const driveAr = (d: string) =>
+        d.includes("4") || d.includes("AWD") ? "دفع رباعي"
+          : d.includes("Front") || d.includes("FWD") ? "دفع أمامي"
+          : d.includes("Rear") || d.includes("RWD") ? "دفع خلفي" : d;
+
+      const parts = [];
+      if (year && make && model) parts.push(`${year} ${make} ${model}`);
+      if (specs.trim)         parts.push(`الفئة: ${specs.trim}`);
+      if (specs.engine)       parts.push(`المحرك: ${specs.engine}`);
+      if (specs.fuel_type)    parts.push(`الوقود: ${fuelAr(specs.fuel_type)}`);
+      if (specs.drivetrain)   parts.push(`الدفع: ${driveAr(specs.drivetrain)}`);
+      if (specs.made_in)      parts.push(`الصنع: ${specs.made_in}`);
+      if (recalls.length > 0) parts.push(`استدعاءات: ${recalls.length}`);
+      if (salvageRecords.length > 0) parts.push(`⚠️ سجل خردة: ${salvageRecords.length}`);
+
+      const arabicSummary = parts.join(" | ");
+
       return res.json({
-        make: specs.make || "",
-        model: specs.model || "",
-        year: parseInt(specs.year) || 2024,
-        color: "", // NHTSA doesn't provide color
-        odometer: 0,
-        notes: JSON.stringify(notesData),
-        arabicSummary: arabicSummary,
-        specs: notesData
+        make, model,
+        year: parseInt(year) || 2024,
+        color: "",
+        arabicSummary,
+        specs,
       });
     } catch (error) {
-      console.error("NHTSA API Error:", error);
+      console.error("VIN Decode Error:", error);
       res.status(500).json({
         error: true,
-        message: "فشل الاتصال بخادم NHTSA - Connection to NHTSA failed",
-        make: "",
-        model: "",
-        year: 2024,
-        color: ""
+        message: "خطأ في الاتصال بالخادم — Server connection error",
+        make: "", model: "", year: 2024, color: ""
       });
     }
   });

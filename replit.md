@@ -65,7 +65,12 @@ The system organizes vehicle inspections into **6 main sections** with subcatego
 - **Session Storage**: connect-pg-simple for Express session persistence
 
 ### External APIs
-- **VIN Decoder**: API integration for decoding vehicle identification numbers (referenced in hooks)
+- **VIN Decoder — CarsXE + NHTSA**: Comprehensive VIN decoder combining CarsXE (specs, market value, salvage history, vehicle images) and NHTSA (safety recalls). Environment variable: `CARSXE_API_KEY`
+  - CarsXE `/specs` — full vehicle specifications & dimensions
+  - CarsXE `/marketvalue` — trade-in and auction market values
+  - CarsXE `/history` — NMVTIS junk/salvage records
+  - CarsXE `/images` — official vehicle photos by make/model/year
+  - NHTSA recalls API — active safety recalls with remedy details
 
 ### Key NPM Packages
 - **drizzle-orm** / **drizzle-kit**: Database ORM and migration tools
