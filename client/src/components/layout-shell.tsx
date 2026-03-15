@@ -43,17 +43,20 @@ export default function LayoutShell({ children, onLogout }: LayoutShellProps) {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       {/* Sidebar Desktop */}
       <aside className="hidden md:flex w-64 flex-col bg-slate-900 text-white shadow-2xl z-20">
-        <div className="h-16 flex items-center px-6 border-b border-slate-700 gap-3">
+        <div className="h-16 flex items-center px-4 border-b border-slate-700 gap-3">
           <div className="relative shrink-0">
-            <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-yellow-400/40 via-[#C5852C]/30 to-yellow-600/40 blur-md" />
+            <div className="absolute -inset-1 rounded-xl bg-gradient-to-br from-yellow-400/30 via-[#C5852C]/20 to-yellow-600/30 blur-md" />
             <img 
               src={logoPath} 
               alt="High Safety Logo" 
-              className="h-9 w-9 object-contain relative z-10"
-              style={{ filter: 'drop-shadow(0 0 6px rgba(197,133,44,0.9))' }}
+              className="h-10 w-10 object-cover relative z-10 rounded-xl"
+              style={{ filter: 'drop-shadow(0 0 8px rgba(197,133,44,0.8))', border: '1px solid rgba(197,133,44,0.4)' }}
             />
           </div>
-          <span className="font-display font-bold text-lg tracking-wider text-accent">HIGH SAFETY</span>
+          <div className="leading-tight">
+            <div className="font-display font-black text-sm tracking-wider text-[#C5852C]">HIGH SAFETY</div>
+            <div className="text-white/40 text-xs font-arabic">مركز الأمان العالي</div>
+          </div>
         </div>
         
         <nav className="flex-1 p-4 space-y-2">
