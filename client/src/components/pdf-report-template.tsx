@@ -1,5 +1,6 @@
 import { forwardRef } from 'react';
 import logoPath from '@assets/hs-logo.png';
+import hsBannerPath from '@assets/hs-banner.jpeg';
 import hsCarBranding from '@assets/hs_car_branding.png';
 
 interface InspectionItem {
@@ -353,48 +354,32 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
           ...(isAr ? textStyle : englishStyle),
         }}
       >
-        {/* Header */}
-        <div style={{
-          background: `linear-gradient(135deg, ${BRAND.primary} 0%, ${BRAND.secondary} 100%)`,
-          padding: '16px 24px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexShrink: 0,
-          borderBottom: `4px solid ${BRAND.accent}`,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div style={{
-              width: '55px',
-              height: '55px',
-              borderRadius: '50%',
-              overflow: 'hidden',
-              boxShadow: `0 0 18px rgba(197,133,44,0.8), 0 4px 14px rgba(0,0,0,0.5)`,
-              background: 'transparent',
-            }}>
-              <img src={logoPath} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-            </div>
-            <div>
-              <h1 style={{ color: '#ffffff', fontSize: '20px', fontWeight: 'bold', margin: 0, ...(isAr ? textStyle : englishStyle) }}>
-                {isAr ? 'مركز الامان العالي' : 'HIGH SAFETY CENTER'}
-              </h1>
-              <p style={{ color: BRAND.accentLight, fontSize: '11px', margin: '3px 0 0 0', ...(isAr ? englishStyle : textStyle), fontWeight: '600' }}>
-                {isAr ? 'HIGH SAFETY CENTER' : 'مركز الامان العالي'}
-              </p>
-            </div>
-          </div>
-          
-          <div style={{ textAlign: isAr ? 'left' : 'right' }}>
+        {/* Header - Professional Banner */}
+        <div style={{ flexShrink: 0, borderBottom: `4px solid ${BRAND.accent}`, background: BRAND.primary }}>
+          {/* Banner Image */}
+          <img
+            src={hsBannerPath}
+            alt="High Safety International Center"
+            style={{ width: '100%', height: '90px', objectFit: 'cover', objectPosition: 'center', display: 'block' }}
+          />
+          {/* Report Type Bar */}
+          <div style={{
+            background: `linear-gradient(135deg, ${BRAND.primary} 0%, ${BRAND.secondary} 100%)`,
+            padding: '8px 24px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}>
             <div style={{
               background: `linear-gradient(135deg, ${BRAND.accent} 0%, ${BRAND.accentLight} 100%)`,
               color: BRAND.primary,
-              padding: '6px 16px',
+              padding: '5px 14px',
               borderRadius: '20px',
               fontSize: '10px',
               fontWeight: 'bold',
-              marginBottom: '6px',
               boxShadow: '0 2px 8px rgba(197,133,44,0.4)',
               ...(isAr ? textStyle : englishStyle),
+              display: 'inline-block',
             }}>
               {isAr ? (
                 <>
@@ -408,14 +393,16 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
                 </>
               )}
             </div>
-            <p style={{ color: '#94a3b8', fontSize: '9px', margin: 0, ...englishStyle }}>
-              {englishDate} | {reportTime}
-            </p>
-            {isAr && (
-              <p style={{ color: '#cbd5e1', fontSize: '10px', margin: '2px 0 0 0', ...textStyle }}>
-                {reportDate}
+            <div style={{ textAlign: isAr ? 'left' : 'right' }}>
+              <p style={{ color: '#94a3b8', fontSize: '9px', margin: 0, ...englishStyle }}>
+                {englishDate} | {reportTime}
               </p>
-            )}
+              {isAr && (
+                <p style={{ color: '#cbd5e1', fontSize: '10px', margin: '2px 0 0 0', ...textStyle }}>
+                  {reportDate}
+                </p>
+              )}
+            </div>
           </div>
         </div>
 
@@ -1284,37 +1271,20 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
           ...(isAr ? textStyle : englishStyle),
         }}
       >
-        {/* Header with branding */}
-        <div style={{
-          background: `linear-gradient(135deg, ${BRAND.primary} 0%, ${BRAND.secondary} 100%)`,
-          padding: '14px 24px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexShrink: 0,
-          borderBottom: `4px solid ${BRAND.accent}`,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div style={{
-              width: '50px',
-              height: '50px',
-              borderRadius: '50%',
-              overflow: 'hidden',
-              boxShadow: `0 0 18px rgba(197,133,44,0.8), 0 4px 14px rgba(0,0,0,0.5)`,
-              background: 'transparent',
-            }}>
-              <img src={logoPath} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-            </div>
-            <div>
-              <h1 style={{ color: '#ffffff', fontSize: '18px', fontWeight: 'bold', margin: 0, ...arTextStyle }}>
-                {isAr ? 'مركز الأمان العالي' : 'HIGH SAFETY CENTER'}
-              </h1>
-              <p style={{ color: BRAND.accentLight, fontSize: '10px', margin: '2px 0 0 0', ...(isAr ? englishStyle : arTextStyle), fontWeight: '600' }}>
-                {isAr ? 'HIGH SAFETY CENTER' : 'مركز الأمان العالي'}
-              </p>
-            </div>
-          </div>
-          <div style={{ textAlign: isAr ? 'left' : 'right' }}>
+        {/* Header - Professional Banner */}
+        <div style={{ flexShrink: 0, borderBottom: `4px solid ${BRAND.accent}`, background: BRAND.primary }}>
+          <img
+            src={hsBannerPath}
+            alt="High Safety International Center"
+            style={{ width: '100%', height: '90px', objectFit: 'cover', objectPosition: 'center', display: 'block' }}
+          />
+          <div style={{
+            background: `linear-gradient(135deg, ${BRAND.primary} 0%, ${BRAND.secondary} 100%)`,
+            padding: '8px 24px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}>
             <div style={{
               background: `linear-gradient(135deg, ${BRAND.accent} 0%, ${BRAND.accentLight} 100%)`,
               color: BRAND.primary,
@@ -1322,8 +1292,8 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
               borderRadius: '20px',
               fontSize: '10px',
               fontWeight: 'bold',
-              marginBottom: '5px',
               boxShadow: '0 2px 8px rgba(197,133,44,0.4)',
+              display: 'inline-block',
             }}>
               {isAr ? (
                 <>

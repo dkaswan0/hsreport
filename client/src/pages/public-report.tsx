@@ -25,6 +25,7 @@ import {
 import { cn } from "@/lib/utils";
 import { getVehicleColor, calculateInspectionStats, getInspectionTypeLabel } from "@/lib/vehicle-utils";
 import logoPath from "@assets/hs-logo.png";
+import hsBannerPath from "@assets/hs-banner.jpeg";
 import { VinPlate } from "@/components/vin-plate";
 import carCutawayFrontLeft from "@assets/generated_images/car_cutaway_front-left_view.png";
 import carCutawayRightSide from "@assets/generated_images/car_cutaway_right_side_view.png";
@@ -856,51 +857,22 @@ export default function PublicReport() {
       
       <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-6">
         
-        <div className="relative bg-gradient-to-br from-[#0C1A28] via-[#0f1f2e] to-[#0C1A28] rounded-3xl p-6 md:p-8 text-white shadow-2xl overflow-hidden">
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none" aria-hidden="true">
-            <img 
-              src={logoPath} 
-              alt="" 
-              className="w-64 h-64 md:w-80 md:h-80 object-contain opacity-[0.06]"
+        {/* Professional Company Header Banner */}
+        <div className="rounded-3xl overflow-hidden shadow-2xl border border-[#C5852C]/40">
+          <div className="bg-[#0C1A28]">
+            <img
+              src={hsBannerPath}
+              alt="High Safety International Center"
+              className="w-full object-cover"
+              style={{ maxHeight: '130px', objectPosition: 'center' }}
             />
           </div>
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0C1A28]/30 to-[#0C1A28] pointer-events-none" />
-          
-          <div className="relative z-10">
-            <div className="text-center mb-6">
-              <div className="flex items-center justify-center mb-5">
-                <div className="relative">
-                  <div className="absolute -inset-3 rounded-full bg-gradient-to-br from-yellow-400/50 via-[#C5852C]/40 to-yellow-600/50 blur-xl animate-pulse" />
-                  <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-yellow-300/30 to-[#C5852C]/40 blur-md" />
-                  <img 
-                    src={logoPath} 
-                    alt="High Safety" 
-                    className="w-24 h-24 md:w-28 md:h-28 object-contain relative z-10"
-                    style={{ filter: 'drop-shadow(0 0 14px rgba(197,133,44,0.9)) drop-shadow(0 4px 20px rgba(0,0,0,0.7))' }}
-                  />
-                </div>
-              </div>
-              <div className="flex items-center justify-center gap-4 mb-4">
-                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#C5852C] to-transparent" />
-                <div className="h-px flex-1 bg-gradient-to-l from-transparent via-[#C5852C] to-transparent" />
-              </div>
-              
-              <h1 className="text-2xl md:text-3xl font-black mb-2 font-arabic text-white drop-shadow-lg">
-                مركز فحص الأمان العالي الدولي
-              </h1>
-              <p className="text-[#C5852C] text-sm md:text-base font-bold tracking-widest mb-4 drop-shadow-md">
-                HIGH SAFETY INTERNATIONAL INSPECTION CENTER
-              </p>
-              
-              <div className="flex items-center justify-center gap-3 mb-6">
-                <div className="w-2 h-2 rounded-full bg-[#C5852C]" />
-                <div className="w-2 h-2 rounded-full bg-[#C5852C]" />
-                <div className="w-2 h-2 rounded-full bg-[#C5852C]" />
-              </div>
-              
-              <p className="text-white/80 text-sm font-arabic font-semibold">تقرير الفحص التفاعلي</p>
+          <div className="bg-gradient-to-l from-[#0C1A28] to-[#0f2035] text-white px-6 py-3 flex items-center justify-center border-t border-[#C5852C]/40">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 rounded-full bg-[#C5852C]" />
+              <p className="text-[#C5852C] text-sm font-bold tracking-widest font-arabic">تقرير الفحص التفاعلي</p>
+              <div className="w-2 h-2 rounded-full bg-[#C5852C]" />
             </div>
-
           </div>
         </div>
 

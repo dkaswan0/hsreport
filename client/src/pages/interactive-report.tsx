@@ -30,6 +30,7 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import logoPath from "@assets/hs-logo.png";
+import hsBannerPath from "@assets/hs-banner.jpeg";
 import { PdfReportTemplate, PdfCarPhotosPage } from "@/components/pdf-report-template";
 import carVisualizationPath from "@assets/generated_images/professional_car_anatomy_diagram.png";
 import carFrontView from "@assets/generated_images/car_front_view_diagram.png";
@@ -569,36 +570,21 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
 
 // Company Header Component
 const CompanyHeader = () => (
-  <div className="bg-gradient-to-l from-primary via-primary to-primary/90 text-white rounded-3xl p-6 shadow-xl relative overflow-hidden">
-    {/* Background pattern */}
-    <div className="absolute inset-0 opacity-10">
-      <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -mr-32 -mt-32" />
-      <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full -ml-24 -mb-24" />
+  <div className="rounded-3xl overflow-hidden shadow-2xl border border-[#C5852C]/30">
+    {/* Professional Banner Image */}
+    <div className="bg-[#0C1A28] relative">
+      <img 
+        src={hsBannerPath} 
+        alt="High Safety International Center" 
+        className="w-full object-cover"
+        style={{ maxHeight: '130px', objectPosition: 'center' }}
+      />
     </div>
-    
-    <div className="relative z-10 flex flex-col md:flex-row-reverse items-center justify-between gap-6">
-      {/* Logo and Name */}
-      <div className="flex items-center gap-4">
-        <div className="relative">
-          <div className="absolute -inset-2 rounded-full bg-gradient-to-br from-yellow-400/50 via-[#C5852C]/40 to-yellow-600/50 blur-lg" />
-          <img 
-            src={logoPath} 
-            alt="High Safety Logo" 
-            className="w-20 h-20 object-contain relative z-10"
-            style={{ filter: 'drop-shadow(0 0 10px rgba(197,133,44,0.9)) drop-shadow(0 2px 12px rgba(0,0,0,0.7))' }}
-          />
-        </div>
-        <div className="text-right">
-          <h1 className="text-2xl md:text-3xl font-black tracking-tight">مركز الأمان العالي الدولي</h1>
-          <p className="text-sm text-white/80 font-bold">HIGH SAFETY INTERNATIONAL</p>
-          <p className="text-xs text-white/60 mt-1">لخدمات فحص وتقييم المركبات</p>
-        </div>
-      </div>
-
-      {/* Contact Info */}
-      <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm">
+    {/* Contact Info Bar */}
+    <div className="bg-gradient-to-l from-[#0C1A28] to-[#0f2035] text-white px-6 py-3 flex flex-wrap justify-center md:justify-between items-center gap-3 border-t border-[#C5852C]/40">
+      <div className="flex flex-wrap justify-center gap-4 text-sm">
         <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
-          <Phone className="w-4 h-4" />
+          <Phone className="w-4 h-4 text-[#C5852C]" />
           <span className="font-mono font-bold">0542206000</span>
         </div>
         <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
