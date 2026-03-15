@@ -614,18 +614,30 @@ Return: [{"code":"P0128","nameEn":"...","nameAr":"...","diagnosis":"...","causes
     }
 
     try {
-      // ── Step 1: NHTSA decode + CarsXE specs in parallel ──────────────────
-      const [nhtsaRes, carsxeSpecsRes, carsxeHistoryRes] = await Promise.allSettled([
+      // Detect if this is a US-market VIN (starts with 1, 4, or 5)
+      const isUSVin = ["1","4","5"].includes(vin[0]);
+      const wmi = vin.substring(0, 3);
+
+      // ── Step 1: CarsXE specs + NHTSA decode + NHTSA WMI + CarsXE history in parallel ──
+      const [nhtsaRes, carsxeSpecsRes, carsxeHistoryRes, wmiRes] = await Promise.allSettled([
         fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValuesExtended/${vin}?format=json`),
         fetch(`https://api.carsxe.com/specs?vin=${vin}&key=${CARSXE_KEY}`),
         fetch(`https://api.carsxe.com/history?vin=${vin}&key=${CARSXE_KEY}`),
+        fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/DecodeWMI/${wmi}?format=json`),
       ]);
 
-      // ── Parse NHTSA ───────────────────────────────────────────────────────
+      // ── Parse NHTSA extended decode ───────────────────────────────────────
       let nhtsaResult: any = {};
       if (nhtsaRes.status === "fulfilled" && nhtsaRes.value.ok) {
         const d = await nhtsaRes.value.json();
         nhtsaResult = d.Results?.[0] || {};
+      }
+
+      // ── Parse NHTSA WMI (manufacturer from first 3 chars — works for all VINs) ──
+      let wmiData: any = {};
+      if (wmiRes.status === "fulfilled" && wmiRes.value.ok) {
+        const d = await wmiRes.value.json();
+        wmiData = d.Results?.[0] || {};
       }
 
       // ── Parse CarsXE specs ────────────────────────────────────────────────
@@ -635,7 +647,7 @@ Return: [{"code":"P0128","nameEn":"...","nameAr":"...","diagnosis":"...","causes
         if (d.success) cxAttrs = d.attributes || {};
       }
 
-      // ── Parse CarsXE history (salvage/junk/theft) ─────────────────────────
+      // ── Parse CarsXE history (salvage/junk/theft) — US vehicles only ─────
       let salvageRecords: any[] = [];
       if (carsxeHistoryRes.status === "fulfilled" && carsxeHistoryRes.value.ok) {
         const d = await carsxeHistoryRes.value.json();
@@ -651,10 +663,11 @@ Return: [{"code":"P0128","nameEn":"...","nameAr":"...","diagnosis":"...","causes
         }
       }
 
-      // ── Merge specs (NHTSA fills gaps left by CarsXE) ────────────────────
-      const make  = cxAttrs.make  || nhtsaResult.Make  || "";
-      const model = cxAttrs.model || nhtsaResult.Model || "";
-      const year  = cxAttrs.year  || nhtsaResult.ModelYear || "";
+      // ── Merge make/model/year from all sources ─────────────────────────────
+      // Priority: CarsXE > NHTSA > WMI CommonName
+      let make  = cxAttrs.make  || nhtsaResult.Make  || wmiData.CommonName?.split(",")?.[0]?.trim() || "";
+      let model = cxAttrs.model || nhtsaResult.Model || "";
+      let year  = cxAttrs.year  || nhtsaResult.ModelYear || "";
 
       if (!make) {
         return res.status(400).json({
@@ -664,11 +677,59 @@ Return: [{"code":"P0128","nameEn":"...","nameAr":"...","diagnosis":"...","causes
         });
       }
 
-      // ── Step 2: Fetch images + market value + NHTSA recalls in parallel ──
+      // ── OpenAI fallback: fill missing model/trim for non-US VINs ──────────
+      let aiData: any = null;
+      if (!model && make) {
+        try {
+          const aiResp = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [{
+              role: "system",
+              content: `You are an expert vehicle VIN decoder with deep knowledge of international vehicle models including GCC/UAE market vehicles.
+Given a VIN number, decode as much as possible from the VIN structure itself.
+Return ONLY a JSON object with these exact fields (use empty string if unknown):
+{
+  "make": "string",
+  "model": "string", 
+  "year": "string",
+  "trim": "string",
+  "body_style": "string",
+  "engine": "string",
+  "fuel_type": "string (Gasoline/Diesel/Hybrid/Electric)",
+  "transmission": "string",
+  "drivetrain": "string",
+  "doors": "string",
+  "country_of_manufacture": "string",
+  "notes": "string (any special notes, GCC specs if applicable)"
+}`
+            }, {
+              role: "user",
+              content: `Decode this VIN: ${vin}\nKnown from database: Make=${make}, Model=${model || "unknown"}, Year=${year || "unknown"}`
+            }],
+            response_format: { type: "json_object" },
+            max_tokens: 400,
+          });
+          const txt = aiResp.choices[0]?.message?.content || "{}";
+          aiData = JSON.parse(txt);
+          // Fill gaps
+          if (!make && aiData.make)  make  = aiData.make;
+          if (!model && aiData.model) model = aiData.model;
+          if (!year  && aiData.year)  year  = aiData.year;
+        } catch (e) {
+          console.log("OpenAI VIN fallback failed (non-critical):", e);
+        }
+      }
+
+      // ── Step 2: Images + market value + NHTSA recalls in parallel ─────────
+      const imageQuery = model
+        ? `https://api.carsxe.com/images?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&year=${year}&key=${CARSXE_KEY}`
+        : `https://api.carsxe.com/images?make=${encodeURIComponent(make)}&year=${year}&key=${CARSXE_KEY}`;
+
       const [imagesRes, marketRes, recallsRes] = await Promise.allSettled([
-        fetch(`https://api.carsxe.com/images?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&year=${year}&key=${CARSXE_KEY}`),
+        fetch(imageQuery),
         fetch(`https://api.carsxe.com/marketvalue?vin=${vin}&key=${CARSXE_KEY}`),
-        fetch(`https://api.nhtsa.gov/recalls/recallsByVehicle?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&modelYear=${year}`),
+        // Only fetch NHTSA recalls for US-market vehicles OR as a general lookup
+        fetch(`https://api.nhtsa.gov/recalls/recallsByVehicle?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model || "")}&modelYear=${year}`),
       ]);
 
       // ── Parse images ──────────────────────────────────────────────────────
@@ -689,7 +750,7 @@ Return: [{"code":"P0128","nameEn":"...","nameAr":"...","diagnosis":"...","causes
       let marketValue: any = null;
       if (marketRes.status === "fulfilled" && marketRes.value.ok) {
         const d = await marketRes.value.json();
-        if (d.tradeInValues?.length > 0 || d.auctionValues) {
+        if (d.tradeInValues?.length > 0 || (d.auctionValues && Object.keys(d.auctionValues).length > 0)) {
           marketValue = {
             tradeIn: d.tradeInValues || [],
             auction: d.auctionValues || {},
@@ -714,28 +775,31 @@ Return: [{"code":"P0128","nameEn":"...","nameAr":"...","diagnosis":"...","causes
       }
 
       // ── Build final specs object ──────────────────────────────────────────
+      // AI data fills gaps when APIs return empty values (non-US VINs)
       const specs: any = {
         year,
         make,
         model,
-        trim:         cxAttrs.series        || nhtsaResult.Trim || nhtsaResult.Series || "",
-        style:        cxAttrs.body          || nhtsaResult.BodyClass || "",
-        type:         nhtsaResult.VehicleType || "",
-        made_in:      cxAttrs.plant_country || nhtsaResult.PlantCountry || "",
+        trim:         cxAttrs.series        || nhtsaResult.Trim || nhtsaResult.Series || aiData?.trim || "",
+        style:        cxAttrs.body          || nhtsaResult.BodyClass || aiData?.body_style || "",
+        type:         nhtsaResult.VehicleType || wmiData.VehicleType || "",
+        made_in:      cxAttrs.plant_country || nhtsaResult.PlantCountry || aiData?.country_of_manufacture || wmiData.ManufacturerName?.split(" ")?.slice(-1)?.[0] || "",
         made_in_city: nhtsaResult.PlantCity  || "",
-        doors:        cxAttrs.no_of_doors   || nhtsaResult.Doors || "",
+        doors:        cxAttrs.no_of_doors   || nhtsaResult.Doors || aiData?.doors || "",
         seats:        cxAttrs.no_of_seats   || "",
-        fuel_type:    cxAttrs.fuel_type     || nhtsaResult.FuelTypePrimary || "",
+        fuel_type:    cxAttrs.fuel_type     || nhtsaResult.FuelTypePrimary || aiData?.fuel_type || "",
         engine:       nhtsaResult.DisplacementL
                         ? `${nhtsaResult.DisplacementL}L ${nhtsaResult.EngineCylinders || ""}cyl ${nhtsaResult.EngineModel || ""}`.trim()
-                        : "",
+                        : aiData?.engine || "",
         engine_size:      nhtsaResult.DisplacementL || "",
         engine_cylinders: nhtsaResult.EngineCylinders || "",
         engine_manufacturer: cxAttrs.engine_manufacturer || "",
-        transmission:     cxAttrs.gears      || nhtsaResult.TransmissionStyle || "",
-        drivetrain:       nhtsaResult.DriveType || "",
-        manufacturer:     cxAttrs.manufacturer || nhtsaResult.Manufacturer || "",
+        transmission:     cxAttrs.gears      || nhtsaResult.TransmissionStyle || aiData?.transmission || "",
+        drivetrain:       nhtsaResult.DriveType || aiData?.drivetrain || "",
+        manufacturer:     cxAttrs.manufacturer || nhtsaResult.Manufacturer || wmiData.ManufacturerName || "",
         manufacturer_address: cxAttrs.manufacturer_address || "",
+        ai_decoded: !!aiData,
+        ai_notes: aiData?.notes || "",
         // Dimensions
         wheelbase_mm:   cxAttrs.wheelbase_mm   || "",
         length_mm:      cxAttrs.length_mm      || "",

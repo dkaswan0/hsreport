@@ -93,7 +93,7 @@ export default function VehicleData() {
       <Card className="rounded-2xl border border-slate-200 shadow-sm">
         <CardContent className="p-5">
           <p className="text-sm text-slate-500 font-arabic mb-3">
-            أدخل رقم الهيكل (VIN) للحصول على مواصفات السيارة الكاملة، القيمة السوقية، سجل الخردة، والاستدعاءات الأمنية
+            أدخل رقم الهيكل (VIN) للحصول على مواصفات السيارة الكاملة — يدعم السيارات الأمريكية والأوروبية واليابانية والكورية والخليجية
           </p>
           <div className="flex gap-3">
             <Button
@@ -143,15 +143,23 @@ export default function VehicleData() {
 
           {/* ── Hero bar ── */}
           <div className="bg-slate-900 text-white rounded-2xl p-5 flex items-center justify-between gap-4">
-            <div className="flex gap-3 items-center ltr">
-              {salvage.length > 0 && (
-                <Badge variant="destructive" className="font-arabic">⚠️ سجل خردة</Badge>
-              )}
-              {recalls.length > 0 && (
-                <Badge className="bg-amber-500 text-white font-arabic">{recalls.length} استدعاء</Badge>
-              )}
-              {salvage.length === 0 && recalls.length === 0 && (
-                <Badge className="bg-green-500 text-white font-arabic">✓ سجل نظيف</Badge>
+            <div className="flex flex-col gap-2 items-start ltr">
+              <div className="flex gap-2 flex-wrap">
+                {salvage.length > 0 && (
+                  <Badge variant="destructive" className="font-arabic">⚠️ سجل خردة</Badge>
+                )}
+                {recalls.length > 0 && (
+                  <Badge className="bg-amber-500 text-white font-arabic">{recalls.length} استدعاء</Badge>
+                )}
+                {salvage.length === 0 && recalls.length === 0 && (
+                  <Badge className="bg-green-500 text-white font-arabic">✓ سجل نظيف</Badge>
+                )}
+                {specs.ai_decoded && (
+                  <Badge className="bg-violet-600 text-white font-arabic">✦ ذكاء اصطناعي</Badge>
+                )}
+              </div>
+              {specs.ai_notes && (
+                <p className="text-violet-300 text-xs font-arabic text-right max-w-[200px]">{specs.ai_notes}</p>
               )}
             </div>
             <div className="text-right">
