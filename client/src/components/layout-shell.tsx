@@ -49,8 +49,12 @@ export default function LayoutShell({ children, onLogout }: LayoutShellProps) {
             <img 
               src={logoPath} 
               alt="High Safety Logo" 
-              className="h-10 w-10 object-cover relative z-10 rounded-xl"
-              style={{ filter: 'drop-shadow(0 0 8px rgba(197,133,44,0.8))', border: '1px solid rgba(197,133,44,0.4)' }}
+              className="h-12 w-12 object-contain relative z-10 rounded-xl"
+              style={{ 
+                filter: 'drop-shadow(0 0 6px rgba(180,140,50,0.7))',
+                border: '1px solid rgba(180,140,50,0.35)',
+                background: '#0d1e30',
+              }}
             />
           </div>
           <div className="leading-tight">

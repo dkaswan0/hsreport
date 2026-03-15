@@ -61,20 +61,23 @@ export default function Login({ onLoginSuccess }: { onLoginSuccess: () => void }
           <div className="flex flex-col items-center pt-6 pb-5 px-7">
             <div className="relative mb-4">
               <div
-                className="rounded-xl overflow-hidden"
+                className="absolute -inset-2 rounded-2xl blur-xl"
+                style={{ background: 'radial-gradient(circle, rgba(180,140,50,0.35) 0%, transparent 70%)' }}
+              />
+              <img
+                src={logoPath}
+                alt="High Safety"
+                className="relative z-10 rounded-2xl"
                 style={{
-                  width: '88px',
-                  height: '88px',
-                  border: '1.5px solid rgba(180,140,50,0.5)',
-                  boxShadow: '0 0 20px rgba(180,140,50,0.25), 0 4px 16px rgba(0,0,0,0.5)',
+                  width: '148px',
+                  height: '148px',
+                  objectFit: 'contain',
+                  display: 'block',
+                  border: '1.5px solid rgba(180,140,50,0.4)',
+                  boxShadow: '0 0 24px rgba(180,140,50,0.3), 0 6px 20px rgba(0,0,0,0.6)',
+                  background: '#0d1e30',
                 }}
-              >
-                <img
-                  src={logoPath}
-                  alt="High Safety"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                />
-              </div>
+              />
             </div>
 
             {/* Company Name */}
