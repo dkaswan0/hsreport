@@ -11,6 +11,7 @@ import InspectionDetails from "@/pages/inspection-details";
 import FaultLibrary from "@/pages/fault-library";
 import VehicleData from "@/pages/vehicle-data";
 import Settings from "@/pages/settings";
+import ApiKeys from "@/pages/api-keys";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 
@@ -28,6 +29,7 @@ function ProtectedRoutes({ onLogout }: { onLogout: () => void }) {
         <Route path="/fault-library" component={FaultLibrary} />
         <Route path="/vehicle-data" component={VehicleData} />
         <Route path="/settings" component={Settings} />
+        <Route path="/api-keys" component={ApiKeys} />
         <Route component={NotFound} />
       </Switch>
     </LayoutShell>

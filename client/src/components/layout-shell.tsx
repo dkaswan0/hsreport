@@ -9,7 +9,8 @@ import {
   Search,
   Bell,
   Database,
-  LogOut
+  LogOut,
+  KeyRound,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,7 @@ export default function LayoutShell({ children, onLogout }: LayoutShellProps) {
     { href: "/inspections", label: t('nav.inspections'), icon: ClipboardList },
     { href: "/fault-library", label: t('nav.faultLibrary'), icon: Car },
     { href: "/vehicle-data", label: t('nav.vehicleData'), icon: Database },
+    { href: "/api-keys", label: "مفاتيح API", icon: KeyRound },
     { href: "/settings", label: t('nav.settings'), icon: Settings },
   ];
 

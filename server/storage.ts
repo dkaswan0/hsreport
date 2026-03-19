@@ -1,9 +1,10 @@
 import { db } from "./db";
 import {
-  inspections, inspectionItems, faultLibrary,
+  inspections, inspectionItems, faultLibrary, apiKeys,
   type Inspection, type InsertInspection, type UpdateInspectionRequest,
   type InspectionItem, type InsertInspectionItem, type UpdateInspectionItemRequest,
-  type FaultLibrary, type InsertFaultLibrary
+  type FaultLibrary, type InsertFaultLibrary,
+  type ApiKey,
 } from "@shared/schema";
 import { eq, ilike, desc, inArray } from "drizzle-orm";
 
@@ -28,6 +29,13 @@ export interface IStorage {
   getFaultLibrary(search?: string): Promise<FaultLibrary[]>;
   createFault(fault: InsertFaultLibrary): Promise<FaultLibrary>;
   deleteFault(id: number): Promise<boolean>;
+
+  // API Keys
+  getApiKeys(): Promise<ApiKey[]>;
+  createApiKey(name: string, keyHash: string, keyPrefix: string): Promise<ApiKey>;
+  getApiKeyByHash(keyHash: string): Promise<ApiKey | undefined>;
+  touchApiKey(id: number): Promise<void>;
+  revokeApiKey(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -149,6 +157,30 @@ export class DatabaseStorage implements IStorage {
 
   async deleteFault(id: number): Promise<boolean> {
     const result = await db.delete(faultLibrary).where(eq(faultLibrary.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // API Keys
+  async getApiKeys(): Promise<ApiKey[]> {
+    return await db.select().from(apiKeys).orderBy(desc(apiKeys.createdAt));
+  }
+
+  async createApiKey(name: string, keyHash: string, keyPrefix: string): Promise<ApiKey> {
+    const [key] = await db.insert(apiKeys).values({ name, keyHash, keyPrefix, isActive: true }).returning();
+    return key;
+  }
+
+  async getApiKeyByHash(keyHash: string): Promise<ApiKey | undefined> {
+    const [key] = await db.select().from(apiKeys).where(eq(apiKeys.keyHash, keyHash));
+    return key;
+  }
+
+  async touchApiKey(id: number): Promise<void> {
+    await db.update(apiKeys).set({ lastUsedAt: new Date() }).where(eq(apiKeys.id, id));
+  }
+
+  async revokeApiKey(id: number): Promise<boolean> {
+    const result = await db.delete(apiKeys).where(eq(apiKeys.id, id)).returning();
     return result.length > 0;
   }
 }

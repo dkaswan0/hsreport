@@ -118,5 +118,22 @@ export type UpdateInspectionItemRequest = Partial<InsertInspectionItem>;
 export type InspectionResponse = Inspection & { items?: InspectionItem[] };
 export type FaultLibraryResponse = FaultLibrary;
 
+// === API KEYS ===
+
+export const apiKeys = pgTable("api_keys", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  keyHash: text("key_hash").notNull().unique(),
+  keyPrefix: text("key_prefix").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  lastUsedAt: timestamp("last_used_at"),
+});
+
+export const insertApiKeySchema = createInsertSchema(apiKeys).omit({ id: true, createdAt: true, lastUsedAt: true });
+
+export type ApiKey = typeof apiKeys.$inferSelect;
+export type InsertApiKey = z.infer<typeof insertApiKeySchema>;
+
 // Export Chat Models
 export * from "./models/chat";

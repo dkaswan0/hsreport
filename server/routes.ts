@@ -3,15 +3,45 @@ import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
+import { createHash, randomBytes } from "crypto";
 import { registerChatRoutes } from "./replit_integrations/chat";
 import { registerImageRoutes, openai } from "./replit_integrations/image"; // Import openai client
 
-// Authentication middleware - protects admin routes
+// ── API Key helpers ───────────────────────────────────────────────────────────
+function hashApiKey(raw: string): string {
+  return createHash("sha256").update(raw).digest("hex");
+}
+
+function generateApiKey(): { raw: string; prefix: string; hash: string } {
+  const raw = "hs_" + randomBytes(24).toString("hex");
+  return { raw, prefix: raw.substring(0, 14) + "...", hash: hashApiKey(raw) };
+}
+
+// ── Auth middleware ──────────────────────────────────────────────────────────
+
+// Session-only (admin UI)
 const requireAuth = (req: Request, res: Response, next: NextFunction) => {
-  if (req.session?.isAuthenticated) {
-    return next();
-  }
+  if (req.session?.isAuthenticated) return next();
   res.status(401).json({ message: "Unauthorized - Please login" });
+};
+
+// Session OR API Key (for external app integrations)
+const requireAuthOrApiKey = async (req: Request, res: Response, next: NextFunction) => {
+  if (req.session?.isAuthenticated) return next();
+
+  const rawKey = (req.headers["x-api-key"] as string) ||
+                 (req.headers["authorization"] || "").replace(/^Bearer\s+/i, "");
+
+  if (rawKey && rawKey.startsWith("hs_")) {
+    const hash = hashApiKey(rawKey);
+    const key = await storage.getApiKeyByHash(hash);
+    if (key && key.isActive) {
+      storage.touchApiKey(key.id).catch(() => {}); // async, non-blocking
+      return next();
+    }
+  }
+
+  res.status(401).json({ message: "Unauthorized — provide a valid API key via X-API-Key header" });
 };
 
 export async function registerRoutes(
@@ -51,6 +81,50 @@ export async function registerRoutes(
       isAuthenticated: !!req.session?.isAuthenticated,
       username: req.session?.username || null
     });
+  });
+
+  // === Global API Protection (session OR API key) ===
+  // Public endpoints exempted: /api/auth/*, /api/public/*, /api/autel/report/public/*
+  app.use("/api", async (req: Request, res: Response, next: NextFunction) => {
+    const path = req.path;
+    const exempt = ["/auth/", "/public/", "/autel/report/public/"];
+    if (exempt.some(e => path.startsWith(e))) return next();
+    if (req.session?.isAuthenticated) return next();
+
+    const rawKey = (req.headers["x-api-key"] as string) ||
+                   (req.headers["authorization"] || "").replace(/^Bearer\s+/i, "");
+    if (rawKey && rawKey.startsWith("hs_")) {
+      const hash = hashApiKey(rawKey);
+      const key = await storage.getApiKeyByHash(hash);
+      if (key && key.isActive) {
+        storage.touchApiKey(key.id).catch(() => {});
+        return next();
+      }
+    }
+    res.status(401).json({ message: "Unauthorized — please login or provide a valid X-API-Key header" });
+  });
+
+  // === API Key Management (session-only, admin) ===
+  app.get("/api/keys", requireAuth, async (_req, res) => {
+    const keys = await storage.getApiKeys();
+    res.json(keys);
+  });
+
+  app.post("/api/keys", requireAuth, async (req, res) => {
+    const { name } = req.body;
+    if (!name || typeof name !== "string" || !name.trim()) {
+      return res.status(400).json({ message: "اسم المفتاح مطلوب" });
+    }
+    const { raw, prefix, hash } = generateApiKey();
+    const key = await storage.createApiKey(name.trim(), hash, prefix);
+    res.status(201).json({ ...key, rawKey: raw }); // raw key shown only once
+  });
+
+  app.delete("/api/keys/:id", requireAuth, async (req, res) => {
+    const id = Number(req.params.id);
+    if (!id) return res.status(400).json({ message: "Invalid ID" });
+    const ok = await storage.revokeApiKey(id);
+    ok ? res.json({ success: true }) : res.status(404).json({ message: "Key not found" });
   });
 
   // === Inspections ===
