@@ -1,80 +1,63 @@
-# High Safety Vehicle Inspection System
+# High Safety International Center — مركز الأمان العالي الدولي
 
-## Overview
+A vehicle inspection management system for High Safety International Center. Built with React + Express + TypeScript + PostgreSQL (Drizzle ORM).
 
-This is a bilingual (Arabic/English) vehicle inspection management system built for automotive safety assessment. The application enables examiners to create detailed vehicle inspections, document faults with photos, and generate professional PDF reports. It features VIN decoding, OCR-based VIN scanning, AI-powered fault suggestions, OBD-II diagnostic code reading (manual entry + image extraction from scanner screens), Autel diagnostic report import from Gmail, and an interactive visual car diagram showing inspection results by category.
+## Stack
+
+- **Frontend**: React 18, Vite, Tailwind CSS, Radix UI, TanStack Query, Wouter (routing), Framer Motion
+- **Backend**: Express.js (Node 20), TypeScript (`tsx` runner), session-based auth
+- **Database**: PostgreSQL (Drizzle ORM) — Replit's built-in managed PostgreSQL
+- **AI**: OpenAI (lazy-initialized, requires `AI_INTEGRATIONS_OPENAI_API_KEY`)
+
+## How to run
+
+```bash
+npm install
+npm run dev        # Development server on port 5000
+npm run build      # Production build
+npm start          # Production server
+npm run db:push    # Apply schema changes to the database
+```
+
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DATABASE_URL` | ✅ Yes | PostgreSQL connection string (auto-set by Replit) |
+| `SESSION_SECRET` | ✅ Yes | Express session secret (set in Replit Secrets) |
+| `AI_INTEGRATIONS_OPENAI_API_KEY` | ⚠️ Optional | OpenAI API key — AI features disabled without it |
+| `AI_INTEGRATIONS_OPENAI_BASE_URL` | ⚠️ Optional | Custom OpenAI base URL |
+| `ADMIN_USERNAME` | ⚠️ Optional | Admin login username (default: `hs`) |
+| `ADMIN_PASSWORD` | ⚠️ Optional | Admin login password (default: `ahmed`) |
+| `EMAIL_USER` | ⚠️ Optional | SMTP email user for notifications |
+| `EMAIL_PASS` | ⚠️ Optional | SMTP email password |
+
+## Known setup notes
+
+- **jspdf** is blocked by Replit's security policy (critical CVE in all published versions). A local stub at `client/src/lib/jspdf-stub.ts` replaces it via a Vite alias. PDF download shows a user-friendly error. This will be addressed in the security/refactor phase.
+- **OpenAI client** is lazy-initialized — the server starts normally even without an API key. AI features return errors when called without the key.
+
+## Project structure
+
+```
+├── client/          Frontend React app
+│   └── src/
+│       ├── pages/   Route-level pages
+│       ├── components/  Reusable UI components
+│       └── lib/     Utilities, PDF builder, query client
+├── server/          Express backend
+│   ├── index.ts     Server entry point
+│   ├── routes.ts    All API routes
+│   ├── db.ts        Drizzle DB connection
+│   ├── storage.ts   Database access layer
+│   └── replit_integrations/  OpenAI chat & image integrations
+├── shared/          Shared types, schema, routes
+└── drizzle.config.ts  DB migration config
+```
 
 ## User Preferences
 
-Preferred communication style: Simple, everyday language.
-
-## System Architecture
-
-### Frontend Architecture
-- **Framework**: React 18 with TypeScript
-- **Routing**: Wouter (lightweight alternative to React Router)
-- **State Management**: TanStack React Query for server state caching and synchronization
-- **Styling**: Tailwind CSS with custom CSS variables for theming
-- **UI Components**: shadcn/ui component library built on Radix UI primitives
-- **Forms**: React Hook Form with Zod validation
-- **PDF Generation**: jsPDF with html2canvas for client-side report generation (bilingual AR/EN support)
-- **PDF Page Order**: Car section photos page first, then faults/inspection report page second
-- **PDF Language**: Dual download buttons - Arabic PDF and English PDF with full bilingual templates
-- **OCR**: Tesseract.js for VIN scanning from images
-
-### Backend Architecture
-- **Runtime**: Node.js with Express
-- **Language**: TypeScript with ESM modules
-- **API Style**: RESTful endpoints defined in `shared/routes.ts` with Zod schema validation
-- **Build Tool**: Custom build script using esbuild for server and Vite for client
-
-### Data Storage
-- **Database**: PostgreSQL with Drizzle ORM
-- **Schema Location**: `shared/schema.ts` for main tables, `shared/models/chat.ts` for AI chat tables
-- **Tables**: users, inspections, inspectionItems, faultLibrary, conversations, messages
-
-### Key Design Patterns
-- **Shared Types**: Schema definitions and route contracts are shared between frontend and backend in the `shared/` directory
-- **Type-Safe API**: Route definitions include input/output Zod schemas for compile-time and runtime validation
-- **Monorepo Structure**: Single repository with `client/`, `server/`, and `shared/` directories
-- **Path Aliases**: `@/` maps to client source, `@shared/` maps to shared code
-
-### Inspection Categories
-The system organizes vehicle inspections into **6 main sections** with subcategories:
-1. **MECHANIC (الأجزاء الميكانيكية)**: Engine, Suspension System, Steering System, Brake System, Fuel & Exhaust, AC & Cooling
-2. **TRANSMISSION (ناقل الحركة)**: Automatic, Manual, Performance, Sounds, Leaks, Gear Shifting
-3. **BODY (الهيكل الخارجي)**: Doors, Hood, Trunk, Fenders, Bumpers, Roof, Pillars, Quarter Panels
-4. **CHASSIS (الشاصي)**: Frame, Alignment, Welding, Accident Damage
-5. **ELECTRIC (الكهربائية)**: Electrical System, Battery, Lights, Wire Harness, Sensors
-6. **INTERIOR & SAFETY (الداخلية والسلامة)**: Interior, Safety Systems, Tires/Rims, Windows, Mirrors, Accessories
-
-### Fault Database
-- **Total Faults**: 9,639 faults (1,479 original + 8,160 generated)
-- **Source**: `shared/fault-data.ts` generates comprehensive faults programmatically
-- **Coverage**: All external vehicle parts with multiple condition types
-
-## External Dependencies
-
-### AI Integrations
-- **OpenAI API**: Used via Replit AI Integrations for chat completions and image generation
-- **Environment Variables**: `AI_INTEGRATIONS_OPENAI_API_KEY`, `AI_INTEGRATIONS_OPENAI_BASE_URL`
-- **Features**: AI-powered fault suggestions, image generation for reports, OBD code lookup and image extraction
-
-### Database
-- **PostgreSQL**: Primary data store, connection via `DATABASE_URL` environment variable
-- **Session Storage**: connect-pg-simple for Express session persistence
-
-### External APIs
-- **VIN Decoder — CarsXE + NHTSA**: Comprehensive VIN decoder combining CarsXE (specs, market value, salvage history, vehicle images) and NHTSA (safety recalls). Environment variable: `CARSXE_API_KEY`
-  - CarsXE `/specs` — full vehicle specifications & dimensions
-  - CarsXE `/marketvalue` — trade-in and auction market values
-  - CarsXE `/history` — NMVTIS junk/salvage records
-  - CarsXE `/images` — official vehicle photos by make/model/year
-  - NHTSA recalls API — active safety recalls with remedy details
-
-### Key NPM Packages
-- **drizzle-orm** / **drizzle-kit**: Database ORM and migration tools
-- **zod**: Runtime schema validation
-- **html2canvas** / **jspdf**: PDF report generation
-- **tesseract.js**: OCR for VIN scanning
-- **@zxing/library**: Barcode/QR scanning capability
+- Perform improvements in phases; verify the app works after each phase before moving on
+- Fix all errors immediately when they appear — don't leave broken states
+- Preserve all existing features and backward compatibility throughout any refactor
+- Write a report at the end of each phase summarizing what changed

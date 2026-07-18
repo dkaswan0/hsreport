@@ -2,9 +2,21 @@ import fs from "node:fs";
 import OpenAI, { toFile } from "openai";
 import { Buffer } from "node:buffer";
 
-export const openai = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+function getOpenAIClient(): OpenAI {
+  if (!process.env.AI_INTEGRATIONS_OPENAI_API_KEY) {
+    throw new Error("AI_INTEGRATIONS_OPENAI_API_KEY is not configured. AI features are unavailable.");
+  }
+  return new OpenAI({
+    apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+    baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+  });
+}
+
+// Lazy proxy so existing imports of `openai` still work
+export const openai = new Proxy({} as OpenAI, {
+  get(_target, prop) {
+    return getOpenAIClient()[prop as keyof OpenAI];
+  },
 });
 
 /**
