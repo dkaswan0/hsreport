@@ -181,8 +181,10 @@ export default function InspectionDetails() {
     <div className="min-h-[calc(100vh-100px)] flex flex-col gap-4 animate-in fade-in duration-500 pb-20 md:pb-0">
       
       {/* Mobile Horizontal Sections - Scrollable */}
-      <div className="md:hidden bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 font-bold text-slate-700 text-sm">الأقسام الرئيسية</div>
+      <div className="md:hidden bg-white rounded-xl border border-stone-100 overflow-hidden">
+        <div className="px-4 py-2 border-b border-stone-100">
+          <span className="text-[10px] font-black uppercase tracking-widest text-stone-400">الأقسام</span>
+        </div>
         <div className="overflow-x-auto overscroll-x-contain">
           <div className="flex gap-2 p-3 min-w-max">
             {MAIN_SECTIONS.map(section => (
@@ -190,21 +192,22 @@ export default function InspectionDetails() {
                 key={section.id}
                 onClick={() => toggleSection(section.id)}
                 className={cn(
-                  "px-4 py-2.5 rounded-xl transition-all whitespace-nowrap text-sm font-medium flex items-center gap-1",
-                  activeSection === section.id 
-                    ? "bg-primary text-white shadow-md shadow-primary/20" 
-                    : "bg-slate-100 text-slate-600 active:bg-slate-200"
+                  "px-3 py-2 rounded-lg transition-colors whitespace-nowrap text-xs font-semibold flex items-center gap-1",
+                  activeSection === section.id
+                    ? "text-white"
+                    : "bg-stone-100 text-stone-600 active:bg-stone-200"
                 )}
+                style={activeSection === section.id ? { background: '#0C1A28' } : {}}
                 data-testid={`section-mobile-${section.id}`}
               >
                 {section.label}
-                <ChevronDown className={cn("w-3 h-3 transition-transform", expandedSections[section.id] && "rotate-180")} />
+                <ChevronDown className={cn("w-3 h-3 transition-transform opacity-60", expandedSections[section.id] && "rotate-180")} />
               </button>
             ))}
           </div>
         </div>
         {activeSection && expandedSections[activeSection] && (
-          <div className="border-t border-slate-100 bg-slate-50/50">
+          <div className="border-t border-stone-100 bg-stone-50/50">
             <div className="overflow-x-auto overscroll-x-contain">
               <div className="flex gap-2 p-3 min-w-max">
                 {getCategoriesForSection(activeSection).map(cat => cat && (
@@ -212,11 +215,12 @@ export default function InspectionDetails() {
                     key={cat.id}
                     onClick={() => setActiveCategory(cat.id)}
                     className={cn(
-                      "px-3 py-2 rounded-lg transition-all whitespace-nowrap text-xs font-medium",
-                      activeCategory === cat.id 
-                        ? "bg-primary/80 text-white shadow-sm" 
-                        : "bg-white text-slate-600 border border-slate-200 active:bg-slate-100"
+                      "px-3 py-1.5 rounded-md transition-colors whitespace-nowrap text-xs font-medium",
+                      activeCategory === cat.id
+                        ? "text-white"
+                        : "bg-white text-stone-600 border border-stone-200 active:bg-stone-100"
                     )}
+                    style={activeCategory === cat.id ? { background: '#C5852C' } : {}}
                     data-testid={`category-mobile-${cat.id}`}
                   >
                     {cat.label}
@@ -230,52 +234,52 @@ export default function InspectionDetails() {
 
       <div className="flex flex-col md:flex-row gap-4 flex-1">
         {/* Desktop Sidebar - Main Sections with Subcategories */}
-        <div className="hidden md:flex w-72 flex-shrink-0 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex-col">
-          <div className="p-4 bg-slate-50 border-b border-slate-100 font-bold text-slate-700">الأقسام الرئيسية</div>
-          <div className="flex-1 overflow-y-auto p-2 space-y-1">
+        <div className="hidden md:flex w-64 flex-shrink-0 bg-white rounded-xl border border-stone-100 overflow-hidden flex-col">
+          <div className="px-4 py-3 border-b border-stone-100">
+            <span className="text-[10px] font-black uppercase tracking-widest text-stone-400">الأقسام</span>
+          </div>
+          <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
             {MAIN_SECTIONS.map(section => {
               const sectionCategories = getCategoriesForSection(section.id);
               const isExpanded = expandedSections[section.id];
               const isActive = activeSection === section.id;
               
               return (
-                <div key={section.id} className="space-y-1">
-                  {/* Section Header */}
+                <div key={section.id} className="space-y-0.5">
                   <button
                     onClick={() => toggleSection(section.id)}
                     className={cn(
-                      "w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all text-right",
-                      isActive 
-                        ? "bg-primary/10 text-primary border border-primary/20" 
-                        : "text-slate-700 hover:bg-slate-50"
+                      "w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-right",
+                      isActive
+                        ? "text-[#C5852C] bg-[#C5852C]/8 font-semibold"
+                        : "text-stone-600 hover:bg-stone-50 hover:text-stone-800"
                     )}
                     data-testid={`section-desktop-${section.id}`}
                   >
                     <div className="flex items-center gap-2">
-                      <ChevronDown className={cn("w-4 h-4 transition-transform", isExpanded && "rotate-180")} />
-                      <span className="font-bold text-sm">{section.label}</span>
+                      <ChevronDown className={cn("w-3.5 h-3.5 transition-transform opacity-50", isExpanded && "rotate-180")} />
+                      <span className="text-sm">{section.label}</span>
                     </div>
-                    <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
-                      {sectionCategories.length}
-                    </span>
+                    <span className="text-[10px] text-stone-400 tabular-nums">{sectionCategories.length}</span>
                   </button>
                   
                   {isExpanded && (
-                    <div className="mr-4 space-y-0.5 border-r-2 border-slate-100 pr-2">
+                    <div className="me-3 space-y-0.5 border-e-2 border-stone-100 pe-2">
                       {sectionCategories.map(cat => cat && (
                         <button
                           key={cat.id}
                           onClick={() => setActiveCategory(cat.id)}
                           className={cn(
-                            "w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all text-right text-sm",
-                            activeCategory === cat.id 
-                              ? "bg-primary text-white shadow-sm" 
-                              : "text-slate-600 hover:bg-slate-50"
+                            "w-full flex items-center justify-between px-3 py-1.5 rounded-md transition-colors text-right text-xs",
+                            activeCategory === cat.id
+                              ? "text-white font-semibold"
+                              : "text-stone-500 hover:bg-stone-50 hover:text-stone-800"
                           )}
+                          style={activeCategory === cat.id ? { background: '#0C1A28' } : {}}
                           data-testid={`category-desktop-${cat.id}`}
                         >
-                          <span className="font-medium">{cat.label}</span>
-                          <ChevronRight className={cn("w-3 h-3 rtl:rotate-180", activeCategory === cat.id ? "text-white" : "text-slate-300")} />
+                          <span>{cat.label}</span>
+                          <ChevronRight className={cn("w-3 h-3 rtl:rotate-180", activeCategory === cat.id ? "text-white/50" : "text-stone-300")} />
                         </button>
                       ))}
                     </div>
@@ -289,8 +293,8 @@ export default function InspectionDetails() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col gap-4 min-w-0">
         
-        {/* Top Vehicle Info Card - Mobile Optimized */}
-        <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-slate-100">
+        {/* Top Vehicle Info Card */}
+        <div className="bg-white rounded-xl p-4 md:p-5 border border-stone-100">
           {isEditingInfo ? (
             <div className="space-y-4" data-testid="edit-info-form">
               <div className="flex items-center justify-between mb-2">
@@ -408,22 +412,55 @@ export default function InspectionDetails() {
             </div>
           ) : (
           <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                <h2 className="text-lg md:text-2xl font-bold text-slate-900">{inspection.make} {inspection.model} {inspection.year}</h2>
+            <div className="flex-1 min-w-0">
+              {/* Title row */}
+              <div className="flex items-center gap-3 mb-3 flex-wrap">
+                <h2 className="text-xl md:text-2xl font-bold text-stone-900 leading-none">
+                  {inspection.make} {inspection.model} {inspection.year}
+                </h2>
                 <StatusBadge status={inspection.status || 'draft'} />
               </div>
-              <p className="text-slate-500 font-mono tracking-wider text-sm mb-2">{inspection.vin}</p>
-              <div className="flex flex-wrap gap-3 text-sm text-slate-500">
-                {inspection.color && <span className="bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100">اللون: {inspection.color}</span>}
-                {inspection.odometer && <span className="bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100">العداد: {inspection.odometer?.toLocaleString()} كم</span>}
-                {inspection.customerName && <span className="bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100">العميل: {inspection.customerName}</span>}
-                {inspection.customerPhone && <span className="bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100">{inspection.customerPhone}</span>}
-                {inspection.inspectionType && <span className="bg-primary/5 text-primary px-2 py-0.5 rounded-lg border border-primary/10">{inspection.inspectionType}</span>}
+              {/* VIN */}
+              <p className="font-mono text-xs tracking-widest text-stone-400 mb-3 pb-3 border-b border-stone-100">
+                {inspection.vin}
+              </p>
+              {/* Data grid */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {inspection.color && (
+                  <div>
+                    <div className="text-[10px] text-stone-400 uppercase tracking-wider font-semibold mb-0.5">اللون</div>
+                    <div className="text-sm font-semibold text-stone-700">{inspection.color}</div>
+                  </div>
+                )}
+                {inspection.odometer && (
+                  <div>
+                    <div className="text-[10px] text-stone-400 uppercase tracking-wider font-semibold mb-0.5">العداد</div>
+                    <div className="text-sm font-semibold text-stone-700 font-mono">{inspection.odometer?.toLocaleString()} كم</div>
+                  </div>
+                )}
+                {inspection.customerName && (
+                  <div>
+                    <div className="text-[10px] text-stone-400 uppercase tracking-wider font-semibold mb-0.5">العميل</div>
+                    <div className="text-sm font-semibold text-stone-700">{inspection.customerName}</div>
+                  </div>
+                )}
+                {inspection.customerPhone && (
+                  <div>
+                    <div className="text-[10px] text-stone-400 uppercase tracking-wider font-semibold mb-0.5">الجوال</div>
+                    <div className="text-sm font-semibold text-stone-700 font-mono" dir="ltr">{inspection.customerPhone}</div>
+                  </div>
+                )}
+                {inspection.inspectionType && (
+                  <div>
+                    <div className="text-[10px] text-stone-400 uppercase tracking-wider font-semibold mb-0.5">نوع الفحص</div>
+                    <div className="text-sm font-semibold" style={{ color: '#C5852C' }}>{inspection.inspectionType}</div>
+                  </div>
+                )}
               </div>
             </div>
-            {/* Desktop Action Buttons - Hidden on mobile (moved to bottom bar) */}
-            <div className="hidden md:flex gap-3">
+
+            {/* Desktop Action Buttons */}
+            <div className="hidden md:flex items-start gap-2">
               <button
                 onClick={() => {
                   setEditInfo({
@@ -439,39 +476,41 @@ export default function InspectionDetails() {
                   });
                   setIsEditingInfo(true);
                 }}
-                className="p-3 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-600 transition-colors"
+                className="p-2.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 transition-colors"
                 title="تعديل البيانات"
                 data-testid="button-edit-info"
               >
-                <Pencil className="w-5 h-5" />
+                <Pencil className="w-4 h-4" />
               </button>
-              <button 
+              <button
                 onClick={() => window.location.href = `/reports/${id}`}
-                className="p-3 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
+                className="p-2.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 transition-colors"
                 title="التقرير"
                 data-testid="button-interactive-report"
               >
-                <FileText className="w-5 h-5" />
+                <FileText className="w-4 h-4" />
               </button>
-              <button 
+              <button
                 onClick={handlePrint}
-                className="p-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
-                title="برنت"
+                className="p-2.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-600 transition-colors"
+                title="طباعة"
               >
-                <Printer className="w-5 h-5" />
+                <Printer className="w-4 h-4" />
               </button>
               {inspection.status === 'draft' ? (
-                <button 
+                <button
                   onClick={() => handleStatusUpdate('completed')}
-                  className="px-6 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold shadow-lg shadow-green-600/20 transition-all flex items-center gap-2"
+                  className="px-5 py-2.5 rounded-lg text-white text-sm font-bold transition-opacity hover:opacity-90 flex items-center gap-2"
+                  style={{ background: '#16a34a' }}
                 >
-                  <Save className="w-5 h-5" />
-                  <span>خلص الفحص</span>
+                  <Save className="w-4 h-4" />
+                  خلص الفحص
                 </button>
               ) : (
-                <button 
+                <button
                   onClick={() => handleStatusUpdate('draft')}
-                  className="px-6 py-3 rounded-xl bg-slate-600 hover:bg-slate-700 text-white font-semibold shadow-lg transition-all"
+                  className="px-5 py-2.5 rounded-lg text-white text-sm font-bold transition-opacity hover:opacity-90"
+                  style={{ background: '#0C1A28' }}
                 >
                   رجعه للعمل
                 </button>
@@ -482,7 +521,7 @@ export default function InspectionDetails() {
         </div>
 
         {/* Category Items */}
-        <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col overflow-hidden">
+        <div className="flex-1 bg-white rounded-xl border border-stone-100 flex flex-col overflow-hidden">
           {/* Vehicle Data Section (CarsXE Specs) */}
           {(() => {
             const rawNotes = inspection.notes;
@@ -532,8 +571,8 @@ export default function InspectionDetails() {
 
           <div className="p-3 md:p-4 border-b border-slate-100 bg-white relative" ref={globalSearchContainerRef}>
             <div className="relative">
-              <div className="flex items-center border-2 border-primary/30 rounded-xl px-3 bg-primary/5 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-                <Search className="ml-2 h-5 w-5 text-primary shrink-0" />
+              <div className="flex items-center border border-stone-200 rounded-xl px-3 bg-stone-50 focus-within:border-[#C5852C] focus-within:ring-2 focus-within:ring-[#C5852C]/10 transition-all">
+                <Search className="ml-2 h-5 w-5 text-stone-400 shrink-0" />
                 <input
                   ref={globalSearchRef}
                   type="text"
@@ -595,20 +634,19 @@ export default function InspectionDetails() {
             </div>
           </div>
 
-          <div className="px-4 md:px-6 py-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-            <div>
-              <h3 className="text-base font-bold flex items-center gap-2">
+          <div className="px-4 md:px-5 py-3 border-b border-stone-100 flex justify-between items-center bg-stone-50/40">
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-stone-800">
                 {INSPECTION_CATEGORIES.find(c => c.id === activeCategory)?.label}
-                <span className="text-sm font-normal text-slate-400 bg-white px-2 py-0.5 rounded-full border">
-                  {filteredItems.length} عنصر
-                </span>
               </h3>
+              <span className="text-[10px] text-stone-400 tabular-nums">{filteredItems.length}</span>
             </div>
-            <button 
+            <button
               onClick={() => { setPrefilledFault(null); setIsAddItemOpen(true); }}
-              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2 text-sm font-medium"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-semibold transition-opacity hover:opacity-90"
+              style={{ background: '#0C1A28' }}
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-3.5 h-3.5" />
               إضافة
             </button>
           </div>
@@ -664,13 +702,14 @@ export default function InspectionDetails() {
       )}
 
       {/* Mobile Fixed Bottom Action Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-3 z-50 flex gap-2 safe-area-pb">
-        <button 
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 p-3 z-50 flex gap-2">
+        <button
           onClick={() => { setPrefilledFault(null); setIsAddItemOpen(true); }}
-          className="flex-1 px-4 py-3 bg-primary text-white rounded-xl flex items-center justify-center gap-2 text-sm font-bold active:scale-95 transition-transform"
+          className="flex-1 px-3 py-2.5 rounded-lg text-white text-sm font-bold flex items-center justify-center gap-1.5 active:opacity-80"
+          style={{ background: '#0C1A28' }}
           data-testid="button-add-item-mobile"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-4 h-4" />
           إضافة
         </button>
         <button
@@ -689,27 +728,28 @@ export default function InspectionDetails() {
             setIsEditingInfo(true);
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
-          className="px-4 py-3 bg-amber-500 text-white rounded-xl flex items-center justify-center gap-2 text-sm font-bold active:scale-95 transition-transform"
+          className="px-3 py-2.5 rounded-lg text-stone-600 bg-stone-100 hover:bg-stone-200 text-sm font-bold flex items-center justify-center active:opacity-80"
           data-testid="button-edit-info-mobile"
         >
-          <Pencil className="w-5 h-5" />
+          <Pencil className="w-4 h-4" />
         </button>
-        <button 
+        <button
           onClick={() => window.location.href = `/reports/${id}`}
-          className="px-4 py-3 bg-blue-600 text-white rounded-xl flex items-center justify-center gap-2 text-sm font-bold active:scale-95 transition-transform"
+          className="px-3 py-2.5 rounded-lg text-stone-600 bg-stone-100 hover:bg-stone-200 text-sm font-bold flex items-center justify-center gap-1.5 active:opacity-80"
           data-testid="button-report-mobile"
         >
-          <FileText className="w-5 h-5" />
+          <FileText className="w-4 h-4" />
           التقرير
         </button>
         {inspection.status === 'draft' && (
-          <button 
+          <button
             onClick={() => handleStatusUpdate('completed')}
-            className="px-4 py-3 bg-green-600 text-white rounded-xl flex items-center justify-center gap-2 text-sm font-bold active:scale-95 transition-transform"
+            className="px-3 py-2.5 rounded-lg text-white text-sm font-bold flex items-center justify-center gap-1.5 active:opacity-80"
+            style={{ background: '#16a34a' }}
             data-testid="button-complete-mobile"
           >
-            <Save className="w-5 h-5" />
-            حفظ
+            <Save className="w-4 h-4" />
+            خلص
           </button>
         )}
       </div>
@@ -1085,45 +1125,37 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
     );
   }
 
+  const statusColor = isGood
+    ? { bar: '#16a34a', bg: '#f0fdf4', text: '#15803d' }
+    : isWarning
+    ? { bar: '#d97706', bg: '#fffbeb', text: '#b45309' }
+    : { bar: '#dc2626', bg: '#fef2f2', text: '#b91c1c' };
+
   return (
-    <div className="flex flex-col gap-4 p-5 rounded-2xl border bg-white hover:border-primary/20 transition-all group relative shadow-sm">
-      <div className="flex items-start gap-4">
-        {isGood ? (
-          <div className="p-2.5 rounded-xl shrink-0 border-green-200 bg-green-50">
-            <CheckCircle2 className="w-5 h-5 text-green-600" />
-          </div>
-        ) : isWarning ? (
-          <div className="p-2.5 rounded-xl shrink-0 border-amber-200 bg-amber-50">
-            <AlertTriangle className="w-5 h-5 text-amber-600" />
-          </div>
-        ) : (
-          <div className="p-2.5 rounded-xl shrink-0 border-red-200 bg-red-50">
-            <XCircle className="w-5 h-5 text-red-600" />
-          </div>
-        )}
-        
+    <div
+      className="flex flex-col gap-3 p-4 rounded-xl border border-stone-100 bg-white group relative transition-colors hover:border-stone-200"
+      style={{ borderInlineStart: `3px solid ${statusColor.bar}` }}
+    >
+      <div className="flex items-start gap-3">
         <div className="flex-1 min-w-0">
-          <div className="flex flex-col gap-0.5">
-            <h4 className="font-bold text-lg text-slate-900 leading-tight">
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <h4 className="font-semibold text-stone-800 leading-tight">
               {isGood ? "جيد" : arabic}
             </h4>
-            {!isGood && english && <span className="text-sm font-medium text-slate-400 font-mono tracking-tight uppercase">{english}</span>}
+            {!isGood && english && (
+              <span className="text-[10px] font-mono text-stone-400 uppercase tracking-wider">{english}</span>
+            )}
           </div>
-          
-          {item.description && (
-            <div className="mt-2 bg-slate-50 rounded-xl p-3 border border-slate-100">
-              <p className="text-sm text-slate-600">{item.description}</p>
-            </div>
-          )}
 
+          {item.description && (
+            <p className="text-xs text-stone-600 mt-1 leading-relaxed">{item.description}</p>
+          )}
           {item.notes && (
-            <div className="mt-1.5 bg-amber-50 rounded-xl p-3 border border-amber-100">
-              <p className="text-sm text-amber-700">{item.notes}</p>
-            </div>
+            <p className="text-xs mt-1.5 px-2 py-1.5 rounded-md" style={{ background: statusColor.bg, color: statusColor.text }}>{item.notes}</p>
           )}
         </div>
 
-        <div className="flex flex-col gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-all">
+        <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             onClick={() => {
               setEditData({
@@ -1136,25 +1168,24 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
               });
               setIsEditing(true);
             }}
-            className="p-2 text-slate-300 hover:text-primary hover:bg-primary/10 rounded-xl transition-all"
+            className="p-1.5 text-stone-300 hover:text-[#C5852C] hover:bg-stone-100 rounded-lg transition-colors"
             data-testid={`btn-edit-item-${item.id}`}
           >
-            <Pencil className="w-4 h-4" />
+            <Pencil className="w-3.5 h-3.5" />
           </button>
-          <button 
+          <button
             onClick={() => deleteMutation.mutate({ id: item.id, inspectionId })}
-            className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+            className="p-1.5 text-stone-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
             data-testid={`btn-delete-item-${item.id}`}
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
       {item.imageUrl && (
-        <div className="relative group/img overflow-hidden rounded-xl border border-slate-200 aspect-video bg-slate-100">
-          <img src={item.imageUrl} alt="Fault Evidence" className="w-full h-full object-cover transition-transform duration-500 group-hover/img:scale-105" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover/img:opacity-100 transition-opacity" />
+        <div className="overflow-hidden rounded-lg border border-stone-100 aspect-video bg-stone-50">
+          <img src={item.imageUrl} alt="Fault Evidence" className="w-full h-full object-cover" />
         </div>
       )}
     </div>

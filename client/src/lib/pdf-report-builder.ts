@@ -623,26 +623,6 @@ export async function generateInspectionPdf(inspection: Inspection, logoUrl?: st
   y += 10;
   y = addTermsAndConditions(pdf, y);
 
-  if (inspection.customerSignature) {
-    if (y > bottomLimit - 25) {
-      pdf.addPage();
-      y = 20;
-    }
-    
-    y += 5;
-    pdf.setFont('Amiri', 'bold');
-    pdf.setFontSize(10);
-    pdf.setTextColor(12, 26, 40);
-    pdf.text(reshapeArabic('توقيع العميل'), pageWidth - margin, y, { align: 'right' });
-    pdf.text('Customer Signature', margin, y, { align: 'left' });
-    y += 5;
-    
-    try {
-      pdf.addImage(inspection.customerSignature, 'PNG', pageWidth / 2 - 20, y, 40, 20);
-    } catch {}
-    y += 25;
-  }
-
   const totalPages = pdf.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     pdf.setPage(i);

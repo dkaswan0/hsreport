@@ -4,7 +4,7 @@ import { insertInspectionSchema } from "@shared/schema";
 import { useCreateInspection, useVinDecoder } from "@/hooks/use-inspections";
 import { useLocation } from "wouter";
 import { z } from "zod";
-import { Loader2, ArrowLeft, Search, Camera, Car, Fuel, Gauge, Settings, MapPin, CheckCircle2, ScanLine, Upload, X, Image, PenTool, FileCheck } from "lucide-react";
+import { Loader2, ArrowLeft, Search, Camera, Car, Fuel, Gauge, Settings, MapPin, CheckCircle2, ScanLine, Upload, X, Image, FileCheck } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { VinScannerModal } from "@/components/vin-scanner-modal";
@@ -66,10 +66,7 @@ export default function NewInspection() {
   const [vinPhotoPreview, setVinPhotoPreview] = useState<string | null>(null);
   const vinPhotoRef = useRef<HTMLInputElement>(null);
   const [inspectionType, setInspectionType] = useState('full');
-  const [customerSignature, setCustomerSignature] = useState<string | null>(null);
-  const signatureCanvasRef = useRef<HTMLCanvasElement>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-  
+
   // Car section photos (exterior)
   const [mainCarPhoto, setMainCarPhoto] = useState<string | null>(null);
   const [carSectionPhotos, setCarSectionPhotos] = useState<{
@@ -227,76 +224,6 @@ export default function NewInspection() {
     }));
   };
 
-  // Signature canvas functions
-  const initCanvas = useCallback(() => {
-    const canvas = signatureCanvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = '#1e3a5f';
-    ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
-  }, []);
-
-  useEffect(() => {
-    initCanvas();
-  }, [initCanvas]);
-
-  const getCoordinates = (e: React.MouseEvent | React.TouchEvent) => {
-    const canvas = signatureCanvasRef.current;
-    if (!canvas) return { x: 0, y: 0 };
-    const rect = canvas.getBoundingClientRect();
-    if ('touches' in e) {
-      return {
-        x: e.touches[0].clientX - rect.left,
-        y: e.touches[0].clientY - rect.top
-      };
-    }
-    return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    };
-  };
-
-  const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
-    const canvas = signatureCanvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    const { x, y } = getCoordinates(e);
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    setIsDrawing(true);
-  };
-
-  const draw = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!isDrawing) return;
-    const canvas = signatureCanvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    const { x, y } = getCoordinates(e);
-    ctx.lineTo(x, y);
-    ctx.stroke();
-  };
-
-  const stopDrawing = () => {
-    if (isDrawing) {
-      setIsDrawing(false);
-      const canvas = signatureCanvasRef.current;
-      if (canvas) {
-        setCustomerSignature(canvas.toDataURL('image/png'));
-      }
-    }
-  };
-
-  const clearSignature = () => {
-    initCanvas();
-    setCustomerSignature(null);
-  };
-
   // Auto-fill form when VIN data arrives
   const [vinError, setVinError] = useState<string | null>(null);
   const [userNotes, setUserNotes] = useState("");
@@ -354,7 +281,6 @@ export default function NewInspection() {
       odometerPhoto: odometerPhoto || undefined,
       vinPhoto: vinPhoto || undefined,
       inspectionType: inspectionTypeLabel,
-      customerSignature: customerSignature || undefined,
       // Car section photos
       mainCarPhoto: mainCarPhoto || undefined,
       rearLeftDoorPhoto: carSectionPhotos.rearLeftDoor || undefined,
@@ -894,50 +820,6 @@ export default function NewInspection() {
                   <div className="text-xs text-slate-500">{type.description}</div>
                 </button>
               ))}
-            </div>
-          </div>
-
-          {/* Customer Signature Section */}
-          <div>
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-primary border-b pb-2 font-arabic">
-              <span className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center text-sm">5</span>
-              <PenTool className="w-5 h-5" />
-              توقيع العميل
-            </h3>
-            
-            <div className="space-y-3">
-              <div className="border-2 border-dashed border-slate-300 rounded-xl p-2 bg-white">
-                <canvas
-                  ref={signatureCanvasRef}
-                  width={400}
-                  height={150}
-                  className="w-full max-w-md mx-auto cursor-crosshair touch-none rounded-lg"
-                  onMouseDown={startDrawing}
-                  onMouseMove={draw}
-                  onMouseUp={stopDrawing}
-                  onMouseLeave={stopDrawing}
-                  onTouchStart={startDrawing}
-                  onTouchMove={draw}
-                  onTouchEnd={stopDrawing}
-                  data-testid="canvas-signature"
-                />
-              </div>
-              <div className="flex justify-center">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={clearSignature}
-                  className="text-slate-600"
-                  data-testid="button-clear-signature"
-                >
-                  <X className="w-4 h-4 ml-1" />
-                  مسح التوقيع
-                </Button>
-              </div>
-              <p className="text-xs text-slate-400 text-center font-arabic">
-                وقع هنا باستخدام الإصبع أو الماوس - التوقيع يظهر في التقرير
-              </p>
             </div>
           </div>
 
