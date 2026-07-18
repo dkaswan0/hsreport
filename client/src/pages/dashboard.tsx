@@ -1,19 +1,18 @@
 import { useInspections, useDeleteInspection, useDeleteMultipleInspections } from "@/hooks/use-inspections";
 import { Link } from "wouter";
 import {
-  Plus, ClipboardCheck, Clock, AlertTriangle,
-  Search, Trash2, Loader2, User, Phone,
-  CheckSquare, Square, XSquare,
+  Plus, Trash2, Loader2, Phone,
+  CheckSquare, Square, XSquare, Search,
 } from "lucide-react";
 import { format } from "date-fns";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/language-context";
 
 export default function Dashboard() {
-  const { t, lang } = useLanguage();
+  const { lang } = useLanguage();
+  const ar = lang === "ar";
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const { data: inspections, isLoading } = useInspections({ search });
@@ -25,260 +24,245 @@ export default function Dashboard() {
   const handleDelete = async (id: number, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (confirm(lang === "ar" ? "هل أنت متأكد من حذف هذا الفحص؟" : "Are you sure you want to delete this inspection?")) {
-      setDeletingId(id);
-      deleteMutation.mutate(id, {
-        onSuccess: () => {
-          toast({ title: lang === "ar" ? "تم الحذف" : "Deleted", description: lang === "ar" ? "تم حذف الفحص بنجاح" : "Inspection deleted successfully" });
-          setDeletingId(null);
-          setSelectedIds((prev) => prev.filter((i) => i !== id));
-        },
-        onError: () => {
-          toast({ title: lang === "ar" ? "خطأ" : "Error", description: lang === "ar" ? "فشل حذف الفحص" : "Failed to delete inspection", variant: "destructive" });
-          setDeletingId(null);
-        },
-      });
-    }
+    if (!confirm(ar ? "حذف هذا الفحص؟" : "Delete this inspection?")) return;
+    setDeletingId(id);
+    deleteMutation.mutate(id, {
+      onSuccess: () => {
+        toast({ title: ar ? "تم الحذف" : "Deleted" });
+        setDeletingId(null);
+        setSelectedIds((p) => p.filter((i) => i !== id));
+      },
+      onError: () => {
+        toast({ title: ar ? "خطأ" : "Error", variant: "destructive" });
+        setDeletingId(null);
+      },
+    });
   };
 
-  const handleDeleteSelected = async () => {
-    if (selectedIds.length === 0) return;
-    if (confirm(lang === "ar" ? `هل أنت متأكد من حذف ${selectedIds.length} فحص؟` : `Delete ${selectedIds.length} inspections?`)) {
-      deleteMultipleMutation.mutate(selectedIds, {
-        onSuccess: (result) => {
-          toast({ title: lang === "ar" ? "تم الحذف" : "Deleted", description: lang === "ar" ? `تم حذف ${result.deleted} فحص` : `${result.deleted} deleted` });
-          setSelectedIds([]);
-        },
-        onError: () => {
-          toast({ title: lang === "ar" ? "خطأ" : "Error", description: lang === "ar" ? "فشل الحذف" : "Failed to delete", variant: "destructive" });
-        },
-      });
-    }
+  const handleDeleteSelected = () => {
+    if (!selectedIds.length) return;
+    if (!confirm(ar ? `حذف ${selectedIds.length} فحص؟` : `Delete ${selectedIds.length} inspections?`)) return;
+    deleteMultipleMutation.mutate(selectedIds, {
+      onSuccess: (r) => {
+        toast({ title: ar ? `حُذف ${r.deleted}` : `Deleted ${r.deleted}` });
+        setSelectedIds([]);
+      },
+      onError: () => toast({ title: ar ? "خطأ" : "Error", variant: "destructive" }),
+    });
   };
 
-  const toggleSelect = (id: number) =>
-    setSelectedIds((prev) => prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]);
+  const toggle = (id: number) =>
+    setSelectedIds((p) => (p.includes(id) ? p.filter((i) => i !== id) : [...p, id]));
 
-  const toggleSelectAll = () => {
+  const toggleAll = () => {
     if (!inspections) return;
     setSelectedIds(selectedIds.length === inspections.length ? [] : inspections.map((i) => i.id));
   };
 
-  const total = inspections?.length || 0;
-  const completed = inspections?.filter((i) => i.status === "completed").length || 0;
-  const drafts = inspections?.filter((i) => i.status === "draft").length || 0;
-  const allSelected = !!inspections && inspections.length > 0 && selectedIds.length === inspections.length;
-
-  const stats = [
-    {
-      label: lang === "ar" ? "إجمالي الفحوصات" : "Total Inspections",
-      value: total,
-      icon: ClipboardCheck,
-      accent: "#C5852C",
-    },
-    {
-      label: lang === "ar" ? "مكتملة" : "Completed",
-      value: completed,
-      icon: Clock,
-      accent: "#16a34a",
-    },
-    {
-      label: lang === "ar" ? "مسودة" : "Drafts",
-      value: drafts,
-      icon: AlertTriangle,
-      accent: "#d97706",
-    },
-  ];
+  const total     = inspections?.length ?? 0;
+  const completed = inspections?.filter((i) => i.status === "completed").length ?? 0;
+  const drafts    = inspections?.filter((i) => i.status === "draft").length ?? 0;
+  const allSel    = !!inspections?.length && selectedIds.length === inspections.length;
+  const today     = new Date().toLocaleDateString(ar ? "ar-SA" : "en-GB", { day: "numeric", month: "long", year: "numeric" });
 
   return (
-    <div className="space-y-6">
-      {/* Page header */}
-      <div className="flex items-center justify-between">
+    <div className="h-full flex flex-col gap-0" style={{ fontFamily: "inherit" }}>
+
+      {/* ── PAGE MASTHEAD ── */}
+      <div className="flex items-end justify-between pb-6 border-b border-stone-200/70">
         <div>
-          <h1 className="text-xl font-semibold text-stone-800">
-            {lang === "ar" ? "لوحة التحكم" : "Dashboard"}
-          </h1>
-          <p className="text-xs text-stone-400 mt-0.5">
-            {lang === "ar" ? "نظرة عامة على الفحوصات" : "Inspection overview"}
+          <p className="text-[11px] tracking-widest uppercase text-stone-400 mb-1">
+            {ar ? "مركز الأمان العالي الدولي · لوحة التحكم" : "High Safety Int'l · Dashboard"}
           </p>
+          <h1 className="text-2xl font-bold text-stone-800 leading-none">
+            {ar ? "الفحوصات" : "Inspections"}
+          </h1>
+          <p className="text-xs text-stone-400 mt-1">{today}</p>
         </div>
         <Link
           href="/inspections/new"
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90"
-          style={{ background: "#0C1A28" }}
+          className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white tracking-wide transition-opacity hover:opacity-80"
+          style={{ background: "#0C1A28", borderRadius: 6 }}
         >
-          <Plus className="w-4 h-4" />
-          <span>{t("dashboard.newInspection")}</span>
+          <Plus className="w-3.5 h-3.5" />
+          {ar ? "فحص جديد" : "New Inspection"}
         </Link>
       </div>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {stats.map((s) => (
-          <div
-            key={s.label}
-            className="bg-white rounded-xl p-5 flex items-center justify-between border border-stone-100"
-            style={{ borderTop: `3px solid ${s.accent}` }}
-          >
-            <div>
-              <p className="text-xs text-stone-400 font-medium uppercase tracking-wide mb-1">
-                {s.label}
-              </p>
-              <p className="text-4xl font-bold text-stone-800 leading-none">{s.value}</p>
-            </div>
-            <s.icon className="w-8 h-8 opacity-10 text-stone-800" />
+      {/* ── SCORELINE ── */}
+      <div className="flex divide-x divide-stone-200/70 py-5" dir="ltr">
+        {[
+          { n: total,     label: ar ? "إجمالي" : "Total",     sub: ar ? "جميع الفحوصات" : "all records"   },
+          { n: completed, label: ar ? "مكتملة" : "Completed",  sub: ar ? "فحوصات مكتملة" : "finished"     },
+          { n: drafts,    label: ar ? "مسودة"  : "Drafts",     sub: ar ? "قيد الإنجاز"   : "in progress"  },
+        ].map((s) => (
+          <div key={s.label} className="flex-1 px-6 first:pl-0 last:pr-0">
+            <span
+              className="block font-black leading-none"
+              style={{ fontSize: "clamp(2rem, 4vw, 3.5rem)", color: "#0C1A28", letterSpacing: "-0.03em" }}
+            >
+              {s.n.toLocaleString()}
+            </span>
+            <span className="block text-[11px] font-semibold text-stone-500 uppercase tracking-wider mt-1">
+              {s.label}
+            </span>
+            <span className="block text-[10px] text-stone-400 mt-0.5">{s.sub}</span>
           </div>
         ))}
       </div>
 
-      {/* Inspections table */}
-      <div className="bg-white rounded-xl border border-stone-100 overflow-hidden">
-        {/* Table header bar */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100">
+      {/* ── TABLE AREA ── */}
+      <div className="flex-1 flex flex-col border-t border-stone-200/70">
+
+        {/* toolbar */}
+        <div className="flex items-center justify-between py-3">
           <div className="flex items-center gap-3">
-            <h2 className="text-sm font-semibold text-stone-700">
-              {lang === "ar" ? "أحدث الفحوصات" : "Recent Inspections"}
-            </h2>
-            {selectedIds.length > 0 && (
-              <Button
+            {selectedIds.length > 0 ? (
+              <button
                 onClick={handleDeleteSelected}
                 disabled={deleteMultipleMutation.isPending}
-                variant="destructive"
-                size="sm"
-                className="h-7 text-xs gap-1.5"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 transition-colors disabled:opacity-50"
                 data-testid="button-delete-selected"
               >
-                {deleteMultipleMutation.isPending ? (
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                ) : (
-                  <Trash2 className="w-3 h-3" />
-                )}
-                {lang === "ar" ? `حذف (${selectedIds.length})` : `Delete (${selectedIds.length})`}
-              </Button>
+                {deleteMultipleMutation.isPending
+                  ? <Loader2 className="w-3 h-3 animate-spin" />
+                  : <Trash2 className="w-3 h-3" />}
+                {ar ? `حذف ${selectedIds.length}` : `Delete ${selectedIds.length}`}
+              </button>
+            ) : (
+              <span className="text-[11px] text-stone-400">
+                {isLoading ? (ar ? "جارٍ التحميل…" : "Loading…") : `${total.toLocaleString()} ${ar ? "سجل" : "records"}`}
+              </span>
             )}
           </div>
           <div className="relative">
             <Search
-              className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400"
-              style={{ [lang === "ar" ? "left" : "right"]: "10px" }}
+              className="absolute top-1/2 -translate-y-1/2 w-3 h-3 text-stone-400"
+              style={{ [ar ? "left" : "right"]: 9 }}
             />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={lang === "ar" ? "بحث..." : "Search..."}
-              className="w-48 text-xs py-1.5 px-3 rounded-lg border border-stone-200 bg-stone-50 focus:outline-none focus:border-stone-400 transition-colors"
-              style={{ [lang === "ar" ? "paddingLeft" : "paddingRight"]: "28px" }}
+              placeholder={ar ? "بحث…" : "Search…"}
+              className="text-xs py-1.5 rounded border border-stone-200 bg-white focus:outline-none focus:border-stone-400 transition-colors"
+              style={{
+                width: 180,
+                [ar ? "paddingLeft" : "paddingRight"]: 24,
+                [ar ? "paddingRight" : "paddingLeft"]: 10,
+              }}
               data-testid="input-search"
             />
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        {/* table */}
+        <div className="flex-1 overflow-x-auto">
+          <table className="w-full border-collapse text-sm">
             <thead>
-              <tr className="border-b border-stone-100">
-                <th className="px-5 py-3 w-10 text-center">
+              <tr style={{ borderBottom: "2px solid #0C1A28" }}>
+                <th className="pb-2 w-8 text-center">
                   <button
-                    onClick={toggleSelectAll}
-                    className="text-stone-400 hover:text-stone-700 transition-colors"
+                    onClick={toggleAll}
+                    className="text-stone-400 hover:text-stone-700"
                     data-testid="button-select-all"
                   >
-                    {allSelected
+                    {allSel
                       ? <XSquare className="w-4 h-4 text-[#C5852C]" />
                       : <CheckSquare className="w-4 h-4" />}
                   </button>
                 </th>
-                <th className="px-5 py-3 text-right text-[10px] font-semibold text-stone-400 uppercase tracking-wider">
-                  {lang === "ar" ? "رقم" : "#"}
-                </th>
-                <th className="px-5 py-3 text-right text-[10px] font-semibold text-stone-400 uppercase tracking-wider">
-                  {lang === "ar" ? "السيارة" : "Vehicle"}
-                </th>
-                <th className="px-5 py-3 text-right text-[10px] font-semibold text-stone-400 uppercase tracking-wider">
-                  {lang === "ar" ? "العميل" : "Customer"}
-                </th>
-                <th className="px-5 py-3 text-right text-[10px] font-semibold text-stone-400 uppercase tracking-wider">
-                  {lang === "ar" ? "التاريخ" : "Date"}
-                </th>
-                <th className="px-5 py-3 text-right text-[10px] font-semibold text-stone-400 uppercase tracking-wider">
-                  {lang === "ar" ? "الحالة" : "Status"}
-                </th>
-                <th className="px-5 py-3 w-20" />
+                {[
+                  ar ? "رقم" : "#",
+                  ar ? "المركبة" : "Vehicle",
+                  ar ? "العميل" : "Customer",
+                  ar ? "التاريخ" : "Date",
+                  ar ? "الحالة" : "Status",
+                  "",
+                ].map((h, i) => (
+                  <th
+                    key={i}
+                    className="pb-2 text-right text-[10px] font-black uppercase tracking-widest text-stone-800"
+                    style={{ paddingInlineEnd: i === 5 ? 0 : 16, paddingInlineStart: 0 }}
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="px-5 py-10 text-center text-stone-400 text-xs">
-                    {lang === "ar" ? "جارٍ التحميل..." : "Loading..."}
+                  <td colSpan={7} className="py-16 text-center text-stone-400 text-xs">
+                    {ar ? "جارٍ التحميل…" : "Loading…"}
                   </td>
                 </tr>
-              ) : inspections?.length === 0 ? (
+              ) : !inspections?.length ? (
                 <tr>
-                  <td colSpan={7} className="px-5 py-10 text-center text-stone-400 text-xs">
-                    {lang === "ar" ? "لا توجد فحوصات" : "No inspections found"}
+                  <td colSpan={7} className="py-16 text-center text-stone-400 text-xs">
+                    {ar ? "لا توجد نتائج" : "No records found"}
                   </td>
                 </tr>
               ) : (
-                inspections?.map((inspection) => {
-                  const selected = selectedIds.includes(inspection.id);
+                inspections.map((ins) => {
+                  const sel = selectedIds.includes(ins.id);
                   return (
                     <tr
-                      key={inspection.id}
-                      className={`border-b border-stone-50 transition-colors ${
-                        selected ? "bg-amber-50/50" : "hover:bg-stone-50/60"
-                      }`}
+                      key={ins.id}
+                      className="transition-colors"
+                      style={{
+                        borderBottom: "1px solid #e7e5e4",
+                        background: sel ? "rgba(197,133,44,0.04)" : "transparent",
+                      }}
                     >
-                      <td className="px-5 py-3 text-center">
+                      <td className="py-3 text-center">
                         <button
-                          onClick={() => toggleSelect(inspection.id)}
+                          onClick={() => toggle(ins.id)}
                           className="text-stone-300 hover:text-stone-600 transition-colors"
-                          data-testid={`checkbox-select-${inspection.id}`}
+                          data-testid={`checkbox-select-${ins.id}`}
                         >
-                          {selected
+                          {sel
                             ? <CheckSquare className="w-4 h-4 text-[#C5852C]" />
                             : <Square className="w-4 h-4" />}
                         </button>
                       </td>
-                      <td className="px-5 py-3 font-mono text-xs text-stone-400">
-                        #{inspection.id.toString().padStart(4, "0")}
+                      <td className="py-3 pe-4 font-mono text-[11px] text-stone-400">
+                        {ins.id.toString().padStart(4, "0")}
                       </td>
-                      <td className="px-5 py-3">
-                        <div className="font-medium text-stone-800">{inspection.make} {inspection.model}</div>
-                        <div className="text-[11px] text-stone-400 font-mono mt-0.5">{inspection.vin}</div>
+                      <td className="py-3 pe-4">
+                        <span className="font-semibold text-stone-800">{ins.make} {ins.model}</span>
+                        <span className="block font-mono text-[10px] text-stone-400 mt-0.5">{ins.vin}</span>
                       </td>
-                      <td className="px-5 py-3">
-                        <div className="font-medium text-stone-800">{inspection.customerName || "—"}</div>
-                        {inspection.customerPhone && (
-                          <div className="flex items-center gap-1 text-[11px] text-stone-400 mt-0.5">
+                      <td className="py-3 pe-4">
+                        <span className="text-stone-700">{ins.customerName || "—"}</span>
+                        {ins.customerPhone && (
+                          <span className="flex items-center gap-1 text-[10px] text-stone-400 mt-0.5">
                             <Phone className="w-3 h-3" />
-                            {inspection.customerPhone}
-                          </div>
+                            {ins.customerPhone}
+                          </span>
                         )}
                       </td>
-                      <td className="px-5 py-3 text-xs text-stone-500">
-                        {inspection.createdAt && format(new Date(inspection.createdAt), "yyyy/MM/dd")}
+                      <td className="py-3 pe-4 text-[11px] text-stone-500 tabular-nums">
+                        {ins.createdAt ? format(new Date(ins.createdAt), "yyyy/MM/dd") : "—"}
                       </td>
-                      <td className="px-5 py-3">
-                        <StatusBadge status={inspection.status || "draft"} />
+                      <td className="py-3 pe-4">
+                        <StatusBadge status={ins.status || "draft"} />
                       </td>
-                      <td className="px-5 py-3">
-                        <div className="flex items-center gap-2 justify-end">
+                      <td className="py-3">
+                        <div className="flex items-center justify-end gap-3">
                           <Link
-                            href={`/inspections/${inspection.id}`}
-                            className="text-xs font-medium text-stone-500 hover:text-[#C5852C] transition-colors"
-                            data-testid={`link-view-${inspection.id}`}
+                            href={`/inspections/${ins.id}`}
+                            className="text-[11px] font-semibold text-stone-500 hover:text-[#C5852C] transition-colors"
+                            data-testid={`link-view-${ins.id}`}
                           >
-                            {lang === "ar" ? "عرض" : "View"}
+                            {ar ? "عرض" : "View"}
                           </Link>
                           <button
-                            onClick={(e) => handleDelete(inspection.id, e)}
-                            disabled={deletingId === inspection.id}
-                            className="p-1 text-stone-300 hover:text-red-500 transition-colors disabled:opacity-40"
-                            title={lang === "ar" ? "حذف" : "Delete"}
-                            data-testid={`button-delete-inspection-${inspection.id}`}
+                            onClick={(e) => handleDelete(ins.id, e)}
+                            disabled={deletingId === ins.id}
+                            className="text-stone-300 hover:text-red-500 transition-colors disabled:opacity-40"
+                            data-testid={`button-delete-inspection-${ins.id}`}
                           >
-                            {deletingId === inspection.id
+                            {deletingId === ins.id
                               ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
                               : <Trash2 className="w-3.5 h-3.5" />}
                           </button>

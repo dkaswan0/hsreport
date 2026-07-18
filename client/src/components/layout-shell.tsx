@@ -4,11 +4,11 @@ import {
   ClipboardList,
   Settings,
   LayoutDashboard,
-  Menu,
-  X,
   Database,
   LogOut,
   KeyRound,
+  Menu,
+  X,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -20,161 +20,180 @@ interface LayoutShellProps {
   onLogout?: () => void;
 }
 
+const NAV = [
+  { href: "/",              key: "nav.dashboard",   icon: LayoutDashboard, labelAr: "الرئيسية"    },
+  { href: "/inspections",   key: "nav.inspections", icon: ClipboardList,   labelAr: "الفحوصات"    },
+  { href: "/fault-library", key: "nav.faultLibrary",icon: Car,             labelAr: "مكتبة الأعطال"},
+  { href: "/vehicle-data",  key: "nav.vehicleData", icon: Database,        labelAr: "بيانات المركبات"},
+  { href: "/api-keys",      key: "api-keys",        icon: KeyRound,        labelAr: "مفاتيح API"  },
+  { href: "/settings",      key: "nav.settings",    icon: Settings,        labelAr: "الإعدادات"   },
+];
+
 export default function LayoutShell({ children, onLogout }: LayoutShellProps) {
   const [location] = useLocation();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const { lang, setLang, t } = useLanguage();
-
-  const navItems = [
-    { href: "/", label: t("nav.dashboard"), icon: LayoutDashboard },
-    { href: "/inspections", label: t("nav.inspections"), icon: ClipboardList },
-    { href: "/fault-library", label: t("nav.faultLibrary"), icon: Car },
-    { href: "/vehicle-data", label: t("nav.vehicleData"), icon: Database },
-    { href: "/api-keys", label: "مفاتيح API", icon: KeyRound },
-    { href: "/settings", label: t("nav.settings"), icon: Settings },
-  ];
-
-  const toggleLang = () => setLang(lang === "ar" ? "en" : "ar");
-
-  const SidebarNav = ({ onItemClick }: { onItemClick?: () => void }) => (
-    <nav className="flex-1 px-3 py-4 space-y-0.5">
-      {navItems.map((item) => {
-        const isActive = location === item.href;
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={onItemClick}
-            className={cn(
-              "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors relative",
-              isActive
-                ? "text-[#C5852C] bg-white/5 font-semibold"
-                : "text-white/50 hover:text-white/80 hover:bg-white/5"
-            )}
-          >
-            {isActive && (
-              <span
-                className="absolute right-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-full"
-                style={{ background: "#C5852C" }}
-              />
-            )}
-            <item.icon className="w-4 h-4 shrink-0" />
-            <span>{item.label}</span>
-          </Link>
-        );
-      })}
-    </nav>
-  );
+  const isRtl = lang === "ar";
 
   return (
     <div
       className="min-h-screen flex"
-      style={{ background: "#f5f5f4" }}
-      dir={lang === "ar" ? "rtl" : "ltr"}
+      dir={isRtl ? "rtl" : "ltr"}
+      style={{ background: "#F7F6F3" }}
     >
-      {/* ── Desktop Sidebar ── */}
+      {/* ══ RAIL SIDEBAR (icon-only) ══ */}
       <aside
-        className="hidden md:flex w-56 shrink-0 flex-col"
-        style={{ background: "#0C1A28" }}
+        className="hidden md:flex flex-col items-center shrink-0 z-20"
+        style={{
+          width: 60,
+          background: "#0C1A28",
+          borderInlineEnd: "1px solid rgba(255,255,255,0.05)",
+        }}
       >
-        {/* Logo */}
-        <div className="h-14 flex items-center gap-2.5 px-4 border-b border-white/5">
+        {/* logo */}
+        <div className="w-full flex items-center justify-center py-4 border-b border-white/5">
           <img
             src={logoPath}
             alt="HS"
-            className="h-8 w-8 rounded-lg object-contain"
-            style={{ background: "#0d1e30", border: "1px solid rgba(197,133,44,0.3)" }}
+            className="w-8 h-8 rounded-lg object-contain"
+            style={{ border: "1px solid rgba(197,133,44,0.35)", background: "#0d1e30" }}
           />
-          <div className="leading-none">
-            <div
-              className="text-xs font-bold tracking-widest"
-              style={{ color: "#C5852C" }}
-            >
-              HIGH SAFETY
-            </div>
-            <div className="text-[10px] text-white/30 mt-0.5">
-              {lang === "ar" ? "مركز الأمان" : "Int'l Center"}
-            </div>
-          </div>
         </div>
 
-        <SidebarNav />
+        {/* nav */}
+        <nav className="flex-1 flex flex-col items-center gap-0.5 py-4 w-full">
+          {NAV.map((item) => {
+            const active = location === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                title={isRtl ? item.labelAr : t(item.key)}
+                className={cn(
+                  "group relative w-full flex items-center justify-center h-10 transition-colors",
+                  active ? "text-[#C5852C]" : "text-white/35 hover:text-white/70"
+                )}
+              >
+                {active && (
+                  <span
+                    className="absolute inset-y-1 rounded-full w-0.5"
+                    style={{
+                      [isRtl ? "right" : "left"]: 0,
+                      background: "#C5852C",
+                    }}
+                  />
+                )}
+                <item.icon className="w-4 h-4" />
+                {/* tooltip */}
+                <span
+                  className="pointer-events-none absolute hidden group-hover:flex items-center px-2 py-1 rounded text-[11px] font-medium bg-[#0C1A28] text-white whitespace-nowrap z-50 shadow-xl border border-white/10"
+                  style={{ [isRtl ? "left" : "right"]: "calc(100% + 8px)" }}
+                >
+                  {isRtl ? item.labelAr : t(item.key)}
+                </span>
+              </Link>
+            );
+          })}
+        </nav>
 
-        {/* Footer */}
-        <div className="p-3 border-t border-white/5 space-y-1">
+        {/* footer */}
+        <div className="flex flex-col items-center gap-1 pb-4 w-full border-t border-white/5 pt-3">
           <button
-            onClick={toggleLang}
-            className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs text-white/40 hover:text-white/70 hover:bg-white/5 transition-colors"
+            onClick={() => setLang(lang === "ar" ? "en" : "ar")}
+            title={lang === "ar" ? "Switch to English" : "تبديل للعربية"}
+            className="w-full h-9 flex items-center justify-center text-[11px] font-bold text-white/30 hover:text-white/60 transition-colors"
           >
-            <span>{lang === "ar" ? "English" : "عربي"}</span>
+            {lang === "ar" ? "EN" : "ع"}
           </button>
           {onLogout && (
             <button
               onClick={onLogout}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+              title={isRtl ? "خروج" : "Logout"}
+              className="w-full h-9 flex items-center justify-center text-white/25 hover:text-red-400 transition-colors"
               data-testid="button-logout"
             >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>{t("nav.logout")}</span>
+              <LogOut className="w-4 h-4" />
             </button>
           )}
         </div>
       </aside>
 
-      {/* ── Main ── */}
+      {/* ══ MAIN CONTENT ══ */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        <header
-          className="h-14 flex items-center justify-between px-6 bg-white border-b border-stone-200/60"
-          style={{ backdropFilter: "blur(4px)" }}
+        {/* Mobile top bar */}
+        <div
+          className="md:hidden flex items-center justify-between px-4 h-12 border-b"
+          style={{ background: "#0C1A28", borderColor: "rgba(255,255,255,0.07)" }}
         >
+          <img src={logoPath} alt="HS" className="w-7 h-7 rounded object-contain" style={{ background: "#0d1e30" }} />
           <button
-            className="md:hidden p-1.5 text-stone-500 hover:text-stone-800 transition-colors"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="text-white/60 hover:text-white"
           >
-            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
+        </div>
 
-          {/* breadcrumb hint */}
-          <div className="hidden md:block text-xs text-stone-400 tracking-wide uppercase">
-            {navItems.find((n) => n.href === location)?.label || ""}
-          </div>
-
-          <div className="flex items-center gap-3 mr-auto md:mr-0">
-            <button
-              onClick={toggleLang}
-              className="px-2.5 py-1 rounded text-xs font-medium text-stone-500 hover:text-stone-800 border border-stone-200 hover:border-stone-400 transition-colors"
-            >
-              {lang === "ar" ? "EN" : "ع"}
-            </button>
-          </div>
-        </header>
-
-        {/* Page */}
-        <div className="flex-1 overflow-y-auto p-5 md:p-8">{children}</div>
+        {/* page */}
+        <div className="flex-1 overflow-y-auto p-5 md:p-8">
+          {children}
+        </div>
       </div>
 
-      {/* ── Mobile Drawer ── */}
-      {isMobileMenuOpen && (
-        <div
-          className="fixed inset-0 z-40 md:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
-        >
-          <div className="absolute inset-0 bg-black/40" />
+      {/* ══ Mobile Drawer ══ */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-40 md:hidden" onClick={() => setMobileOpen(false)}>
+          <div className="absolute inset-0 bg-black/50" />
           <div
-            className="absolute top-0 right-0 h-full w-56 flex flex-col"
-            style={{ background: "#0C1A28" }}
+            className="absolute top-0 h-full w-56 flex flex-col"
+            style={{
+              [isRtl ? "right" : "left"]: 0,
+              background: "#0C1A28",
+            }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="h-14 flex items-center justify-between px-4 border-b border-white/5">
+            <div className="h-12 flex items-center px-5 border-b border-white/5">
               <span className="text-xs font-bold tracking-widest" style={{ color: "#C5852C" }}>
                 HIGH SAFETY
               </span>
-              <button onClick={() => setIsMobileMenuOpen(false)} className="text-white/50 hover:text-white">
-                <X className="w-5 h-5" />
-              </button>
             </div>
-            <SidebarNav onItemClick={() => setIsMobileMenuOpen(false)} />
+            <nav className="flex-1 flex flex-col py-3 px-2 gap-0.5">
+              {NAV.map((item) => {
+                const active = location === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
+                      active ? "text-[#C5852C] bg-white/5" : "text-white/45 hover:text-white/80 hover:bg-white/5"
+                    )}
+                  >
+                    <item.icon className="w-4 h-4 shrink-0" />
+                    <span>{isRtl ? item.labelAr : t(item.key)}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+            <div className="p-3 border-t border-white/5 flex gap-2">
+              <button
+                onClick={() => setLang(lang === "ar" ? "en" : "ar")}
+                className="flex-1 py-2 rounded-lg text-xs text-white/40 hover:text-white/70 hover:bg-white/5 transition-colors"
+              >
+                {lang === "ar" ? "English" : "عربي"}
+              </button>
+              {onLogout && (
+                <button
+                  onClick={onLogout}
+                  className="flex-1 py-2 rounded-lg text-xs text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-colors flex items-center justify-center gap-1"
+                  data-testid="button-logout"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>{isRtl ? "خروج" : "Logout"}</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
