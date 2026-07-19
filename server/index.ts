@@ -1,9 +1,22 @@
 import express, { type Request, Response, NextFunction } from "express";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
+
+// ── Validate required environment variables on startup ────────────────────────
+const requiredEnvVars = ["DATABASE_URL", "SESSION_SECRET", "OPENAI_API_KEY"];
+for (const key of requiredEnvVars) {
+  if (!process.env[key]) {
+    throw new Error(`Missing required environment variable: ${key}`);
+  }
+}
+if (!process.env.ADMIN_USERNAME || !process.env.ADMIN_PASSWORD) {
+  throw new Error("ADMIN_USERNAME and ADMIN_PASSWORD must be set as environment variables.");
+}
 
 const app = express();
 const httpServer = createServer(app);
@@ -22,13 +35,70 @@ declare module "express-session" {
   }
 }
 
-// Trust proxy for production (Replit deployment)
+// Trust proxy for Replit (proxied environment)
 app.set("trust proxy", 1);
 
-// Session middleware for authentication
+// ── Security: Helmet headers ──────────────────────────────────────────────────
+app.use(
+  helmet({
+    contentSecurityPolicy: false,       // SPA uses inline scripts
+    crossOriginEmbedderPolicy: false,   // Allow Clearbit logos and Google Fonts
+  })
+);
+
+// ── Security: CORS ────────────────────────────────────────────────────────────
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const origin = req.headers.origin as string | undefined;
+  const devDomain = process.env.REPLIT_DEV_DOMAIN;
+  const allowed =
+    !origin ||
+    process.env.NODE_ENV !== "production" ||
+    (devDomain && origin === `https://${devDomain}`);
+
+  if (allowed) {
+    res.setHeader("Access-Control-Allow-Origin", origin || "*");
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,PATCH,OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization,X-API-Key");
+  }
+  if (req.method === "OPTIONS") return res.sendStatus(204);
+  next();
+});
+
+// ── Rate Limiting ─────────────────────────────────────────────────────────────
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 min
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many requests, please try again later." },
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many login attempts, please try again later." },
+});
+
+const aiLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 min
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "AI request limit reached, please wait before trying again." },
+});
+
+app.use("/api", generalLimiter);
+app.use("/api/auth/login", authLimiter);
+app.use("/api/analyze-photo", aiLimiter);
+app.use("/api/obd", aiLimiter);
+
+// ── Session middleware ────────────────────────────────────────────────────────
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "high-safety-secret-key-2024",
+    secret: process.env.SESSION_SECRET!,
     resave: false,
     saveUninitialized: false,
     store: new PgSession({
@@ -45,17 +115,18 @@ app.use(
   })
 );
 
+// ── Body parsers (10 MB cap — images sent as base64) ─────────────────────────
 app.use(
   express.json({
-    limit: '50mb',
+    limit: "10mb",
     verify: (req, _res, buf) => {
       req.rawBody = buf;
     },
-  }),
+  })
 );
+app.use(express.urlencoded({ extended: false, limit: "10mb" }));
 
-app.use(express.urlencoded({ extended: false, limit: '50mb' }));
-
+// ── Request logger ────────────────────────────────────────────────────────────
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
@@ -63,18 +134,17 @@ export function log(message: string, source = "express") {
     second: "2-digit",
     hour12: true,
   });
-
   console.log(`${formattedTime} [${source}] ${message}`);
 }
 
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+  let capturedJsonResponse: Record<string, unknown> | undefined;
 
   const originalResJson = res.json;
   res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
+    capturedJsonResponse = bodyJson as Record<string, unknown>;
     return originalResJson.apply(res, [bodyJson, ...args]);
   };
 
@@ -82,10 +152,10 @@ app.use((req, res, next) => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
+      // Log response body only for errors to avoid logging sensitive data
+      if (res.statusCode >= 400 && capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
-
       log(logLine);
     }
   });
@@ -93,20 +163,20 @@ app.use((req, res, next) => {
   next();
 });
 
+// ── App startup ───────────────────────────────────────────────────────────────
 (async () => {
   await registerRoutes(httpServer, app);
 
+  // Global error handler — never expose stack traces
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
+    const message =
+      process.env.NODE_ENV === "production" && status === 500
+        ? "Internal Server Error"
+        : err.message || "Internal Server Error";
     res.status(status).json({ message });
-    throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
   if (process.env.NODE_ENV === "production") {
     serveStatic(app);
   } else {
@@ -114,19 +184,8 @@ app.use((req, res, next) => {
     await setupVite(httpServer, app);
   }
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || "5000", 10);
-  httpServer.listen(
-    {
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    },
-    () => {
-      log(`serving on port ${port}`);
-    },
-  );
+  httpServer.listen({ port, host: "0.0.0.0", reusePort: true }, () => {
+    log(`serving on port ${port}`);
+  });
 })();

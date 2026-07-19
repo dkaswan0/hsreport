@@ -4,8 +4,7 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { createHash, randomBytes } from "crypto";
-import { registerChatRoutes } from "./replit_integrations/chat";
-import { registerImageRoutes, openai } from "./replit_integrations/image"; // Import openai client
+import { openai } from "./replit_integrations/image/client";
 
 // ── API Key helpers ───────────────────────────────────────────────────────────
 function hashApiKey(raw: string): string {
@@ -48,15 +47,14 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // Register Replit AI integration routes
-  registerChatRoutes(app);
-  registerImageRoutes(app);
-
   // === Authentication Routes ===
   app.post("/api/auth/login", async (req, res) => {
     const { username, password } = req.body;
-    const adminUser = process.env.ADMIN_USERNAME || "hs";
-    const adminPass = process.env.ADMIN_PASSWORD || "ahmed";
+    if (!username || !password) {
+      return res.status(400).json({ success: false, message: "Username and password are required." });
+    }
+    const adminUser = process.env.ADMIN_USERNAME!;
+    const adminPass = process.env.ADMIN_PASSWORD!;
 
     // Check if there's a stored password override in the users table
     let passwordMatches = false;
@@ -97,8 +95,8 @@ export async function registerRoutes(
         return res.status(400).json({ success: false, message: "كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل" });
       }
 
-      const adminUser = process.env.ADMIN_USERNAME || "hs";
-      const adminPass = process.env.ADMIN_PASSWORD || "ahmed";
+      const adminUser = process.env.ADMIN_USERNAME!;
+      const adminPass = process.env.ADMIN_PASSWORD!;
 
       const { db } = await import("./db");
       const { users } = await import("@shared/schema");
@@ -127,8 +125,7 @@ export async function registerRoutes(
       }
 
       res.json({ success: true, message: "تم تغيير كلمة المرور بنجاح" });
-    } catch (error: any) {
-      console.error("Change password error:", error);
+    } catch {
       res.status(500).json({ success: false, message: "حدث خطأ أثناء تغيير كلمة المرور" });
     }
   });

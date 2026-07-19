@@ -145,20 +145,6 @@ export const api = {
       },
     },
   },
-  vin: {
-    decode: {
-      method: 'GET' as const,
-      path: '/api/vin/:vin',
-      responses: {
-        200: z.object({
-          make: z.string().optional(),
-          model: z.string().optional(),
-          year: z.number().optional(),
-          color: z.string().optional(),
-        }),
-      },
-    },
-  },
 };
 
 export function buildUrl(path: string, params?: Record<string, string | number>): string {
