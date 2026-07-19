@@ -166,47 +166,8 @@ export function useDeleteInspectionItem() {
 }
 
 // ============================================
-// UTILS: VIN & FAULTS
+// UTILS: FAULTS
 // ============================================
-
-export function useVinDecoder(vin: string) {
-  return useQuery({
-    queryKey: [api.vin.decode.path, vin],
-    queryFn: async () => {
-      if (vin.length !== 17) return null;
-      const url = buildUrl(api.vin.decode.path, { vin });
-      const res = await fetch(url, { credentials: "include" });
-      
-      // Try to parse JSON response (may contain error info from server)
-      let data;
-      try {
-        data = await res.json();
-      } catch {
-        // Non-JSON response - return error structure
-        return { error: true, message: "تعذر فك رموز الهيكل - VIN decode failed", make: "", model: "", year: 2024, color: "" };
-      }
-      
-      // If response has error flag, return it as-is for frontend to display
-      if (data.error) {
-        return data;
-      }
-      
-      // Success - validate and return parsed data
-      if (res.ok) {
-        try {
-          return api.vin.decode.responses[200].parse(data);
-        } catch {
-          // Validation failed but we have data - return it anyway
-          return data;
-        }
-      }
-      
-      return data;
-    },
-    enabled: vin.length === 17,
-    retry: false,
-  });
-}
 
 export function useFaultSuggestions() {
   return useMutation({

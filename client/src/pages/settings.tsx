@@ -14,38 +14,49 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Settings as SettingsIcon, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
+import { Plus, Settings as SettingsIcon, AlertTriangle, CheckCircle2, Loader2, Lock, Eye, EyeOff } from "lucide-react";
 import type { FaultLibrary } from "@shared/schema";
 
 const CATEGORIES = [
-  { value: "Engine", labelEn: "Engine", labelAr: "المحرك" },
-  { value: "Transmission", labelEn: "Transmission", labelAr: "ناقل الحركة" },
-  { value: "Chassis", labelEn: "Chassis", labelAr: "الهيكل" },
-  { value: "Body", labelEn: "Body", labelAr: "الهيكل الخارجي" },
-  { value: "Tires", labelEn: "Tires", labelAr: "الإطارات" },
-  { value: "Brakes", labelEn: "Brakes", labelAr: "الفرامل" },
-  { value: "Electrical", labelEn: "Electrical", labelAr: "الكهرباء" },
-  { value: "Wheels", labelEn: "Wheels", labelAr: "الجنوط" },
-  { value: "Suspension", labelEn: "Suspension", labelAr: "نظام التعليق" },
-  { value: "AC", labelEn: "AC/Cooling", labelAr: "التكييف والتبريد" },
-  { value: "Exhaust", labelEn: "Exhaust", labelAr: "العادم" },
-  { value: "Safety", labelEn: "Safety", labelAr: "السلامة" },
+  { value: "Engine", labelAr: "المحرك" },
+  { value: "Transmission", labelAr: "ناقل الحركة" },
+  { value: "Chassis", labelAr: "الهيكل" },
+  { value: "Body", labelAr: "الهيكل الخارجي" },
+  { value: "Tires", labelAr: "الإطارات" },
+  { value: "Brakes", labelAr: "الفرامل" },
+  { value: "Electrical", labelAr: "الكهرباء" },
+  { value: "Wheels", labelAr: "الجنوط" },
+  { value: "Suspension", labelAr: "نظام التعليق" },
+  { value: "AC", labelAr: "التكييف والتبريد" },
+  { value: "Exhaust", labelAr: "العادم" },
+  { value: "Safety", labelAr: "السلامة" },
 ];
 
 const SEVERITIES = [
-  { value: "low", labelEn: "Low", labelAr: "منخفض" },
-  { value: "medium", labelEn: "Medium", labelAr: "متوسط" },
-  { value: "high", labelEn: "High", labelAr: "عالي" },
+  { value: "low", labelAr: "منخفض" },
+  { value: "medium", labelAr: "متوسط" },
+  { value: "high", labelAr: "عالي" },
 ];
 
 export default function Settings() {
   const { toast } = useToast();
+
+  // ── Fault Library State ──────────────────────────────
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [faultNameAr, setFaultNameAr] = useState("");
   const [faultNameEn, setFaultNameEn] = useState("");
   const [description, setDescription] = useState("");
   const [severity, setSeverity] = useState("medium");
 
+  // ── Password Change State ────────────────────────────
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  // ── Fault Library Query ──────────────────────────────
   const { data: faults = [], isLoading } = useQuery<FaultLibrary[]>({
     queryKey: ["/api/fault-library"],
   });
@@ -56,69 +67,177 @@ export default function Settings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/fault-library"] });
-      toast({
-        title: "تم إضافة العطل بنجاح",
-        description: "تمت إضافة العطل إلى مكتبة الأعطال",
-      });
-      setFaultNameAr("");
-      setFaultNameEn("");
-      setDescription("");
-      setSeverity("medium");
+      toast({ title: "تم إضافة العطل بنجاح" });
+      setFaultNameAr(""); setFaultNameEn(""); setDescription(""); setSeverity("medium");
     },
     onError: () => {
-      toast({
-        title: "خطأ",
-        description: "حدث خطأ أثناء إضافة العطل",
-        variant: "destructive",
+      toast({ title: "خطأ", description: "حدث خطأ أثناء إضافة العطل", variant: "destructive" });
+    },
+  });
+
+  const changePasswordMutation = useMutation({
+    mutationFn: async (data: { currentPassword: string; newPassword: string }) => {
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
       });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || "فشل تغيير كلمة المرور");
+      return json;
+    },
+    onSuccess: () => {
+      toast({ title: "✅ تم تغيير كلمة المرور بنجاح" });
+      setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
+    },
+    onError: (error: Error) => {
+      toast({ title: "خطأ", description: error.message, variant: "destructive" });
     },
   });
 
   const handleAddFault = () => {
     if (!selectedCategory) {
-      toast({
-        title: "خطأ",
-        description: "يرجى اختيار القسم أولاً",
-        variant: "destructive",
-      });
+      toast({ title: "خطأ", description: "يرجى اختيار القسم أولاً", variant: "destructive" });
       return;
     }
-
     if (!faultNameAr.trim() || !faultNameEn.trim()) {
-      toast({
-        title: "خطأ",
-        description: "يرجى إدخال اسم العطل بالعربية والإنجليزية",
-        variant: "destructive",
-      });
+      toast({ title: "خطأ", description: "يرجى إدخال اسم العطل بالعربية والإنجليزية", variant: "destructive" });
       return;
     }
-
-    const faultName = `${faultNameAr.trim()} - ${faultNameEn.trim()}`;
-
     addFaultMutation.mutate({
       category: selectedCategory,
-      faultName,
+      faultName: `${faultNameAr.trim()} - ${faultNameEn.trim()}`,
       description: description.trim() || undefined,
       severity,
     });
   };
 
+  const handleChangePassword = () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast({ title: "خطأ", description: "يرجى ملء جميع الحقول", variant: "destructive" });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast({ title: "خطأ", description: "كلمة المرور الجديدة غير متطابقة", variant: "destructive" });
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast({ title: "خطأ", description: "كلمة المرور يجب أن تكون 6 أحرف على الأقل", variant: "destructive" });
+      return;
+    }
+    changePasswordMutation.mutate({ currentPassword, newPassword });
+  };
+
   const categoryFaults = faults.filter((f) => f.category === selectedCategory);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex items-center gap-3">
         <SettingsIcon className="w-8 h-8 text-accent" />
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white font-arabic">
-            الإعدادات
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm">
-            Settings - إضافة أعطال جديدة لمكتبة الأعطال
-          </p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white font-arabic">الإعدادات</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">إدارة الأعطال وكلمة المرور</p>
         </div>
       </div>
 
+      {/* ── تغيير كلمة المرور ── */}
+      <Card className="border-2 border-slate-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 font-arabic">
+            <Lock className="w-5 h-5 text-primary" />
+            تغيير كلمة المرور
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* كلمة المرور الحالية */}
+            <div className="space-y-2">
+              <Label className="font-arabic">كلمة المرور الحالية</Label>
+              <div className="relative">
+                <Input
+                  type={showCurrent ? "text" : "password"}
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrent(!showCurrent)}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  {showCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+
+            {/* كلمة المرور الجديدة */}
+            <div className="space-y-2">
+              <Label className="font-arabic">كلمة المرور الجديدة</Label>
+              <div className="relative">
+                <Input
+                  type={showNew ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNew(!showNew)}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+
+            {/* تأكيد كلمة المرور */}
+            <div className="space-y-2">
+              <Label className="font-arabic">تأكيد كلمة المرور</Label>
+              <div className="relative">
+                <Input
+                  type={showConfirm ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="pr-10"
+                  onKeyDown={(e) => e.key === "Enter" && handleChangePassword()}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm(!showConfirm)}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {newPassword && confirmPassword && newPassword !== confirmPassword && (
+            <p className="text-red-500 text-sm font-arabic">⚠ كلمتا المرور غير متطابقتين</p>
+          )}
+          {newPassword && newPassword === confirmPassword && newPassword.length >= 6 && (
+            <p className="text-green-600 text-sm font-arabic">✓ كلمتا المرور متطابقتان</p>
+          )}
+
+          <Button
+            onClick={handleChangePassword}
+            disabled={changePasswordMutation.isPending}
+            className="bg-primary text-white hover:bg-primary/90"
+          >
+            {changePasswordMutation.isPending ? (
+              <><Loader2 className="w-4 h-4 animate-spin ml-2" /> جارٍ التغيير...</>
+            ) : (
+              <><Lock className="w-4 h-4 ml-2" /> تغيير كلمة المرور</>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* ── مكتبة الأعطال ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -137,7 +256,7 @@ export default function Settings() {
                 <SelectContent>
                   {CATEGORIES.map((cat) => (
                     <SelectItem key={cat.value} value={cat.value}>
-                      {cat.labelAr} - {cat.labelEn}
+                      {cat.labelAr} — {cat.value}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -145,7 +264,7 @@ export default function Settings() {
             </div>
 
             <div className="space-y-2">
-              <Label className="font-arabic">اسم العطل بالعربية (اللهجة الإماراتية)</Label>
+              <Label className="font-arabic">اسم العطل بالعربية</Label>
               <Input
                 value={faultNameAr}
                 onChange={(e) => setFaultNameAr(e.target.value)}
@@ -175,7 +294,7 @@ export default function Settings() {
                 <SelectContent>
                   {SEVERITIES.map((sev) => (
                     <SelectItem key={sev.value} value={sev.value}>
-                      {sev.labelAr} - {sev.labelEn}
+                      {sev.labelAr}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -187,7 +306,7 @@ export default function Settings() {
               <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="أضف وصفاً للعطل..."
+                placeholder="أضف وصفًا للعطل..."
                 rows={3}
                 data-testid="input-fault-description"
               />
@@ -209,10 +328,8 @@ export default function Settings() {
 
             {faultNameAr && faultNameEn && (
               <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-lg">
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-1 font-arabic">معاينة:</p>
-                <p className="text-sm font-medium text-slate-900 dark:text-white">
-                  {faultNameAr} - {faultNameEn}
-                </p>
+                <p className="text-xs text-slate-500 mb-1 font-arabic">معاينة:</p>
+                <p className="text-sm font-medium">{faultNameAr} - {faultNameEn}</p>
               </div>
             )}
           </CardContent>
@@ -224,9 +341,7 @@ export default function Settings() {
               <AlertTriangle className="w-5 h-5" />
               الأعطال في القسم المختار
               {selectedCategory && (
-                <span className="text-sm font-normal text-slate-500">
-                  ({categoryFaults.length} عطل)
-                </span>
+                <span className="text-sm font-normal text-slate-500">({categoryFaults.length})</span>
               )}
             </CardTitle>
           </CardHeader>
@@ -234,7 +349,7 @@ export default function Settings() {
             {!selectedCategory ? (
               <div className="text-center py-8 text-slate-500">
                 <SettingsIcon className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                <p className="font-arabic">اختر قسماً لعرض الأعطال</p>
+                <p className="font-arabic">اختر قسمًا لعرض الأعطال</p>
               </div>
             ) : isLoading ? (
               <div className="flex items-center justify-center py-8">
@@ -255,26 +370,20 @@ export default function Settings() {
                   >
                     <CheckCircle2 className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-slate-900 dark:text-white truncate">
-                        {fault.faultName}
-                      </p>
+                      <p className="text-sm text-slate-900 dark:text-white truncate">{fault.faultName}</p>
                       {fault.severity && (
                         <span className={`text-xs ${
                           fault.severity === 'high' ? 'text-red-500' :
-                          fault.severity === 'medium' ? 'text-amber-500' :
-                          'text-green-500'
+                          fault.severity === 'medium' ? 'text-amber-500' : 'text-green-500'
                         }`}>
-                          {fault.severity === 'high' ? 'عالي' :
-                           fault.severity === 'medium' ? 'متوسط' : 'منخفض'}
+                          {fault.severity === 'high' ? 'عالي' : fault.severity === 'medium' ? 'متوسط' : 'منخفض'}
                         </span>
                       )}
                     </div>
                   </div>
                 ))}
                 {categoryFaults.length > 50 && (
-                  <p className="text-center text-xs text-slate-500 py-2">
-                    و {categoryFaults.length - 50} عطل آخر...
-                  </p>
+                  <p className="text-center text-xs text-slate-500 py-2">و {categoryFaults.length - 50} عطل آخر...</p>
                 )}
               </div>
             )}

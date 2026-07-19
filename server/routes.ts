@@ -53,17 +53,83 @@ export async function registerRoutes(
   registerImageRoutes(app);
 
   // === Authentication Routes ===
-  app.post("/api/auth/login", (req, res) => {
+  app.post("/api/auth/login", async (req, res) => {
     const { username, password } = req.body;
     const adminUser = process.env.ADMIN_USERNAME || "hs";
     const adminPass = process.env.ADMIN_PASSWORD || "ahmed";
 
-    if (username === adminUser && password === adminPass) {
+    // Check if there's a stored password override in the users table
+    let passwordMatches = false;
+    try {
+      const { db } = await import("./db");
+      const { users } = await import("@shared/schema");
+      const { eq } = await import("drizzle-orm");
+      const storedUser = await db.select().from(users).where(eq(users.username, adminUser)).limit(1);
+      if (storedUser.length > 0 && storedUser[0].password) {
+        // Compare sha256 hash
+        const providedHash = createHash("sha256").update(password).digest("hex");
+        passwordMatches = (username === adminUser) && (storedUser[0].password === providedHash);
+      } else {
+        // Fall back to env var
+        passwordMatches = (username === adminUser) && (password === adminPass);
+      }
+    } catch {
+      passwordMatches = (username === adminUser) && (password === adminPass);
+    }
+
+    if (passwordMatches) {
       req.session.isAuthenticated = true;
       req.session.username = username;
       res.json({ success: true, message: "Login successful" });
     } else {
       res.status(401).json({ success: false, message: "Invalid credentials" });
+    }
+  });
+
+  // === Change Password ===
+  app.post("/api/auth/change-password", requireAuth, async (req, res) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ success: false, message: "يرجى إدخال كلمة المرور الحالية والجديدة" });
+      }
+      if (newPassword.length < 6) {
+        return res.status(400).json({ success: false, message: "كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل" });
+      }
+
+      const adminUser = process.env.ADMIN_USERNAME || "hs";
+      const adminPass = process.env.ADMIN_PASSWORD || "ahmed";
+
+      const { db } = await import("./db");
+      const { users } = await import("@shared/schema");
+      const { eq } = await import("drizzle-orm");
+
+      // Verify current password
+      let currentMatches = false;
+      const storedUser = await db.select().from(users).where(eq(users.username, adminUser)).limit(1);
+      if (storedUser.length > 0 && storedUser[0].password) {
+        const currentHash = createHash("sha256").update(currentPassword).digest("hex");
+        currentMatches = storedUser[0].password === currentHash;
+      } else {
+        currentMatches = currentPassword === adminPass;
+      }
+
+      if (!currentMatches) {
+        return res.status(401).json({ success: false, message: "كلمة المرور الحالية غير صحيحة" });
+      }
+
+      // Store new password as sha256 hash
+      const newHash = createHash("sha256").update(newPassword).digest("hex");
+      if (storedUser.length > 0) {
+        await db.update(users).set({ password: newHash }).where(eq(users.username, adminUser));
+      } else {
+        await db.insert(users).values({ username: adminUser, password: newHash, role: "admin" });
+      }
+
+      res.json({ success: true, message: "تم تغيير كلمة المرور بنجاح" });
+    } catch (error: any) {
+      console.error("Change password error:", error);
+      res.status(500).json({ success: false, message: "حدث خطأ أثناء تغيير كلمة المرور" });
     }
   });
 
@@ -319,13 +385,7 @@ export async function registerRoutes(
       res.json(result);
     } catch (error: any) {
       console.error("Photo Analysis Error:", error?.message || error);
-      // Return fallback without error status to prevent UI error message
-      res.json({ 
-        detectedPart: "Car Part",
-        detectedPartArabic: "جزء السيارة",
-        category: "الهيكل الخارجي",
-        suggestedFaults: []
-      });
+      res.status(500).json({ error: "فشل تحليل الصورة — AI analysis failed", details: error?.message });
     }
   });
 
@@ -674,268 +734,11 @@ Return: [{"code":"P0128","nameEn":"...","nameAr":"...","diagnosis":"...","causes
     }
   });
 
-  // === VIN Decoder — CarsXE + NHTSA combined ===
-  app.get(api.vin.decode.path, async (req, res) => {
-    const { vin } = req.params;
-    const CARSXE_KEY = process.env.CARSXE_API_KEY || "";
-
-    if (!vin || vin.length !== 17) {
-      return res.status(400).json({
-        error: true,
-        message: "رقم الهيكل يجب أن يكون 17 حرفًا - VIN must be 17 characters",
-        make: "", model: "", year: 2024, color: ""
-      });
-    }
-
-    try {
-      // Detect if this is a US-market VIN (starts with 1, 4, or 5)
-      const isUSVin = ["1","4","5"].includes(vin[0]);
-      const wmi = vin.substring(0, 3);
-
-      // ── Step 1: CarsXE specs + NHTSA decode + NHTSA WMI + CarsXE history in parallel ──
-      const [nhtsaRes, carsxeSpecsRes, carsxeHistoryRes, wmiRes] = await Promise.allSettled([
-        fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValuesExtended/${vin}?format=json`),
-        fetch(`https://api.carsxe.com/specs?vin=${vin}&key=${CARSXE_KEY}`),
-        fetch(`https://api.carsxe.com/history?vin=${vin}&key=${CARSXE_KEY}`),
-        fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/DecodeWMI/${wmi}?format=json`),
-      ]);
-
-      // ── Parse NHTSA extended decode ───────────────────────────────────────
-      let nhtsaResult: any = {};
-      if (nhtsaRes.status === "fulfilled" && nhtsaRes.value.ok) {
-        const d = await nhtsaRes.value.json();
-        nhtsaResult = d.Results?.[0] || {};
-      }
-
-      // ── Parse NHTSA WMI (manufacturer from first 3 chars — works for all VINs) ──
-      let wmiData: any = {};
-      if (wmiRes.status === "fulfilled" && wmiRes.value.ok) {
-        const d = await wmiRes.value.json();
-        wmiData = d.Results?.[0] || {};
-      }
-
-      // ── Parse CarsXE specs ────────────────────────────────────────────────
-      let cxAttrs: any = {};
-      if (carsxeSpecsRes.status === "fulfilled" && carsxeSpecsRes.value.ok) {
-        const d = await carsxeSpecsRes.value.json();
-        if (d.success) cxAttrs = d.attributes || {};
-      }
-
-      // ── Parse CarsXE history (salvage/junk/theft) — US vehicles only ─────
-      let salvageRecords: any[] = [];
-      if (carsxeHistoryRes.status === "fulfilled" && carsxeHistoryRes.value.ok) {
-        const d = await carsxeHistoryRes.value.json();
-        if (d.success && d.junkAndSalvageInformation) {
-          salvageRecords = d.junkAndSalvageInformation.map((r: any) => ({
-            entity: r.ReportingEntityAbstract?.EntityName || "",
-            city: r.ReportingEntityAbstract?.LocationCityName || "",
-            state: r.ReportingEntityAbstract?.LocationStateUSPostalServiceCode || "",
-            date: r.VehicleObtainedDate ? r.VehicleObtainedDate.substring(0, 10) : "",
-            disposition: r.VehicleDispositionText || "",
-            category: r.ReportingEntityAbstract?.ReportingEntityCategoryText || "",
-          }));
-        }
-      }
-
-      // ── Merge make/model/year from all sources ─────────────────────────────
-      // Priority: CarsXE > NHTSA > WMI CommonName
-      let make  = cxAttrs.make  || nhtsaResult.Make  || wmiData.CommonName?.split(",")?.[0]?.trim() || "";
-      let model = cxAttrs.model || nhtsaResult.Model || "";
-      let year  = cxAttrs.year  || nhtsaResult.ModelYear || "";
-
-      if (!make) {
-        return res.status(400).json({
-          error: true,
-          message: "رقم الشاصي غير صالح أو غير معروف — Invalid or unknown VIN",
-          make: "", model: "", year: 2024, color: ""
-        });
-      }
-
-      // ── OpenAI fallback: fill missing model/trim for non-US VINs ──────────
-      let aiData: any = null;
-      if (!model && make) {
-        try {
-          const aiResp = await openai.chat.completions.create({
-            model: "gpt-4o-mini",
-            messages: [{
-              role: "system",
-              content: `You are an expert vehicle VIN decoder with deep knowledge of international vehicle models including GCC/UAE market vehicles.
-Given a VIN number, decode as much as possible from the VIN structure itself.
-Return ONLY a JSON object with these exact fields (use empty string if unknown):
-{
-  "make": "string",
-  "model": "string", 
-  "year": "string",
-  "trim": "string",
-  "body_style": "string",
-  "engine": "string",
-  "fuel_type": "string (Gasoline/Diesel/Hybrid/Electric)",
-  "transmission": "string",
-  "drivetrain": "string",
-  "doors": "string",
-  "country_of_manufacture": "string",
-  "notes": "string (any special notes, GCC specs if applicable)"
-}`
-            }, {
-              role: "user",
-              content: `Decode this VIN: ${vin}\nKnown from database: Make=${make}, Model=${model || "unknown"}, Year=${year || "unknown"}`
-            }],
-            response_format: { type: "json_object" },
-            max_tokens: 400,
-          });
-          const txt = aiResp.choices[0]?.message?.content || "{}";
-          aiData = JSON.parse(txt);
-          // Fill gaps
-          if (!make && aiData.make)  make  = aiData.make;
-          if (!model && aiData.model) model = aiData.model;
-          if (!year  && aiData.year)  year  = aiData.year;
-        } catch (e) {
-          console.log("OpenAI VIN fallback failed (non-critical):", e);
-        }
-      }
-
-      // ── Step 2: Images + market value + NHTSA recalls in parallel ─────────
-      const imageQuery = model
-        ? `https://api.carsxe.com/images?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&year=${year}&key=${CARSXE_KEY}`
-        : `https://api.carsxe.com/images?make=${encodeURIComponent(make)}&year=${year}&key=${CARSXE_KEY}`;
-
-      const [imagesRes, marketRes, recallsRes] = await Promise.allSettled([
-        fetch(imageQuery),
-        fetch(`https://api.carsxe.com/marketvalue?vin=${vin}&key=${CARSXE_KEY}`),
-        // Only fetch NHTSA recalls for US-market vehicles OR as a general lookup
-        fetch(`https://api.nhtsa.gov/recalls/recallsByVehicle?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model || "")}&modelYear=${year}`),
-      ]);
-
-      // ── Parse images ──────────────────────────────────────────────────────
-      let images: any[] = [];
-      if (imagesRes.status === "fulfilled" && imagesRes.value.ok) {
-        const d = await imagesRes.value.json();
-        if (d.images) {
-          images = d.images.slice(0, 6).map((img: any) => ({
-            link: img.link,
-            thumbnail: img.thumbnailLink,
-            width: img.width,
-            height: img.height,
-          }));
-        }
-      }
-
-      // ── Parse market value ────────────────────────────────────────────────
-      let marketValue: any = null;
-      if (marketRes.status === "fulfilled" && marketRes.value.ok) {
-        const d = await marketRes.value.json();
-        if (d.tradeInValues?.length > 0 || (d.auctionValues && Object.keys(d.auctionValues).length > 0)) {
-          marketValue = {
-            tradeIn: d.tradeInValues || [],
-            auction: d.auctionValues || {},
-          };
-        }
-      }
-
-      // ── Parse NHTSA recalls ───────────────────────────────────────────────
-      let recalls: any[] = [];
-      if (recallsRes.status === "fulfilled" && recallsRes.value.ok) {
-        const d = await recallsRes.value.json();
-        if (d.results?.length > 0) {
-          recalls = d.results.slice(0, 15).map((r: any) => ({
-            component: r.Component || "",
-            summary: r.Summary || "",
-            consequence: r.Consequence || "",
-            remedy: r.Remedy || "",
-            manufacturer: r.Manufacturer || "",
-            date: r.ReportReceivedDate || "",
-          }));
-        }
-      }
-
-      // ── Build final specs object ──────────────────────────────────────────
-      // AI data fills gaps when APIs return empty values (non-US VINs)
-      const specs: any = {
-        year,
-        make,
-        model,
-        trim:         cxAttrs.series        || nhtsaResult.Trim || nhtsaResult.Series || aiData?.trim || "",
-        style:        cxAttrs.body          || nhtsaResult.BodyClass || aiData?.body_style || "",
-        type:         nhtsaResult.VehicleType || wmiData.VehicleType || "",
-        made_in:      cxAttrs.plant_country || nhtsaResult.PlantCountry || aiData?.country_of_manufacture || wmiData.ManufacturerName?.split(" ")?.slice(-1)?.[0] || "",
-        made_in_city: nhtsaResult.PlantCity  || "",
-        doors:        cxAttrs.no_of_doors   || nhtsaResult.Doors || aiData?.doors || "",
-        seats:        cxAttrs.no_of_seats   || "",
-        fuel_type:    cxAttrs.fuel_type     || nhtsaResult.FuelTypePrimary || aiData?.fuel_type || "",
-        engine:       nhtsaResult.DisplacementL
-                        ? `${nhtsaResult.DisplacementL}L ${nhtsaResult.EngineCylinders || ""}cyl ${nhtsaResult.EngineModel || ""}`.trim()
-                        : aiData?.engine || "",
-        engine_size:      nhtsaResult.DisplacementL || "",
-        engine_cylinders: nhtsaResult.EngineCylinders || "",
-        engine_manufacturer: cxAttrs.engine_manufacturer || "",
-        transmission:     cxAttrs.gears      || nhtsaResult.TransmissionStyle || aiData?.transmission || "",
-        drivetrain:       nhtsaResult.DriveType || aiData?.drivetrain || "",
-        manufacturer:     cxAttrs.manufacturer || nhtsaResult.Manufacturer || wmiData.ManufacturerName || "",
-        manufacturer_address: cxAttrs.manufacturer_address || "",
-        ai_decoded: !!aiData,
-        ai_notes: aiData?.notes || "",
-        // Dimensions
-        wheelbase_mm:   cxAttrs.wheelbase_mm   || "",
-        length_mm:      cxAttrs.length_mm      || "",
-        width_mm:       cxAttrs.width_mm       || "",
-        height_mm:      cxAttrs.height_mm      || "",
-        weight_empty_kg: cxAttrs.weight_empty_kg || "",
-        max_weight_kg:   cxAttrs.max_weight_kg  || "",
-        max_speed_kmh:   cxAttrs.max_speed_kmh  || "",
-        trunk_capacity:  cxAttrs.max_trunk_capacity_liters || "",
-        // Safety
-        abs:           cxAttrs.abs             || nhtsaResult.ABS || "",
-        emission:      cxAttrs.emission_standard || "",
-        air_bag_front: nhtsaResult.AirBagLocFront || "",
-        air_bag_side:  nhtsaResult.AirBagLocSide  || "",
-        // EV
-        battery_type:  nhtsaResult.BatteryType  || "",
-        battery_kwh:   nhtsaResult.BatteryKWh   || "",
-        ev_drive_unit: nhtsaResult.EVDriveUnit   || "",
-        // Collections
-        recalls,
-        salvage: salvageRecords,
-        images,
-        marketValue,
-      };
-
-      // ── Arabic summary ────────────────────────────────────────────────────
-      const fuelAr = (f: string) =>
-        f.includes("Gasoline") ? "بنزين" : f.includes("Diesel") ? "ديزل"
-          : f.includes("Electric") ? "كهربائي" : f.includes("Hybrid") ? "هجين" : f;
-      const driveAr = (d: string) =>
-        d.includes("4") || d.includes("AWD") ? "دفع رباعي"
-          : d.includes("Front") || d.includes("FWD") ? "دفع أمامي"
-          : d.includes("Rear") || d.includes("RWD") ? "دفع خلفي" : d;
-
-      const parts = [];
-      if (year && make && model) parts.push(`${year} ${make} ${model}`);
-      if (specs.trim)         parts.push(`الفئة: ${specs.trim}`);
-      if (specs.engine)       parts.push(`المحرك: ${specs.engine}`);
-      if (specs.fuel_type)    parts.push(`الوقود: ${fuelAr(specs.fuel_type)}`);
-      if (specs.drivetrain)   parts.push(`الدفع: ${driveAr(specs.drivetrain)}`);
-      if (specs.made_in)      parts.push(`الصنع: ${specs.made_in}`);
-      if (recalls.length > 0) parts.push(`استدعاءات: ${recalls.length}`);
-      if (salvageRecords.length > 0) parts.push(`⚠️ سجل خردة: ${salvageRecords.length}`);
-
-      const arabicSummary = parts.join(" | ");
-
-      return res.json({
-        make, model,
-        year: parseInt(year) || 2024,
-        color: "",
-        arabicSummary,
-        specs,
-      });
-    } catch (error) {
-      console.error("VIN Decode Error:", error);
-      res.status(500).json({
-        error: true,
-        message: "خطأ في الاتصال بالخادم — Server connection error",
-        make: "", model: "", year: 2024, color: ""
-      });
-    }
+  // === VIN Decoder removed — CarsXE integration disabled ===
+  app.get("/api/vin/:vin", (req, res) => {
+    res.status(410).json({ error: true, message: "VIN decoder has been disabled" });
   });
+
 
   // Seed fault library with complete organized structure
   async function seedFaultLibrary() {
