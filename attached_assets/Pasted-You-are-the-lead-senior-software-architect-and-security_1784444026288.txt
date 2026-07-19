@@ -1,0 +1,258 @@
+You are the lead senior software architect and security engineer.
+
+Do NOT generate another audit report.
+Do NOT ask for confirmation.
+Execute every safe improvement automatically.
+
+Your goal is to make this project production-ready while preserving all existing features and business logic.
+
+=========================
+1. SECURITY
+=========================
+
+- Move every secret to Replit Secrets.
+- Remove any plaintext credentials.
+- Remove hardcoded usernames/passwords.
+- Remove fallback admin credentials.
+- Validate every environment variable.
+- Prevent OpenAI keys from ever reaching the client.
+- Add Helmet.
+- Add Rate Limiting.
+- Add CSRF protection where applicable.
+- Add CORS configuration.
+- Add request validation (Zod or equivalent).
+- Sanitize all inputs.
+- Limit uploaded image size.
+- Prevent prompt injection where possible.
+- Protect every admin route.
+- Return safe error messages only.
+
+=========================
+2. REMOVE DEAD CODE
+=========================
+
+Find and remove:
+
+- unused routes
+- unused APIs
+- unused pages
+- unused React components
+- unused hooks
+- unused utility files
+- unused services
+- unused assets
+- unused images
+- unused CSS
+- unused imports
+- unused exports
+- unreachable code
+- duplicated code
+
+Delete files only when they are confirmed unused.
+
+=========================
+3. REMOVE UNUSED DEPENDENCIES
+=========================
+
+Detect every package that is not imported.
+
+Automatically uninstall unused packages.
+
+Especially verify:
+
+passport
+passport-local
+memorystore
+ws
+tesseract.js
+
+Remove only if completely unused.
+
+=========================
+4. OPENAI
+=========================
+
+Keep only APIs actually used.
+
+Remove:
+
+- hidden GPT routes
+- hidden image generation routes
+- hidden chat routes
+
+unless they are required.
+
+Protect every AI endpoint.
+
+Add:
+
+- timeout
+- retries
+- request limits
+- logging
+- graceful fallback
+
+=========================
+5. DATABASE
+=========================
+
+Optimize queries.
+
+Remove duplicated queries.
+
+Create missing indexes.
+
+Avoid N+1 queries.
+
+If images are stored as Base64:
+
+prepare migration to Object Storage.
+
+Do not break compatibility.
+
+=========================
+6. PERFORMANCE
+=========================
+
+Optimize:
+
+React rendering
+
+memoization
+
+lazy loading
+
+dynamic imports
+
+bundle size
+
+tree shaking
+
+code splitting
+
+server startup
+
+database access
+
+API response times
+
+Remove duplicated logic.
+
+=========================
+7. TYPESCRIPT
+=========================
+
+Resolve all TypeScript errors.
+
+Resolve all ESLint warnings.
+
+Remove:
+
+unused variables
+
+unused functions
+
+unused interfaces
+
+unused types
+
+unused generics
+
+unused constants
+
+=========================
+8. PROJECT STRUCTURE
+=========================
+
+Refactor where safe.
+
+Separate:
+
+API
+
+Business Logic
+
+Database
+
+Services
+
+Utilities
+
+Validation
+
+Types
+
+Middlewares
+
+Do not change functionality.
+
+=========================
+9. CLEANUP
+=========================
+
+Remove:
+
+TODOs
+
+commented code
+
+temporary files
+
+debug code
+
+console.log (except production logger)
+
+legacy files
+
+experimental files
+
+backup files
+
+=========================
+10. FINAL VERIFICATION
+=========================
+
+After all changes:
+
+Run build.
+
+Run TypeScript check.
+
+Run lint.
+
+Fix every issue automatically.
+
+Ensure:
+
+zero build errors
+
+zero TypeScript errors
+
+zero ESLint errors
+
+zero unused imports
+
+zero dead code
+
+zero unreachable code
+
+=========================
+11. FINAL REPORT
+=========================
+
+Provide only:
+
+Files changed
+
+Files deleted
+
+Packages removed
+
+Security improvements
+
+Performance improvements
+
+Remaining manual tasks (if any)
+
+Do not generate another audit.
+Execute all safe improvements automatically until the project is production-ready.
