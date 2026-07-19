@@ -3,12 +3,11 @@ import OpenAI, { toFile } from "openai";
 import { Buffer } from "node:buffer";
 
 function getOpenAIClient(): OpenAI {
-  if (!process.env.AI_INTEGRATIONS_OPENAI_API_KEY) {
-    throw new Error("AI_INTEGRATIONS_OPENAI_API_KEY is not configured. AI features are unavailable.");
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY is not configured. AI features are unavailable.");
   }
   return new OpenAI({
-    apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-    baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+    apiKey: process.env.OPENAI_API_KEY,
   });
 }
 
