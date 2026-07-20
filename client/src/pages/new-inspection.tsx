@@ -96,6 +96,39 @@ export default function NewInspection() {
     }
   });
 
+  const [isDecodingVin, setIsDecodingVin] = useState(false);
+
+  const decodeVin = async (vinCode: string) => {
+    setIsDecodingVin(true);
+    try {
+      const response = await fetch(`/api/vin/${vinCode}`);
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.message || "Failed to decode VIN");
+      }
+      const data = await response.json();
+      if (data.success) {
+        if (data.make) form.setValue("make", data.make);
+        if (data.model) form.setValue("model", data.model);
+        if (data.year) form.setValue("year", data.year);
+
+        toast({
+          title: "تم استخراج بيانات المركبة تلقائياً",
+          description: `الماركة: ${data.make} | الموديل: ${data.model} | سنة الصنع: ${data.year}`,
+        });
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast({
+        title: "لم يتم التعرف على رقم الهيكل تلقائياً",
+        description: "يرجى تعبئة بيانات السيارة يدوياً",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDecodingVin(false);
+    }
+  };
+
   const handleOdometerPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -248,14 +281,30 @@ export default function NewInspection() {
               {/* رقم الهيكل VIN */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2 font-arabic">رقم الهيكل (VIN)</label>
-                <input
-                  {...form.register("vin")}
-                  onChange={(e) => form.setValue("vin", e.target.value.toUpperCase())}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all font-mono tracking-widest uppercase"
-                  placeholder="WBA3A5C50DF..."
-                  maxLength={17}
-                  data-testid="input-vin"
-                />
+                <div className="relative">
+                  <input
+                    {...form.register("vin")}
+                    onChange={async (e) => {
+                      const val = e.target.value.toUpperCase()
+                        .replace(/O/g, "0")
+                        .replace(/I/g, "1")
+                        .replace(/Q/g, "0");
+                      form.setValue("vin", val);
+                      if (val.length === 17) {
+                        await decodeVin(val);
+                      }
+                    }}
+                    className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all font-mono tracking-widest uppercase pl-10"
+                    placeholder="WBA3A5C50DF..."
+                    maxLength={17}
+                    data-testid="input-vin"
+                  />
+                  {isDecodingVin && (
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center">
+                      <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* العداد */}

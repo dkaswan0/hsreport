@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -46,12 +46,17 @@ export const inspections = pgTable("inspections", {
   frontRightDoorInteriorPhoto: text("front_right_door_interior_photo"), // صورة داخلية الباب الأمامي يمين
   hoodInteriorPhoto: text("hood_interior_photo"), // صورة داخلية حجرة المحرك
   trunkInteriorPhoto: text("trunk_interior_photo"), // صورة داخلية الشنطة والشاصي
-  obdCodes: jsonb("obd_codes"), // Array of OBD fault codes: [{code, nameEn, nameAr, diagnosis, causes, solutions}]
+  obdCodes: jsonb("obd_codes").$type<any[]>(), // Array of OBD fault codes: [{code, nameEn, nameAr, diagnosis, causes, solutions}]
   autelReportPdf: text("autel_report_pdf"), // Base64 encoded Autel PDF report
   autelReportName: text("autel_report_name"), // Original filename of Autel report
+  paintReadings: jsonb("paint_readings").$type<Record<string, number>>(), // Record<string, number> mapping panel names to thickness in microns
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => ({
+  vinIndex: index("vin_idx").on(table.vin),
+  statusIndex: index("status_idx").on(table.status),
+  shareTokenIndex: index("share_token_idx").on(table.shareToken)
+}));
 
 export const inspectionItems = pgTable("inspection_items", {
   id: serial("id").primaryKey(),

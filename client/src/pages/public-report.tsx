@@ -21,7 +21,12 @@ import {
   Palette,
   Monitor,
   ExternalLink,
+  Stethoscope,
+  Wrench,
+  Sparkles,
+  Search,
 } from "lucide-react";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
 import { getVehicleColor, calculateInspectionStats, getInspectionTypeLabel } from "@/lib/vehicle-utils";
 import logoPath from "@assets/hs-logo.png";
@@ -35,6 +40,7 @@ import type { Inspection, InspectionItem } from "@shared/schema";
 import { INSPECTION_CATEGORIES, CATEGORY_GROUPS } from "@shared/categories";
 import { LuxuryOdometer } from "@/components/luxury-odometer";
 import { IntroAnimation } from "@/components/intro-animation";
+import { PaintDepthHeatmap } from "@/components/paint-depth-heatmap";
 
 type InspectionWithItems = Inspection & { items: InspectionItem[] };
 
@@ -1083,7 +1089,7 @@ export default function PublicReport() {
 
         {/* OBD Codes Section - Professional HS Report */}
         {(() => {
-          const obdCodes = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string}> | null) || [];
+          const obdCodes = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string; diagnosis?: string; causes?: string; solutions?: string}> | null) || [];
           if (obdCodes.length === 0) return null;
           const getCodeType = (code: string) => {
             const p = code.charAt(0).toUpperCase();
@@ -1117,22 +1123,85 @@ export default function PublicReport() {
                 </div>
               </div>
 
-              <div className="divide-y divide-slate-100">
-                {obdCodes.map((obd, idx) => {
-                  const type = getCodeType(obd.code);
-                  return (
-                    <div key={idx} className="px-5 py-4 flex items-center gap-4">
-                      <div className="shrink-0">
-                        <div className={`font-mono font-black text-white text-lg px-4 py-2 rounded-xl ${type.color} shadow-md min-w-[85px] text-center`}>{obd.code}</div>
-                        <div className="text-[10px] text-center text-slate-400 mt-1.5 font-arabic font-medium">{type.labelAr}</div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-base font-bold text-slate-900 font-arabic leading-snug">{obd.nameAr}</div>
-                        <div className="text-sm text-slate-500 font-mono mt-1" dir="ltr">{obd.nameEn}</div>
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="divide-y divide-slate-100 px-2 pb-2">
+                <Accordion type="single" collapsible className="w-full">
+                  {obdCodes.map((obd, idx) => {
+                    const type = getCodeType(obd.code);
+                    const hasAiDetails = obd.diagnosis || obd.causes || obd.solutions;
+                    
+                    return (
+                      <AccordionItem value={`item-${idx}`} key={idx} className="border-b-0 mb-2 bg-slate-50/50 rounded-2xl overflow-hidden data-[state=open]:bg-white data-[state=open]:shadow-md data-[state=open]:ring-1 data-[state=open]:ring-slate-200 transition-all">
+                        <AccordionTrigger className="px-4 py-4 hover:no-underline [&[data-state=open]>div>div>div.ai-badge]:opacity-0 [&[data-state=open]>div>div>div.ai-badge]:scale-95">
+                          <div className="flex items-center gap-4 w-full text-right">
+                            <div className="shrink-0">
+                              <div className={`font-mono font-black text-white text-lg px-4 py-2 rounded-xl ${type.color} shadow-md min-w-[85px] text-center`}>{obd.code}</div>
+                              <div className="text-[10px] text-center text-slate-500 mt-1.5 font-arabic font-medium">{type.labelAr}</div>
+                            </div>
+                            <div className="flex-1 min-w-0 flex justify-between items-center pr-2">
+                              <div>
+                                <div className="text-base font-bold text-slate-900 font-arabic leading-snug text-right">{obd.nameAr}</div>
+                                <div className="text-sm text-slate-500 font-mono mt-1 text-right" dir="ltr">{obd.nameEn}</div>
+                              </div>
+                              {hasAiDetails && (
+                                <div className="ai-badge shrink-0 flex items-center gap-1.5 bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-full border border-indigo-100 transition-all duration-300">
+                                  <Sparkles className="w-3.5 h-3.5" />
+                                  <span className="text-xs font-bold font-arabic">شرح العطل</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </AccordionTrigger>
+                        {hasAiDetails && (
+                          <AccordionContent className="px-4 pb-4 text-right" dir="rtl">
+                            <div className="pt-2 border-t border-slate-100 space-y-4">
+                              
+                              {obd.diagnosis && (
+                                <div className="bg-indigo-50/50 rounded-xl p-4 border border-indigo-100/50">
+                                  <div className="flex items-center gap-2 mb-2 text-indigo-700">
+                                    <Stethoscope className="w-5 h-5" />
+                                    <h4 className="font-black font-arabic text-sm">التشخيص الذكي (AI Diagnosis)</h4>
+                                  </div>
+                                  <p className="text-slate-700 text-sm font-arabic leading-relaxed">
+                                    {obd.diagnosis}
+                                  </p>
+                                </div>
+                              )}
+
+                              {obd.causes && (
+                                <div className="bg-amber-50/50 rounded-xl p-4 border border-amber-100/50">
+                                  <div className="flex items-center gap-2 mb-2 text-amber-700">
+                                    <Search className="w-5 h-5" />
+                                    <h4 className="font-black font-arabic text-sm">الأسباب المحتملة (Possible Causes)</h4>
+                                  </div>
+                                  <ul className="list-disc list-inside text-slate-700 text-sm font-arabic leading-relaxed space-y-1 pr-1">
+                                    {obd.causes.split(',').map((cause, i) => (
+                                      <li key={i}>{cause.trim()}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {obd.solutions && (
+                                <div className="bg-emerald-50/50 rounded-xl p-4 border border-emerald-100/50">
+                                  <div className="flex items-center gap-2 mb-2 text-emerald-700">
+                                    <Wrench className="w-5 h-5" />
+                                    <h4 className="font-black font-arabic text-sm">خطوات الإصلاح (Solutions)</h4>
+                                  </div>
+                                  <ul className="list-disc list-inside text-slate-700 text-sm font-arabic leading-relaxed space-y-1 pr-1">
+                                    {obd.solutions.split(',').map((solution, i) => (
+                                      <li key={i}>{solution.trim()}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                            </div>
+                          </AccordionContent>
+                        )}
+                      </AccordionItem>
+                    );
+                  })}
+                </Accordion>
               </div>
 
               <div className="bg-slate-100 border-t-2 border-slate-200 px-5 py-3 flex items-center justify-between">
@@ -1143,7 +1212,10 @@ export default function PublicReport() {
           );
         })()}
 
-        {/* Autel Computer Report Section */}
+          {/* Paint Depth Heatmap Section */}
+          <PaintDepthHeatmap paintReadings={inspection.paintReadings as Record<string, number> | null} className="mb-8" />
+
+          {/* Autel Computer Report Section */}
         {inspection.autelReportPdf && (
           <div className="bg-white rounded-3xl overflow-hidden shadow-xl border-2 border-orange-200" data-testid="autel-report-section">
             <div className="bg-gradient-to-l from-orange-600 to-orange-700 px-6 py-5">

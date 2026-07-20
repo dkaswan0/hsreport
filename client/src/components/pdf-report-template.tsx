@@ -42,6 +42,8 @@ interface Inspection {
   frontRightDoorInteriorPhoto?: string | null;
   hoodInteriorPhoto?: string | null;
   trunkInteriorPhoto?: string | null;
+  obdCodes?: any;
+  paintReadings?: Record<string, number> | null;
 }
 
 type PdfLang = 'ar' | 'en';
@@ -1201,58 +1203,16 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
   ({ inspection, lang = 'ar' }, ref) => {
     const isAr = lang === 'ar';
     const sections: CarPhotoSection[] = [
-      {
-        key: 'frontRight',
-        ar: 'الباب الأمامي الأيمن',
-        en: 'Front Right Door',
-        exteriorPhoto: inspection.frontRightDoorPhoto,
-        interiorPhoto: null,
-      },
-      {
-        key: 'frontLeft',
-        ar: 'الباب الأمامي الأيسر',
-        en: 'Front Left Door',
-        exteriorPhoto: inspection.frontLeftDoorPhoto,
-        interiorPhoto: null,
-      },
-      {
-        key: 'rearRight',
-        ar: 'الباب الخلفي الأيمن',
-        en: 'Rear Right Door',
-        exteriorPhoto: inspection.rearRightDoorPhoto,
-        interiorPhoto: null,
-      },
-      {
-        key: 'rearLeft',
-        ar: 'الباب الخلفي الأيسر',
-        en: 'Rear Left Door',
-        exteriorPhoto: inspection.rearLeftDoorPhoto,
-        interiorPhoto: null,
-      },
-      {
-        key: 'hood',
-        ar: 'غطاء المحرك',
-        en: 'Hood / Engine Bay',
-        exteriorPhoto: inspection.hoodPhoto,
-        interiorPhoto: null,
-      },
-      {
-        key: 'trunk',
-        ar: 'صندوق الأمتعة',
-        en: 'Trunk',
-        exteriorPhoto: inspection.trunkPhoto,
-        interiorPhoto: null,
-      },
+      { key: 'frontRight', ar: 'الباب الأمامي الأيمن', en: 'Front Right Door', exteriorPhoto: inspection.frontRightDoorPhoto, interiorPhoto: null },
+      { key: 'frontLeft', ar: 'الباب الأمامي الأيسر', en: 'Front Left Door', exteriorPhoto: inspection.frontLeftDoorPhoto, interiorPhoto: null },
+      { key: 'rearRight', ar: 'الباب الخلفي الأيمن', en: 'Rear Right Door', exteriorPhoto: inspection.rearRightDoorPhoto, interiorPhoto: null },
+      { key: 'rearLeft', ar: 'الباب الخلفي الأيسر', en: 'Rear Left Door', exteriorPhoto: inspection.rearLeftDoorPhoto, interiorPhoto: null },
+      { key: 'hood', ar: 'غطاء المحرك', en: 'Hood / Engine Bay', exteriorPhoto: inspection.hoodPhoto, interiorPhoto: null },
+      { key: 'trunk', ar: 'صندوق الأمتعة', en: 'Trunk', exteriorPhoto: inspection.trunkPhoto, interiorPhoto: null },
     ];
 
     const hasAnyPhoto = sections.some(s => s.exteriorPhoto || s.interiorPhoto);
     if (!hasAnyPhoto) return null;
-
-    const inspectionDate = inspection.createdAt ? new Date(inspection.createdAt) : new Date();
-    const reportTime = inspectionDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
-    const englishDate = inspectionDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-    const inspectionTypeLabel = getInspectionTypeLabel(inspection.inspectionType);
-    const vehicleColor = getVehicleColor(inspection.color);
 
     return (
       <div
@@ -1278,191 +1238,20 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
             alt="High Safety International Center"
             style={{ width: '100%', height: '90px', objectFit: 'cover', objectPosition: 'center', display: 'block' }}
           />
-          <div style={{
-            background: `linear-gradient(135deg, ${BRAND.primary} 0%, ${BRAND.secondary} 100%)`,
-            padding: '8px 24px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}>
-            <div style={{
-              background: `linear-gradient(135deg, ${BRAND.accent} 0%, ${BRAND.accentLight} 100%)`,
-              color: BRAND.primary,
-              padding: '5px 14px',
-              borderRadius: '20px',
-              fontSize: '10px',
-              fontWeight: 'bold',
-              boxShadow: '0 2px 8px rgba(197,133,44,0.4)',
-              display: 'inline-block',
-            }}>
-              {isAr ? (
-                <>
-                  <span style={arTextStyle}>{inspectionTypeLabel.ar}</span>
-                  <span style={{ ...englishStyle, marginRight: '6px', fontSize: '9px' }}>| {inspectionTypeLabel.en}</span>
-                </>
-              ) : (
-                <>
-                  <span style={englishStyle}>{inspectionTypeLabel.en}</span>
-                  <span style={{ ...arTextStyle, marginLeft: '6px', fontSize: '9px' }}>| {inspectionTypeLabel.ar}</span>
-                </>
-              )}
-            </div>
-            <p style={{ color: '#94a3b8', fontSize: '9px', margin: 0, ...englishStyle }}>
-              {englishDate} | {reportTime}
-            </p>
-          </div>
-        </div>
-
-        {/* Vehicle Info Bar */}
-        <div style={{
-          backgroundColor: BRAND.light,
-          padding: '10px 24px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: '12px',
-          borderBottom: `1px solid ${BRAND.border}`,
-          flexShrink: 0,
-          flexWrap: 'wrap',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-            <div>
-              <p style={{ color: BRAND.muted, fontSize: '7px', margin: '0 0 2px 0', ...englishStyle }}>
-                {isAr ? 'المركبة | Vehicle' : 'Vehicle | المركبة'}
-              </p>
-              <p style={{ color: BRAND.dark, fontSize: '14px', fontWeight: 'bold', margin: 0, ...englishStyle }}>
-                {inspection.make} {inspection.model}
-              </p>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{
-                backgroundColor: '#ffffff',
-                border: `1px solid ${BRAND.border}`,
-                borderRadius: '12px',
-                padding: '3px 10px',
-                fontSize: '11px',
-                fontWeight: 'bold',
-                color: BRAND.dark,
-                ...englishStyle,
-              }}>
-                {inspection.year}
-              </span>
-              <span style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                backgroundColor: '#ffffff',
-                border: `1px solid ${BRAND.border}`,
-                padding: '3px 10px',
-                borderRadius: '12px',
-                fontSize: '10px',
-              }}>
-                <span style={{
-                  width: '10px',
-                  height: '10px',
-                  borderRadius: '50%',
-                  backgroundColor: vehicleColor.hex,
-                  border: vehicleColor.hex === '#FFFFFF' ? '1px solid #ccc' : 'none',
-                  display: 'inline-block',
-                  flexShrink: 0,
-                }}></span>
-                <span style={{ color: BRAND.dark, ...arTextStyle }}>{vehicleColor.ar}</span>
-                <span style={{ color: BRAND.muted, ...englishStyle, fontSize: '9px' }}>{vehicleColor.en}</span>
-              </span>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            {inspection.customerName && (
-              <div style={{ textAlign: isAr ? 'left' : 'right' }}>
-                <p style={{ color: BRAND.muted, fontSize: '7px', margin: '0 0 2px 0' }}>
-                  {isAr ? 'العميل | Customer' : 'Customer | العميل'}
-                </p>
-                <p style={{ color: BRAND.dark, fontSize: '12px', fontWeight: 'bold', margin: 0, ...arTextStyle }}>
-                  {inspection.customerName}
-                </p>
-              </div>
-            )}
-            {(inspection.odometer || inspection.mileage) && (
-              <div style={{
-                background: '#0a0a0a',
-                borderRadius: '6px',
-                padding: '4px 8px',
-                border: '1px solid #333',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                  {String(inspection.odometer || inspection.mileage || 0).padStart(6, '0').split('').map((digit, i) => (
-                    <div key={i} style={{
-                      width: '9px',
-                      height: '13px',
-                      background: i < 5 ? 'linear-gradient(180deg, #1a1a1a, #2a2a2a, #1a1a1a)' : 'linear-gradient(180deg, #ff2222, #cc0000, #aa0000)',
-                      borderRadius: '1px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      border: '1px solid #333',
-                    }}>
-                      <span style={{ color: '#fff', fontSize: '9px', fontWeight: 'bold', fontFamily: 'Arial' }}>{digit}</span>
-                    </div>
-                  ))}
-                  <span style={{ color: '#888', fontSize: '6px', marginLeft: '3px', ...englishStyle }}>km</span>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* VIN Bar */}
-        <div style={{
-          padding: '6px 24px',
-          backgroundColor: '#ffffff',
-          borderBottom: `1px solid ${BRAND.border}`,
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: '12px',
-          flexShrink: 0,
-        }}>
-          <span style={{ color: BRAND.muted, fontSize: '7px', letterSpacing: '0.5px', ...englishStyle }}>VIN</span>
-          <div style={{
-            background: 'linear-gradient(180deg, #f5f5f5, #e8e8e8, #f0f0f0)',
-            borderRadius: '3px',
-            padding: '4px 12px',
-            border: '1px solid #bbb',
-          }}>
-            <span style={{
-              fontFamily: "'Courier New', 'Consolas', monospace",
-              fontWeight: 900,
-              fontSize: '11px',
-              color: '#1a1a1a',
-              letterSpacing: '2.5px',
-            }}>
-              {inspection.vin}
-            </span>
-          </div>
-          <span style={{ color: BRAND.muted, fontSize: '7px', ...englishStyle }}>HS-{inspection.id}</span>
         </div>
 
         {/* Section Title */}
         <div style={{
-          padding: '8px 24px',
+          padding: '24px',
           display: 'flex',
           alignItems: 'center',
           gap: '10px',
           flexShrink: 0,
         }}>
-          <div style={{
-            width: '4px',
-            height: '18px',
-            backgroundColor: BRAND.accent,
-            borderRadius: '3px',
-          }}></div>
-          <h2 style={{ color: BRAND.dark, fontSize: '13px', fontWeight: 'bold', margin: 0, ...(isAr ? arTextStyle : englishStyle) }}>
-            {isAr ? 'صور أقسام المركبة' : 'Vehicle Section Photos'}
+          <div style={{ width: '4px', height: '24px', backgroundColor: BRAND.accent, borderRadius: '3px' }}></div>
+          <h2 style={{ color: BRAND.dark, fontSize: '18px', fontWeight: 'bold', margin: 0, ...(isAr ? arTextStyle : englishStyle) }}>
+            {isAr ? 'صور الأقسام' : 'Section Photos'}
           </h2>
-          <span style={{ color: BRAND.muted, fontSize: '10px', ...(isAr ? englishStyle : arTextStyle) }}>
-            {isAr ? 'Vehicle Section Photos' : 'صور أقسام المركبة'}
-          </span>
         </div>
 
         {/* Photos Grid */}
@@ -1477,110 +1266,21 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
         }}>
           {sections.map((section) => {
             const hasExterior = !!section.exteriorPhoto;
-            const hasInterior = !!section.interiorPhoto;
-
             return (
-              <div
-                key={section.key}
-                style={{
-                  border: `1px solid ${BRAND.border}`,
-                  borderRadius: '8px',
-                  overflow: 'hidden',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  backgroundColor: '#ffffff',
-                }}
-              >
-                <div style={{
-                  background: `linear-gradient(135deg, ${BRAND.primary} 0%, ${BRAND.secondary} 100%)`,
-                  padding: '5px 10px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  flexShrink: 0,
-                }}>
-                  <span style={{ color: '#ffffff', fontSize: '10px', fontWeight: 'bold', ...(isAr ? arTextStyle : englishStyle) }}>
-                    {isAr ? section.ar : section.en}
-                  </span>
-                  <span style={{ color: BRAND.accentLight, fontSize: '8px', ...(isAr ? englishStyle : arTextStyle) }}>
-                    {isAr ? section.en : section.ar}
-                  </span>
+              <div key={section.key} style={{ border: `1px solid ${BRAND.border}`, borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff' }}>
+                <div style={{ background: `linear-gradient(135deg, ${BRAND.primary} 0%, ${BRAND.secondary} 100%)`, padding: '5px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+                  <span style={{ color: '#ffffff', fontSize: '10px', fontWeight: 'bold', ...(isAr ? arTextStyle : englishStyle) }}>{isAr ? section.ar : section.en}</span>
                 </div>
-
-                <div style={{
-                  flex: 1,
-                  display: 'flex',
-                  gap: '3px',
-                  padding: '3px',
-                  minHeight: 0,
-                }}>
-                  {hasExterior && (
+                <div style={{ flex: 1, display: 'flex', gap: '3px', padding: '3px', minHeight: 0 }}>
+                  {hasExterior ? (
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                      <span style={{
-                        fontSize: '7px',
-                        color: BRAND.muted,
-                        textAlign: 'center',
-                        padding: '1px 0',
-                        flexShrink: 0,
-                        ...(isAr ? arTextStyle : englishStyle),
-                      }}>
-                        {isAr ? 'خارجي | Exterior' : 'Exterior | خارجي'}
-                      </span>
-                      <div style={{
-                        flex: 1,
-                        borderRadius: '4px',
-                        overflow: 'hidden',
-                        border: `1px solid ${BRAND.border}`,
-                        minHeight: 0,
-                      }}>
-                        <img
-                          src={section.exteriorPhoto!}
-                          alt={`${section.en} Exterior`}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                        />
+                      <div style={{ flex: 1, borderRadius: '4px', overflow: 'hidden', border: `1px solid ${BRAND.border}`, minHeight: 0 }}>
+                        <img src={section.exteriorPhoto || undefined} alt={`${section.en}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                       </div>
                     </div>
-                  )}
-                  {hasInterior && (
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                      <span style={{
-                        fontSize: '7px',
-                        color: BRAND.muted,
-                        textAlign: 'center',
-                        padding: '1px 0',
-                        flexShrink: 0,
-                        ...(isAr ? arTextStyle : englishStyle),
-                      }}>
-                        {isAr ? 'داخلي | Interior' : 'Interior | داخلي'}
-                      </span>
-                      <div style={{
-                        flex: 1,
-                        borderRadius: '4px',
-                        overflow: 'hidden',
-                        border: `1px solid ${BRAND.border}`,
-                        minHeight: 0,
-                      }}>
-                        <img
-                          src={section.interiorPhoto!}
-                          alt={`${section.en} Interior`}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                  {!hasExterior && !hasInterior && (
-                    <div style={{
-                      flex: 1,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: BRAND.light,
-                      borderRadius: '4px',
-                      border: `1px dashed ${BRAND.border}`,
-                    }}>
-                      <span style={{ color: BRAND.muted, fontSize: '9px', ...(isAr ? arTextStyle : englishStyle) }}>
-                        {isAr ? 'لا توجد صور' : 'No Photos'}
-                      </span>
+                  ) : (
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: BRAND.light, borderRadius: '4px', border: `1px dashed ${BRAND.border}` }}>
+                      <span style={{ color: BRAND.muted, fontSize: '9px', ...(isAr ? arTextStyle : englishStyle) }}>{isAr ? 'لا توجد صور' : 'No Photos'}</span>
                     </div>
                   )}
                 </div>
@@ -1588,37 +1288,154 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
             );
           })}
         </div>
+      </div>
+    );
+  }
+);
+PdfCarPhotosPage.displayName = 'PdfCarPhotosPage';
 
-        {/* Footer */}
+export const PdfHeatmapPage = forwardRef<HTMLDivElement, PdfReportTemplateProps>(
+  ({ inspection, lang = 'ar' }, ref) => {
+    const isAr = lang === 'ar';
+    const readings = (inspection.paintReadings as Record<string, number>) || {};
+    const hasReadings = Object.keys(readings).length > 0;
+    if (!hasReadings) return null;
+
+    const PAINT_PANELS = [
+      { id: 'hood', labelAr: 'الكبوت', labelEn: 'Hood' },
+      { id: 'roof', labelAr: 'السقف', labelEn: 'Roof' },
+      { id: 'trunk', labelAr: 'الشنطة', labelEn: 'Trunk' },
+      { id: 'fender_front_right', labelAr: 'رفرف أمامي يمين', labelEn: 'Front Right Fender' },
+      { id: 'door_front_right', labelAr: 'باب أمامي يمين', labelEn: 'Front Right Door' },
+      { id: 'door_rear_right', labelAr: 'باب خلفي يمين', labelEn: 'Rear Right Door' },
+      { id: 'fender_rear_right', labelAr: 'رفرف خلفي يمين', labelEn: 'Rear Right Fender' },
+      { id: 'fender_front_left', labelAr: 'رفرف أمامي يسار', labelEn: 'Front Left Fender' },
+      { id: 'door_front_left', labelAr: 'باب أمامي يسار', labelEn: 'Front Left Door' },
+      { id: 'door_rear_left', labelAr: 'باب خلفي يسار', labelEn: 'Rear Left Door' },
+      { id: 'fender_rear_left', labelAr: 'رفرف خلفي يسار', labelEn: 'Rear Left Fender' },
+    ];
+
+    return (
+      <div
+        ref={ref}
+        dir={isAr ? 'rtl' : 'ltr'}
+        style={{
+          width: '794px',
+          height: '1123px',
+          backgroundColor: '#ffffff',
+          padding: '0',
+          margin: '0',
+          boxSizing: 'border-box',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          ...(isAr ? textStyle : englishStyle),
+        }}
+      >
+        {/* Header - Professional Banner */}
+        <div style={{ flexShrink: 0, borderBottom: `4px solid ${BRAND.accent}`, background: BRAND.primary }}>
+          <img
+            src={hsBannerPath}
+            alt="High Safety International Center"
+            style={{ width: '100%', height: '90px', objectFit: 'cover', objectPosition: 'center', display: 'block' }}
+          />
+        </div>
+
+        {/* Section Title */}
         <div style={{
-          background: `linear-gradient(135deg, ${BRAND.primary} 0%, ${BRAND.secondary} 100%)`,
-          padding: '10px 24px',
+          padding: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
           flexShrink: 0,
-          borderTop: `3px solid ${BRAND.accent}`,
         }}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <img src={logoPath} alt="Logo" style={{ width: '22px', height: '22px', borderRadius: '50%', filter: `drop-shadow(0 0 3px rgba(197,133,44,0.8))` }} />
-              <span style={{ color: '#ffffff', fontSize: '10px', fontWeight: 'bold', ...arTextStyle }}>
-                {isAr ? 'مركز الأمان العالي' : 'High Safety Center'}
-              </span>
-              <span style={{ color: BRAND.accentLight, fontSize: '8px', ...(isAr ? englishStyle : arTextStyle) }}>
-                {isAr ? 'High Safety Center' : 'مركز الأمان العالي'}
-              </span>
-            </div>
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-              <span style={{ color: '#94a3b8', fontSize: '8px', ...englishStyle }}>Tel: 0542206000</span>
-              <span style={{ color: '#94a3b8', fontSize: '8px', ...englishStyle }}>highsafety2021@gmail.com</span>
-            </div>
-          </div>
+          <div style={{ width: '4px', height: '24px', backgroundColor: BRAND.accent, borderRadius: '3px' }}></div>
+          <h2 style={{ color: BRAND.dark, fontSize: '18px', fontWeight: 'bold', margin: 0, ...(isAr ? arTextStyle : englishStyle) }}>
+            {isAr ? 'خريطة سماكة الطلاء (Heatmap)' : 'Paint Depth Heatmap'}
+          </h2>
+        </div>
+
+        {/* Heatmap Grid */}
+        <div style={{
+          flex: 1,
+          padding: '0 24px 24px',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: '12px',
+          alignContent: 'start',
+        }}>
+          {PAINT_PANELS.map(panel => {
+            const val = readings[panel.id];
+            let bgColor = '#f8fafc';
+            let borderColor = '#e2e8f0';
+            let textColor = '#64748b';
+            let badgeBg = '#f1f5f9';
+            let badgeColor = '#64748b';
+
+            if (val) {
+              if (val < 150) {
+                bgColor = '#ecfdf5';
+                borderColor = '#10b981';
+                textColor = '#065f46';
+                badgeBg = '#10b981';
+                badgeColor = '#ffffff';
+              } else if (val < 300) {
+                bgColor = '#fffbeb';
+                borderColor = '#f59e0b';
+                textColor = '#92400e';
+                badgeBg = '#f59e0b';
+                badgeColor = '#ffffff';
+              } else {
+                bgColor = '#fef2f2';
+                borderColor = '#ef4444';
+                textColor = '#991b1b';
+                badgeBg = '#ef4444';
+                badgeColor = '#ffffff';
+              }
+            }
+
+            return (
+              <div key={panel.id} style={{
+                backgroundColor: bgColor,
+                border: `2px solid ${borderColor}`,
+                borderRadius: '12px',
+                padding: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+              }}>
+                <div style={{
+                  color: textColor,
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  textAlign: 'center',
+                  ...(isAr ? arTextStyle : englishStyle)
+                }}>
+                  {isAr ? panel.labelAr : panel.labelEn}
+                </div>
+                {val ? (
+                  <div style={{
+                    backgroundColor: badgeBg,
+                    color: badgeColor,
+                    padding: '4px 12px',
+                    borderRadius: '20px',
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    fontFamily: 'monospace',
+                  }}>
+                    {val} µm
+                  </div>
+                ) : (
+                  <div style={{ color: '#94a3b8', fontSize: '14px' }}>---</div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     );
   }
 );
-
-PdfCarPhotosPage.displayName = 'PdfCarPhotosPage';
+PdfHeatmapPage.displayName = 'PdfHeatmapPage';

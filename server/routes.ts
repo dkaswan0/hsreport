@@ -5,6 +5,7 @@ import { api } from "@shared/routes";
 import { z } from "zod";
 import { createHash, randomBytes } from "crypto";
 import { openai } from "./replit_integrations/image/client";
+import { ImageAnalysisService } from "./services/image-analysis";
 
 // ── API Key helpers ───────────────────────────────────────────────────────────
 function hashApiKey(raw: string): string {
@@ -329,60 +330,49 @@ export async function registerRoutes(
     }
   });
 
-  // AI Photo Analysis - Identify car part and suggest faults
+  // AI Photo Analysis - Identify car part and suggest faults using Gemini
   app.post("/api/analyze-photo", async (req, res) => {
     try {
       const { imageBase64 } = req.body;
-      
       if (!imageBase64) {
-        return res.status(400).json({ error: "No image provided" });
+        return res.status(400).json({ error: "لم يتم تقديم صورة للتحليل" });
       }
-
-      const imageUrl = imageBase64.startsWith('data:') ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`;
-
-      // Use gpt-4o for accurate fault detection
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content: `أنت خبير فحص سيارات محترف. مهمتك تحديد الأعطال بدقة من الصور.
-اذكر العطل بشكل مباشر وواضح مثل: "الزيت ناقص"، "البطارية ضعيفة"، "الفرامل متآكلة"، "تسريب زيت"، "شمعات احتراق تالفة".
-لا تستخدم عبارات عامة مثل "قد يسبب" أو "ربما يؤدي". اذكر المشكلة الفعلية المرئية في الصورة.`
-          },
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: `حلل هذه الصورة وحدد العطل الموجود بدقة.
-
-مثال على إجابة صحيحة:
-- إذا رأيت مستوى زيت منخفض: "الزيت ناقص - يحتاج تعبئة"
-- إذا رأيت تآكل: "الفرامل متآكلة - تحتاج تبديل"
-- إذا رأيت تسريب: "تسريب زيت من المحرك"
-- إذا رأيت صدأ: "صدأ في الهيكل السفلي"
-
-أجب بـ JSON فقط:
-{"detectedPart":"Engine Oil","detectedPartArabic":"زيت المحرك","category":"المحرك","suggestedFaults":[{"faultName":"العطل المحدد بالضبط","severity":"high/medium/low","description":"وصف دقيق للمشكلة المرئية"}]}`
-              },
-              {
-                type: "image_url",
-                image_url: { url: imageUrl, detail: "high" }
-              }
-            ]
-          }
-        ],
-        max_tokens: 800
-      });
-
-      const content = response.choices[0].message.content || "{}";
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      const result = JSON.parse(jsonMatch ? jsonMatch[0] : "{}");
+      const result = await ImageAnalysisService.analyzePhoto(imageBase64);
       res.json(result);
     } catch (error: any) {
       console.error("Photo Analysis Error:", error?.message || error);
-      res.status(500).json({ error: "فشل تحليل الصورة — AI analysis failed", details: error?.message });
+      res.status(500).json({ error: error?.message || "حدث خطأ أثناء تحليل الصورة بالذكاء الاصطناعي" });
+    }
+  });
+
+  // AI Odometer Analysis - Read odometer reading from photo
+  app.post("/api/analyze-odometer", async (req, res) => {
+    try {
+      const { imageBase64 } = req.body;
+      if (!imageBase64) {
+        return res.status(400).json({ error: "لم يتم تقديم صورة للتحليل" });
+      }
+      const result = await ImageAnalysisService.analyzeOdometer(imageBase64);
+      res.json(result);
+    } catch (error: any) {
+      console.error("Odometer Analysis Error:", error?.message || error);
+      res.status(500).json({ error: error?.message || "حدث خطأ أثناء قراءة عداد السيارة بالذكاء الاصطناعي" });
+    }
+  });
+
+  // AI Voice Analysis - Transcribe and extract faults from audio recording
+  app.post("/api/analyze-voice", async (req, res) => {
+    try {
+      const { audioBase64, mimeType } = req.body;
+      if (!audioBase64) {
+        return res.status(400).json({ error: "لم يتم تقديم تسجيل صوتي للتحليل" });
+      }
+      const type = mimeType || "audio/webm";
+      const result = await ImageAnalysisService.analyzeVoice(audioBase64, type);
+      res.json(result);
+    } catch (error: any) {
+      console.error("Voice Analysis Error:", error?.message || error);
+      res.status(500).json({ error: error?.message || "حدث خطأ أثناء تحليل الصوت بالذكاء الاصطناعي" });
     }
   });
 
@@ -393,42 +383,12 @@ export async function registerRoutes(
       if (!codes || !Array.isArray(codes) || codes.length === 0) {
         return res.status(400).json({ error: "No codes provided" });
       }
-
       const codeList = codes.map((c: string) => c.trim().toUpperCase()).filter(Boolean);
-      
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content: `You are an expert automotive OBD-II diagnostics specialist. You must provide accurate DTC (Diagnostic Trouble Code) information.
-For each code, provide:
-- nameEn: Official English fault name (concise)
-- nameAr: Arabic translation of the fault name (Modern Standard Arabic - الفصحى المبسطة)
-- diagnosis: Detailed technical diagnosis explanation in Arabic
-- causes: Common causes in Arabic (comma separated)
-- solutions: Recommended repair solutions in Arabic (comma separated)
-
-Return a JSON array. Be precise and technical.`
-          },
-          {
-            role: "user",
-            content: `Provide full details for these OBD-II fault codes: ${codeList.join(', ')}
-
-Return JSON array format:
-[{"code":"P0128","nameEn":"Coolant Thermostat Below Regulating Temperature","nameAr":"منظم حرارة سائل التبريد أقل من درجة التنظيم","diagnosis":"...","causes":"...","solutions":"..."}]`
-          }
-        ],
-        max_tokens: 2000
-      });
-
-      const content = response.choices[0].message.content || "[]";
-      const jsonMatch = content.match(/\[[\s\S]*\]/);
-      const result = JSON.parse(jsonMatch ? jsonMatch[0] : "[]");
+      const result = await ImageAnalysisService.lookupObdCodes(codeList);
       res.json({ codes: result });
     } catch (error: any) {
       console.error("OBD Lookup Error:", error?.message || error);
-      res.status(500).json({ error: "Failed to lookup OBD codes" });
+      res.status(500).json({ error: error?.message || "Failed to lookup OBD codes" });
     }
   });
 
@@ -439,69 +399,15 @@ Return JSON array format:
       if (!imageBase64) {
         return res.status(400).json({ error: "No image provided" });
       }
-
-      const imageUrl = imageBase64.startsWith('data:') ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`;
-
-      const extractResponse = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content: `You are an expert at reading OBD-II diagnostic scanner screens. Extract ALL fault codes visible in the image.
-OBD codes follow patterns like: P0xxx, P1xxx, P2xxx, P3xxx, C0xxx, C1xxx, C2xxx, B0xxx, B1xxx, U0xxx, U1xxx, etc.
-Return ONLY a JSON array of the codes found. If no codes are found, return an empty array.`
-          },
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: `Extract all OBD-II fault codes from this diagnostic scanner image. Return JSON: {"codes":["P0128","C1201"]}`
-              },
-              {
-                type: "image_url",
-                image_url: { url: imageUrl, detail: "high" }
-              }
-            ]
-          }
-        ],
-        max_tokens: 500
-      });
-
-      const extractContent = extractResponse.choices[0].message.content || "{}";
-      const extractJson = extractContent.match(/\{[\s\S]*\}/);
-      const extracted = JSON.parse(extractJson ? extractJson[0] : '{"codes":[]}');
-      const extractedCodes: string[] = extracted.codes || [];
-
+      const extractedCodes = await ImageAnalysisService.extractObdCodes(imageBase64);
       if (extractedCodes.length === 0) {
         return res.json({ codes: [], message: "لم يتم العثور على أكواد أعطال في الصورة" });
       }
-
-      const lookupResponse = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content: `You are an expert automotive OBD-II diagnostics specialist. Provide accurate DTC information.
-For each code provide: nameEn (English name), nameAr (Arabic - الفصحى المبسطة), diagnosis (Arabic), causes (Arabic), solutions (Arabic).
-Return a JSON array.`
-          },
-          {
-            role: "user",
-            content: `Provide full details for: ${extractedCodes.join(', ')}
-Return: [{"code":"P0128","nameEn":"...","nameAr":"...","diagnosis":"...","causes":"...","solutions":"..."}]`
-          }
-        ],
-        max_tokens: 2000
-      });
-
-      const lookupContent = lookupResponse.choices[0].message.content || "[]";
-      const lookupJson = lookupContent.match(/\[[\s\S]*\]/);
-      const result = JSON.parse(lookupJson ? lookupJson[0] : "[]");
+      const result = await ImageAnalysisService.lookupObdCodes(extractedCodes);
       res.json({ codes: result });
     } catch (error: any) {
       console.error("OBD Extract Error:", error?.message || error);
-      res.status(500).json({ error: "Failed to extract OBD codes from image" });
+      res.status(500).json({ error: error?.message || "Failed to extract OBD codes from image" });
     }
   });
 
@@ -541,16 +447,17 @@ Return: [{"code":"P0128","nameEn":"...","nameAr":"...","diagnosis":"...","causes
       try {
         // Search returns sequence numbers (not UIDs)
         const seqList = await client.search({ from: "autelhighsafety@gmail.com" });
-        console.log(`Autel: found ${seqList?.length || 0} messages from autelhighsafety@gmail.com`);
+        const list = Array.isArray(seqList) ? seqList : [];
+        console.log(`Autel: found ${list.length} messages from autelhighsafety@gmail.com`);
 
-        if (!seqList || seqList.length === 0) {
+        if (list.length === 0) {
           await lock.release();
           await client.logout();
           return res.status(404).json({ error: "لا توجد رسائل من جهاز Autel في البريد الوارد" });
         }
 
         // Use the latest message (last in the array)
-        const lastSeq = seqList[seqList.length - 1];
+        const lastSeq = list[list.length - 1];
         console.log(`Autel: fetching message seq=${lastSeq}`);
 
         // Fetch full message source (most reliable method)
@@ -731,9 +638,56 @@ Return: [{"code":"P0128","nameEn":"...","nameAr":"...","diagnosis":"...","causes
     }
   });
 
-  // === VIN Decoder removed — CarsXE integration disabled ===
-  app.get("/api/vin/:vin", (req, res) => {
-    res.status(410).json({ error: true, message: "VIN decoder has been disabled" });
+  // VIN Decoder using the free, open NHTSA API
+  app.get("/api/vin/:vin", async (req, res) => {
+    const { vin } = req.params;
+    if (!vin || vin.length !== 17) {
+      return res.status(400).json({ error: true, message: "رقم الهيكل يجب أن يتكون من 17 حرفاً" });
+    }
+
+    // Normalize VIN: replace invalid characters O->0, I->1, Q->0
+    const normalizedVin = vin.toUpperCase()
+      .replace(/O/g, "0")
+      .replace(/I/g, "1")
+      .replace(/Q/g, "0");
+
+    try {
+      const response = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/decodevinvaluesextended/${normalizedVin}?format=json`);
+      if (!response.ok) {
+        throw new Error(`NHTSA API returned status ${response.status}`);
+      }
+      const data: any = await response.json();
+      if (data.Results && data.Results[0]) {
+        const result = data.Results[0];
+        
+        const make = result.Make || "";
+        const model = result.Model || "";
+        const year = result.ModelYear || "";
+
+        // If we got a Make, treat it as success even if there are check digit or registration warnings
+        if (make) {
+          return res.json({
+            success: true,
+            make,
+            model,
+            year: year ? parseInt(year, 10) : null
+          });
+        }
+
+        // If no Make was decoded, check if there's a specific error message
+        const errorCode = result.ErrorCode || "";
+        if (errorCode !== "0" && errorCode !== "empty" && result.ErrorText) {
+          return res.status(404).json({ error: true, message: result.ErrorText });
+        }
+
+        return res.status(404).json({ error: true, message: "لم يتم العثور على بيانات لهذه المركبة" });
+      } else {
+        return res.status(404).json({ error: true, message: "لم يتم العثور على بيانات لهذا الرقم" });
+      }
+    } catch (error: any) {
+      console.error("VIN decoding failed:", error);
+      return res.status(500).json({ error: true, message: "فشل الاتصال بخدمة فك ترميز رقم الهيكل" });
+    }
   });
 
 

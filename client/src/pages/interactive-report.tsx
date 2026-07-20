@@ -22,7 +22,12 @@ import {
   ZoomIn,
   Monitor,
   ExternalLink,
+  Stethoscope,
+  Wrench,
+  Sparkles,
+  Search,
 } from "lucide-react";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -31,7 +36,7 @@ import html2canvas from "html2canvas";
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import logoPath from "@assets/hs-logo.png";
 import hsBannerPath from "@assets/hs-banner.jpeg";
-import { PdfReportTemplate, PdfCarPhotosPage } from "@/components/pdf-report-template";
+import { PdfReportTemplate, PdfCarPhotosPage, PdfHeatmapPage } from "@/components/pdf-report-template";
 import carVisualizationPath from "@assets/generated_images/professional_car_anatomy_diagram.png";
 import carFrontView from "@assets/generated_images/car_front_view_diagram.png";
 import carRightView from "@assets/generated_images/car_right_side_view.png";
@@ -40,6 +45,7 @@ import carLeftView from "@assets/generated_images/car_left_side_view.png";
 import { INSPECTION_CATEGORIES, CATEGORY_GROUPS } from "@shared/categories";
 import { getVehicleColor, calculateInspectionStats } from "@/lib/vehicle-utils";
 import { VinPlate } from "@/components/vin-plate";
+import { PaintDepthHeatmap } from "@/components/paint-depth-heatmap";
 
 // Car views configuration
 type ViewAngle = 'front' | 'right' | 'rear' | 'left';
@@ -237,7 +243,8 @@ const CATEGORY_POSITIONS: Record<string, { top: string; left: string; transform?
 };
 
 // Realistic 360° Car Visualization with 4 viewing angles
-const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCategoryClick: (cat: string) => void }) => {
+const Car3DVisualization = ({ items, paintReadings, onCategoryClick }: { items: any[], paintReadings?: Record<string, number>, onCategoryClick: (cat: string) => void }) => {
+  const [viewMode, setViewMode] = useState<'360' | 'hologram' | 'heatmap'>('360');
   const [currentViewIndex, setCurrentViewIndex] = useState(0);
   const [isAutoRotating, setIsAutoRotating] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
@@ -358,6 +365,66 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
     return { good: pass, warning, fail, total: items.length };
   }, [items]);
 
+  const renderHotspot = (catId: string, position: { top: string; left: string }) => {
+    const cat = INSPECTION_CATEGORIES.find(c => c.id === catId);
+    if (!cat) return null;
+    
+    const catItems = getCategoryItems(catId);
+    if (catItems.length === 0) return null; // Hide if no observations are recorded
+    
+    const isSelected = selectedCategory === catId;
+    const pulseColor = 'bg-[#C5852C] shadow-[#C5852C]/50';
+
+    return (
+      <div 
+        className="absolute z-10 transition-all duration-300 -translate-x-1/2 -translate-y-1/2"
+        style={position}
+      >
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleCategoryPress(catId);
+          }}
+          className={cn(
+            "w-4 h-4 rounded-full cursor-pointer border border-white flex items-center justify-center shadow-lg transition-all hover:scale-125",
+            pulseColor,
+            isSelected ? "scale-125 ring-2 ring-white" : "animate-pulse"
+          )}
+        />
+
+        {/* Fault details popup */}
+        {isSelected && (
+          <div 
+            className="absolute bottom-full mb-2 -translate-x-1/2 left-1/2 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-3 min-w-[200px] max-w-[280px] z-50 border border-slate-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-200">
+              <span className="font-bold text-xs text-slate-800 font-arabic">{cat.label}</span>
+              <span className="text-[10px] text-slate-500">{catItems.length} ملاحظة</span>
+            </div>
+            <div className="space-y-2 max-h-[150px] overflow-y-auto">
+              {catItems.map((item, idx) => (
+                <div 
+                  key={idx}
+                  className="p-2 rounded-lg text-xs text-right bg-slate-50 border border-slate-100"
+                >
+                  <div className="flex flex-col gap-1">
+                    <p className="font-bold font-arabic text-slate-800 leading-tight">
+                      {item.faultName.split(' - ')[0]}
+                    </p>
+                    {item.notes && (
+                      <p className="text-slate-500 text-[10px] font-arabic">{item.notes}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div 
       ref={containerRef}
@@ -371,196 +438,307 @@ const Car3DVisualization = ({ items, onCategoryClick }: { items: any[], onCatego
       onTouchEnd={handleTouchEnd}
     >
       {/* Header */}
-      <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-20">
+      <div className="absolute top-0 left-0 right-0 p-4 flex flex-col md:flex-row justify-between items-center gap-3 z-20">
         <div className="flex items-center gap-2">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={(e) => { e.stopPropagation(); toggleAutoRotate(); }}
-            className={cn(
-              "backdrop-blur-sm text-white",
-              isAutoRotating ? "bg-primary/50 hover:bg-primary/70" : "bg-white/10 hover:bg-white/20"
-            )}
-            data-testid="button-toggle-rotation"
-          >
-            <RotateCcw className={cn("w-5 h-5", isAutoRotating && "animate-spin")} />
-          </Button>
+          {viewMode === '360' && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={(e) => { e.stopPropagation(); toggleAutoRotate(); }}
+              className={cn(
+                "backdrop-blur-sm text-white",
+                isAutoRotating ? "bg-primary/50 hover:bg-primary/70" : "bg-white/10 hover:bg-white/20"
+              )}
+              data-testid="button-toggle-rotation"
+            >
+              <RotateCcw className={cn("w-5 h-5", isAutoRotating && "animate-spin")} />
+            </Button>
+          )}
           <div className="bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs font-bold text-white font-arabic">
-            {currentView.label}
+            {viewMode === '360' ? currentView.label : viewMode === 'hologram' ? "المخطط الهولوغرامي الذكي" : "خريطة سماكة الطلاء (Heatmap)"}
           </div>
         </div>
+
+        {/* View Mode Toggle */}
+        <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full p-1 border border-white/10">
+          <button
+            onClick={(e) => { e.stopPropagation(); setViewMode('360'); }}
+            className={cn(
+              "px-3 py-1 rounded-full text-xs font-bold font-arabic transition-all",
+              viewMode === '360' ? "bg-[#C5852C] text-white" : "text-white/60 hover:text-white"
+            )}
+          >
+            حقيقي 360°
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); setViewMode('hologram'); }}
+            className={cn(
+              "px-3 py-1 rounded-full text-xs font-bold font-arabic transition-all",
+              viewMode === 'hologram' ? "bg-[#C5852C] text-white" : "text-white/60 hover:text-white"
+            )}
+          >
+            مخطط 3D تفاعلي
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); setViewMode('heatmap'); }}
+            className={cn(
+              "px-3 py-1 rounded-full text-xs font-bold font-arabic transition-all",
+              viewMode === 'heatmap' ? "bg-red-500 text-white" : "text-white/60 hover:text-white"
+            )}
+          >
+            سماكة الطلاء
+          </button>
+        </div>
+
         <div className="flex gap-2">
-          <div className="flex items-center gap-1.5 bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>{stats.good}</span>
-          </div>
-          <div className="flex items-center gap-1.5 bg-amber-500/20 text-amber-400 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm">
-            <AlertCircle className="w-3.5 h-3.5" />
-            <span>{stats.warning}</span>
-          </div>
-          <div className="flex items-center gap-1.5 bg-red-500/20 text-red-400 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm">
-            <XCircle className="w-3.5 h-3.5" />
-            <span>{stats.fail}</span>
+          <div className="flex items-center gap-1.5 bg-[#C5852C]/20 text-[#C5852C] border border-[#C5852C]/30 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm font-arabic">
+            <span>الملاحظات المسجلة: {stats.total}</span>
           </div>
         </div>
       </div>
 
       {/* View Navigation Arrows */}
-      <button
-        onClick={(e) => { e.stopPropagation(); goToView('prev'); }}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white p-3 rounded-full transition-all"
-        data-testid="button-prev-view"
-      >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
-      <button
-        onClick={(e) => { e.stopPropagation(); goToView('next'); }}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white p-3 rounded-full transition-all"
-        data-testid="button-next-view"
-      >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
+      {viewMode === '360' && (
+        <>
+          <button
+            onClick={(e) => { e.stopPropagation(); goToView('prev'); }}
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white p-3 rounded-full transition-all"
+            data-testid="button-prev-view"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); goToView('next'); }}
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white p-3 rounded-full transition-all"
+            data-testid="button-next-view"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </>
+      )}
 
       {/* Car View Container */}
       <div className="relative w-full aspect-square md:aspect-[16/10] flex items-center justify-center pt-16">
         {/* Ground reflection */}
         <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-white/5 to-transparent" />
         
-        {/* Car Image with transition */}
-        <div 
-          className="relative w-[85%] h-[75%] transition-all duration-500 ease-out"
-          style={{ 
-            transform: `translateX(${isDragging ? dragDistance * 0.1 : 0}px)`,
-            opacity: isDragging ? 0.8 : 1
-          }}
-        >
-          <img 
-            src={currentView.image} 
-            alt={`Vehicle - ${currentView.labelEn}`} 
-            className="w-full h-full object-contain drop-shadow-2xl"
-          />
+        {viewMode === '360' ? (
+          /* Car Image with transition */
+          <div 
+            className="relative w-[85%] h-[75%] transition-all duration-500 ease-out"
+            style={{ 
+              transform: `translateX(${isDragging ? dragDistance * 0.1 : 0}px)`,
+              opacity: isDragging ? 0.8 : 1
+            }}
+          >
+            <img 
+              src={currentView.image} 
+              alt={`Vehicle - ${currentView.labelEn}`} 
+              className="w-full h-full object-contain drop-shadow-2xl"
+            />
 
-          {/* Category indicators for current view */}
-          {INSPECTION_CATEGORIES.map(cat => {
-            const position = getCategoryPosition(cat.id, currentView.angle);
-            if (!position) return null;
-            
-            const status = getCategoryStatus(cat.id);
-            const hasIssues = status !== 'good';
-            const catItems = getCategoryItems(cat.id);
-            const isSelected = selectedCategory === cat.id;
-            
-            if (!hasIssues) return null;
-            
-            return (
-              <div 
-                key={cat.id} 
-                className="absolute z-10 transition-all duration-300" 
-                style={position as any}
-                onMouseDown={(e) => e.stopPropagation()}
-                onTouchStart={(e) => e.stopPropagation()}
-              >
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleCategoryPress(cat.id);
-                  }}
-                  className={cn(
-                    "flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold text-white transition-all duration-300 cursor-pointer",
-                    getStatusColor(status),
-                    "shadow-lg hover:scale-110",
-                    isSelected ? "ring-2 ring-white scale-110" : "animate-pulse"
-                  )}
-                  data-testid={`button-category-${cat.id}`}
+            {/* Category indicators for current view */}
+            {INSPECTION_CATEGORIES.map(cat => {
+              const position = getCategoryPosition(cat.id, currentView.angle);
+              if (!position) return null;
+              
+              const status = getCategoryStatus(cat.id);
+              const hasIssues = status !== 'good';
+              const catItems = getCategoryItems(cat.id);
+              const isSelected = selectedCategory === cat.id;
+              
+              if (!hasIssues) return null;
+              
+              return (
+                <div 
+                  key={cat.id} 
+                  className="absolute z-10 transition-all duration-300" 
+                  style={position as any}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
                 >
-                  {getStatusIcon(status)}
-                  <span className="hidden md:inline truncate max-w-[80px]">{cat.label}</span>
-                </button>
-                
-                {/* Fault details popup */}
-                {isSelected && catItems.length > 0 && (
-                  <div 
-                    className="absolute top-full mt-2 right-0 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-3 min-w-[200px] max-w-[280px] z-50"
-                    onClick={(e) => e.stopPropagation()}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCategoryPress(cat.id);
+                    }}
+                    className={cn(
+                      "flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold text-white transition-all duration-300 cursor-pointer",
+                      getStatusColor(status),
+                      "shadow-lg hover:scale-110",
+                      isSelected ? "ring-2 ring-white scale-110" : "animate-pulse"
+                    )}
+                    data-testid={`button-category-${cat.id}`}
                   >
-                    <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-200">
-                      <span className="font-bold text-xs text-slate-800 font-arabic">{cat.label}</span>
-                      <span className="text-[10px] text-slate-500">{catItems.length}</span>
-                    </div>
-                    <div className="space-y-2 max-h-[150px] overflow-y-auto">
-                      {catItems.map((item, idx) => (
-                        <div 
-                          key={idx}
-                          className={cn(
-                            "p-2 rounded-lg text-xs",
-                            item.status === 'fail' ? "bg-red-50 border border-red-200" : "bg-amber-50 border border-amber-200"
-                          )}
-                        >
-                          <div className="flex items-start gap-2">
-                            {item.status === 'fail' ? 
-                              <XCircle className="w-3 h-3 text-red-500 shrink-0 mt-0.5" /> : 
-                              <AlertCircle className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" />
-                            }
-                            <div>
-                              <p className={cn(
-                                "font-bold font-arabic leading-tight",
-                                item.status === 'fail' ? "text-red-700" : "text-amber-700"
-                              )}>
-                                {item.faultName.split(' - ')[0]}
-                              </p>
-                              {item.notes && (
-                                <p className="text-slate-500 text-[10px] mt-1 font-arabic">{item.notes}</p>
-                              )}
+                    {getStatusIcon(status)}
+                    <span className="hidden md:inline truncate max-w-[80px]">{cat.label}</span>
+                  </button>
+                  
+                  {/* Fault details popup */}
+                  {isSelected && catItems.length > 0 && (
+                    <div 
+                      className="absolute top-full mt-2 right-0 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-3 min-w-[200px] max-w-[280px] z-50 border border-slate-200"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-200">
+                        <span className="font-bold text-xs text-slate-800 font-arabic">{cat.label}</span>
+                        <span className="text-[10px] text-slate-500">{catItems.length}</span>
+                      </div>
+                      <div className="space-y-2 max-h-[150px] overflow-y-auto">
+                        {catItems.map((item, idx) => (
+                          <div 
+                            key={idx}
+                            className={cn(
+                              "p-2 rounded-lg text-xs text-right",
+                              item.status === 'fail' ? "bg-red-50 border border-red-200" : "bg-amber-50 border border-amber-200"
+                            )}
+                          >
+                            <div className="flex items-start gap-2 justify-end">
+                              <div>
+                                <p className={cn(
+                                  "font-bold font-arabic leading-tight",
+                                  item.status === 'fail' ? "text-red-700" : "text-amber-700"
+                                )}>
+                                  {item.faultName.split(' - ')[0]}
+                                </p>
+                                {item.notes && (
+                                  <p className="text-slate-500 text-[10px] mt-1 font-arabic">{item.notes}</p>
+                                )}
+                              </div>
+                              {item.status === 'fail' ? 
+                                <XCircle className="w-3 h-3 text-red-500 shrink-0 mt-0.5" /> : 
+                                <AlertCircle className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" />
+                              }
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : viewMode === 'hologram' ? (
+          /* Hologram Blueprint Grid View */
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 w-[95%] h-[80%] overflow-y-auto p-4 select-none relative z-10">
+            {/* Front View Box */}
+            <div className="relative bg-slate-950/40 border border-[#C5852C]/20 rounded-2xl p-4 flex flex-col items-center justify-center min-h-[160px]">
+              <span className="absolute top-2 right-2 text-[10px] text-white/50 font-bold font-arabic">الواجهة الأمامية</span>
+              <img src={carFrontView} className="w-32 h-20 object-contain drop-shadow-[0_0_10px_rgba(197,133,44,0.1)]" />
+              {renderHotspot("front_bumper", { top: "82%", left: "50%" })}
+              {renderHotspot("hood", { top: "52%", left: "50%" })}
+            </div>
+
+            {/* Rear View Box */}
+            <div className="relative bg-slate-950/40 border border-[#C5852C]/20 rounded-2xl p-4 flex flex-col items-center justify-center min-h-[160px]">
+              <span className="absolute top-2 right-2 text-[10px] text-white/50 font-bold font-arabic">الجهة الخلفية</span>
+              <img src={carRearView} className="w-32 h-20 object-contain" />
+              {renderHotspot("rear_bumper", { top: "82%", left: "50%" })}
+              {renderHotspot("trunk", { top: "52%", left: "50%" })}
+            </div>
+
+            {/* Top Down / Anatomy Box */}
+            <div className="relative bg-slate-950/40 border border-[#C5852C]/20 rounded-2xl p-4 flex flex-col items-center justify-center min-h-[160px] col-span-2 md:col-span-1">
+              <span className="absolute top-2 right-2 text-[10px] text-white/50 font-bold font-arabic">الهيكل الميكانيكي والسقف</span>
+              <img src={carVisualizationPath} className="w-28 h-20 object-contain invert opacity-60" />
+              {renderHotspot("engine", { top: "25%", left: "50%" })}
+              {renderHotspot("roof", { top: "50%", left: "50%" })}
+              {renderHotspot("chassis_frame", { top: "75%", left: "50%" })}
+            </div>
+
+            {/* Left Side Box */}
+            <div className="relative bg-slate-950/40 border border-[#C5852C]/20 rounded-2xl p-4 flex flex-col items-center justify-center min-h-[160px]">
+              <span className="absolute top-2 right-2 text-[10px] text-white/50 font-bold font-arabic">الجانب الأيسر</span>
+              <img src={carLeftView} className="w-40 h-20 object-contain" />
+              {renderHotspot("door_front_left", { top: "50%", left: "38%" })}
+              {renderHotspot("door_rear_left", { top: "50%", left: "62%" })}
+              {renderHotspot("quarter_panel_left", { top: "45%", left: "80%" })}
+            </div>
+
+            {/* Right Side Box */}
+            <div className="relative bg-slate-950/40 border border-[#C5852C]/20 rounded-2xl p-4 flex flex-col items-center justify-center min-h-[160px]">
+              <span className="absolute top-2 right-2 text-[10px] text-white/50 font-bold font-arabic">الجانب الأيمن</span>
+              <img src={carRightView} className="w-40 h-20 object-contain" />
+              {renderHotspot("door_front_right", { top: "50%", left: "62%" })}
+              {renderHotspot("door_rear_right", { top: "50%", left: "38%" })}
+              {renderHotspot("quarter_panel_right", { top: "45%", left: "20%" })}
+            </div>
+          </div>
+        ) : (
+          /* Heatmap View */
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 w-[95%] h-[80%] overflow-y-auto p-4 select-none relative z-10">
+            {Object.entries({
+              'hood': { label: 'الكبوت', view: carFrontView, iconSize: 'w-24 h-16' },
+              'roof': { label: 'السقف', view: carVisualizationPath, iconSize: 'w-24 h-16 invert opacity-60' },
+              'trunk': { label: 'الشنطة', view: carRearView, iconSize: 'w-24 h-16' },
+              'fender_front_right': { label: 'رفرف أمامي يمين', view: carRightView, iconSize: 'w-32 h-16' },
+              'door_front_right': { label: 'باب أمامي يمين', view: carRightView, iconSize: 'w-32 h-16' },
+              'door_rear_right': { label: 'باب خلفي يمين', view: carRightView, iconSize: 'w-32 h-16' },
+              'fender_rear_right': { label: 'رفرف خلفي يمين', view: carRightView, iconSize: 'w-32 h-16' },
+              'fender_front_left': { label: 'رفرف أمامي يسار', view: carLeftView, iconSize: 'w-32 h-16' },
+              'door_front_left': { label: 'باب أمامي يسار', view: carLeftView, iconSize: 'w-32 h-16' },
+              'door_rear_left': { label: 'باب خلفي يسار', view: carLeftView, iconSize: 'w-32 h-16' },
+              'fender_rear_left': { label: 'رفرف خلفي يسار', view: carLeftView, iconSize: 'w-32 h-16' },
+            }).map(([panelId, config]) => {
+              const reading = paintReadings?.[panelId];
+              let bgColor = 'bg-slate-900/50 border-slate-700/50';
+              let badgeColor = 'bg-slate-700 text-slate-300';
+              
+              if (reading) {
+                if (reading < 150) { bgColor = 'bg-emerald-900/40 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.2)]'; badgeColor = 'bg-emerald-500 text-white'; }
+                else if (reading < 300) { bgColor = 'bg-amber-900/40 border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.2)]'; badgeColor = 'bg-amber-500 text-white'; }
+                else { bgColor = 'bg-red-900/40 border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)]'; badgeColor = 'bg-red-500 text-white'; }
+              }
+              
+              return (
+                <div key={panelId} className={`relative rounded-2xl p-4 flex flex-col items-center justify-center min-h-[120px] border transition-all ${bgColor}`}>
+                  <span className="absolute top-2 right-2 text-[10px] text-white/70 font-bold font-arabic">{config.label}</span>
+                  <img src={config.view} className={`object-contain mt-2 opacity-50 ${config.iconSize}`} />
+                  <div className="absolute bottom-2 left-2 right-2 flex justify-center">
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold font-mono ${badgeColor}`}>
+                      {reading ? `${reading} µm` : '---'}
+                    </span>
                   </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* View Indicators (dots) */}
-      <div className="absolute bottom-20 left-0 right-0 flex justify-center gap-2">
-        {CAR_VIEWS.map((view, idx) => (
-          <button
-            key={view.angle}
-            onClick={(e) => { e.stopPropagation(); setCurrentViewIndex(idx); }}
-            className={cn(
-              "w-2.5 h-2.5 rounded-full transition-all",
-              idx === currentViewIndex 
-                ? "bg-accent w-8" 
-                : "bg-white/30 hover:bg-white/50"
-            )}
-            data-testid={`button-view-${view.angle}`}
-          />
-        ))}
-      </div>
+      {viewMode === '360' && (
+        <div className="absolute bottom-20 left-0 right-0 flex justify-center gap-2">
+          {CAR_VIEWS.map((view, idx) => (
+            <button
+              key={view.angle}
+              onClick={(e) => { e.stopPropagation(); setCurrentViewIndex(idx); }}
+              className={cn(
+                "w-2.5 h-2.5 rounded-full transition-all",
+                idx === currentViewIndex 
+                  ? "bg-accent w-8" 
+                  : "bg-white/30 hover:bg-white/50"
+              )}
+              data-testid={`button-view-${view.angle}`}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Legend and Instructions */}
       <div className="absolute bottom-4 left-0 right-0 space-y-2">
         <div className="flex justify-center">
           <div className="bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5 text-[10px] text-white/60 font-arabic">
-            {isDragging ? "جارٍ التدوير..." : "اسحب أو استخدم الأسهم للتدوير 360° - اضغط على النقاط لعرض التفاصيل"}
-          </div>
-        </div>
-        <div className="flex justify-center gap-6 text-xs font-bold font-arabic text-white/80">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50" />
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-amber-500 shadow-lg shadow-amber-500/50" />
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-red-500 shadow-lg shadow-red-500/50" />
+            {viewMode === '360'
+              ? (isDragging ? "جارٍ التدوير..." : "اسحب أو استخدم الأسهم للتدوير 360° - اضغط على النقاط لعرض التفاصيل")
+              : viewMode === 'hologram'
+              ? "اضغط على نقاط الهيكل لعرض تفاصيل الفحص لكل قطعة"
+              : "الأخضر: طلاء أصلي | الأصفر: رش | الأحمر: سمكرة/معجون"}
           </div>
         </div>
       </div>
@@ -1026,6 +1204,8 @@ export default function InteractiveReport() {
   const pdfPhotosPageRef = useRef<HTMLDivElement>(null);
   const pdfTemplateEnRef = useRef<HTMLDivElement>(null);
   const pdfPhotosPageEnRef = useRef<HTMLDivElement>(null);
+  const pdfHeatmapPageRef = useRef<HTMLDivElement>(null);
+  const pdfHeatmapPageEnRef = useRef<HTMLDivElement>(null);
 
   const handleCategoryClick = (catId: string) => {
     setHighlightedCategory(catId);
@@ -1093,12 +1273,24 @@ export default function InteractiveReport() {
     await Promise.all(imagePromises);
   };
 
+  const dataUrlToArrayBuffer = (dataUrl: string): ArrayBuffer => {
+    const base64 = dataUrl.split(',')[1];
+    const binaryString = window.atob(base64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer;
+  };
+
   const handleNewPdfDownload = async (pdfLang: 'ar' | 'en' = 'ar') => {
     if (!inspection) return;
     
     const isAr = pdfLang === 'ar';
     const reportRef = isAr ? pdfTemplateRef : pdfTemplateEnRef;
     const photosRef = isAr ? pdfPhotosPageRef : pdfPhotosPageEnRef;
+    const heatmapRef = isAr ? pdfHeatmapPageRef : pdfHeatmapPageEnRef;
     
     if (!reportRef.current) return;
     
@@ -1144,16 +1336,8 @@ export default function InteractiveReport() {
         },
       };
 
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-      });
-      
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      
-      let pageAdded = false;
+      const { PDFDocument } = await import('pdf-lib');
+      const pdfDoc = await PDFDocument.create();
       
       const hasAnyPhotos = inspection.rearLeftDoorPhoto || inspection.rearRightDoorPhoto || 
         inspection.frontLeftDoorPhoto || inspection.frontRightDoorPhoto || 
@@ -1168,25 +1352,55 @@ export default function InteractiveReport() {
         await new Promise(resolve => setTimeout(resolve, 500));
         
         const canvasPhotos = await html2canvas(photosRef.current, canvasOpts);
-        const imgDataPhotos = canvasPhotos.toDataURL('image/png', 1.0);
+        const imgDataPhotos = canvasPhotos.toDataURL('image/jpeg', 0.95);
+        const imgBytes = dataUrlToArrayBuffer(imgDataPhotos);
         
-        pdf.addImage(imgDataPhotos, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        pageAdded = true;
+        const pdfImg = await pdfDoc.embedJpg(imgBytes);
+        const page = pdfDoc.addPage([595.27, 841.89]);
+        page.drawImage(pdfImg, { x: 0, y: 0, width: 595.27, height: 841.89 });
+      }
+      
+      const hasHeatmap = Object.keys((inspection.paintReadings as Record<string, number>) || {}).length > 0;
+      if (hasHeatmap && heatmapRef.current) {
+        toast({ 
+          title: isAr ? "جارٍ التحضير" : "Processing",
+          description: isAr ? "جارٍ إضافة خريطة سماكة الطلاء..." : "Adding paint heatmap page..."
+        });
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        const canvasHeatmap = await html2canvas(heatmapRef.current, canvasOpts);
+        const imgDataHeatmap = canvasHeatmap.toDataURL('image/jpeg', 0.95);
+        const imgBytesHeatmap = dataUrlToArrayBuffer(imgDataHeatmap);
+        
+        const pdfImgHeatmap = await pdfDoc.embedJpg(imgBytesHeatmap);
+        const page = pdfDoc.addPage([595.27, 841.89]);
+        page.drawImage(pdfImgHeatmap, { x: 0, y: 0, width: 595.27, height: 841.89 });
       }
       
       const canvasReport = await html2canvas(element, canvasOpts);
-      const imgDataReport = canvasReport.toDataURL('image/png', 1.0);
+      const imgDataReport = canvasReport.toDataURL('image/jpeg', 0.95);
+      const reportBytes = dataUrlToArrayBuffer(imgDataReport);
       
-      if (pageAdded) {
-        pdf.addPage();
-      }
-      pdf.addImage(imgDataReport, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      const reportImg = await pdfDoc.embedJpg(reportBytes);
+      const page = pdfDoc.addPage([595.27, 841.89]);
+      page.drawImage(reportImg, { x: 0, y: 0, width: 595.27, height: 841.89 });
+      
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const downloadUrl = URL.createObjectURL(blob);
       
       const fileName = isAr 
         ? `تقرير_فحص_${inspection.vin}_HS${inspection.id}.pdf`
         : `Inspection_Report_${inspection.vin}_HS${inspection.id}.pdf`;
       
-      pdf.save(fileName);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = fileName;
+      link.click();
+      
+      // Cleanup URL object after click
+      setTimeout(() => URL.revokeObjectURL(downloadUrl), 100);
+
       toast({ 
         title: isAr ? "تم التحميل" : "Downloaded",
         description: isAr ? "تم تحميل ملف PDF بجودة عالية مع جميع الصور" : "PDF report downloaded successfully with all photos"
@@ -1878,17 +2092,25 @@ export default function InteractiveReport() {
       const { token } = await response.json();
       const shareUrl = `${window.location.origin}/view/${token}`;
       
+      let shared = false;
       if (navigator.share) {
-        await navigator.share({
-          title: `تقرير فحص - ${inspection?.make} ${inspection?.model}`,
-          text: `تقرير فحص سيارة من High Safety`,
-          url: shareUrl,
-        });
-      } else {
+        try {
+          await navigator.share({
+            title: `تقرير فحص - ${inspection?.make} ${inspection?.model}`,
+            text: `تقرير فحص سيارة من High Safety`,
+            url: shareUrl,
+          });
+          shared = true;
+        } catch (shareErr) {
+          console.log("Navigator share failed, falling back to clipboard:", shareErr);
+        }
+      }
+      
+      if (!shared) {
         await navigator.clipboard.writeText(shareUrl);
         toast({ 
           title: "نسخ الرابط", 
-          description: "رابط التقرير - يمكن للعميل عرضه بدون تسجيل دخول" 
+          description: "تم نسخ رابط التقرير إلى الحافظة بنجاح - يمكن للعميل عرضه بدون تسجيل دخول" 
         });
       }
     } catch (err) {
@@ -1980,7 +2202,7 @@ export default function InteractiveReport() {
 
         {/* OBD Codes Section - Professional HS Report */}
         {(() => {
-          const obdCodes = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string}> | null) || [];
+          const obdCodes = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string; diagnosis?: string; causes?: string; solutions?: string}> | null) || [];
           if (obdCodes.length === 0) return null;
           const getCodeType = (code: string) => {
             const p = code.charAt(0).toUpperCase();
@@ -2014,22 +2236,85 @@ export default function InteractiveReport() {
                 </div>
               </div>
 
-              <div className="divide-y divide-slate-100">
-                {obdCodes.map((obd, idx) => {
-                  const type = getCodeType(obd.code);
-                  return (
-                    <div key={idx} className="px-5 py-4 flex items-center gap-4">
-                      <div className="shrink-0">
-                        <div className={`font-mono font-black text-white text-lg px-4 py-2 rounded-xl ${type.color} shadow-md min-w-[85px] text-center`}>{obd.code}</div>
-                        <div className="text-[10px] text-center text-slate-400 mt-1.5 font-arabic font-medium">{type.labelAr}</div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-base font-bold text-slate-900 font-arabic leading-snug">{obd.nameAr}</div>
-                        <div className="text-sm text-slate-500 font-mono mt-1" dir="ltr">{obd.nameEn}</div>
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="divide-y divide-slate-100 px-2 pb-2">
+                <Accordion type="single" collapsible className="w-full">
+                  {obdCodes.map((obd, idx) => {
+                    const type = getCodeType(obd.code);
+                    const hasAiDetails = obd.diagnosis || obd.causes || obd.solutions;
+                    
+                    return (
+                      <AccordionItem value={`item-${idx}`} key={idx} className="border-b-0 mb-2 bg-slate-50/50 rounded-2xl overflow-hidden data-[state=open]:bg-white data-[state=open]:shadow-md data-[state=open]:ring-1 data-[state=open]:ring-slate-200 transition-all">
+                        <AccordionTrigger className="px-4 py-4 hover:no-underline [&[data-state=open]>div>div>div.ai-badge]:opacity-0 [&[data-state=open]>div>div>div.ai-badge]:scale-95">
+                          <div className="flex items-center gap-4 w-full text-right">
+                            <div className="shrink-0">
+                              <div className={`font-mono font-black text-white text-lg px-4 py-2 rounded-xl ${type.color} shadow-md min-w-[85px] text-center`}>{obd.code}</div>
+                              <div className="text-[10px] text-center text-slate-500 mt-1.5 font-arabic font-medium">{type.labelAr}</div>
+                            </div>
+                            <div className="flex-1 min-w-0 flex justify-between items-center pr-2">
+                              <div>
+                                <div className="text-base font-bold text-slate-900 font-arabic leading-snug text-right">{obd.nameAr}</div>
+                                <div className="text-sm text-slate-500 font-mono mt-1 text-right" dir="ltr">{obd.nameEn}</div>
+                              </div>
+                              {hasAiDetails && (
+                                <div className="ai-badge shrink-0 flex items-center gap-1.5 bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-full border border-indigo-100 transition-all duration-300">
+                                  <Sparkles className="w-3.5 h-3.5" />
+                                  <span className="text-xs font-bold font-arabic">شرح العطل</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </AccordionTrigger>
+                        {hasAiDetails && (
+                          <AccordionContent className="px-4 pb-4 text-right" dir="rtl">
+                            <div className="pt-2 border-t border-slate-100 space-y-4">
+                              
+                              {obd.diagnosis && (
+                                <div className="bg-indigo-50/50 rounded-xl p-4 border border-indigo-100/50">
+                                  <div className="flex items-center gap-2 mb-2 text-indigo-700">
+                                    <Stethoscope className="w-5 h-5" />
+                                    <h4 className="font-black font-arabic text-sm">التشخيص الذكي (AI Diagnosis)</h4>
+                                  </div>
+                                  <p className="text-slate-700 text-sm font-arabic leading-relaxed">
+                                    {obd.diagnosis}
+                                  </p>
+                                </div>
+                              )}
+
+                              {obd.causes && (
+                                <div className="bg-amber-50/50 rounded-xl p-4 border border-amber-100/50">
+                                  <div className="flex items-center gap-2 mb-2 text-amber-700">
+                                    <Search className="w-5 h-5" />
+                                    <h4 className="font-black font-arabic text-sm">الأسباب المحتملة (Possible Causes)</h4>
+                                  </div>
+                                  <ul className="list-disc list-inside text-slate-700 text-sm font-arabic leading-relaxed space-y-1 pr-1">
+                                    {obd.causes.split(',').map((cause, i) => (
+                                      <li key={i}>{cause.trim()}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {obd.solutions && (
+                                <div className="bg-emerald-50/50 rounded-xl p-4 border border-emerald-100/50">
+                                  <div className="flex items-center gap-2 mb-2 text-emerald-700">
+                                    <Wrench className="w-5 h-5" />
+                                    <h4 className="font-black font-arabic text-sm">خطوات الإصلاح (Solutions)</h4>
+                                  </div>
+                                  <ul className="list-disc list-inside text-slate-700 text-sm font-arabic leading-relaxed space-y-1 pr-1">
+                                    {obd.solutions.split(',').map((solution, i) => (
+                                      <li key={i}>{solution.trim()}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                            </div>
+                          </AccordionContent>
+                        )}
+                      </AccordionItem>
+                    );
+                  })}
+                </Accordion>
               </div>
 
               <div className="bg-slate-100 border-t-2 border-slate-200 px-5 py-3 flex items-center justify-between">
@@ -2039,6 +2324,9 @@ export default function InteractiveReport() {
             </div>
           );
         })()}
+
+          {/* Paint Depth Heatmap Section */}
+          <PaintDepthHeatmap paintReadings={inspection.paintReadings as Record<string, number> | null} className="mb-8" />
 
         {/* Autel Computer Report Section */}
         {inspection.autelReportPdf && (
@@ -2180,8 +2468,11 @@ export default function InteractiveReport() {
       <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', opacity: 0, pointerEvents: 'none' }}>
         <PdfReportTemplate ref={pdfTemplateRef} inspection={inspection} lang="ar" />
         <PdfCarPhotosPage ref={pdfPhotosPageRef} inspection={inspection} lang="ar" />
+        <PdfHeatmapPage ref={pdfHeatmapPageRef} inspection={inspection} lang="ar" />
+        
         <PdfReportTemplate ref={pdfTemplateEnRef} inspection={inspection} lang="en" />
         <PdfCarPhotosPage ref={pdfPhotosPageEnRef} inspection={inspection} lang="en" />
+        <PdfHeatmapPage ref={pdfHeatmapPageEnRef} inspection={inspection} lang="en" />
       </div>
     </div>
   );

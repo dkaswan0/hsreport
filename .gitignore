@@ -6,3 +6,8 @@ vite.config.ts.*
 *.tar.gz
 .local
 .config/replit/
+.env
+*.zip
+artifacts/
+attached_assets/
+

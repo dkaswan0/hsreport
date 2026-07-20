@@ -26,6 +26,9 @@ import {
   EyeOff,
   Download,
   ExternalLink,
+  Mic,
+  MicOff,
+  Volume2,
 } from "lucide-react";
 import { useState, useRef, useEffect, useMemo, useCallback, useDeferredValue } from "react";
 import { cn } from "@/lib/utils";
@@ -54,6 +57,7 @@ export default function InspectionDetails() {
   const [isEditingInfo, setIsEditingInfo] = useState(false);
   const [editInfo, setEditInfo] = useState<Record<string, any>>({});
   const [isObdOpen, setIsObdOpen] = useState(false);
+  const [isPaintOpen, setIsPaintOpen] = useState(false);
   
   const { toast } = useToast();
 
@@ -671,10 +675,34 @@ export default function InspectionDetails() {
           </div>
         </div>
 
+        {/* Paint Depth Button */}
+        <button
+          onClick={() => setIsPaintOpen(true)}
+          className="w-full flex items-center justify-between p-4 md:p-5 bg-white rounded-2xl shadow-sm border border-slate-100 hover:border-[#C5852C] hover:shadow-md transition-all group"
+          data-testid="btn-open-paint-section"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#C5852C] to-[#9c6a23] flex items-center justify-center shadow-sm">
+              <Car className="w-5 h-5 text-white" />
+            </div>
+            <div className="text-right">
+              <div className="font-bold text-slate-900 text-sm">فحص سماكة الطلاء (Heatmap)</div>
+              <div className="text-xs text-slate-400 mt-0.5">
+                {(() => {
+                  const readings = (inspection.paintReadings as Record<string, number> | null) || {};
+                  const count = Object.keys(readings).length;
+                  return count > 0 ? `تم فحص ${count} أجزاء` : 'لم يتم الفحص بعد';
+                })()}
+              </div>
+            </div>
+          </div>
+          <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-[#C5852C] transition-colors" />
+        </button>
+
         {/* OBD Button */}
         <button
           onClick={() => setIsObdOpen(true)}
-          className="w-full flex items-center justify-between p-4 md:p-5 bg-white rounded-2xl shadow-sm border border-slate-100 hover:border-emerald-300 hover:shadow-md transition-all group"
+          className="w-full flex items-center justify-between p-4 md:p-5 bg-white rounded-2xl shadow-sm border border-slate-100 hover:border-emerald-300 hover:shadow-md transition-all group mt-2"
           data-testid="btn-open-obd-section"
         >
           <div className="flex items-center gap-3">
@@ -699,6 +727,11 @@ export default function InspectionDetails() {
       {/* OBD Full Screen Panel */}
       {isObdOpen && inspection && (
         <ObdCodesSection inspection={inspection} inspectionId={id} onClose={() => setIsObdOpen(false)} />
+      )}
+
+      {/* Paint Heatmap Full Screen Panel */}
+      {isPaintOpen && inspection && (
+        <PaintHeatmapSection inspection={inspection} inspectionId={id} onClose={() => setIsPaintOpen(false)} />
       )}
 
       {/* Mobile Fixed Bottom Action Bar */}
@@ -1210,6 +1243,160 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
   
   const photoAnalysis = usePhotoAnalysis();
 
+  const [isRecording, setIsRecording] = useState(false);
+  const [isAnalyzingVoice, setIsAnalyzingVoice] = useState(false);
+  const [voiceTranscript, setVoiceTranscript] = useState("");
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const audioFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAudioFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setIsAnalyzingVoice(true);
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onloadend = async () => {
+        const base64data = reader.result as string;
+        const cleanBase64 = base64data.split(',')[1];
+        
+        const response = await fetch('/api/analyze-voice', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ audioBase64: cleanBase64, mimeType: file.type || 'audio/webm' })
+        });
+        
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err.error || "Failed to analyze voice");
+        }
+        
+        const data = await response.json();
+        if (data.detectedPartArabic || data.detectedPart) {
+          setDetectedPart(data.detectedPartArabic || data.detectedPart);
+        }
+        if (data.suggestedFaults) {
+          setAiSuggestions(data.suggestedFaults);
+        }
+        if (data.notes || data.transcript) {
+          setVoiceTranscript(data.transcript || "");
+          setFormData(prev => ({
+            ...prev,
+            faultName: data.suggestedFaults?.[0]?.faultName || prev.faultName || '',
+            description: data.notes || data.suggestedFaults?.[0]?.description || prev.description || '',
+            severity: data.suggestedFaults?.[0]?.severity || prev.severity || 'medium'
+          }));
+        }
+        
+        toast({
+          title: "تم تحليل الصوت بنجاح",
+          description: data.transcript ? `النص: "${data.transcript.substring(0, 50)}..."` : "تم تعبئة التقرير بالذكاء الاصطناعي",
+        });
+      };
+    } catch (err: any) {
+      console.error(err);
+      toast({
+        title: "تنبيه",
+        description: err.message || "تعذر تحليل الصوت بالذكاء الاصطناعي",
+        variant: "destructive"
+      });
+    } finally {
+      setIsAnalyzingVoice(false);
+      e.target.value = '';
+    }
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunksRef.current = [];
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      mediaRecorderRef.current = mediaRecorder;
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+      
+      mediaRecorder.onstop = async () => {
+        setIsAnalyzingVoice(true);
+        try {
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          
+          const reader = new FileReader();
+          reader.readAsDataURL(audioBlob);
+          reader.onloadend = async () => {
+            const base64data = reader.result as string;
+            const cleanBase64 = base64data.split(',')[1];
+            
+            const response = await fetch('/api/analyze-voice', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ audioBase64: cleanBase64, mimeType: 'audio/webm' })
+            });
+            
+            if (!response.ok) {
+              const err = await response.json().catch(() => ({}));
+              throw new Error(err.error || "Failed to analyze voice");
+            }
+            
+            const data = await response.json();
+            if (data.detectedPartArabic || data.detectedPart) {
+              setDetectedPart(data.detectedPartArabic || data.detectedPart);
+            }
+            if (data.suggestedFaults) {
+              setAiSuggestions(data.suggestedFaults);
+            }
+            if (data.notes || data.transcript) {
+              setVoiceTranscript(data.transcript || "");
+              setFormData(prev => ({
+                ...prev,
+                faultName: data.suggestedFaults?.[0]?.faultName || prev.faultName || '',
+                description: data.notes || data.suggestedFaults?.[0]?.description || prev.description || '',
+                severity: data.suggestedFaults?.[0]?.severity || prev.severity || 'medium'
+              }));
+            }
+            
+            toast({
+              title: "تم تحليل الصوت بنجاح",
+              description: data.transcript ? `النص: "${data.transcript.substring(0, 50)}..."` : "تم تعبئة التقرير بالذكاء الاصطناعي",
+            });
+          };
+        } catch (err: any) {
+          console.error(err);
+          toast({
+            title: "تنبيه",
+            description: err.message || "تعذر تحليل الصوت بالذكاء الاصطناعي",
+            variant: "destructive"
+          });
+        } finally {
+          setIsAnalyzingVoice(false);
+          stream.getTracks().forEach(track => track.stop());
+        }
+      };
+      
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: "خطأ في الميكروفون",
+        description: "يرجى منح صلاحية الوصول للميكروفون لتفعيل ميزة الفحص الصوتي",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
   useEffect(() => {
     if (isOpen) {
       if (prefilledFault) {
@@ -1488,28 +1675,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
               )}
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">الحالة</label>
-              <div className="flex gap-2">
-                {(['pass', 'warning', 'fail'] as const).map(status => (
-                  <button
-                    key={status}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, status })}
-                    className={cn(
-                      "flex-1 py-2 rounded-lg text-sm font-medium border transition-all",
-                      formData.status === status 
-                        ? status === 'pass' ? "bg-green-100 border-green-300 text-green-700"
-                        : status === 'fail' ? "bg-red-100 border-red-300 text-red-700"
-                        : "bg-amber-100 border-amber-300 text-amber-700"
-                        : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
-                    )}
-                  >
-                    {status === 'pass' ? 'جيد' : status === 'fail' ? 'معيب' : 'تنبيه'}
-                  </button>
-                ))}
-              </div>
-            </div>
+
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">التفاصيل</label>
@@ -1580,6 +1746,74 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
                   <span className="text-[10px] text-amber-500">يكتشف العطل</span>
                 </button>
               </div>
+
+              {/* Voice Recording Assistant */}
+              <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5 font-arabic">الفحص الصوتي الذكي (AI)</label>
+                
+                {/* Hidden input for audio file upload fallback */}
+                <input
+                  type="file"
+                  ref={audioFileInputRef}
+                  onChange={handleAudioFileUpload}
+                  accept="audio/*"
+                  className="hidden"
+                />
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {isRecording ? (
+                    <button
+                      type="button"
+                      onClick={stopRecording}
+                      className="bg-red-500 hover:bg-red-600 text-white rounded-lg p-2.5 flex items-center gap-1.5 transition-all text-xs font-arabic animate-pulse"
+                    >
+                      <MicOff className="w-4 h-4" />
+                      إيقاف التسجيل
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={startRecording}
+                      disabled={isAnalyzingVoice}
+                      className="bg-[#0C1A28] hover:bg-[#0f2035] text-white rounded-lg p-2.5 flex items-center gap-1.5 transition-all text-xs font-arabic disabled:opacity-50"
+                    >
+                      <Mic className="w-4 h-4" />
+                      ابدأ التسجيل الصوتي
+                    </button>
+                  )}
+
+                  {!isRecording && (
+                    <button
+                      type="button"
+                      onClick={() => audioFileInputRef.current?.click()}
+                      disabled={isAnalyzingVoice}
+                      className="bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg p-2.5 flex items-center gap-1.5 transition-all text-xs font-arabic disabled:opacity-50"
+                    >
+                      <Upload className="w-4 h-4" />
+                      رفع ملف صوتي
+                    </button>
+                  )}
+
+                  {isAnalyzingVoice && (
+                    <div className="flex items-center gap-1.5 text-xs text-amber-600 font-arabic">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      يحلل الصوت الآن...
+                    </div>
+                  )}
+                  {!isRecording && !isAnalyzingVoice && voiceTranscript && (
+                    <div className="flex items-center gap-1.5 text-xs text-green-600 font-arabic">
+                      <Volume2 className="w-3.5 h-3.5" />
+                      تم التعرف على النص
+                    </div>
+                  )}
+                </div>
+                {voiceTranscript && (
+                  <p className="mt-2 text-[10px] text-slate-500 font-arabic leading-relaxed italic bg-white p-2 rounded-lg border border-slate-100">
+                    "{voiceTranscript}"
+                  </p>
+                )}
+              </div>
+
               {photo && (
                 <div className="mt-2 relative w-full h-32 md:h-40 rounded-xl overflow-hidden border border-slate-200">
                   <img src={photo} alt="Preview" className="w-full h-full object-cover" />
@@ -1664,7 +1898,7 @@ interface ObdCode {
   solutions?: string;
 }
 
-function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: InspectionResponse; inspectionId: number; onClose: () => void }) {
+function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: Inspection; inspectionId: number; onClose: () => void }) {
   const { toast } = useToast();
   const updateInspection = useUpdateInspection();
   const [manualCode, setManualCode] = useState('');
@@ -1988,6 +2222,126 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
               })}
             </div>
           )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const PAINT_PANELS = [
+  { id: 'hood', labelAr: 'الكبوت', labelEn: 'Hood' },
+  { id: 'roof', labelAr: 'السقف', labelEn: 'Roof' },
+  { id: 'trunk', labelAr: 'الشنطة', labelEn: 'Trunk' },
+  { id: 'fender_front_right', labelAr: 'رفرف أمامي يمين', labelEn: 'Front Right Fender' },
+  { id: 'door_front_right', labelAr: 'باب أمامي يمين', labelEn: 'Front Right Door' },
+  { id: 'door_rear_right', labelAr: 'باب خلفي يمين', labelEn: 'Rear Right Door' },
+  { id: 'fender_rear_right', labelAr: 'رفرف خلفي يمين', labelEn: 'Rear Right Fender' },
+  { id: 'fender_front_left', labelAr: 'رفرف أمامي يسار', labelEn: 'Front Left Fender' },
+  { id: 'door_front_left', labelAr: 'باب أمامي يسار', labelEn: 'Front Left Door' },
+  { id: 'door_rear_left', labelAr: 'باب خلفي يسار', labelEn: 'Rear Left Door' },
+  { id: 'fender_rear_left', labelAr: 'رفرف خلفي يسار', labelEn: 'Rear Left Fender' },
+];
+
+function PaintHeatmapSection({ inspection, inspectionId, onClose }: { inspection: Inspection; inspectionId: number; onClose: () => void }) {
+  const { toast } = useToast();
+  const updateInspection = useUpdateInspection();
+  const [readings, setReadings] = useState<Record<string, number>>((inspection.paintReadings as Record<string, number>) || {});
+
+  const handleReadingChange = (panelId: string, value: string) => {
+    const num = parseInt(value, 10);
+    setReadings(prev => {
+      const newReadings = { ...prev };
+      if (isNaN(num)) {
+        delete newReadings[panelId];
+      } else {
+        newReadings[panelId] = num;
+      }
+      return newReadings;
+    });
+  };
+
+  const saveReadings = () => {
+    updateInspection.mutate({ id: inspectionId, paintReadings: readings as any }, {
+      onSuccess: () => {
+        toast({ title: "تم الحفظ", description: "تم حفظ سماكة الطلاء بنجاح" });
+        onClose();
+      },
+      onError: () => {
+        toast({ title: "خطأ", description: "تعذر الحفظ", variant: "destructive" });
+      }
+    });
+  };
+
+  const getHeatmapColorClass = (val: number) => {
+    if (val < 150) return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+    if (val < 300) return 'bg-amber-100 text-amber-800 border-amber-300';
+    return 'bg-red-100 text-red-800 border-red-300';
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] bg-white md:bg-slate-900/60 md:backdrop-blur-sm md:flex md:items-center md:justify-center" dir="rtl">
+      <div className="w-full h-full md:h-auto md:max-w-2xl md:max-h-[90vh] bg-white md:rounded-2xl md:shadow-2xl flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-l from-[#C5852C] via-[#9c6a23] to-[#734e19] text-white px-5 py-4 shrink-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                <Car className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-lg font-black">تحليل سماكة الطلاء</h2>
+                <p className="text-orange-200 text-xs font-mono" dir="ltr">Paint Depth Heatmap (µm)</p>
+              </div>
+            </div>
+            <button onClick={onClose} className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center hover:bg-white/30 transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto bg-slate-50 p-4 space-y-3">
+          <div className="flex items-center justify-between bg-blue-50 border border-blue-200 p-3 rounded-xl mb-4">
+            <div className="text-xs text-blue-800">
+              <span className="font-bold">دليل الألوان (ميكرون): </span>
+              <span className="inline-block w-3 h-3 bg-emerald-500 rounded-full ml-1 align-middle"></span> وكالة (&lt;150)
+              <span className="inline-block w-3 h-3 bg-amber-500 rounded-full mx-1 align-middle"></span> رش (150-300)
+              <span className="inline-block w-3 h-3 bg-red-500 rounded-full mx-1 align-middle"></span> معجون (&gt;300)
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {PAINT_PANELS.map(panel => {
+              const val = readings[panel.id];
+              const colorClass = val ? getHeatmapColorClass(val) : 'bg-white border-slate-200';
+              return (
+                <div key={panel.id} className={`p-3 rounded-xl border ${colorClass} transition-colors flex flex-col justify-between`}>
+                  <div className="text-xs font-bold text-slate-700 mb-2">{panel.labelAr}</div>
+                  <div className="flex items-center gap-2">
+                    <input 
+                      type="number" 
+                      value={readings[panel.id] || ''} 
+                      onChange={(e) => handleReadingChange(panel.id, e.target.value)}
+                      placeholder="---"
+                      className="w-full px-2 py-1.5 text-center text-sm font-bold bg-white/80 rounded-lg border border-slate-300 outline-none focus:ring-2 focus:ring-[#C5852C]"
+                    />
+                    <span className="text-[10px] text-slate-500">µm</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-4 py-3 bg-white border-t border-slate-200 flex justify-end gap-2 shrink-0">
+          <button onClick={onClose} className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition-colors">
+            إلغاء
+          </button>
+          <button onClick={saveReadings} className="px-5 py-2.5 rounded-xl bg-[#C5852C] hover:bg-[#a66f24] text-white font-bold transition-colors disabled:opacity-50 flex items-center gap-2">
+            <Save className="w-4 h-4" />
+            حفظ واعتماد
+          </button>
         </div>
       </div>
     </div>
