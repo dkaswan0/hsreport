@@ -8,7 +8,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 
 // ── Validate required environment variables on startup ────────────────────────
-const requiredEnvVars = ["DATABASE_URL", "SESSION_SECRET", "OPENAI_API_KEY"];
+const requiredEnvVars = ["DATABASE_URL", "SESSION_SECRET"];
 for (const key of requiredEnvVars) {
   if (!process.env[key]) {
     throw new Error(`Missing required environment variable: ${key}`);
