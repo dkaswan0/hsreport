@@ -3,7 +3,7 @@ import logoPath from '@assets/hs-logo.png';
 import hsCarBranding from '@assets/hs_car_branding.png';
 import reshaper from 'arabic-reshaper';
 
-// Helper function to connect and reverse Arabic text specifically for html2canvas rendering
+// Helper function to connect Arabic text for html2canvas rendering
 const fixArabic = (text: any): string => {
   if (text === null || text === undefined) return '';
   const str = String(text).trim();
@@ -23,21 +23,8 @@ const fixArabic = (text: any): string => {
     return str;
   }
 
-  const shaped = convertArabic(str);
-  
-  // Split by space boundaries while keeping the spaces in the array
-  const tokens = shaped.split(/(\s+)/);
-  
-  // Reverse the individual character sequences of Arabic tokens, keep others unchanged
-  const processed = tokens.map((token: string) => {
-    if (arabicRegex.test(token)) {
-      return token.split('').reverse().join('');
-    }
-    return token;
-  });
-
-  // Reverse the entire token sequence to lay out RTL words from left to right for canvas
-  return processed.reverse().join('');
+  // ONLY shape the text. DO NOT reverse the characters or tokens because the DOM has dir="rtl"
+  return convertArabic(str);
 };
 
 // Shorthand helper for JSX clean syntax
@@ -113,17 +100,17 @@ const BRAND = {
 };
 
 const CATEGORIES: Record<string, { ar: string; en: string; section?: string }> = {
-  engine: { ar: 'المحرك', en: 'Engine', section: 'mechanic' },
-  suspension_system: { ar: 'نظام التعليق', en: 'Suspension System', section: 'mechanic' },
-  steering_system: { ar: 'نظام التوجيه', en: 'Steering System', section: 'mechanic' },
-  brake_system: { ar: 'نظام الفرامل', en: 'Brake System', section: 'mechanic' },
-  fuel_exhaust: { ar: 'نظام الوقود والعادم', en: 'Fuel & Exhaust', section: 'mechanic' },
-  ac_cooling: { ar: 'نظام التكييف والتبريد', en: 'AC & Cooling', section: 'mechanic' },
-  misc_mechanical: { ar: 'أعطال ميكانيكية متنوعة', en: 'Misc Mechanical', section: 'mechanic' },
-  suspension: { ar: 'التعليق', en: 'Suspension', section: 'mechanic' },
-  brakes: { ar: 'الفرامل', en: 'Brakes', section: 'mechanic' },
-  ac: { ar: 'التكييف', en: 'A/C', section: 'mechanic' },
-  exhaust: { ar: 'العادم', en: 'Exhaust', section: 'mechanic' },
+  engine: { ar: 'المحرك', en: 'Engine', section: 'engine' },
+  suspension_system: { ar: 'نظام التعليق', en: 'Suspension System', section: 'brake_system' },
+  steering_system: { ar: 'نظام التوجيه', en: 'Steering System', section: 'brake_system' },
+  brake_system: { ar: 'نظام الفرامل', en: 'Brake System', section: 'brake_system' },
+  fuel_exhaust: { ar: 'نظام الوقود والعادم', en: 'Fuel & Exhaust', section: 'fuel_exhaust' },
+  ac_cooling: { ar: 'نظام التكييف والتبريد', en: 'AC & Cooling', section: 'ac_cooling' },
+  misc_mechanical: { ar: 'أعطال ميكانيكية متنوعة', en: 'Misc Mechanical', section: 'engine' },
+  suspension: { ar: 'التعليق', en: 'Suspension', section: 'brake_system' },
+  brakes: { ar: 'الفرامل', en: 'Brakes', section: 'brake_system' },
+  ac: { ar: 'التكييف', en: 'A/C', section: 'ac_cooling' },
+  exhaust: { ar: 'العادم', en: 'Exhaust', section: 'fuel_exhaust' },
   
   transmission: { ar: 'ناقل الحركة', en: 'Transmission', section: 'transmission' },
   transmission_auto: { ar: 'قير أوتوماتيك', en: 'Automatic Transmission', section: 'transmission' },
@@ -165,28 +152,28 @@ const CATEGORIES: Record<string, { ar: string; en: string; section?: string }> =
   chassis_welding: { ar: 'القص واللحام', en: 'Cutting & Welding', section: 'chassis' },
   chassis_accident: { ar: 'آثار الحوادث القوية', en: 'Accident Damage', section: 'chassis' },
   
-  electrical: { ar: 'الكهرباء', en: 'Electrical', section: 'electric' },
-  electrical_system: { ar: 'النظام الكهربائي', en: 'Electrical System', section: 'electric' },
-  battery: { ar: 'البطارية', en: 'Battery', section: 'electric' },
-  exterior_lighting: { ar: 'الإضاءة الخارجية', en: 'Exterior Lighting', section: 'electric' },
-  lights_front: { ar: 'الأضواء الأمامية', en: 'Front Lights', section: 'electric' },
-  lights_rear: { ar: 'الأضواء الخلفية', en: 'Rear Lights', section: 'electric' },
-  wire_harness: { ar: 'أسلاك التوصيل والظفيرة', en: 'Wire Harness', section: 'electric' },
-  mirror_controls: { ar: 'أزرار تحكم المرايا والزجاج', en: 'Mirror Controls', section: 'electric' },
-  computer_sensors: { ar: 'فحص الكمبيوتر والحساسات', en: 'Computer & Sensors', section: 'electric' },
-  lights: { ar: 'الإضاءة', en: 'Lights', section: 'electric' },
+  electrical: { ar: 'الكهرباء', en: 'Electrical', section: 'electrical_system' },
+  electrical_system: { ar: 'النظام الكهربائي', en: 'Electrical System', section: 'electrical_system' },
+  battery: { ar: 'البطارية', en: 'Battery', section: 'electrical_system' },
+  exterior_lighting: { ar: 'الإضاءة الخارجية', en: 'Exterior Lighting', section: 'electrical_system' },
+  lights_front: { ar: 'الأضواء الأمامية', en: 'Front Lights', section: 'electrical_system' },
+  lights_rear: { ar: 'الأضواء الخلفية', en: 'Rear Lights', section: 'electrical_system' },
+  wire_harness: { ar: 'أسلاك التوصيل والظفيرة', en: 'Wire Harness', section: 'electrical_system' },
+  mirror_controls: { ar: 'أزرار تحكم المرايا والزجاج', en: 'Mirror Controls', section: 'electrical_system' },
+  computer_sensors: { ar: 'فحص الكمبيوتر والحساسات', en: 'Computer & Sensors', section: 'electrical_system' },
+  lights: { ar: 'الإضاءة', en: 'Lights', section: 'electrical_system' },
   
-  interior: { ar: 'الداخلية', en: 'Interior', section: 'interior' },
-  safety: { ar: 'أنظمة السلامة', en: 'Safety', section: 'interior' },
-  safety_systems: { ar: 'الوسائد الهوائية والأحزمة', en: 'Safety Systems', section: 'interior' },
-  tires_rims: { ar: 'الإطارات والجنوط', en: 'Tires & Rims', section: 'interior' },
-  windows: { ar: 'الزجاج والنوافذ', en: 'Glass & Windows', section: 'interior' },
-  mirrors: { ar: 'المرايا الداخلية والخارجية', en: 'Mirrors', section: 'interior' },
-  accessories: { ar: 'الإكسسوارات والملحقات', en: 'Accessories', section: 'interior' },
-  documentation: { ar: 'الوثائق والتوثيق', en: 'Documentation', section: 'interior' },
-  tires: { ar: 'الإطارات', en: 'Tires', section: 'interior' },
-  wheels: { ar: 'الجنوط', en: 'Wheels', section: 'interior' },
-  glass: { ar: 'الزجاج', en: 'Glass', section: 'interior' },
+  interior: { ar: 'الداخلية', en: 'Interior', section: 'body' },
+  safety: { ar: 'أنظمة السلامة', en: 'Safety', section: 'electrical_system' },
+  safety_systems: { ar: 'الوسائد الهوائية والأحزمة', en: 'Safety Systems', section: 'electrical_system' },
+  tires_rims: { ar: 'الإطارات والجنوط', en: 'Tires & Rims', section: 'brake_system' },
+  windows: { ar: 'الزجاج والنوافذ', en: 'Glass & Windows', section: 'body' },
+  mirrors: { ar: 'المرايا الداخلية والخارجية', en: 'Mirrors', section: 'body' },
+  accessories: { ar: 'الإكسسوارات والملحقات', en: 'Accessories', section: 'body' },
+  documentation: { ar: 'الوثائق والتوثيق', en: 'Documentation', section: 'body' },
+  tires: { ar: 'الإطارات', en: 'Tires', section: 'brake_system' },
+  wheels: { ar: 'الجنوط', en: 'Wheels', section: 'brake_system' },
+  glass: { ar: 'الزجاج', en: 'Glass', section: 'body' },
 };
 
 const getCategoryLabel = (catId: string) => CATEGORIES[catId] || { ar: catId, en: catId };
@@ -329,6 +316,41 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
       ? new Date(inspection.createdAt).toLocaleDateString(isAr ? 'ar-SA' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })
       : '';
 
+    // Main systems list for the summary grid
+    const mainCategories = [
+      { id: 'engine', ar: 'المحرك وملحقاته', en: 'Engine & Components' },
+      { id: 'transmission', ar: 'ناقل الحركة (الجير)', en: 'Transmission (Gearbox)' },
+      { id: 'chassis', ar: 'الشاسيه وهيكل السيارة', en: 'Chassis & Frame' },
+      { id: 'body', ar: 'الهيكل الخارجي والطلاء', en: 'External Body & Paint' },
+      { id: 'brake_system', ar: 'أنظمة الفرامل والتعليق', en: 'Brakes & Suspension' },
+      { id: 'electrical_system', ar: 'الكهرباء والكمبيوتر', en: 'Electrical & Computer' },
+      { id: 'ac_cooling', ar: 'التكييف ونظام التبريد', en: 'A/C & Cooling System' },
+      { id: 'fuel_exhaust', ar: 'نظام الوقود والعادم', en: 'Fuel & Exhaust System' },
+    ];
+
+    // Compute status of a system category
+    const getCategoryStatus = (catId: string) => {
+      const catItems = items.filter(i => {
+        const catInfo = CATEGORIES[i.category];
+        return i.category === catId || (catInfo && catInfo.section === catId);
+      });
+      if (catItems.length === 0) return 'good';
+      if (catItems.some(i => i.status === 'fail')) return 'fail';
+      if (catItems.some(i => i.status === 'warning')) return 'warning';
+      return 'good';
+    };
+
+    const getStatusStyle = (status: string) => {
+      switch (status) {
+        case 'fail':
+          return { bg: BRAND.dangerBg, border: BRAND.danger, text: BRAND.danger, icon: '✗', label: isAr ? 'عطل' : 'Fault' };
+        case 'warning':
+          return { bg: BRAND.warningBg, border: BRAND.warning, text: BRAND.warning, icon: '⚠', label: isAr ? 'تنبيه' : 'Warning' };
+        default:
+          return { bg: BRAND.successBg, border: BRAND.success, text: BRAND.success, icon: '✓', label: isAr ? 'سليم' : 'Good' };
+      }
+    };
+
     return (
       <div 
         ref={ref}
@@ -347,12 +369,13 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
           ...textStyle,
         }}
       >
+        {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `2px solid ${BRAND.border}`, paddingBottom: '12px', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <img src={logoPath} alt="Logo" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
             <div>
               <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: BRAND.primary }}>{f(isAr ? 'مركز الأمان العالي' : 'High Safety Center')}</h3>
-              <p style={{ margin: 0, fontSize: '8px', color: BRAND.textMuted }}>{f(isAr ? 'تقرير الملاحظات والعيوب المكتشفة' : 'Defect Inspection Findings')}</p>
+              <p style={{ margin: 0, fontSize: '8px', color: BRAND.textMuted }}>{f(isAr ? 'تقرير فحص الأنظمة والعيوب المكتشفة' : 'System Diagnostic & Findings')}</p>
             </div>
           </div>
           <div style={{ textAlign: isAr ? 'left' : 'right', fontSize: '9px', color: BRAND.textMuted }}>
@@ -360,10 +383,10 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
           </div>
         </div>
 
-        {/* Overview cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '12px', margin: '15px 0 10px', flexShrink: 0 }}>
+        {/* Specs Overview Row */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '12px', margin: '12px 0 8px', flexShrink: 0 }}>
           <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '8px', padding: '12px', backgroundColor: BRAND.light }}>
-            <h4 style={{ margin: '0 0 6px 0', fontSize: '11px', color: BRAND.textMuted }}>{f(isAr ? 'معلومات المركبة الأساسية' : 'Vehicle Specifications')}</h4>
+            <h4 style={{ margin: '0 0 6px 0', fontSize: '11px', fontWeight: 'bold', color: BRAND.textMuted }}>{f(isAr ? 'معلومات المركبة الأساسية' : 'Vehicle Specifications')}</h4>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '11px' }}>
               <div><strong>{f(isAr ? 'الصانع والموديل:' : 'Make/Model:')}</strong> {f(inspection.make)} {f(inspection.model)}</div>
               <div><strong>{f(isAr ? 'سنة الصنع:' : 'Year:')}</strong> {f(inspection.year)}</div>
@@ -384,91 +407,132 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
           </div>
         </div>
 
-        {/* Section Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexShrink: 0 }}>
-          <h2 style={{ fontSize: '15px', fontWeight: 'bold', color: BRAND.primary, margin: 0 }}>
-            {f(isAr ? 'قائمة الفحص التفصيلية (الأعطال والملاحظات)' : 'Detailed Inspection Findings')}
+        {/* 1. Systems Inspection Summary Grid */}
+        <div style={{ flexShrink: 0, marginBottom: '8px' }}>
+          <h2 style={{ fontSize: '12px', fontWeight: 'bold', color: BRAND.primary, borderBottom: `1px solid ${BRAND.border}`, paddingBottom: '4px', margin: '0 0 6px 0' }}>
+            {f(isAr ? 'ملخص فحص الأنظمة والقطاعات الرئيسية' : 'Systems Inspection Status Summary')}
           </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+            {mainCategories.map(cat => {
+              const status = getCategoryStatus(cat.id);
+              const style = getStatusStyle(status);
+              return (
+                <div 
+                  key={cat.id} 
+                  style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center', 
+                    padding: '6px 10px', 
+                    borderRadius: '6px', 
+                    border: `1px solid ${style.border}30`, 
+                    backgroundColor: style.bg,
+                    fontSize: '11px'
+                  }}
+                >
+                  <span style={{ fontWeight: 'bold', color: BRAND.text }}>{f(isAr ? cat.ar : cat.en)}</span>
+                  <span style={{ 
+                    fontWeight: 'bold', 
+                    color: style.text, 
+                    fontSize: '10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}>
+                    <span>{style.icon}</span>
+                    <span>{f(style.label)}</span>
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Scrollable list content */}
+        {/* 2. Detailed Findings List */}
         <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-          {issueItems.length === 0 ? (
-            <div style={{
-              backgroundColor: BRAND.successBg,
-              border: `1px solid ${BRAND.success}`,
-              borderRadius: '8px',
-              padding: '30px',
-              textAlign: 'center',
-              margin: 'auto 0',
-            }}>
-              <span style={{ fontSize: '24px', display: 'block', marginBottom: '8px' }}>💚</span>
-              <h3 style={{ color: BRAND.success, margin: '0 0 4px 0', fontWeight: 'bold' }}>{f(isAr ? 'المركبة سليمة وخالية من الأعطال' : 'Vehicle is Healthy')}</h3>
-              <p style={{ color: BRAND.textMuted, fontSize: '11px', margin: 0 }}>{f(isAr ? 'لم يتم رصد أي أعطال أو ملاحظات فنية على المركبة.' : 'No faults or warnings were recorded during this inspection.')}</p>
-            </div>
-          ) : (
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: '1fr 1fr', 
-              gap: '8px',
-              alignContent: 'start',
-              overflowY: 'auto',
-              maxHeight: '100%',
-              paddingBottom: '8px',
-            }}>
-              {issueItems.slice(0, 12).map((item, idx) => {
-                const isFail = item.status === 'fail';
-                const statusColor = isFail ? BRAND.danger : BRAND.warning;
-                const catLabel = getCategoryLabel(item.category);
+          <h2 style={{ fontSize: '12px', fontWeight: 'bold', color: BRAND.primary, borderBottom: `1px solid ${BRAND.border}`, paddingBottom: '4px', margin: '0 0 6px 0', flexShrink: 0 }}>
+            {f(isAr ? 'تفاصيل الملاحظات والعيوب المسجلة' : 'Detailed Defect & Findings List')}
+          </h2>
+          
+          <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+            {issueItems.length === 0 ? (
+              <div style={{
+                backgroundColor: BRAND.successBg,
+                border: `1px solid ${BRAND.success}30`,
+                borderRadius: '8px',
+                padding: '24px',
+                textAlign: 'center',
+                margin: '20px 0',
+              }}>
+                <span style={{ fontSize: '20px', display: 'block', marginBottom: '4px' }}>💚</span>
+                <h3 style={{ color: BRAND.success, margin: '0 0 4px 0', fontWeight: 'bold', fontSize: '12px' }}>
+                  {f(isAr ? 'المركبة سليمة وفحص الأنظمة ممتاز' : 'All Inspected Systems are Healthy')}
+                </h3>
+                <p style={{ color: BRAND.textMuted, fontSize: '10px', margin: 0 }}>
+                  {f(isAr ? 'لم يتم رصد أي ملاحظات فنية أو أعطال في الفحص البصري والميكانيكي.' : 'No faults or warnings were recorded during this inspection.')}
+                </p>
+              </div>
+            ) : (
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: '1fr 1fr', 
+                gap: '8px',
+                paddingBottom: '8px'
+              }}>
+                {issueItems.slice(0, 10).map((item, idx) => {
+                  const isFail = item.status === 'fail';
+                  const statusColor = isFail ? BRAND.danger : BRAND.warning;
+                  const catLabel = getCategoryLabel(item.category);
 
-                return (
-                  <div 
-                    key={item.id || idx}
-                    style={{
-                      border: `1px solid ${BRAND.border}`,
-                      borderRadius: '6px',
-                      padding: '10px',
-                      backgroundColor: '#ffffff',
-                      display: 'flex',
-                      gap: '8px',
-                      alignItems: 'flex-start',
-                    }}
-                  >
-                    {item.imageUrl && (
-                      <img 
-                        src={item.imageUrl} 
-                        alt="Defect" 
-                        style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px', border: `1px solid ${BRAND.border}`, flexShrink: 0 }} 
-                      />
-                    )}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', gap: '4px', marginBottom: '2px', alignItems: 'center' }}>
-                        <span style={{ 
-                          fontSize: '8px', 
-                          fontWeight: 'bold', 
-                          color: '#ffffff', 
-                          backgroundColor: statusColor, 
-                          padding: '1px 4px', 
-                          borderRadius: '3px' 
-                        }}>
-                          {f(isAr ? (isFail ? 'عطل' : 'تنبيه') : (isFail ? 'FAIL' : 'WARN'))}
-                        </span>
-                        <span style={{ fontSize: '9px', fontWeight: 'bold', color: BRAND.textMuted }}>
-                          {f(isAr ? catLabel.ar : catLabel.en)}
-                        </span>
+                  return (
+                    <div 
+                      key={item.id || idx}
+                      style={{
+                        border: `1px solid ${BRAND.border}`,
+                        borderRadius: '6px',
+                        padding: '8px',
+                        backgroundColor: '#ffffff',
+                        display: 'flex',
+                        gap: '8px',
+                        alignItems: 'flex-start',
+                      }}
+                    >
+                      {item.imageUrl && (
+                        <img 
+                          src={item.imageUrl} 
+                          alt="Defect" 
+                          style={{ width: '54px', height: '54px', objectFit: 'cover', borderRadius: '4px', border: `1px solid ${BRAND.border}`, flexShrink: 0 }} 
+                        />
+                      )}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', gap: '4px', marginBottom: '2px', alignItems: 'center' }}>
+                          <span style={{ 
+                            fontSize: '8px', 
+                            fontWeight: 'bold', 
+                            color: '#ffffff', 
+                            backgroundColor: statusColor, 
+                            padding: '1px 4px', 
+                            borderRadius: '3px' 
+                          }}>
+                            {f(isAr ? (isFail ? 'عطل' : 'تنبيه') : (isFail ? 'FAIL' : 'WARN'))}
+                          </span>
+                          <span style={{ fontSize: '9px', fontWeight: 'bold', color: BRAND.textMuted }}>
+                            {f(isAr ? catLabel.ar : catLabel.en)}
+                          </span>
+                        </div>
+                        <h4 style={{ fontSize: '11px', fontWeight: 'bold', color: BRAND.primary, margin: '0 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {f(item.faultName)}
+                        </h4>
+                        <p style={{ fontSize: '9px', color: BRAND.textMuted, margin: 0, lineHeight: '1.3', height: '2.6em', overflow: 'hidden' }}>
+                          {f(item.description || item.notes || (isAr ? 'لا يوجد تفاصيل إضافية.' : 'No additional details.'))}
+                        </p>
                       </div>
-                      <h4 style={{ fontSize: '12px', fontWeight: 'bold', color: BRAND.primary, margin: '0 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {f(item.faultName)}
-                      </h4>
-                      <p style={{ fontSize: '10px', color: BRAND.textMuted, margin: 0, lineHeight: '1.3', height: '2.6em', overflow: 'hidden' }}>
-                        {f(item.description || item.notes || (isAr ? 'لا يوجد تفاصيل إضافية.' : 'No additional details.'))}
-                      </p>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Footer */}
@@ -501,8 +565,8 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
       { key: 'frontLeft', ar: 'الباب الأمامي الأيسر', en: 'Front Left Door', exteriorPhoto: inspection.frontLeftDoorPhoto, interiorPhoto: null },
       { key: 'rearRight', ar: 'الباب الخلفي الأيمن', en: 'Rear Right Door', exteriorPhoto: inspection.rearRightDoorPhoto, interiorPhoto: null },
       { key: 'rearLeft', ar: 'الباب الخلفي الأيسر', en: 'Rear Left Door', exteriorPhoto: inspection.rearLeftDoorPhoto, interiorPhoto: null },
-      { key: 'hood', ar: 'غطاء المحرك', en: 'Hood / Engine Bay', exteriorPhoto: inspection.hoodPhoto, interiorPhoto: null },
-      { key: 'trunk', ar: 'صندوق الأمتعة', en: 'Trunk', exteriorPhoto: inspection.trunkPhoto, interiorPhoto: null },
+      { key: 'hood', ar: 'غطاء المحرك / الماكينة', en: 'Hood / Engine Bay', exteriorPhoto: inspection.hoodPhoto, interiorPhoto: null },
+      { key: 'trunk', ar: 'صندوق الأمتعة الخلفي', en: 'Trunk', exteriorPhoto: inspection.trunkPhoto, interiorPhoto: null },
     ];
 
     const hasAnyPhoto = sections.some(s => s.exteriorPhoto || s.interiorPhoto);
@@ -535,7 +599,7 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
             <img src={logoPath} alt="Logo" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
             <div>
               <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: BRAND.primary }}>{f(isAr ? 'مركز الأمان العالي' : 'High Safety Center')}</h3>
-              <p style={{ margin: 0, fontSize: '8px', color: BRAND.textMuted }}>{f(isAr ? 'تقرير التوثيق الفوتوغرافي' : 'Photographic Section Documentation')}</p>
+              <p style={{ margin: 0, fontSize: '8px', color: BRAND.textMuted }}>{f(isAr ? 'تقرير التوثيق الفوتوغرافي للسيارة' : 'Photographic Documentation')}</p>
             </div>
           </div>
           <div style={{ textAlign: isAr ? 'left' : 'right', fontSize: '9px', color: BRAND.textMuted }}>
@@ -545,7 +609,7 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
 
         <div style={{ margin: '15px 0 10px 0', flexShrink: 0 }}>
           <h2 style={{ fontSize: '16px', fontWeight: 'bold', color: BRAND.primary, margin: 0 }}>
-            {f(isAr ? 'صور أجزاء هيكل السيارة' : 'Vehicle Body Section Photos')}
+            {f(isAr ? 'صور أجزاء هيكل السيارة الفعلي' : 'Vehicle Body Section Photos')}
           </h2>
           <p style={{ fontSize: '10px', color: BRAND.textMuted, margin: '2px 0 0 0' }}>
             {f(isAr ? 'توثيق فوتوغرافي عالي الدقة لأقسام السيارة المختلفة أثناء عملية الفحص' : 'High-resolution photographic records of various sections during the inspection.')}
@@ -627,18 +691,18 @@ export const PdfSignaturesPage = forwardRef<HTMLDivElement, PdfReportTemplatePro
             <img src={logoPath} alt="Logo" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
             <div>
               <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: BRAND.primary }}>{f(isAr ? 'مركز الأمان العالي' : 'High Safety Center')}</h3>
-              <p style={{ margin: 0, fontSize: '8px', color: BRAND.textMuted }}>{f(isAr ? 'تقرير الأعطال والتواقيع الرسمية' : 'Diagnostics & Final Sign-Off')}</p>
+              <p style={{ margin: 0, fontSize: '8px', color: BRAND.textMuted }}>{f(isAr ? 'تقرير فحص الكمبيوتر والتواقيع الرسمية' : 'Diagnostics & Final Sign-Off')}</p>
             </div>
           </div>
           <div style={{ textAlign: isAr ? 'left' : 'right', fontSize: '9px', color: BRAND.textMuted }}>
-            <span>{f(`ID: HS-{inspection.id} | ${formattedDate}`)}</span>
+            <span>{f(`ID: HS-${inspection.id} | ${formattedDate}`)}</span>
           </div>
         </div>
 
         {/* OBD Scan Results */}
         <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', marginBottom: '15px' }}>
           <div style={{ margin: '10px 0 10px 0', flexShrink: 0 }}>
-            <h2 style={{ fontSize: '15px', fontWeight: 'bold', color: BRAND.primary, margin: 0 }}>
+            <h2 style={{ fontSize: '14px', fontWeight: 'bold', color: BRAND.primary, margin: 0 }}>
               {f(isAr ? 'تقرير فحص أنظمة الكمبيوتر (OBD-II Scan)' : 'OBD-II Computer Diagnostic Scan')}
             </h2>
             <p style={{ fontSize: '10px', color: BRAND.textMuted, margin: '2px 0 0 0' }}>
@@ -732,4 +796,4 @@ export const PdfSignaturesPage = forwardRef<HTMLDivElement, PdfReportTemplatePro
     );
   }
 );
-PdfSignaturesPage.displayName = 'PdfSignaturesPage';
+PdfReportTemplate.displayName = 'PdfReportTemplate';
