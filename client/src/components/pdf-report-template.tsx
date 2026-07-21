@@ -1,7 +1,6 @@
 import { forwardRef } from 'react';
 import logoPath from '@assets/hs-logo.png';
 import hsCarBranding from '@assets/hs_car_branding.png';
-import { PaintDepthHeatmap } from './paint-depth-heatmap';
 
 interface InspectionItem {
   id: number;
@@ -53,7 +52,7 @@ interface PdfReportTemplateProps {
   lang?: PdfLang;
 }
 
-// Minimalist, high-end corporate styling. No cheesy AI metal textures or fake gauges.
+// Clean, high-end corporate styling. Using Cairo font for Arabic to prevent disconnected letters.
 const BRAND = {
   primary: '#0F172A',      // Slate 900
   secondary: '#334155',    // Slate 700
@@ -161,9 +160,14 @@ const getInspectionTypeLabel = (type?: string | null) => {
   }
 };
 
+// CRITICAL: Explicitly set Cairo font and remove letter-spacing to fix broken/fragmented Arabic text in html2canvas!
 const textStyle: React.CSSProperties = {
-  fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  fontFamily: '"Cairo", "Segoe UI", Tahoma, sans-serif',
+  letterSpacing: '0px',
+  wordSpacing: '0px',
   lineHeight: '1.5',
+  fontSmooth: 'always',
+  WebkitFontSmoothing: 'antialiased',
 };
 
 // ==========================================
@@ -327,7 +331,7 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
               <div><strong>{isAr ? 'لون الهيكل:' : 'Color:'}</strong> {inspection.color || '-'}</div>
             </div>
           </div>
-          <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '8px', padding: '12px', display: 'flex', justifyContent: 'space-around', alignItems: 'center', backgroundColor: BRAND.light }}>
+          <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '8px', padding: '12px', display: 'flex', justifyAround: 'space-around', justifyContent: 'space-around', alignItems: 'center', backgroundColor: BRAND.light }}>
             <div style={{ textAlign: 'center' }}>
               <span style={{ fontSize: '20px', fontWeight: 'bold', color: BRAND.danger }}>{failItems.length}</span>
               <span style={{ display: 'block', fontSize: '9px', color: BRAND.textMuted }}>{isAr ? 'أعطال حرجة' : 'Critical Faults'}</span>
@@ -430,7 +434,7 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
         {/* Footer */}
         <div style={{ borderTop: `1px solid ${BRAND.border}`, paddingTop: '10px', fontSize: '9px', color: BRAND.textMuted, display: 'flex', justifyContent: 'space-between', flexShrink: 0 }}>
           <span>{isAr ? 'مركز الأمان العالي الدولي لفحص السيارات' : 'High Safety International Vehicle Inspection Center'}</span>
-          <span>صفحة 2 من 5</span>
+          <span>صفحة 2 من 4</span>
         </div>
       </div>
     );
@@ -439,179 +443,7 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
 PdfReportTemplate.displayName = 'PdfReportTemplate';
 
 // ==========================================
-// 3. PAGE 3: HEATMAP PAGE
-// ==========================================
-export const PdfHeatmapPage = forwardRef<HTMLDivElement, PdfReportTemplateProps>(
-  ({ inspection, lang = 'ar' }, ref) => {
-    const isAr = lang === 'ar';
-    const readings = (inspection.paintReadings as Record<string, number>) || {};
-    const hasReadings = Object.keys(readings).length > 0;
-    if (!hasReadings) return null;
-
-    const formattedDate = inspection.createdAt 
-      ? new Date(inspection.createdAt).toLocaleDateString(isAr ? 'ar-SA' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })
-      : '';
-
-    return (
-      <div
-        ref={ref}
-        dir={isAr ? 'rtl' : 'ltr'}
-        style={{
-          width: '794px',
-          height: '1123px',
-          backgroundColor: '#ffffff',
-          padding: '40px 30px',
-          boxSizing: 'border-box',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          color: BRAND.text,
-          overflow: 'hidden',
-          ...textStyle,
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `2px solid ${BRAND.border}`, paddingBottom: '12px', flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <img src={logoPath} alt="Logo" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
-            <div>
-              <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: BRAND.primary }}>{isAr ? 'مركز الأمان العالي' : 'High Safety Center'}</h3>
-              <p style={{ margin: 0, fontSize: '8px', color: BRAND.textMuted }}>{isAr ? 'تقرير فحص الطلاء والهيكل' : 'Paint & Body Inspection Report'}</p>
-            </div>
-          </div>
-          <div style={{ textAlign: isAr ? 'left' : 'right', fontSize: '9px', color: BRAND.textMuted }}>
-            <span>ID: HS-{inspection.id} | {formattedDate}</span>
-          </div>
-        </div>
-
-        <div style={{ margin: '15px 0 5px 0', flexShrink: 0 }}>
-          <h2 style={{ fontSize: '16px', fontWeight: 'bold', color: BRAND.primary, margin: 0 }}>
-            {isAr ? 'خريطة قياس سماكة الطلاء (ميكرون)' : 'Paint Depth Thickness Map (µm)'}
-          </h2>
-          <p style={{ fontSize: '10px', color: BRAND.textMuted, margin: '2px 0 0 0' }}>
-            {isAr ? 'توضح سماكة طلاء جسم السيارة الخارجي للكشف عن رش التجميل أو السمكرة' : 'Displays external body paint thickness to detect repaints or body filler.'}
-          </p>
-        </div>
-
-        <div style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: 0,
-          padding: '10px 0',
-        }}>
-          <div style={{ width: '440px', height: '260px', transform: 'scale(1.1)', transformOrigin: 'center center' }}>
-            <PaintDepthHeatmap readings={readings} />
-          </div>
-
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            gap: '20px', 
-            marginTop: '30px',
-            backgroundColor: BRAND.light,
-            padding: '10px 20px',
-            borderRadius: '6px',
-            border: `1px solid ${BRAND.border}`,
-            width: '80%',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px' }}>
-              <div style={{ width: '10px', height: '10px', borderRadius: '3px', backgroundColor: BRAND.success }} />
-              <span style={{ fontWeight: 'bold' }}>{isAr ? 'طلاء أصلي وكالة (< 130)' : 'Original Paint (< 130)'}</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px' }}>
-              <div style={{ width: '10px', height: '10px', borderRadius: '3px', backgroundColor: BRAND.warning }} />
-              <span style={{ fontWeight: 'bold' }}>{isAr ? 'رش تجميلي (130 - 290)' : 'Repainted (130 - 290)'}</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px' }}>
-              <div style={{ width: '10px', height: '10px', borderRadius: '3px', backgroundColor: BRAND.danger }} />
-              <span style={{ fontWeight: 'bold' }}>{isAr ? 'معجون وسمكرة (> 290)' : 'Body Filler (> 290)'}</span>
-            </div>
-          </div>
-        </div>
-
-        <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '6px', overflow: 'hidden', flexShrink: 0 }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '9px', textAlign: 'center' }}>
-            <thead>
-              <tr style={{ backgroundColor: BRAND.primary, color: '#ffffff' }}>
-                <th style={{ padding: '5px 10px', textAlign: isAr ? 'right' : 'left' }}>{isAr ? 'القطعة' : 'Panel'}</th>
-                <th style={{ padding: '5px 10px' }}>{isAr ? 'السماكة' : 'Thickness'}</th>
-                <th style={{ padding: '5px 10px' }}>{isAr ? 'الحالة فنية' : 'Status'}</th>
-                <th style={{ padding: '5px 10px', textAlign: isAr ? 'right' : 'left' }}>{isAr ? 'القطعة' : 'Panel'}</th>
-                <th style={{ padding: '5px 10px' }}>{isAr ? 'السماكة' : 'Thickness'}</th>
-                <th style={{ padding: '5px 10px' }}>{isAr ? 'الحالة فنية' : 'Status'}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(() => {
-                const panels = [
-                  { id: 'hood', ar: 'الكبوت', en: 'Hood' },
-                  { id: 'roof', ar: 'السقف', en: 'Roof' },
-                  { id: 'trunk', ar: 'الشنطة', en: 'Trunk' },
-                  { id: 'fender_front_right', ar: 'رفرف أمامي يمين', en: 'Front Right Fender' },
-                  { id: 'door_front_right', ar: 'باب أمامي يمين', en: 'Front Right Door' },
-                  { id: 'door_rear_right', ar: 'باب خلفي يمين', en: 'Rear Right Door' },
-                  { id: 'fender_rear_right', ar: 'رفرف خلفي يمين', en: 'Rear Right Fender' },
-                  { id: 'fender_front_left', ar: 'رفرف أمامي يسار', en: 'Front Left Fender' },
-                  { id: 'door_front_left', ar: 'باب أمامي يسار', en: 'Front Left Door' },
-                  { id: 'door_rear_left', ar: 'باب خلفي يسار', en: 'Rear Left Door' },
-                  { id: 'fender_rear_left', ar: 'رفرف خلفي يسار', en: 'Rear Left Fender' },
-                ];
-                const rows = [];
-                for (let i = 0; i < panels.length; i += 2) {
-                  const p1 = panels[i];
-                  const p2 = panels[i + 1];
-                  const val1 = readings[p1.id] || null;
-                  const val2 = p2 ? (readings[p2.id] || null) : null;
-
-                  const getStatus = (val: number | null) => {
-                    if (!val) return { text: '-', color: BRAND.textMuted };
-                    if (val < 130) return { text: isAr ? 'أصلي' : 'Original', color: BRAND.success };
-                    if (val < 290) return { text: isAr ? 'رش تجميلي' : 'Repaint', color: BRAND.warning };
-                    return { text: isAr ? 'معجون/سمكرة' : 'Filler', color: BRAND.danger };
-                  };
-
-                  const s1 = getStatus(val1);
-                  const s2 = getStatus(val2);
-
-                  rows.push(
-                    <tr key={i} style={{ borderBottom: `1px solid ${BRAND.border}`, backgroundColor: i % 4 === 0 ? BRAND.light : '#ffffff' }}>
-                      <td style={{ padding: '5px 10px', textAlign: isAr ? 'right' : 'left', fontWeight: 'bold' }}>{isAr ? p1.ar : p1.en}</td>
-                      <td style={{ padding: '5px 10px', fontFamily: 'monospace' }}>{val1 ? `${val1} µm` : '-'}</td>
-                      <td style={{ padding: '5px 10px', color: s1.color, fontWeight: 'bold' }}>{s1.text}</td>
-                      
-                      {p2 ? (
-                        <>
-                          <td style={{ padding: '5px 10px', textAlign: isAr ? 'right' : 'left', fontWeight: 'bold' }}>{isAr ? p2.ar : p2.en}</td>
-                          <td style={{ padding: '5px 10px', fontFamily: 'monospace' }}>{val2 ? `${val2} µm` : '-'}</td>
-                          <td style={{ padding: '5px 10px', color: s2.color, fontWeight: 'bold' }}>{s2.text}</td>
-                        </>
-                      ) : (
-                        <td colSpan={3} style={{ padding: '5px 10px' }} />
-                      )}
-                    </tr>
-                  );
-                }
-                return rows;
-              })()}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Footer */}
-        <div style={{ borderTop: `1px solid ${BRAND.border}`, paddingTop: '10px', fontSize: '9px', color: BRAND.textMuted, display: 'flex', justifyContent: 'space-between', flexShrink: 0 }}>
-          <span>{isAr ? 'مركز الأمان العالي الدولي لفحص السيارات' : 'High Safety International Vehicle Inspection Center'}</span>
-          <span>صفحة 3 من 5</span>
-        </div>
-      </div>
-    );
-  }
-);
-PdfHeatmapPage.displayName = 'PdfHeatmapPage';
-
-// ==========================================
-// 4. PAGE 4: DETAILED SECTION PHOTOS
+// 3. PAGE 3: DETAILED SECTION PHOTOS
 // ==========================================
 interface CarPhotoSection {
   key: string;
@@ -713,7 +545,7 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
         {/* Footer */}
         <div style={{ borderTop: `1px solid ${BRAND.border}`, paddingTop: '10px', fontSize: '9px', color: BRAND.textMuted, display: 'flex', justifyContent: 'space-between', flexShrink: 0 }}>
           <span>{isAr ? 'مركز الأمان العالي الدولي لفحص السيارات' : 'High Safety International Vehicle Inspection Center'}</span>
-          <span>صفحة 4 من 5</span>
+          <span>صفحة 3 من 4</span>
         </div>
       </div>
     );
@@ -722,7 +554,7 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
 PdfCarPhotosPage.displayName = 'PdfCarPhotosPage';
 
 // ==========================================
-// 5. PAGE 5: COMPUTER DIAGNOSTICS & DISCLAIMERS
+// 4. PAGE 4: COMPUTER DIAGNOSTICS & DISCLAIMERS
 // ==========================================
 export const PdfSignaturesPage = forwardRef<HTMLDivElement, PdfReportTemplateProps>(
   ({ inspection, lang = 'ar' }, ref) => {
@@ -854,7 +686,7 @@ export const PdfSignaturesPage = forwardRef<HTMLDivElement, PdfReportTemplatePro
         {/* Footer */}
         <div style={{ borderTop: `1px solid ${BRAND.border}`, paddingTop: '10px', fontSize: '9px', color: BRAND.textMuted, display: 'flex', justifyContent: 'space-between', flexShrink: 0 }}>
           <span>{isAr ? 'مركز الأمان العالي الدولي لفحص السيارات' : 'High Safety International Vehicle Inspection Center'}</span>
-          <span>صفحة 5 من 5</span>
+          <span>صفحة 4 من 4</span>
         </div>
       </div>
     );

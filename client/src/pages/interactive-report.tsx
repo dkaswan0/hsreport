@@ -36,7 +36,7 @@ import html2canvas from "html2canvas";
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import logoPath from "@assets/hs-logo.png";
 import hsBannerPath from "@assets/hs-banner.jpeg";
-import { PdfCoverPage, PdfReportTemplate, PdfHeatmapPage, PdfCarPhotosPage, PdfSignaturesPage } from "@/components/pdf-report-template";
+import { PdfCoverPage, PdfReportTemplate, PdfCarPhotosPage, PdfSignaturesPage } from "@/components/pdf-report-template";
 import carVisualizationPath from "@assets/generated_images/professional_car_anatomy_diagram.png";
 import carFrontView from "@assets/generated_images/car_front_view_diagram.png";
 import carRightView from "@assets/generated_images/car_right_side_view.png";
@@ -1204,8 +1204,6 @@ export default function InteractiveReport() {
   const pdfPhotosPageRef = useRef<HTMLDivElement>(null);
   const pdfTemplateEnRef = useRef<HTMLDivElement>(null);
   const pdfPhotosPageEnRef = useRef<HTMLDivElement>(null);
-  const pdfHeatmapPageRef = useRef<HTMLDivElement>(null);
-  const pdfHeatmapPageEnRef = useRef<HTMLDivElement>(null);
   const pdfCoverRef = useRef<HTMLDivElement>(null);
   const pdfCoverEnRef = useRef<HTMLDivElement>(null);
   const pdfSignaturesRef = useRef<HTMLDivElement>(null);
@@ -1294,7 +1292,6 @@ export default function InteractiveReport() {
     const isAr = pdfLang === 'ar';
     const coverRef = isAr ? pdfCoverRef : pdfCoverEnRef;
     const reportRef = isAr ? pdfTemplateRef : pdfTemplateEnRef;
-    const heatmapRef = isAr ? pdfHeatmapPageRef : pdfHeatmapPageEnRef;
     const photosRef = isAr ? pdfPhotosPageRef : pdfPhotosPageEnRef;
     const signaturesRef = isAr ? pdfSignaturesRef : pdfSignaturesEnRef;
     
@@ -1357,13 +1354,7 @@ export default function InteractiveReport() {
       // 2. Main Report Page
       await addPageFromRef(reportRef, isAr ? "صفحة الملاحظات والعيوب" : "Inspection Report Page");
 
-      // 3. Heatmap Page (If has readings)
-      const hasHeatmap = Object.keys((inspection.paintReadings as Record<string, number>) || {}).length > 0;
-      if (hasHeatmap) {
-        await addPageFromRef(heatmapRef, isAr ? "صفحة خريطة الطلاء" : "Paint Heatmap Page");
-      }
-
-      // 4. Section Photos Page (If has photos)
+      // 3. Section Photos Page (If has photos)
       const hasAnyPhotos = inspection.rearLeftDoorPhoto || inspection.rearRightDoorPhoto || 
         inspection.frontLeftDoorPhoto || inspection.frontRightDoorPhoto || 
         inspection.hoodPhoto || inspection.trunkPhoto;
@@ -1371,7 +1362,7 @@ export default function InteractiveReport() {
         await addPageFromRef(photosRef, isAr ? "صفحة صور الأقسام" : "Section Photos Page");
       }
 
-      // 5. Signatures & OBD Page
+      // 4. Signatures & OBD Page
       await addPageFromRef(signaturesRef, isAr ? "صفحة فحص الكمبيوتر والتواقيع" : "OBD Diagnostics & Signatures Page");
 
       const pdfBytes = await pdfDoc.save();
@@ -2456,13 +2447,11 @@ export default function InteractiveReport() {
       <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', opacity: 0, pointerEvents: 'none' }}>
         <PdfCoverPage ref={pdfCoverRef} inspection={inspection} lang="ar" />
         <PdfReportTemplate ref={pdfTemplateRef} inspection={inspection} lang="ar" />
-        <PdfHeatmapPage ref={pdfHeatmapPageRef} inspection={inspection} lang="ar" />
         <PdfCarPhotosPage ref={pdfPhotosPageRef} inspection={inspection} lang="ar" />
         <PdfSignaturesPage ref={pdfSignaturesRef} inspection={inspection} lang="ar" />
         
         <PdfCoverPage ref={pdfCoverEnRef} inspection={inspection} lang="en" />
         <PdfReportTemplate ref={pdfTemplateEnRef} inspection={inspection} lang="en" />
-        <PdfHeatmapPage ref={pdfHeatmapPageEnRef} inspection={inspection} lang="en" />
         <PdfCarPhotosPage ref={pdfPhotosPageEnRef} inspection={inspection} lang="en" />
         <PdfSignaturesPage ref={pdfSignaturesEnRef} inspection={inspection} lang="en" />
       </div>
