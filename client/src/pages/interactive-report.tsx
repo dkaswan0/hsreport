@@ -1925,22 +1925,24 @@ export default function InteractiveReport() {
               <p className="text-xs text-slate-400 font-mono">{inspection.vin}</p>
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button variant="ghost" size="sm" onClick={handleShareReport} className="font-arabic">
-              <Share2 className="w-4 h-4 ml-1" />
-              <span className="hidden md:inline">مشاركة</span>
+          <div className="flex gap-1.5 sm:gap-2">
+            <Button variant="ghost" size="sm" onClick={handleShareReport} className="font-arabic text-xs px-2 sm:px-3 h-8 sm:h-9">
+              <Share2 className="w-4 h-4 sm:ml-1" />
+              <span className="hidden sm:inline">مشاركة</span>
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => window.print()} className="font-arabic">
-              <Printer className="w-4 h-4 ml-1" />
-              <span className="hidden md:inline">طباعة</span>
+            <Button variant="ghost" size="sm" onClick={() => window.print()} className="font-arabic text-xs px-2 sm:px-3 h-8 sm:h-9">
+              <Printer className="w-4 h-4 sm:ml-1" />
+              <span className="hidden sm:inline">طباعة</span>
             </Button>
-            <Button variant="default" size="sm" onClick={() => handleNewPdfDownload('ar')} className="font-arabic" data-testid="button-download-pdf-ar">
-              <Download className="w-4 h-4 ml-1" />
-              PDF عربي
+            <Button variant="default" size="sm" onClick={() => handleNewPdfDownload('ar')} className="font-arabic text-xs px-2.5 sm:px-4 h-8 sm:h-9" data-testid="button-download-pdf-ar">
+              <Download className="w-4 h-4 sm:ml-1" />
+              <span className="hidden sm:inline">PDF عربي</span>
+              <span className="inline sm:hidden">عربي</span>
             </Button>
-            <Button variant="default" size="sm" onClick={() => handleNewPdfDownload('en')} data-testid="button-download-pdf-en">
-              <Download className="w-4 h-4 ml-1" />
-              English PDF
+            <Button variant="default" size="sm" onClick={() => handleNewPdfDownload('en')} className="text-xs px-2.5 sm:px-4 h-8 sm:h-9" data-testid="button-download-pdf-en">
+              <Download className="w-4 h-4 sm:ml-1" />
+              <span className="hidden sm:inline">English PDF</span>
+              <span className="inline sm:hidden">EN</span>
             </Button>
           </div>
         </div>

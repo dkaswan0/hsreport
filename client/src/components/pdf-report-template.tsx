@@ -383,26 +383,21 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
           </div>
         </div>
 
-        {/* Specs Overview Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '12px', margin: '12px 0 8px', flexShrink: 0 }}>
-          <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '8px', padding: '12px', backgroundColor: BRAND.light }}>
-            <h4 style={{ margin: '0 0 6px 0', fontSize: '11px', fontWeight: 'bold', color: BRAND.textMuted }}>{f(isAr ? 'معلومات المركبة الأساسية' : 'Vehicle Specifications')}</h4>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '11px' }}>
-              <div><strong>{f(isAr ? 'الصانع والموديل:' : 'Make/Model:')}</strong> {f(inspection.make)} {f(inspection.model)}</div>
-              <div><strong>{f(isAr ? 'سنة الصنع:' : 'Year:')}</strong> {f(inspection.year)}</div>
-              <div><strong>{f(isAr ? 'الممشى (المسافة):' : 'Odometer:')}</strong> {f(`${(inspection.odometer || inspection.mileage || 0).toLocaleString()} km`)}</div>
-              <div><strong>{f(isAr ? 'لون الهيكل:' : 'Color:')}</strong> {f(inspection.color || '-')}</div>
-            </div>
+        {/* Overall Status Bar (No specs duplication) */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: `1px solid ${BRAND.border}`, borderRadius: '8px', padding: '10px 16px', backgroundColor: BRAND.light, margin: '10px 0', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 'bold', color: BRAND.textMuted }}>{f(isAr ? 'حالة المركبة العامة:' : 'Overall Vehicle Status:')}</span>
+            <span style={{ fontSize: '11px', fontWeight: 'bold', color: failItems.length > 0 ? BRAND.danger : warningItems.length > 0 ? BRAND.warning : BRAND.success }}>
+              {f(failItems.length > 0 ? (isAr ? 'يوجد أعطال حرجة بحاجة لإصلاح' : 'Critical faults detected') : warningItems.length > 0 ? (isAr ? 'توجد ملاحظات بحاجة لمتابعة' : 'Warnings detected') : (isAr ? 'المركبة سليمة وخالية من الأعطال' : 'Vehicle is in good condition'))}
+            </span>
           </div>
-          <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '8px', padding: '12px', display: 'flex', justifyContent: 'space-around', alignItems: 'center', backgroundColor: BRAND.light }}>
-            <div style={{ textAlign: 'center' }}>
-              <span style={{ fontSize: '20px', fontWeight: 'bold', color: BRAND.danger }}>{f(failItems.length)}</span>
-              <span style={{ display: 'block', fontSize: '9px', color: BRAND.textMuted }}>{f(isAr ? 'أعطال حرجة' : 'Critical Faults')}</span>
+          <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+            <div style={{ fontSize: '11px' }}>
+              <strong style={{ color: BRAND.danger }}>{f(failItems.length)}</strong> {f(isAr ? ' أعطال حرجة' : ' Critical Faults')}
             </div>
-            <div style={{ width: '1px', height: '30px', backgroundColor: BRAND.border }} />
-            <div style={{ textAlign: 'center' }}>
-              <span style={{ fontSize: '20px', fontWeight: 'bold', color: BRAND.warning }}>{f(warningItems.length)}</span>
-              <span style={{ display: 'block', fontSize: '9px', color: BRAND.textMuted }}>{f(isAr ? 'ملاحظات/تنبيهات' : 'Warnings')}</span>
+            <div style={{ width: '1px', height: '14px', backgroundColor: BRAND.border }} />
+            <div style={{ fontSize: '11px' }}>
+              <strong style={{ color: BRAND.warning }}>{f(warningItems.length)}</strong> {f(isAr ? ' ملاحظات' : ' Warnings')}
             </div>
           </div>
         </div>
