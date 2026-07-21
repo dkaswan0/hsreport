@@ -36,7 +36,7 @@ import html2canvas from "html2canvas";
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import logoPath from "@assets/hs-logo.png";
 import hsBannerPath from "@assets/hs-banner.jpeg";
-import { PdfReportTemplate, PdfCarPhotosPage, PdfHeatmapPage } from "@/components/pdf-report-template";
+import { PdfCoverPage, PdfReportTemplate, PdfHeatmapPage, PdfCarPhotosPage, PdfSignaturesPage } from "@/components/pdf-report-template";
 import carVisualizationPath from "@assets/generated_images/professional_car_anatomy_diagram.png";
 import carFrontView from "@assets/generated_images/car_front_view_diagram.png";
 import carRightView from "@assets/generated_images/car_right_side_view.png";
@@ -1206,6 +1206,10 @@ export default function InteractiveReport() {
   const pdfPhotosPageEnRef = useRef<HTMLDivElement>(null);
   const pdfHeatmapPageRef = useRef<HTMLDivElement>(null);
   const pdfHeatmapPageEnRef = useRef<HTMLDivElement>(null);
+  const pdfCoverRef = useRef<HTMLDivElement>(null);
+  const pdfCoverEnRef = useRef<HTMLDivElement>(null);
+  const pdfSignaturesRef = useRef<HTMLDivElement>(null);
+  const pdfSignaturesEnRef = useRef<HTMLDivElement>(null);
 
   const handleCategoryClick = (catId: string) => {
     setHighlightedCategory(catId);
@@ -1288,15 +1292,17 @@ export default function InteractiveReport() {
     if (!inspection) return;
     
     const isAr = pdfLang === 'ar';
+    const coverRef = isAr ? pdfCoverRef : pdfCoverEnRef;
     const reportRef = isAr ? pdfTemplateRef : pdfTemplateEnRef;
-    const photosRef = isAr ? pdfPhotosPageRef : pdfPhotosPageEnRef;
     const heatmapRef = isAr ? pdfHeatmapPageRef : pdfHeatmapPageEnRef;
+    const photosRef = isAr ? pdfPhotosPageRef : pdfPhotosPageEnRef;
+    const signaturesRef = isAr ? pdfSignaturesRef : pdfSignaturesEnRef;
     
     if (!reportRef.current) return;
     
     toast({ 
       title: isAr ? "جارٍ التحضير" : "Preparing",
-      description: isAr ? "جارٍ إنشاء تقرير PDF احترافي... يتم تحميل الصور" : "Creating professional PDF report..."
+      description: isAr ? "جارٍ إنشاء تقرير PDF احترافي..." : "Creating professional PDF report..."
     });
     
     try {
@@ -1306,16 +1312,6 @@ export default function InteractiveReport() {
       if (document.fonts && document.fonts.ready) {
         await document.fonts.ready;
       }
-      
-      const element = reportRef.current;
-      await waitForImages(element);
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({ 
-        title: isAr ? "جارٍ التحضير" : "Processing",
-        description: isAr ? "جارٍ التقاط التقرير..." : "Capturing report..."
-      });
       
       const canvasOpts = {
         scale: 3,
@@ -1338,53 +1334,46 @@ export default function InteractiveReport() {
 
       const { PDFDocument } = await import('pdf-lib');
       const pdfDoc = await PDFDocument.create();
-      
-      const hasAnyPhotos = inspection.rearLeftDoorPhoto || inspection.rearRightDoorPhoto || 
-        inspection.frontLeftDoorPhoto || inspection.frontRightDoorPhoto || 
-        inspection.hoodPhoto || inspection.trunkPhoto;
-      
-      if (hasAnyPhotos && photosRef.current) {
-        toast({ 
-          title: isAr ? "جارٍ التحضير" : "Processing",
-          description: isAr ? "جارٍ إضافة صفحة صور الأقسام..." : "Adding vehicle photos page..."
+
+      const addPageFromRef = async (pageRef: React.RefObject<HTMLDivElement>, description: string) => {
+        if (!pageRef.current) return;
+        toast({
+          title: isAr ? "معالجة الصفحات" : "Processing pages",
+          description: isAr ? `جارٍ إضافة ${description}...` : `Adding ${description}...`
         });
-        await waitForImages(photosRef.current);
+        await waitForImages(pageRef.current);
         await new Promise(resolve => setTimeout(resolve, 500));
-        
-        const canvasPhotos = await html2canvas(photosRef.current, canvasOpts);
-        const imgDataPhotos = canvasPhotos.toDataURL('image/jpeg', 0.95);
-        const imgBytes = dataUrlToArrayBuffer(imgDataPhotos);
-        
+        const canvas = await html2canvas(pageRef.current, canvasOpts);
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const imgBytes = dataUrlToArrayBuffer(imgData);
         const pdfImg = await pdfDoc.embedJpg(imgBytes);
         const page = pdfDoc.addPage([595.27, 841.89]);
         page.drawImage(pdfImg, { x: 0, y: 0, width: 595.27, height: 841.89 });
-      }
-      
+      };
+
+      // 1. Cover Page
+      await addPageFromRef(coverRef, isAr ? "صفحة الغلاف" : "Cover Page");
+
+      // 2. Main Report Page
+      await addPageFromRef(reportRef, isAr ? "صفحة الملاحظات والعيوب" : "Inspection Report Page");
+
+      // 3. Heatmap Page (If has readings)
       const hasHeatmap = Object.keys((inspection.paintReadings as Record<string, number>) || {}).length > 0;
-      if (hasHeatmap && heatmapRef.current) {
-        toast({ 
-          title: isAr ? "جارٍ التحضير" : "Processing",
-          description: isAr ? "جارٍ إضافة خريطة سماكة الطلاء..." : "Adding paint heatmap page..."
-        });
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        const canvasHeatmap = await html2canvas(heatmapRef.current, canvasOpts);
-        const imgDataHeatmap = canvasHeatmap.toDataURL('image/jpeg', 0.95);
-        const imgBytesHeatmap = dataUrlToArrayBuffer(imgDataHeatmap);
-        
-        const pdfImgHeatmap = await pdfDoc.embedJpg(imgBytesHeatmap);
-        const page = pdfDoc.addPage([595.27, 841.89]);
-        page.drawImage(pdfImgHeatmap, { x: 0, y: 0, width: 595.27, height: 841.89 });
+      if (hasHeatmap) {
+        await addPageFromRef(heatmapRef, isAr ? "صفحة خريطة الطلاء" : "Paint Heatmap Page");
       }
-      
-      const canvasReport = await html2canvas(element, canvasOpts);
-      const imgDataReport = canvasReport.toDataURL('image/jpeg', 0.95);
-      const reportBytes = dataUrlToArrayBuffer(imgDataReport);
-      
-      const reportImg = await pdfDoc.embedJpg(reportBytes);
-      const page = pdfDoc.addPage([595.27, 841.89]);
-      page.drawImage(reportImg, { x: 0, y: 0, width: 595.27, height: 841.89 });
-      
+
+      // 4. Section Photos Page (If has photos)
+      const hasAnyPhotos = inspection.rearLeftDoorPhoto || inspection.rearRightDoorPhoto || 
+        inspection.frontLeftDoorPhoto || inspection.frontRightDoorPhoto || 
+        inspection.hoodPhoto || inspection.trunkPhoto;
+      if (hasAnyPhotos) {
+        await addPageFromRef(photosRef, isAr ? "صفحة صور الأقسام" : "Section Photos Page");
+      }
+
+      // 5. Signatures & OBD Page
+      await addPageFromRef(signaturesRef, isAr ? "صفحة فحص الكمبيوتر والتواقيع" : "OBD Diagnostics & Signatures Page");
+
       const pdfBytes = await pdfDoc.save();
       const blob = new Blob([pdfBytes], { type: 'application/pdf' });
       const downloadUrl = URL.createObjectURL(blob);
@@ -1398,12 +1387,11 @@ export default function InteractiveReport() {
       link.download = fileName;
       link.click();
       
-      // Cleanup URL object after click
       setTimeout(() => URL.revokeObjectURL(downloadUrl), 100);
 
       toast({ 
         title: isAr ? "تم التحميل" : "Downloaded",
-        description: isAr ? "تم تحميل ملف PDF بجودة عالية مع جميع الصور" : "PDF report downloaded successfully with all photos"
+        description: isAr ? "تم تحميل تقرير PDF الفخم بنجاح" : "Premium PDF report downloaded successfully"
       });
     } catch (error) {
       console.error('PDF error:', error);
@@ -2466,13 +2454,17 @@ export default function InteractiveReport() {
 
       {/* Hidden PDF Templates */}
       <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', opacity: 0, pointerEvents: 'none' }}>
+        <PdfCoverPage ref={pdfCoverRef} inspection={inspection} lang="ar" />
         <PdfReportTemplate ref={pdfTemplateRef} inspection={inspection} lang="ar" />
-        <PdfCarPhotosPage ref={pdfPhotosPageRef} inspection={inspection} lang="ar" />
         <PdfHeatmapPage ref={pdfHeatmapPageRef} inspection={inspection} lang="ar" />
+        <PdfCarPhotosPage ref={pdfPhotosPageRef} inspection={inspection} lang="ar" />
+        <PdfSignaturesPage ref={pdfSignaturesRef} inspection={inspection} lang="ar" />
         
+        <PdfCoverPage ref={pdfCoverEnRef} inspection={inspection} lang="en" />
         <PdfReportTemplate ref={pdfTemplateEnRef} inspection={inspection} lang="en" />
-        <PdfCarPhotosPage ref={pdfPhotosPageEnRef} inspection={inspection} lang="en" />
         <PdfHeatmapPage ref={pdfHeatmapPageEnRef} inspection={inspection} lang="en" />
+        <PdfCarPhotosPage ref={pdfPhotosPageEnRef} inspection={inspection} lang="en" />
+        <PdfSignaturesPage ref={pdfSignaturesEnRef} inspection={inspection} lang="en" />
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import { forwardRef } from 'react';
 import logoPath from '@assets/hs-logo.png';
-import hsBannerPath from '@assets/hs-banner.jpeg';
 import hsCarBranding from '@assets/hs_car_branding.png';
+import { PaintDepthHeatmap } from './paint-depth-heatmap';
 
 interface InspectionItem {
   id: number;
@@ -53,47 +53,38 @@ interface PdfReportTemplateProps {
   lang?: PdfLang;
 }
 
-// High Safety Brand Colors
+// Minimalist, high-end corporate styling. No cheesy AI metal textures or fake gauges.
 const BRAND = {
-  primary: '#0C1A28',
-  secondary: '#1E3A5F',
-  accent: '#C5852C',
-  accentLight: '#E8B86D',
-  success: '#059669',
-  warning: '#D97706',
-  danger: '#DC2626',
-  light: '#F8FAFC',
+  primary: '#0F172A',      // Slate 900
+  secondary: '#334155',    // Slate 700
+  accent: '#A57C48',       // Muted gold
+  accentLight: '#F5E6D3',  // Gold tint
+  success: '#059669',      // Flat emerald green
+  successBg: '#ECFDF5',
+  warning: '#D97706',      // Flat amber
+  warningBg: '#FFFBEB',
+  danger: '#DC2626',       // Flat red
+  dangerBg: '#FEF2F2',
+  light: '#F8FAFC',        // Slate 50
+  border: '#E2E8F0',       // Slate 200
   dark: '#0F172A',
-  muted: '#64748B',
-  border: '#E2E8F0',
+  text: '#1E293B',         // Slate 800
+  textMuted: '#64748B',    // Slate 500
 };
 
-// Main 6 Sections with subcategories
-const MAIN_SECTIONS_PDF = [
-  { id: 'mechanic', ar: 'الأجزاء الميكانيكية', en: 'MECHANIC' },
-  { id: 'transmission', ar: 'ناقل الحركة', en: 'TRANSMISSION' },
-  { id: 'body', ar: 'الهيكل الخارجي', en: 'BODY' },
-  { id: 'chassis', ar: 'الهيكل', en: 'CHASSIS' },
-  { id: 'electric', ar: 'الأجزاء الكهربائية', en: 'ELECTRIC' },
-  { id: 'interior', ar: 'الداخلية والسلامة', en: 'INTERIOR & SAFETY' },
-];
-
 const CATEGORIES: Record<string, { ar: string; en: string; section?: string }> = {
-  // MECHANIC Section
   engine: { ar: 'المحرك', en: 'Engine', section: 'mechanic' },
   suspension_system: { ar: 'نظام التعليق', en: 'Suspension System', section: 'mechanic' },
   steering_system: { ar: 'نظام التوجيه', en: 'Steering System', section: 'mechanic' },
   brake_system: { ar: 'نظام الفرامل', en: 'Brake System', section: 'mechanic' },
   fuel_exhaust: { ar: 'نظام الوقود والعادم', en: 'Fuel & Exhaust', section: 'mechanic' },
-  ac_cooling: { ar: 'نظام التكييف', en: 'AC & Cooling', section: 'mechanic' },
+  ac_cooling: { ar: 'نظام التكييف والتبريد', en: 'AC & Cooling', section: 'mechanic' },
   misc_mechanical: { ar: 'أعطال ميكانيكية متنوعة', en: 'Misc Mechanical', section: 'mechanic' },
-  // Legacy mechanic categories
   suspension: { ar: 'التعليق', en: 'Suspension', section: 'mechanic' },
   brakes: { ar: 'الفرامل', en: 'Brakes', section: 'mechanic' },
   ac: { ar: 'التكييف', en: 'A/C', section: 'mechanic' },
   exhaust: { ar: 'العادم', en: 'Exhaust', section: 'mechanic' },
   
-  // TRANSMISSION Section
   transmission: { ar: 'ناقل الحركة', en: 'Transmission', section: 'transmission' },
   transmission_auto: { ar: 'قير أوتوماتيك', en: 'Automatic Transmission', section: 'transmission' },
   transmission_manual: { ar: 'قير عادي', en: 'Manual Transmission', section: 'transmission' },
@@ -102,7 +93,6 @@ const CATEGORIES: Record<string, { ar: string; en: string; section?: string }> =
   transmission_leaks: { ar: 'تسريبات ناقل الحركة', en: 'Transmission Leaks', section: 'transmission' },
   transmission_shifting: { ar: 'التبديل والتعشيق', en: 'Gear Shifting', section: 'transmission' },
   
-  // BODY Section
   body: { ar: 'الهيكل', en: 'Body', section: 'body' },
   door_front_left: { ar: 'الباب الأمامي يسار', en: 'Front Left Door', section: 'body' },
   door_front_right: { ar: 'الباب الأمامي يمين', en: 'Front Right Door', section: 'body' },
@@ -126,139 +116,164 @@ const CATEGORIES: Record<string, { ar: string; en: string; section?: string }> =
   bumper_frame_rear: { ar: 'جسر الدعامية الخلفية', en: 'Rear Bumper Frame', section: 'body' },
   fender_front: { ar: 'الرفرف الأمامي', en: 'Front Fender', section: 'body' },
   fender_rear: { ar: 'الرفرف الخلفي', en: 'Rear Fender', section: 'body' },
-  // Legacy body categories
-  doors: { ar: 'الابواب', en: 'Doors', section: 'body' },
+  doors: { ar: 'الأبواب', en: 'Doors', section: 'body' },
   fenders: { ar: 'الرفارف', en: 'Fenders', section: 'body' },
   
-  // CHASSIS Section
   chassis: { ar: 'الشاسيه', en: 'Chassis', section: 'chassis' },
   chassis_frame: { ar: 'الهيكل والإطار', en: 'Chassis & Frame', section: 'chassis' },
-  chassis_alignment: { ar: 'الاستقامة', en: 'Alignment', section: 'chassis' },
+  chassis_alignment: { ar: 'الاستقامة والاتزان', en: 'Alignment', section: 'chassis' },
   chassis_welding: { ar: 'القص واللحام', en: 'Cutting & Welding', section: 'chassis' },
   chassis_accident: { ar: 'آثار الحوادث القوية', en: 'Accident Damage', section: 'chassis' },
   
-  // ELECTRIC Section
   electrical: { ar: 'الكهرباء', en: 'Electrical', section: 'electric' },
   electrical_system: { ar: 'النظام الكهربائي', en: 'Electrical System', section: 'electric' },
   battery: { ar: 'البطارية', en: 'Battery', section: 'electric' },
   exterior_lighting: { ar: 'الإضاءة الخارجية', en: 'Exterior Lighting', section: 'electric' },
   lights_front: { ar: 'الأضواء الأمامية', en: 'Front Lights', section: 'electric' },
   lights_rear: { ar: 'الأضواء الخلفية', en: 'Rear Lights', section: 'electric' },
-  wire_harness: { ar: 'أسلاك التوصيل', en: 'Wire Harness', section: 'electric' },
-  mirror_controls: { ar: 'زر تحكم المرايا', en: 'Mirror Controls', section: 'electric' },
+  wire_harness: { ar: 'أسلاك التوصيل والظفيرة', en: 'Wire Harness', section: 'electric' },
+  mirror_controls: { ar: 'أزرار تحكم المرايا والزجاج', en: 'Mirror Controls', section: 'electric' },
   computer_sensors: { ar: 'فحص الكمبيوتر والحساسات', en: 'Computer & Sensors', section: 'electric' },
-  lights: { ar: 'الاضاءة', en: 'Lights', section: 'electric' },
+  lights: { ar: 'الإضاءة', en: 'Lights', section: 'electric' },
   
-  // INTERIOR & SAFETY Section
   interior: { ar: 'الداخلية', en: 'Interior', section: 'interior' },
-  safety: { ar: 'السلامة', en: 'Safety', section: 'interior' },
-  safety_systems: { ar: 'أنظمة السلامة', en: 'Safety Systems', section: 'interior' },
+  safety: { ar: 'أنظمة السلامة', en: 'Safety', section: 'interior' },
+  safety_systems: { ar: 'الوسائد الهوائية والأحزمة', en: 'Safety Systems', section: 'interior' },
   tires_rims: { ar: 'الإطارات والجنوط', en: 'Tires & Rims', section: 'interior' },
   windows: { ar: 'الزجاج والنوافذ', en: 'Glass & Windows', section: 'interior' },
-  mirrors: { ar: 'المرايا', en: 'Mirrors', section: 'interior' },
+  mirrors: { ar: 'المرايا الداخلية والخارجية', en: 'Mirrors', section: 'interior' },
   accessories: { ar: 'الإكسسوارات والملحقات', en: 'Accessories', section: 'interior' },
   documentation: { ar: 'الوثائق والتوثيق', en: 'Documentation', section: 'interior' },
-  tires: { ar: 'الاطارات', en: 'Tires', section: 'interior' },
+  tires: { ar: 'الإطارات', en: 'Tires', section: 'interior' },
   wheels: { ar: 'الجنوط', en: 'Wheels', section: 'interior' },
   glass: { ar: 'الزجاج', en: 'Glass', section: 'interior' },
 };
 
-const getCategorySection = (categoryId: string): string => {
-  return CATEGORIES[categoryId]?.section || 'interior';
-};
-
-// Fault name translations
-const FAULT_TRANSLATIONS: Record<string, string> = {
-  'يحتاج تغيير': 'Needs Replacement',
-  'يحتاج صيانة': 'Needs Maintenance',
-  'يحتاج اصلاح': 'Needs Repair',
-  'تسريب': 'Leak',
-  'تلف': 'Damage',
-  'صدأ': 'Rust',
-  'خدوش': 'Scratches',
-  'كسر': 'Broken',
-  'ضعيف': 'Weak',
-  'متآكل': 'Worn',
-};
-
-const COLOR_MAP: Record<string, { ar: string; en: string; hex: string }> = {
-  'اخضر': { ar: 'اخضر', en: 'Green', hex: '#22C55E' },
-  'اخضر غامق': { ar: 'اخضر غامق', en: 'Dark Green', hex: '#166534' },
-  'احمر': { ar: 'احمر', en: 'Red', hex: '#EF4444' },
-  'ازرق': { ar: 'ازرق', en: 'Blue', hex: '#3B82F6' },
-  'ازرق غامق': { ar: 'ازرق غامق', en: 'Dark Blue', hex: '#1E40AF' },
-  'ابيض': { ar: 'ابيض', en: 'White', hex: '#FFFFFF' },
-  'اسود': { ar: 'اسود', en: 'Black', hex: '#1F2937' },
-  'فضي': { ar: 'فضي', en: 'Silver', hex: '#9CA3AF' },
-  'رمادي': { ar: 'رمادي', en: 'Gray', hex: '#6B7280' },
-  'ذهبي': { ar: 'ذهبي', en: 'Gold', hex: '#F59E0B' },
-  'بني': { ar: 'بني', en: 'Brown', hex: '#92400E' },
-  'برتقالي': { ar: 'برتقالي', en: 'Orange', hex: '#F97316' },
-  'اصفر': { ar: 'اصفر', en: 'Yellow', hex: '#EAB308' },
-  'بنفسجي': { ar: 'بنفسجي', en: 'Purple', hex: '#A855F7' },
-  'وردي': { ar: 'وردي', en: 'Pink', hex: '#EC4899' },
-  'بيج': { ar: 'بيج', en: 'Beige', hex: '#D4B896' },
-  'عنابي': { ar: 'عنابي', en: 'Maroon', hex: '#7F1D1D' },
-  'نبيتي': { ar: 'نبيتي', en: 'Burgundy', hex: '#831843' },
-  'green': { ar: 'اخضر', en: 'Green', hex: '#22C55E' },
-  'red': { ar: 'احمر', en: 'Red', hex: '#EF4444' },
-  'blue': { ar: 'ازرق', en: 'Blue', hex: '#3B82F6' },
-  'white': { ar: 'ابيض', en: 'White', hex: '#FFFFFF' },
-  'black': { ar: 'اسود', en: 'Black', hex: '#1F2937' },
-  'silver': { ar: 'فضي', en: 'Silver', hex: '#9CA3AF' },
-  'gray': { ar: 'رمادي', en: 'Gray', hex: '#6B7280' },
-  'grey': { ar: 'رمادي', en: 'Gray', hex: '#6B7280' },
-  'gold': { ar: 'ذهبي', en: 'Gold', hex: '#F59E0B' },
-  'brown': { ar: 'بني', en: 'Brown', hex: '#92400E' },
-  'orange': { ar: 'برتقالي', en: 'Orange', hex: '#F97316' },
-  'yellow': { ar: 'اصفر', en: 'Yellow', hex: '#EAB308' },
-  'purple': { ar: 'بنفسجي', en: 'Purple', hex: '#A855F7' },
-  'pink': { ar: 'وردي', en: 'Pink', hex: '#EC4899' },
-  'beige': { ar: 'بيج', en: 'Beige', hex: '#D4B896' },
-  'maroon': { ar: 'عنابي', en: 'Maroon', hex: '#7F1D1D' },
-};
-
-const getVehicleColor = (colorStr?: string | null) => {
-  if (!colorStr) return { ar: '-', en: '-', hex: '#6B7280' };
-  const normalized = colorStr.toLowerCase().trim().split(',')[0].trim();
-  return COLOR_MAP[normalized] || { ar: colorStr, en: colorStr, hex: '#6B7280' };
-};
-
+const getCategoryLabel = (catId: string) => CATEGORIES[catId] || { ar: catId, en: catId };
 
 const getInspectionTypeLabel = (type?: string | null) => {
   switch (type) {
-    case 'comprehensive': return { ar: 'فحص شامل', en: 'Comprehensive Inspection' };
-    case 'mechanical_computer': return { ar: 'فحص ميكانيكي + كمبيوتر', en: 'Mechanical + Computer' };
-    case 'basic_parts': return { ar: 'فحص قطع اساسية', en: 'Basic Parts Inspection' };
-    case 'custom': return { ar: 'فحص مخصص', en: 'Custom Inspection' };
-    default: return { ar: 'فحص شامل', en: 'Comprehensive Inspection' };
+    case 'comprehensive': return { ar: 'تقرير فحص شامل للمركبة', en: 'Comprehensive Inspection Report' };
+    case 'mechanical_computer': return { ar: 'تقرير فحص الميكانيكا والكمبيوتر', en: 'Mechanical & Computer Report' };
+    case 'basic_parts': return { ar: 'تقرير فحص الأجزاء الأساسية', en: 'Basic Parts Report' };
+    case 'custom': return { ar: 'تقرير فحص مخصص', en: 'Custom Inspection Report' };
+    default: return { ar: 'تقرير فحص شامل للمركبة', en: 'Comprehensive Inspection Report' };
   }
-};
-
-const getFaultTranslation = (faultName: string): string => {
-  for (const [ar, en] of Object.entries(FAULT_TRANSLATIONS)) {
-    if (faultName.includes(ar)) {
-      return faultName.replace(ar, en);
-    }
-  }
-  return faultName;
 };
 
 const textStyle: React.CSSProperties = {
-  fontFamily: '"Segoe UI", Tahoma, "Noto Sans Arabic", "Noto Kufi Arabic", Arial, sans-serif',
-  letterSpacing: '0',
-  wordSpacing: '2px',
-  lineHeight: '1.6',
-  WebkitFontSmoothing: 'antialiased',
+  fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  lineHeight: '1.5',
 };
 
-const englishStyle: React.CSSProperties = {
-  fontFamily: 'Arial, Helvetica, sans-serif',
-  letterSpacing: '0.3px',
-};
+// ==========================================
+// 1. PAGE 1: COVER PAGE
+// ==========================================
+export const PdfCoverPage = forwardRef<HTMLDivElement, PdfReportTemplateProps>(
+  ({ inspection, lang = 'ar' }, ref) => {
+    const isAr = lang === 'ar';
+    const typeLabel = getInspectionTypeLabel(inspection.inspectionType);
+    const formattedDate = inspection.createdAt 
+      ? new Date(inspection.createdAt).toLocaleDateString(isAr ? 'ar-SA' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+      : '';
 
-const arTextStyle = textStyle;
+    return (
+      <div 
+        ref={ref}
+        dir={isAr ? 'rtl' : 'ltr'}
+        style={{
+          width: '794px',
+          height: '1123px',
+          backgroundColor: BRAND.primary,
+          padding: '60px 50px',
+          boxSizing: 'border-box',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          position: 'relative',
+          color: '#ffffff',
+          overflow: 'hidden',
+          ...textStyle,
+        }}
+      >
+        <div style={{ position: 'absolute', top: 0, right: 0, width: '150px', height: '150px', borderRight: `4px solid ${BRAND.accent}`, borderTop: `4px solid ${BRAND.accent}`, opacity: 0.8 }} />
+        <div style={{ position: 'absolute', bottom: 0, left: 0, width: '150px', height: '150px', borderLeft: `4px solid ${BRAND.accent}`, borderBottom: `4px solid ${BRAND.accent}`, opacity: 0.8 }} />
 
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <img src={logoPath} alt="Logo" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+          <div style={{ textAlign: isAr ? 'left' : 'right' }}>
+            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: BRAND.accent, letterSpacing: '1px' }}>HIGH SAFETY</h2>
+            <p style={{ margin: '4px 0 0 0', fontSize: '10px', color: '#94A3B8', letterSpacing: '0.5px' }}>INTERNATIONAL INSPECTION CENTER</p>
+          </div>
+        </div>
+
+        <div style={{ margin: '40px 0', textAlign: 'center' }}>
+          <div style={{ display: 'inline-block', height: '3px', width: '60px', backgroundColor: BRAND.accent, marginBottom: '20px' }} />
+          <h1 style={{ fontSize: '26px', fontWeight: '900', margin: '0 0 8px 0', letterSpacing: '0.5px' }}>
+            {isAr ? typeLabel.ar : typeLabel.en}
+          </h1>
+          <p style={{ fontSize: '13px', color: '#94A3B8', margin: 0 }}>
+            {isAr ? typeLabel.en : typeLabel.ar}
+          </p>
+        </div>
+
+        <div style={{
+          width: '100%',
+          height: '320px',
+          borderRadius: '12px',
+          overflow: 'hidden',
+          border: `2px solid ${BRAND.accent}`,
+          backgroundColor: '#1E293B',
+        }}>
+          {inspection.mainCarPhoto ? (
+            <img src={inspection.mainCarPhoto} alt="Vehicle" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <img src={hsCarBranding} alt="High Safety" style={{ width: '80%', height: '80%', objectFit: 'contain', opacity: 0.15 }} />
+            </div>
+          )}
+        </div>
+
+        <div style={{
+          backgroundColor: 'rgba(30, 41, 59, 0.6)',
+          border: '1px solid rgba(255,255,255,0.1)',
+          borderRadius: '8px',
+          padding: '24px',
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '16px',
+        }}>
+          <div>
+            <span style={{ fontSize: '10px', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>{isAr ? 'المركبة' : 'VEHICLE'}</span>
+            <span style={{ fontSize: '16px', fontWeight: 'bold' }}>{inspection.make} {inspection.model} ({inspection.year})</span>
+          </div>
+          <div>
+            <span style={{ fontSize: '10px', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>{isAr ? 'رقم الشاصي (VIN)' : 'CHASSIS NO. (VIN)'}</span>
+            <span style={{ fontSize: '14px', fontFamily: 'monospace', fontWeight: 'bold', letterSpacing: '1px' }}>{inspection.vin}</span>
+          </div>
+          <div>
+            <span style={{ fontSize: '10px', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>{isAr ? 'اسم العميل' : 'CUSTOMER NAME'}</span>
+            <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{inspection.customerName || '-'}</span>
+          </div>
+          <div>
+            <span style={{ fontSize: '10px', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>{isAr ? 'تاريخ الفحص' : 'INSPECTION DATE'}</span>
+            <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{formattedDate}</span>
+          </div>
+        </div>
+
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', color: '#94A3B8' }}>
+          <span>{isAr ? 'مركز الأمان العالي الدولي لفحص السيارات' : 'High Safety International Vehicle Inspection Center'}</span>
+          <span>ID: HS-{inspection.id}</span>
+        </div>
+      </div>
+    );
+  }
+);
+PdfCoverPage.displayName = 'PdfCoverPage';
+
+// ==========================================
+// 2. PAGE 2: MAIN REPORT (OVERVIEW & ISSUES)
+// ==========================================
 export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplateProps>(
   ({ inspection, lang = 'ar' }, ref) => {
     const isAr = lang === 'ar';
@@ -266,78 +281,9 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
     const failItems = items.filter(i => i.status === 'fail');
     const warningItems = items.filter(i => i.status === 'warning');
     const issueItems = [...failItems, ...warningItems];
-    const passCount = items.filter(i => i.status === 'pass').length;
-    const totalItems = items.length;
-    
-    const inspectionDate = inspection.createdAt ? new Date(inspection.createdAt) : new Date();
-    const reportDate = inspectionDate.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
-    const reportTime = inspectionDate.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', hour12: false });
-    const englishDate = inspectionDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-
-    const getCategoryLabel = (catId: string) => CATEGORIES[catId] || { ar: catId, en: catId };
-    const inspectionTypeLabel = getInspectionTypeLabel(inspection.inspectionType);
-    const vehicleColor = getVehicleColor(inspection.color);
-
-    const itemCount = issueItems.length;
-    
-    // Adaptive sizing based on content - LARGER minimum sizes for readability
-    let gridCols = 2;
-    let fontSize = '13px';
-    let titleSize = '15px';
-    let catFontSize = '10px';
-    let itemPad = '12px 14px';
-    let imgSize = { w: '75px', h: '60px' };
-    let gapSize = '10px';
-    let showImage = true;
-    
-    if (itemCount === 0) {
-      // No issues - large display
-    } else if (itemCount <= 4) {
-      gridCols = 2;
-      fontSize = '14px';
-      titleSize = '16px';
-      catFontSize = '11px';
-      itemPad = '14px 16px';
-      imgSize = { w: '90px', h: '72px' };
-      gapSize = '12px';
-    } else if (itemCount <= 6) {
-      gridCols = 2;
-      fontSize = '13px';
-      titleSize = '15px';
-      catFontSize = '10px';
-      itemPad = '12px 14px';
-      imgSize = { w: '80px', h: '64px' };
-      gapSize = '10px';
-    } else if (itemCount <= 10) {
-      gridCols = 2;
-      fontSize = '12px';
-      titleSize = '14px';
-      catFontSize = '9px';
-      itemPad = '10px 12px';
-      imgSize = { w: '70px', h: '56px' };
-      gapSize = '8px';
-    } else if (itemCount <= 14) {
-      gridCols = 3;
-      fontSize = '11px';
-      titleSize = '13px';
-      catFontSize = '9px';
-      itemPad = '8px 10px';
-      imgSize = { w: '60px', h: '48px' };
-      gapSize = '6px';
-    } else {
-      gridCols = 3;
-      fontSize = '10px';
-      titleSize = '12px';
-      catFontSize = '8px';
-      itemPad = '6px 8px';
-      imgSize = { w: '55px', h: '44px' };
-      gapSize = '5px';
-      showImage = itemCount <= 18;
-    }
-
-    const healthPercent = totalItems > 0 ? Math.round((passCount / totalItems) * 100) : 100;
-    const healthColor = healthPercent >= 80 ? BRAND.success : healthPercent >= 60 ? BRAND.warning : BRAND.danger;
-    const healthLabel = healthPercent >= 80 ? { ar: 'ممتاز', en: 'Excellent' } : healthPercent >= 60 ? { ar: 'جيد', en: 'Good' } : { ar: 'ضعيف', en: 'Poor' };
+    const formattedDate = inspection.createdAt 
+      ? new Date(inspection.createdAt).toLocaleDateString(isAr ? 'ar-SA' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+      : '';
 
     return (
       <div 
@@ -347,850 +293,326 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
           width: '794px',
           height: '1123px',
           backgroundColor: '#ffffff',
-          padding: '0',
-          margin: '0',
+          padding: '40px 30px',
           boxSizing: 'border-box',
           display: 'flex',
           flexDirection: 'column',
+          justifyContent: 'space-between',
+          color: BRAND.text,
           overflow: 'hidden',
-          ...(isAr ? textStyle : englishStyle),
+          ...textStyle,
         }}
       >
-        {/* Header - Professional Banner */}
-        <div style={{ flexShrink: 0, borderBottom: `4px solid ${BRAND.accent}`, background: BRAND.primary }}>
-          {/* Banner Image */}
-          <img
-            src={hsBannerPath}
-            alt="High Safety International Center"
-            style={{ width: '100%', height: '90px', objectFit: 'cover', objectPosition: 'center', display: 'block' }}
-          />
-          {/* Report Type Bar */}
-          <div style={{
-            background: `linear-gradient(135deg, ${BRAND.primary} 0%, ${BRAND.secondary} 100%)`,
-            padding: '8px 24px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}>
-            <div style={{
-              background: `linear-gradient(135deg, ${BRAND.accent} 0%, ${BRAND.accentLight} 100%)`,
-              color: BRAND.primary,
-              padding: '5px 14px',
-              borderRadius: '20px',
-              fontSize: '10px',
-              fontWeight: 'bold',
-              boxShadow: '0 2px 8px rgba(197,133,44,0.4)',
-              ...(isAr ? textStyle : englishStyle),
-              display: 'inline-block',
-            }}>
-              {isAr ? (
-                <>
-                  <span>{inspectionTypeLabel.ar}</span>
-                  <span style={{ ...englishStyle, marginRight: '6px', fontSize: '9px' }}>| {inspectionTypeLabel.en}</span>
-                </>
-              ) : (
-                <>
-                  <span>{inspectionTypeLabel.en}</span>
-                  <span style={{ ...textStyle, marginLeft: '6px', fontSize: '9px' }}>| {inspectionTypeLabel.ar}</span>
-                </>
-              )}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `2px solid ${BRAND.border}`, paddingBottom: '12px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <img src={logoPath} alt="Logo" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
+            <div>
+              <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: BRAND.primary }}>{isAr ? 'مركز الأمان العالي' : 'High Safety Center'}</h3>
+              <p style={{ margin: 0, fontSize: '8px', color: BRAND.textMuted }}>{isAr ? 'تقرير الملاحظات والعيوب المكتشفة' : 'Defect Inspection Findings'}</p>
             </div>
-            <div style={{ textAlign: isAr ? 'left' : 'right' }}>
-              <p style={{ color: '#94a3b8', fontSize: '9px', margin: 0, ...englishStyle }}>
-                {englishDate} | {reportTime}
-              </p>
-              {isAr && (
-                <p style={{ color: '#cbd5e1', fontSize: '10px', margin: '2px 0 0 0', ...textStyle }}>
-                  {reportDate}
-                </p>
-              )}
+          </div>
+          <div style={{ textAlign: isAr ? 'left' : 'right', fontSize: '9px', color: BRAND.textMuted }}>
+            <span>ID: HS-{inspection.id} | {formattedDate}</span>
+          </div>
+        </div>
+
+        {/* Overview cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '12px', margin: '15px 0 10px', flexShrink: 0 }}>
+          <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '8px', padding: '12px', backgroundColor: BRAND.light }}>
+            <h4 style={{ margin: '0 0 6px 0', fontSize: '11px', color: BRAND.textMuted }}>{isAr ? 'معلومات المركبة الأساسية' : 'Vehicle Specifications'}</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '11px' }}>
+              <div><strong>{isAr ? 'الصانع والموديل:' : 'Make/Model:'}</strong> {inspection.make} {inspection.model}</div>
+              <div><strong>{isAr ? 'سنة الصنع:' : 'Year:'}</strong> {inspection.year}</div>
+              <div><strong>{isAr ? 'الممشى (المسافة):' : 'Odometer:'}</strong> {inspection.odometer?.toLocaleString() || inspection.mileage?.toLocaleString() || '-'} km</div>
+              <div><strong>{isAr ? 'لون الهيكل:' : 'Color:'}</strong> {inspection.color || '-'}</div>
+            </div>
+          </div>
+          <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '8px', padding: '12px', display: 'flex', justifyContent: 'space-around', alignItems: 'center', backgroundColor: BRAND.light }}>
+            <div style={{ textAlign: 'center' }}>
+              <span style={{ fontSize: '20px', fontWeight: 'bold', color: BRAND.danger }}>{failItems.length}</span>
+              <span style={{ display: 'block', fontSize: '9px', color: BRAND.textMuted }}>{isAr ? 'أعطال حرجة' : 'Critical Faults'}</span>
+            </div>
+            <div style={{ width: '1px', height: '30px', backgroundColor: BRAND.border }} />
+            <div style={{ textAlign: 'center' }}>
+              <span style={{ fontSize: '20px', fontWeight: 'bold', color: BRAND.warning }}>{warningItems.length}</span>
+              <span style={{ display: 'block', fontSize: '9px', color: BRAND.textMuted }}>{isAr ? 'ملاحظات/تنبيهات' : 'Warnings'}</span>
             </div>
           </div>
         </div>
 
-        {/* Vehicle Info */}
-        <div style={{
-          backgroundColor: BRAND.light,
-          padding: '12px 24px',
-          display: 'grid',
-          gridTemplateColumns: '1.3fr 1.5fr 0.8fr 1fr',
-          gap: '12px',
-          borderBottom: `1px solid ${BRAND.border}`,
-          flexShrink: 0,
-        }}>
-          {/* Vehicle */}
-          <div style={{ 
-            background: '#ffffff', 
-            borderRadius: '10px', 
-            padding: '12px 14px', 
-            boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
-            border: `1px solid ${BRAND.border}`,
-            borderTop: `3px solid ${BRAND.accent}`,
-          }}>
-            <p style={{ color: BRAND.muted, fontSize: '8px', margin: '0 0 4px 0', display: 'flex', justifyContent: 'space-between' }}>
-              <span style={isAr ? textStyle : englishStyle}>{isAr ? 'المركبة' : 'Vehicle'}</span>
-              <span style={isAr ? englishStyle : textStyle}>{isAr ? 'Vehicle' : 'المركبة'}</span>
-            </p>
-            <p style={{ color: BRAND.dark, fontSize: '14px', fontWeight: 'bold', margin: 0, ...englishStyle }}>
-              {inspection.make} {inspection.model}
-            </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '5px', flexWrap: 'wrap' }}>
-              <span style={{ color: BRAND.muted, fontSize: '10px', ...englishStyle }}>
-                {inspection.year}
-              </span>
-              <span style={{ 
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '3px',
-                backgroundColor: BRAND.light,
-                padding: '2px 6px',
-                borderRadius: '10px',
-                fontSize: '9px',
-              }}>
-                <span style={{
-                  width: '10px',
-                  height: '10px',
-                  borderRadius: '50%',
-                  backgroundColor: vehicleColor.hex,
-                  border: vehicleColor.hex === '#FFFFFF' ? '1px solid #ccc' : 'none',
-                  display: 'inline-block',
-                  flexShrink: 0,
-                }}></span>
-                <span style={{ color: BRAND.dark, ...textStyle }}>{vehicleColor.ar}</span>
-                <span style={{ color: BRAND.muted, ...englishStyle, fontSize: '8px' }}>({vehicleColor.en})</span>
-              </span>
-            </div>
-          </div>
-
-          {/* VIN - Realistic Stamped Metal Plate */}
-          <div style={{ 
-            background: 'linear-gradient(180deg, #c0c0c0 0%, #a8a8a8 20%, #d0d0d0 40%, #b8b8b8 60%, #c8c8c8 80%, #a0a0a0 100%)',
-            borderRadius: '4px', 
-            padding: '8px 10px', 
-            boxShadow: '0 3px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -1px 0 rgba(0,0,0,0.2)',
-            position: 'relative',
-            border: '1px solid #888',
-          }}>
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              marginBottom: '6px',
-            }}>
-              <span style={{ fontSize: '7px', fontWeight: 'bold', color: '#333', letterSpacing: '0.5px' }}>
-                {inspection.make?.toUpperCase() || 'MANUFACTURER'}
-              </span>
-              <span style={{ fontSize: '7px', fontWeight: 'bold', color: '#333' }}>
-                {inspection.year || '----'}
-              </span>
-            </div>
-            <div style={{
-              background: 'linear-gradient(180deg, #f5f5f5 0%, #e8e8e8 50%, #f0f0f0 100%)',
-              borderRadius: '2px',
-              padding: '6px 8px',
-              border: '1px solid #999',
-              boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1)',
-            }}>
-              <p style={{ 
-                fontFamily: "'Courier New', 'Consolas', monospace",
-                fontWeight: 900,
-                fontSize: '10px',
-                color: '#1a1a1a',
-                letterSpacing: '2px',
-                textAlign: 'center',
-                margin: 0,
-                textShadow: '0 1px 0 rgba(255,255,255,0.5)',
-              }}>
-                {inspection.vin}
-              </p>
-            </div>
-            <p style={{ fontSize: '6px', color: '#555', textAlign: 'center', margin: '5px 0 0 0', letterSpacing: '0.5px' }}>
-              VEHICLE IDENTIFICATION NUMBER
-            </p>
-            {/* Rivets */}
-            <div style={{
-              position: 'absolute', top: '5px', left: '5px',
-              width: '6px', height: '6px', borderRadius: '50%',
-              background: 'radial-gradient(circle at 35% 35%, #e0e0e0, #808080 40%, #606060)',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.3)',
-            }} />
-            <div style={{
-              position: 'absolute', top: '5px', right: '5px',
-              width: '6px', height: '6px', borderRadius: '50%',
-              background: 'radial-gradient(circle at 35% 35%, #e0e0e0, #808080 40%, #606060)',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.3)',
-            }} />
-            <div style={{
-              position: 'absolute', bottom: '5px', left: '5px',
-              width: '6px', height: '6px', borderRadius: '50%',
-              background: 'radial-gradient(circle at 35% 35%, #e0e0e0, #808080 40%, #606060)',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.3)',
-            }} />
-            <div style={{
-              position: 'absolute', bottom: '5px', right: '5px',
-              width: '6px', height: '6px', borderRadius: '50%',
-              background: 'radial-gradient(circle at 35% 35%, #e0e0e0, #808080 40%, #606060)',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.3)',
-            }} />
-          </div>
-
-          {/* Realistic Analog Odometer with Dual Gauges */}
-          <div style={{
-            background: 'radial-gradient(ellipse at center, #1a1a1a 0%, #0a0a0a 60%, #000 100%)',
-            borderRadius: '10px',
-            padding: '8px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '4px',
-            boxShadow: '0 6px 20px rgba(0,0,0,0.8), inset 0 1px 2px rgba(255,255,255,0.05)',
-            border: '2px solid #333',
-          }}>
-            {/* Left Gauge (RPM style) */}
-            <div style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              background: 'radial-gradient(circle at 30% 30%, #2a2a2a 0%, #111 60%, #000 100%)',
-              border: '2px solid #444',
-              position: 'relative',
-              boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.9)',
-            }}>
-              {/* Gauge markings */}
-              {[0, 30, 60, 90, 120, 150, 180, 210, 240].map((angle, i) => (
-                <div key={i} style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  width: '1px',
-                  height: '4px',
-                  background: i > 6 ? '#ff3333' : '#fff',
-                  transformOrigin: 'center -10px',
-                  transform: `translate(-50%, -50%) rotate(${angle - 120}deg)`,
-                }} />
-              ))}
-              {/* Needle */}
-              <div style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                width: '2px',
-                height: '12px',
-                background: 'linear-gradient(180deg, #ff4444 0%, #cc0000 100%)',
-                transformOrigin: 'bottom center',
-                transform: 'translate(-50%, -100%) rotate(-30deg)',
-                borderRadius: '1px',
-              }} />
-              {/* Center cap */}
-              <div style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, #666 0%, #222 100%)',
-                border: '1px solid #444',
-              }} />
-            </div>
-
-            {/* Center Digital Odometer Display */}
-            <div style={{
-              background: 'linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%)',
-              borderRadius: '4px',
-              padding: '6px 8px',
-              border: '1px solid #333',
-              boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.9)',
-            }}>
-              {/* Mechanical roller digits */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '1px',
-                background: '#111',
-                padding: '3px 4px',
-                borderRadius: '2px',
-                border: '1px solid #222',
-              }}>
-                {String(inspection.odometer || inspection.mileage || 0).padStart(6, '0').split('').map((digit, i) => (
-                  <div key={i} style={{
-                    width: '10px',
-                    height: '14px',
-                    background: i < 5 ? 'linear-gradient(180deg, #1a1a1a 0%, #2a2a2a 50%, #1a1a1a 100%)' : 'linear-gradient(180deg, #ff2222 0%, #cc0000 50%, #aa0000 100%)',
-                    borderRadius: '1px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    border: '1px solid #333',
-                    boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.5)',
-                  }}>
-                    <span style={{
-                      color: '#fff',
-                      fontSize: '10px',
-                      fontFamily: "'Arial', sans-serif",
-                      fontWeight: 'bold',
-                    }}>
-                      {digit}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <div style={{
-                textAlign: 'center',
-                marginTop: '2px',
-              }}>
-                <span style={{ 
-                  color: '#888', 
-                  fontSize: '6px', 
-                  letterSpacing: '1px',
-                  ...englishStyle,
-                }}>
-                  km
-                </span>
-              </div>
-            </div>
-
-            {/* Right Gauge (Speed style) */}
-            <div style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              background: 'radial-gradient(circle at 30% 30%, #2a2a2a 0%, #111 60%, #000 100%)',
-              border: '2px solid #444',
-              position: 'relative',
-              boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.9)',
-            }}>
-              {/* Gauge markings */}
-              {[0, 30, 60, 90, 120, 150, 180, 210, 240].map((angle, i) => (
-                <div key={i} style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  width: '1px',
-                  height: '4px',
-                  background: i > 6 ? '#ff3333' : '#fff',
-                  transformOrigin: 'center -10px',
-                  transform: `translate(-50%, -50%) rotate(${angle - 120}deg)`,
-                }} />
-              ))}
-              {/* Needle */}
-              <div style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                width: '2px',
-                height: '12px',
-                background: 'linear-gradient(180deg, #ff4444 0%, #cc0000 100%)',
-                transformOrigin: 'bottom center',
-                transform: 'translate(-50%, -100%) rotate(15deg)',
-                borderRadius: '1px',
-              }} />
-              {/* Center cap */}
-              <div style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, #666 0%, #222 100%)',
-                border: '1px solid #444',
-              }} />
-            </div>
-          </div>
-
-          {/* Main Car Photo with HS Watermark Frame - Replaces Black Car */}
-          <div style={{ 
-            position: 'relative',
-            width: '160px',
-            height: '110px',
-            borderRadius: '8px', 
-            overflow: 'hidden',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.4), inset 0 0 20px rgba(197,133,44,0.1)',
-            border: `3px solid ${BRAND.accent}`,
-            background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)',
-          }}>
-            {inspection.mainCarPhoto ? (
-              <img 
-                src={inspection.mainCarPhoto} 
-                alt="Vehicle Photo" 
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: 'block',
-                }}
-              />
-            ) : (
-              <img 
-                src={hsCarBranding} 
-                alt="High Safety" 
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: 'block',
-                }}
-              />
-            )}
-            {/* HS Watermark Overlay */}
-            <div style={{
-              position: 'absolute',
-              bottom: '4px',
-              right: '4px',
-              background: 'rgba(12, 26, 40, 0.9)',
-              borderRadius: '4px',
-              padding: '3px 8px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              border: `1px solid ${BRAND.accent}`,
-            }}>
-              <img 
-                src={logoPath} 
-                alt="HS" 
-                style={{
-                  width: '18px',
-                  height: '18px',
-                  objectFit: 'contain',
-                }}
-              />
-              <span style={{
-                fontSize: '7px',
-                color: BRAND.accent,
-                fontWeight: 'bold',
-                  letterSpacing: '0.5px',
-                }}>HIGH SAFETY</span>
-              </div>
-              {/* Corner Accents */}
-              <div style={{
-                position: 'absolute',
-                top: '0',
-                left: '0',
-                width: '12px',
-                height: '12px',
-                borderTop: `2px solid ${BRAND.accent}`,
-                borderLeft: `2px solid ${BRAND.accent}`,
-              }} />
-              <div style={{
-                position: 'absolute',
-                top: '0',
-                right: '0',
-                width: '12px',
-                height: '12px',
-                borderTop: `2px solid ${BRAND.accent}`,
-                borderRight: `2px solid ${BRAND.accent}`,
-              }} />
-              <div style={{
-                position: 'absolute',
-                bottom: '0',
-                left: '0',
-                width: '12px',
-                height: '12px',
-                borderBottom: `2px solid ${BRAND.accent}`,
-                borderLeft: `2px solid ${BRAND.accent}`,
-              }} />
-              <div style={{
-                position: 'absolute',
-                bottom: '0',
-                right: '0',
-                width: '12px',
-                height: '12px',
-                borderBottom: `2px solid ${BRAND.accent}`,
-                borderRight: `2px solid ${BRAND.accent}`,
-              }} />
-          </div>
+        {/* Section Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexShrink: 0 }}>
+          <h2 style={{ fontSize: '15px', fontWeight: 'bold', color: BRAND.primary, margin: 0 }}>
+            {isAr ? 'قائمة الفحص التفصيلية (الأعطال والملاحظات)' : 'Detailed Inspection Findings'}
+          </h2>
         </div>
 
-        {/* Main Content */}
-        <div style={{ flex: 1, padding: '12px 24px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        {/* Scrollable list content */}
+        <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           {issueItems.length === 0 ? (
             <div style={{
-              backgroundColor: '#dcfce7',
-              borderRadius: '16px',
-              padding: '40px',
+              backgroundColor: BRAND.successBg,
+              border: `1px solid ${BRAND.success}`,
+              borderRadius: '8px',
+              padding: '30px',
               textAlign: 'center',
-              marginTop: '40px',
-              border: `3px solid ${BRAND.success}`,
+              margin: 'auto 0',
             }}>
-              <div style={{ 
-                width: '70px', 
-                height: '70px', 
-                borderRadius: '50%', 
-                backgroundColor: BRAND.success, 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                margin: '0 auto 16px',
-                boxShadow: '0 4px 12px rgba(5,150,105,0.3)',
-              }}>
-                <span style={{ color: '#fff', fontSize: '36px' }}>&#10003;</span>
-              </div>
-              <h2 style={{ color: '#166534', fontSize: '22px', fontWeight: 'bold', margin: '0 0 8px 0', ...(isAr ? textStyle : englishStyle) }}>
-                {isAr ? 'لا توجد ملاحظات على المركبة' : 'Vehicle in Excellent Condition'}
-              </h2>
-              <p style={{ color: '#15803d', fontSize: '14px', margin: 0, ...(isAr ? englishStyle : textStyle) }}>
-                {isAr ? 'Vehicle in Excellent Condition - No Issues Found' : 'لا توجد ملاحظات على المركبة'}
-              </p>
+              <span style={{ fontSize: '24px', display: 'block', marginBottom: '8px' }}>💚</span>
+              <h3 style={{ color: BRAND.success, margin: '0 0 4px 0', fontWeight: 'bold' }}>{isAr ? 'المركبة سليمة وخالية من الأعطال' : 'Vehicle is Healthy'}</h3>
+              <p style={{ color: BRAND.textMuted, fontSize: '11px', margin: 0 }}>{isAr ? 'لم يتم رصد أي أعطال أو ملاحظات فنية على المركبة.' : 'No faults or warnings were recorded during this inspection.'}</p>
             </div>
           ) : (
-            <>
-              {/* Section Header */}
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'space-between',
-                marginBottom: '10px',
-                paddingBottom: '8px',
-                borderBottom: `2px solid ${BRAND.primary}`,
-                flexShrink: 0,
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{
-                    width: '5px',
-                    height: '30px',
-                    backgroundColor: BRAND.accent,
-                    borderRadius: '3px',
-                  }}></div>
-                  <div>
-                    <h2 style={{ color: BRAND.dark, fontSize: '14px', fontWeight: 'bold', margin: 0, ...(isAr ? textStyle : englishStyle) }}>
-                      {isAr ? 'البنود التي تحتاج متابعة' : 'Items Requiring Attention'}
-                    </h2>
-                    <p style={{ color: BRAND.muted, fontSize: '9px', margin: '2px 0 0 0', ...(isAr ? englishStyle : textStyle) }}>
-                      {isAr ? `Items Requiring Attention (${itemCount} items)` : `البنود التي تحتاج متابعة (${itemCount})`}
-                    </p>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <span style={{ 
-                    backgroundColor: BRAND.danger,
-                    color: '#ffffff',
-                    padding: '4px 12px',
-                    borderRadius: '14px',
-                    fontSize: '10px',
-                    fontWeight: 'bold',
-                    ...englishStyle,
-                  }}>
-                    {isAr ? <><span style={textStyle}>أعطال</span> | {failItems.length} Faults</> : <>{failItems.length} Faults | <span style={textStyle}>أعطال</span></>}
-                  </span>
-                  <span style={{ 
-                    backgroundColor: BRAND.warning,
-                    color: '#ffffff',
-                    padding: '4px 12px',
-                    borderRadius: '14px',
-                    fontSize: '10px',
-                    fontWeight: 'bold',
-                    ...englishStyle,
-                  }}>
-                    {isAr ? <><span style={textStyle}>تحذير</span> | {warningItems.length} Warning</> : <>{warningItems.length} Warning | <span style={textStyle}>تحذير</span></>}
-                  </span>
-                </div>
-              </div>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: '1fr 1fr', 
+              gap: '8px',
+              alignContent: 'start',
+              overflowY: 'auto',
+              maxHeight: '100%',
+              paddingBottom: '8px',
+            }}>
+              {issueItems.slice(0, 12).map((item, idx) => {
+                const isFail = item.status === 'fail';
+                const statusColor = isFail ? BRAND.danger : BRAND.warning;
+                const catLabel = getCategoryLabel(item.category);
 
-              {/* Issues Grid */}
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: `repeat(${gridCols}, 1fr)`, 
-                gap: gapSize,
-                flex: 1,
-                alignContent: 'start',
-              }}>
-                {issueItems.map((item, idx) => {
-                  const isFail = item.status === 'fail';
-                  const catLabel = getCategoryLabel(item.category);
-                  const itemColor = isFail ? BRAND.danger : BRAND.warning;
-                  const faultNameAr = item.faultName.split(' - ')[0];
-                  const faultNameEn = getFaultTranslation(faultNameAr);
-                  
-                  return (
-                    <div 
-                      key={item.id || idx} 
-                      style={{
-                        backgroundColor: isFail ? '#fef2f2' : '#fffbeb',
-                        border: `1px solid ${isFail ? '#fecaca' : '#fde68a'}`,
-                        borderRight: `4px solid ${itemColor}`,
-                        borderRadius: '8px',
-                        padding: itemPad,
-                        display: 'flex',
-                        gap: '8px',
-                        alignItems: 'flex-start',
-                      }}
-                    >
-                      {showImage && item.imageUrl && (
-                        <img 
-                          src={item.imageUrl} 
-                          alt="" 
-                          style={{ 
-                            width: imgSize.w, 
-                            height: imgSize.h, 
-                            objectFit: 'cover', 
-                            borderRadius: '6px',
-                            flexShrink: 0,
-                            border: '1px solid #e5e7eb',
-                          }} 
-                        />
-                      )}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px', flexWrap: 'wrap' }}>
-                          <span style={{ 
-                            color: itemColor, 
-                            fontSize: '12px',
-                            fontWeight: 'bold',
-                          }}>
-                            {isFail ? '\u25CF' : '\u25D0'}
-                          </span>
-                          <span style={{ 
-                            color: BRAND.dark, 
-                            fontSize: catFontSize,
-                            backgroundColor: '#e5e7eb',
-                            padding: '2px 6px',
-                            borderRadius: '6px',
-                            fontWeight: 'bold',
-                            ...(isAr ? textStyle : englishStyle),
-                          }}>
-                            {isAr ? catLabel.ar : catLabel.en}
-                          </span>
-                          <span style={{ 
-                            color: BRAND.muted, 
-                            fontSize: catFontSize,
-                            ...(isAr ? englishStyle : textStyle),
-                          }}>
-                            {isAr ? catLabel.en : catLabel.ar}
-                          </span>
-                        </div>
-                        <p style={{ 
-                          color: BRAND.dark, 
-                          fontSize: titleSize, 
+                return (
+                  <div 
+                    key={item.id || idx}
+                    style={{
+                      border: `1px solid ${BRAND.border}`,
+                      borderRadius: '6px',
+                      padding: '10px',
+                      backgroundColor: '#ffffff',
+                      display: 'flex',
+                      gap: '8px',
+                      alignItems: 'flex-start',
+                    }}
+                  >
+                    {item.imageUrl && (
+                      <img 
+                        src={item.imageUrl} 
+                        alt="Defect" 
+                        style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px', border: `1px solid ${BRAND.border}`, flexShrink: 0 }} 
+                      />
+                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', gap: '4px', marginBottom: '2px', alignItems: 'center' }}>
+                        <span style={{ 
+                          fontSize: '8px', 
                           fontWeight: 'bold', 
-                          margin: '0 0 2px 0',
-                          lineHeight: '1.3',
-                          ...(isAr ? textStyle : englishStyle),
+                          color: '#ffffff', 
+                          backgroundColor: statusColor, 
+                          padding: '1px 4px', 
+                          borderRadius: '3px' 
                         }}>
-                          {isAr ? faultNameAr : (faultNameEn !== faultNameAr ? faultNameEn : faultNameAr)}
-                        </p>
-                        <p style={{ 
-                          color: BRAND.muted, 
-                          fontSize: fontSize, 
-                          margin: '0 0 3px 0',
-                          ...(isAr ? englishStyle : textStyle),
-                        }}>
-                          {isAr ? (faultNameEn !== faultNameAr ? faultNameEn : '') : faultNameAr}
-                        </p>
-                        <p style={{ 
-                          color: itemColor, 
-                          fontSize: catFontSize, 
-                          margin: 0,
-                          fontWeight: 'bold',
-                        }}>
-                          {isAr ? (
-                            <>
-                              <span style={textStyle}>{isFail ? '\u25CF عطل' : '\u25D0 ملاحظة'}</span>
-                              <span style={{ ...englishStyle, marginRight: '4px' }}>| {isFail ? 'Fault' : 'Note'}</span>
-                            </>
-                          ) : (
-                            <>
-                              <span style={englishStyle}>{isFail ? '\u25CF Fault' : '\u25D0 Note'}</span>
-                              <span style={{ ...textStyle, marginLeft: '4px' }}>| {isFail ? 'عطل' : 'ملاحظة'}</span>
-                            </>
-                          )}
-                        </p>
+                          {isAr ? (isFail ? 'عطل' : 'تنبيه') : (isFail ? 'FAIL' : 'WARN')}
+                        </span>
+                        <span style={{ fontSize: '9px', fontWeight: 'bold', color: BRAND.textMuted }}>
+                          {isAr ? catLabel.ar : catLabel.en}
+                        </span>
                       </div>
+                      <h4 style={{ fontSize: '12px', fontWeight: 'bold', color: BRAND.primary, margin: '0 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {item.faultName}
+                      </h4>
+                      <p style={{ fontSize: '10px', color: BRAND.textMuted, margin: 0, lineHeight: '1.3', height: '2.6em', overflow: 'hidden' }}>
+                        {item.description || item.notes || (isAr ? 'لا يوجد تفاصيل إضافية.' : 'No additional details.')}
+                      </p>
                     </div>
-                  );
-                })}
-              </div>
-            </>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
 
-        {/* OBD Codes Section - Professional HS Report */}
-        {(() => {
-          const obdCodes = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string}> | null) || [];
-          if (obdCodes.length === 0) return null;
-          const getCodeColor = (code: string) => {
-            const p = code.charAt(0).toUpperCase();
-            if (p === 'P') return { bg: '#dc2626', labelAr: 'المحرك وناقل الحركة' };
-            if (p === 'C') return { bg: '#d97706', labelAr: 'الشاصي' };
-            if (p === 'B') return { bg: '#2563eb', labelAr: 'الهيكل' };
-            if (p === 'U') return { bg: '#9333ea', labelAr: 'شبكة الاتصال' };
-            return { bg: '#475569', labelAr: 'أخرى' };
-          };
-          return (
-            <div style={{ borderTop: `3px solid ${BRAND.accent}`, flexShrink: 0 }}>
-              <div style={{ background: 'linear-gradient(to left, #1e293b, #0f172a, #000000)', padding: '18px 24px', color: 'white' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '36px', height: '36px', backgroundColor: '#10b981', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <span style={{ color: 'white', fontWeight: '900', fontSize: '11px', fontFamily: 'Arial, sans-serif' }}>HS</span>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '9px', color: '#cbd5e1', fontFamily: 'monospace', letterSpacing: '1.5px', fontWeight: 'bold' }}>HIGH SAFETY</div>
-                      <div style={{ fontSize: '8px', color: '#94a3b8', fontFamily: 'monospace', letterSpacing: '1px' }}>DIAGNOSTIC REPORT</div>
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '8px', padding: '6px 12px' }}>
-                    <div style={{ fontSize: '8px', color: '#94a3b8', fontFamily: 'monospace' }}>CODES FOUND</div>
-                    <div style={{ fontSize: '22px', fontWeight: '900', color: '#34d399', fontFamily: 'monospace' }}>{obdCodes.length}</div>
-                  </div>
-                </div>
-                <div style={{ textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '10px' }}>
-                  <div style={{ ...textStyle, fontSize: '14px', fontWeight: '900', color: 'white' }}>
-                    {isAr ? 'تقرير فحص كمبيوتر السيارة' : 'Vehicle Computer Diagnostic Report'}
-                  </div>
-                  <div style={{ fontSize: '9px', color: '#94a3b8', fontFamily: 'monospace', marginTop: '3px' }}>
-                    OBD-II Diagnostic Trouble Codes Report
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ padding: '0' }}>
-                {obdCodes.map((obd, idx) => {
-                  const codeColor = getCodeColor(obd.code);
-                  return (
-                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 24px', borderBottom: '1px solid #e2e8f0', backgroundColor: idx % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
-                      <div style={{ flexShrink: 0, textAlign: 'center' }}>
-                        <div style={{ fontFamily: 'monospace', fontWeight: '900', color: 'white', fontSize: '11px', padding: '5px 12px', borderRadius: '8px', backgroundColor: codeColor.bg, minWidth: '65px', textAlign: 'center' }}>{obd.code}</div>
-                        <div style={{ ...textStyle, fontSize: '8px', color: '#94a3b8', marginTop: '3px' }}>{codeColor.labelAr}</div>
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ ...textStyle, fontSize: '11px', fontWeight: 'bold', color: '#0f172a', lineHeight: '1.4' }}>{obd.nameAr}</div>
-                        <div style={{ ...englishStyle, fontSize: '9px', color: '#64748b', marginTop: '2px' }}>{obd.nameEn}</div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div style={{ backgroundColor: '#f1f5f9', borderTop: '2px solid #e2e8f0', padding: '8px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '8px', color: '#64748b', fontFamily: 'monospace', letterSpacing: '0.5px', fontWeight: 'bold' }}>HIGH SAFETY INSPECTION CENTER</span>
-                <span style={{ fontSize: '8px', color: '#94a3b8', fontFamily: 'monospace' }}>HS-OBD-{String(inspection.id).padStart(4, '0')}</span>
-              </div>
-            </div>
-          );
-        })()}
-
-        {/* Terms & Conditions */}
-        <div style={{
-          padding: '14px 24px',
-          backgroundColor: BRAND.light,
-          borderTop: `2px solid ${BRAND.accent}`,
-          flexShrink: 0,
-        }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            marginBottom: '10px',
-          }}>
-            <div style={{
-              width: '5px',
-              height: '20px',
-              backgroundColor: BRAND.accent,
-              borderRadius: '3px',
-            }}></div>
-            <h3 style={{ color: BRAND.dark, fontSize: '12px', fontWeight: 'bold', margin: 0 }}>
-              {isAr ? (
-                <><span style={textStyle}>البنود والأحكام</span><span style={{ ...englishStyle, marginRight: '10px', color: BRAND.muted }}>| Terms & Conditions</span></>
-              ) : (
-                <><span style={englishStyle}>Terms & Conditions</span><span style={{ ...textStyle, marginLeft: '10px', color: BRAND.muted }}>| البنود والأحكام</span></>
-              )}
-            </h3>
-          </div>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '8px 20px',
-          }}>
-            {[
-              { ar: 'المركز غير مسئول عن أي أعطال تحدث أثناء الفحص أو بعده.', en: 'The center is not responsible for any malfunctions during or after inspection.' },
-              { ar: 'المركز مسئول عن نتيجة الفحص وقت الفحص فقط.', en: 'The center is only responsible for inspection results at the time of inspection.' },
-              { ar: 'هذا الفحص غير معتمد لدى إدارة التراخيص.', en: 'This inspection is not approved by the Licensing Authority.' },
-              { ar: 'المركز غير مسئول عن أي أغراض شخصية داخل السيارة.', en: 'The center is not responsible for personal belongings inside the vehicle.' },
-            ].map((term, i) => (
-              <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-                <span style={{ color: BRAND.accent, fontSize: '10px', marginTop: '2px', fontWeight: 'bold' }}>●</span>
-                <div>
-                  <p style={{ color: BRAND.dark, fontSize: '10px', margin: 0, lineHeight: '1.5', fontWeight: '600', ...(isAr ? textStyle : englishStyle) }}>
-                    {isAr ? term.ar : term.en}
-                  </p>
-                  <p style={{ color: BRAND.muted, fontSize: '9px', margin: '2px 0 0 0', lineHeight: '1.4', ...(isAr ? englishStyle : textStyle) }}>
-                    {isAr ? term.en : term.ar}
-                  </p>
-                </div>
-              </div>
-            ))}
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', gridColumn: 'span 2' }}>
-              <span style={{ color: BRAND.accent, fontSize: '10px', marginTop: '2px', fontWeight: 'bold' }}>●</span>
-              <div>
-                <p style={{ color: BRAND.dark, fontSize: '10px', margin: 0, lineHeight: '1.5', fontWeight: '600', ...(isAr ? textStyle : englishStyle) }}>
-                  {isAr ? 'يعتبر هذا التقرير لحالة المركبة حسب قراءة الأجهزة في وقت الفحص.' : 'This report reflects the vehicle condition based on device readings at the time of inspection.'}
-                </p>
-                <p style={{ color: BRAND.muted, fontSize: '9px', margin: '2px 0 0 0', lineHeight: '1.4', ...(isAr ? englishStyle : textStyle) }}>
-                  {isAr ? 'This report reflects the vehicle condition based on device readings at the time of inspection.' : 'يعتبر هذا التقرير لحالة المركبة حسب قراءة الأجهزة في وقت الفحص.'}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Footer */}
-        <div style={{
-          background: `linear-gradient(135deg, ${BRAND.primary} 0%, ${BRAND.secondary} 100%)`,
-          padding: '14px 24px',
-          flexShrink: 0,
-          borderTop: `3px solid ${BRAND.accent}`,
-        }}>
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <img src={logoPath} alt="Logo" style={{ width: '28px', height: '28px', borderRadius: '50%', filter: `drop-shadow(0 0 4px rgba(197,133,44,0.8))` }} />
-              <div>
-                <span style={{ color: '#ffffff', fontSize: '11px', fontWeight: 'bold', ...(isAr ? textStyle : englishStyle) }}>
-                  {isAr ? 'مركز الامان العالي' : 'High Safety Center'}
-                </span>
-                <span style={{ color: BRAND.accentLight, fontSize: '9px', ...(isAr ? { marginRight: '8px', ...englishStyle } : { marginLeft: '8px', ...textStyle }) }}>
-                  {isAr ? 'High Safety Center' : 'مركز الامان العالي'}
-                </span>
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <span style={{ color: '#94a3b8', fontSize: '9px', ...englishStyle }}>Tel: 0542206000</span>
-              <span style={{ color: '#94a3b8', fontSize: '9px', ...englishStyle }}>highsafety2021@gmail.com</span>
-            </div>
-          </div>
-          <p style={{ 
-            color: BRAND.muted, 
-            fontSize: '7px', 
-            textAlign: 'center', 
-            margin: '10px 0 0 0',
-            borderTop: `1px solid ${BRAND.secondary}`,
-            paddingTop: '10px',
-          }}>
-            {isAr ? (
-              <>
-                <span style={textStyle}>هذا التقرير يعكس حالة المركبة وقت الفحص فقط</span>
-                <span style={{ ...englishStyle, marginRight: '8px' }}>| This report reflects the vehicle condition at the time of inspection only</span>
-              </>
-            ) : (
-              <>
-                <span style={englishStyle}>This report reflects the vehicle condition at the time of inspection only</span>
-                <span style={{ ...textStyle, marginLeft: '8px' }}>| هذا التقرير يعكس حالة المركبة وقت الفحص فقط</span>
-              </>
-            )}
-            <span style={{ ...englishStyle, ...(isAr ? { marginRight: '8px' } : { marginLeft: '8px' }) }}>| Report ID: HS-{inspection.id}</span>
-          </p>
+        <div style={{ borderTop: `1px solid ${BRAND.border}`, paddingTop: '10px', fontSize: '9px', color: BRAND.textMuted, display: 'flex', justifyContent: 'space-between', flexShrink: 0 }}>
+          <span>{isAr ? 'مركز الأمان العالي الدولي لفحص السيارات' : 'High Safety International Vehicle Inspection Center'}</span>
+          <span>صفحة 2 من 5</span>
         </div>
       </div>
     );
   }
 );
-
 PdfReportTemplate.displayName = 'PdfReportTemplate';
 
+// ==========================================
+// 3. PAGE 3: HEATMAP PAGE
+// ==========================================
+export const PdfHeatmapPage = forwardRef<HTMLDivElement, PdfReportTemplateProps>(
+  ({ inspection, lang = 'ar' }, ref) => {
+    const isAr = lang === 'ar';
+    const readings = (inspection.paintReadings as Record<string, number>) || {};
+    const hasReadings = Object.keys(readings).length > 0;
+    if (!hasReadings) return null;
+
+    const formattedDate = inspection.createdAt 
+      ? new Date(inspection.createdAt).toLocaleDateString(isAr ? 'ar-SA' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+      : '';
+
+    return (
+      <div
+        ref={ref}
+        dir={isAr ? 'rtl' : 'ltr'}
+        style={{
+          width: '794px',
+          height: '1123px',
+          backgroundColor: '#ffffff',
+          padding: '40px 30px',
+          boxSizing: 'border-box',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          color: BRAND.text,
+          overflow: 'hidden',
+          ...textStyle,
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `2px solid ${BRAND.border}`, paddingBottom: '12px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <img src={logoPath} alt="Logo" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
+            <div>
+              <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: BRAND.primary }}>{isAr ? 'مركز الأمان العالي' : 'High Safety Center'}</h3>
+              <p style={{ margin: 0, fontSize: '8px', color: BRAND.textMuted }}>{isAr ? 'تقرير فحص الطلاء والهيكل' : 'Paint & Body Inspection Report'}</p>
+            </div>
+          </div>
+          <div style={{ textAlign: isAr ? 'left' : 'right', fontSize: '9px', color: BRAND.textMuted }}>
+            <span>ID: HS-{inspection.id} | {formattedDate}</span>
+          </div>
+        </div>
+
+        <div style={{ margin: '15px 0 5px 0', flexShrink: 0 }}>
+          <h2 style={{ fontSize: '16px', fontWeight: 'bold', color: BRAND.primary, margin: 0 }}>
+            {isAr ? 'خريطة قياس سماكة الطلاء (ميكرون)' : 'Paint Depth Thickness Map (µm)'}
+          </h2>
+          <p style={{ fontSize: '10px', color: BRAND.textMuted, margin: '2px 0 0 0' }}>
+            {isAr ? 'توضح سماكة طلاء جسم السيارة الخارجي للكشف عن رش التجميل أو السمكرة' : 'Displays external body paint thickness to detect repaints or body filler.'}
+          </p>
+        </div>
+
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: 0,
+          padding: '10px 0',
+        }}>
+          <div style={{ width: '440px', height: '260px', transform: 'scale(1.1)', transformOrigin: 'center center' }}>
+            <PaintDepthHeatmap readings={readings} />
+          </div>
+
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            gap: '20px', 
+            marginTop: '30px',
+            backgroundColor: BRAND.light,
+            padding: '10px 20px',
+            borderRadius: '6px',
+            border: `1px solid ${BRAND.border}`,
+            width: '80%',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px' }}>
+              <div style={{ width: '10px', height: '10px', borderRadius: '3px', backgroundColor: BRAND.success }} />
+              <span style={{ fontWeight: 'bold' }}>{isAr ? 'طلاء أصلي وكالة (< 130)' : 'Original Paint (< 130)'}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px' }}>
+              <div style={{ width: '10px', height: '10px', borderRadius: '3px', backgroundColor: BRAND.warning }} />
+              <span style={{ fontWeight: 'bold' }}>{isAr ? 'رش تجميلي (130 - 290)' : 'Repainted (130 - 290)'}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px' }}>
+              <div style={{ width: '10px', height: '10px', borderRadius: '3px', backgroundColor: BRAND.danger }} />
+              <span style={{ fontWeight: 'bold' }}>{isAr ? 'معجون وسمكرة (> 290)' : 'Body Filler (> 290)'}</span>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '6px', overflow: 'hidden', flexShrink: 0 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '9px', textAlign: 'center' }}>
+            <thead>
+              <tr style={{ backgroundColor: BRAND.primary, color: '#ffffff' }}>
+                <th style={{ padding: '5px 10px', textAlign: isAr ? 'right' : 'left' }}>{isAr ? 'القطعة' : 'Panel'}</th>
+                <th style={{ padding: '5px 10px' }}>{isAr ? 'السماكة' : 'Thickness'}</th>
+                <th style={{ padding: '5px 10px' }}>{isAr ? 'الحالة فنية' : 'Status'}</th>
+                <th style={{ padding: '5px 10px', textAlign: isAr ? 'right' : 'left' }}>{isAr ? 'القطعة' : 'Panel'}</th>
+                <th style={{ padding: '5px 10px' }}>{isAr ? 'السماكة' : 'Thickness'}</th>
+                <th style={{ padding: '5px 10px' }}>{isAr ? 'الحالة فنية' : 'Status'}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(() => {
+                const panels = [
+                  { id: 'hood', ar: 'الكبوت', en: 'Hood' },
+                  { id: 'roof', ar: 'السقف', en: 'Roof' },
+                  { id: 'trunk', ar: 'الشنطة', en: 'Trunk' },
+                  { id: 'fender_front_right', ar: 'رفرف أمامي يمين', en: 'Front Right Fender' },
+                  { id: 'door_front_right', ar: 'باب أمامي يمين', en: 'Front Right Door' },
+                  { id: 'door_rear_right', ar: 'باب خلفي يمين', en: 'Rear Right Door' },
+                  { id: 'fender_rear_right', ar: 'رفرف خلفي يمين', en: 'Rear Right Fender' },
+                  { id: 'fender_front_left', ar: 'رفرف أمامي يسار', en: 'Front Left Fender' },
+                  { id: 'door_front_left', ar: 'باب أمامي يسار', en: 'Front Left Door' },
+                  { id: 'door_rear_left', ar: 'باب خلفي يسار', en: 'Rear Left Door' },
+                  { id: 'fender_rear_left', ar: 'رفرف خلفي يسار', en: 'Rear Left Fender' },
+                ];
+                const rows = [];
+                for (let i = 0; i < panels.length; i += 2) {
+                  const p1 = panels[i];
+                  const p2 = panels[i + 1];
+                  const val1 = readings[p1.id] || null;
+                  const val2 = p2 ? (readings[p2.id] || null) : null;
+
+                  const getStatus = (val: number | null) => {
+                    if (!val) return { text: '-', color: BRAND.textMuted };
+                    if (val < 130) return { text: isAr ? 'أصلي' : 'Original', color: BRAND.success };
+                    if (val < 290) return { text: isAr ? 'رش تجميلي' : 'Repaint', color: BRAND.warning };
+                    return { text: isAr ? 'معجون/سمكرة' : 'Filler', color: BRAND.danger };
+                  };
+
+                  const s1 = getStatus(val1);
+                  const s2 = getStatus(val2);
+
+                  rows.push(
+                    <tr key={i} style={{ borderBottom: `1px solid ${BRAND.border}`, backgroundColor: i % 4 === 0 ? BRAND.light : '#ffffff' }}>
+                      <td style={{ padding: '5px 10px', textAlign: isAr ? 'right' : 'left', fontWeight: 'bold' }}>{isAr ? p1.ar : p1.en}</td>
+                      <td style={{ padding: '5px 10px', fontFamily: 'monospace' }}>{val1 ? `${val1} µm` : '-'}</td>
+                      <td style={{ padding: '5px 10px', color: s1.color, fontWeight: 'bold' }}>{s1.text}</td>
+                      
+                      {p2 ? (
+                        <>
+                          <td style={{ padding: '5px 10px', textAlign: isAr ? 'right' : 'left', fontWeight: 'bold' }}>{isAr ? p2.ar : p2.en}</td>
+                          <td style={{ padding: '5px 10px', fontFamily: 'monospace' }}>{val2 ? `${val2} µm` : '-'}</td>
+                          <td style={{ padding: '5px 10px', color: s2.color, fontWeight: 'bold' }}>{s2.text}</td>
+                        </>
+                      ) : (
+                        <td colSpan={3} style={{ padding: '5px 10px' }} />
+                      )}
+                    </tr>
+                  );
+                }
+                return rows;
+              })()}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Footer */}
+        <div style={{ borderTop: `1px solid ${BRAND.border}`, paddingTop: '10px', fontSize: '9px', color: BRAND.textMuted, display: 'flex', justifyContent: 'space-between', flexShrink: 0 }}>
+          <span>{isAr ? 'مركز الأمان العالي الدولي لفحص السيارات' : 'High Safety International Vehicle Inspection Center'}</span>
+          <span>صفحة 3 من 5</span>
+        </div>
+      </div>
+    );
+  }
+);
+PdfHeatmapPage.displayName = 'PdfHeatmapPage';
+
+// ==========================================
+// 4. PAGE 4: DETAILED SECTION PHOTOS
+// ==========================================
 interface CarPhotoSection {
   key: string;
   ar: string;
@@ -1212,6 +634,10 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
     ];
 
     const hasAnyPhoto = sections.some(s => s.exteriorPhoto || s.interiorPhoto);
+    const formattedDate = inspection.createdAt 
+      ? new Date(inspection.createdAt).toLocaleDateString(isAr ? 'ar-SA' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+      : '';
+
     if (!hasAnyPhoto) return null;
 
     return (
@@ -1222,65 +648,60 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
           width: '794px',
           height: '1123px',
           backgroundColor: '#ffffff',
-          padding: '0',
-          margin: '0',
+          padding: '40px 30px',
           boxSizing: 'border-box',
           display: 'flex',
           flexDirection: 'column',
+          justifyContent: 'space-between',
+          color: BRAND.text,
           overflow: 'hidden',
-          ...(isAr ? textStyle : englishStyle),
+          ...textStyle,
         }}
       >
-        {/* Header - Professional Banner */}
-        <div style={{ flexShrink: 0, borderBottom: `4px solid ${BRAND.accent}`, background: BRAND.primary }}>
-          <img
-            src={hsBannerPath}
-            alt="High Safety International Center"
-            style={{ width: '100%', height: '90px', objectFit: 'cover', objectPosition: 'center', display: 'block' }}
-          />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `2px solid ${BRAND.border}`, paddingBottom: '12px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <img src={logoPath} alt="Logo" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
+            <div>
+              <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: BRAND.primary }}>{isAr ? 'مركز الأمان العالي' : 'High Safety Center'}</h3>
+              <p style={{ margin: 0, fontSize: '8px', color: BRAND.textMuted }}>{isAr ? 'تقرير التوثيق الفوتوغرافي' : 'Photographic Section Documentation'}</p>
+            </div>
+          </div>
+          <div style={{ textAlign: isAr ? 'left' : 'right', fontSize: '9px', color: BRAND.textMuted }}>
+            <span>ID: HS-{inspection.id} | {formattedDate}</span>
+          </div>
         </div>
 
-        {/* Section Title */}
-        <div style={{
-          padding: '24px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          flexShrink: 0,
-        }}>
-          <div style={{ width: '4px', height: '24px', backgroundColor: BRAND.accent, borderRadius: '3px' }}></div>
-          <h2 style={{ color: BRAND.dark, fontSize: '18px', fontWeight: 'bold', margin: 0, ...(isAr ? arTextStyle : englishStyle) }}>
-            {isAr ? 'صور الأقسام' : 'Section Photos'}
+        <div style={{ margin: '15px 0 10px 0', flexShrink: 0 }}>
+          <h2 style={{ fontSize: '16px', fontWeight: 'bold', color: BRAND.primary, margin: 0 }}>
+            {isAr ? 'صور أجزاء هيكل السيارة' : 'Vehicle Body Section Photos'}
           </h2>
+          <p style={{ fontSize: '10px', color: BRAND.textMuted, margin: '2px 0 0 0' }}>
+            {isAr ? 'توثيق فوتوغرافي عالي الدقة لأقسام السيارة المختلفة أثناء عملية الفحص' : 'High-resolution photographic records of various sections during the inspection.'}
+          </p>
         </div>
 
-        {/* Photos Grid */}
         <div style={{
           flex: 1,
-          padding: '0 20px 10px',
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
           gridTemplateRows: 'repeat(3, 1fr)',
           gap: '8px',
           overflow: 'hidden',
+          margin: '5px 0',
         }}>
           {sections.map((section) => {
             const hasExterior = !!section.exteriorPhoto;
             return (
-              <div key={section.key} style={{ border: `1px solid ${BRAND.border}`, borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff' }}>
-                <div style={{ background: `linear-gradient(135deg, ${BRAND.primary} 0%, ${BRAND.secondary} 100%)`, padding: '5px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-                  <span style={{ color: '#ffffff', fontSize: '10px', fontWeight: 'bold', ...(isAr ? arTextStyle : englishStyle) }}>{isAr ? section.ar : section.en}</span>
+              <div key={section.key} style={{ border: `1px solid ${BRAND.border}`, borderRadius: '6px', overflow: 'hidden', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff' }}>
+                <div style={{ background: BRAND.primary, padding: '4px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+                  <span style={{ color: '#ffffff', fontSize: '9px', fontWeight: 'bold' }}>{isAr ? section.ar : section.en}</span>
                 </div>
-                <div style={{ flex: 1, display: 'flex', gap: '3px', padding: '3px', minHeight: 0 }}>
+                <div style={{ flex: 1, display: 'flex', padding: '2px', minHeight: 0 }}>
                   {hasExterior ? (
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                      <div style={{ flex: 1, borderRadius: '4px', overflow: 'hidden', border: `1px solid ${BRAND.border}`, minHeight: 0 }}>
-                        <img src={section.exteriorPhoto || undefined} alt={`${section.en}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                      </div>
-                    </div>
+                    <img src={section.exteriorPhoto || undefined} alt={`${section.en}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: '3px' }} />
                   ) : (
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: BRAND.light, borderRadius: '4px', border: `1px dashed ${BRAND.border}` }}>
-                      <span style={{ color: BRAND.muted, fontSize: '9px', ...(isAr ? arTextStyle : englishStyle) }}>{isAr ? 'لا توجد صور' : 'No Photos'}</span>
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: BRAND.light, borderRadius: '3px', border: `1px dashed ${BRAND.border}` }}>
+                      <span style={{ color: BRAND.textMuted, fontSize: '9px' }}>{isAr ? 'لا توجد صور متوفرة' : 'No Photos'}</span>
                     </div>
                   )}
                 </div>
@@ -1288,32 +709,28 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
             );
           })}
         </div>
+
+        {/* Footer */}
+        <div style={{ borderTop: `1px solid ${BRAND.border}`, paddingTop: '10px', fontSize: '9px', color: BRAND.textMuted, display: 'flex', justifyContent: 'space-between', flexShrink: 0 }}>
+          <span>{isAr ? 'مركز الأمان العالي الدولي لفحص السيارات' : 'High Safety International Vehicle Inspection Center'}</span>
+          <span>صفحة 4 من 5</span>
+        </div>
       </div>
     );
   }
 );
 PdfCarPhotosPage.displayName = 'PdfCarPhotosPage';
 
-export const PdfHeatmapPage = forwardRef<HTMLDivElement, PdfReportTemplateProps>(
+// ==========================================
+// 5. PAGE 5: COMPUTER DIAGNOSTICS & DISCLAIMERS
+// ==========================================
+export const PdfSignaturesPage = forwardRef<HTMLDivElement, PdfReportTemplateProps>(
   ({ inspection, lang = 'ar' }, ref) => {
     const isAr = lang === 'ar';
-    const readings = (inspection.paintReadings as Record<string, number>) || {};
-    const hasReadings = Object.keys(readings).length > 0;
-    if (!hasReadings) return null;
-
-    const PAINT_PANELS = [
-      { id: 'hood', labelAr: 'الكبوت', labelEn: 'Hood' },
-      { id: 'roof', labelAr: 'السقف', labelEn: 'Roof' },
-      { id: 'trunk', labelAr: 'الشنطة', labelEn: 'Trunk' },
-      { id: 'fender_front_right', labelAr: 'رفرف أمامي يمين', labelEn: 'Front Right Fender' },
-      { id: 'door_front_right', labelAr: 'باب أمامي يمين', labelEn: 'Front Right Door' },
-      { id: 'door_rear_right', labelAr: 'باب خلفي يمين', labelEn: 'Rear Right Door' },
-      { id: 'fender_rear_right', labelAr: 'رفرف خلفي يمين', labelEn: 'Rear Right Fender' },
-      { id: 'fender_front_left', labelAr: 'رفرف أمامي يسار', labelEn: 'Front Left Fender' },
-      { id: 'door_front_left', labelAr: 'باب أمامي يسار', labelEn: 'Front Left Door' },
-      { id: 'door_rear_left', labelAr: 'باب خلفي يسار', labelEn: 'Rear Left Door' },
-      { id: 'fender_rear_left', labelAr: 'رفرف خلفي يسار', labelEn: 'Rear Left Fender' },
-    ];
+    const obdCodes = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string; diagnosis?: string}> | null) || [];
+    const formattedDate = inspection.createdAt 
+      ? new Date(inspection.createdAt).toLocaleDateString(isAr ? 'ar-SA' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+      : '';
 
     return (
       <div
@@ -1323,119 +740,124 @@ export const PdfHeatmapPage = forwardRef<HTMLDivElement, PdfReportTemplateProps>
           width: '794px',
           height: '1123px',
           backgroundColor: '#ffffff',
-          padding: '0',
-          margin: '0',
+          padding: '40px 30px',
           boxSizing: 'border-box',
           display: 'flex',
           flexDirection: 'column',
+          justifyContent: 'space-between',
+          color: BRAND.text,
           overflow: 'hidden',
-          ...(isAr ? textStyle : englishStyle),
+          ...textStyle,
         }}
       >
-        {/* Header - Professional Banner */}
-        <div style={{ flexShrink: 0, borderBottom: `4px solid ${BRAND.accent}`, background: BRAND.primary }}>
-          <img
-            src={hsBannerPath}
-            alt="High Safety International Center"
-            style={{ width: '100%', height: '90px', objectFit: 'cover', objectPosition: 'center', display: 'block' }}
-          />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `2px solid ${BRAND.border}`, paddingBottom: '12px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <img src={logoPath} alt="Logo" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
+            <div>
+              <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: BRAND.primary }}>{isAr ? 'مركز الأمان العالي' : 'High Safety Center'}</h3>
+              <p style={{ margin: 0, fontSize: '8px', color: BRAND.textMuted }}>{isAr ? 'تقرير الأعطال والتواقيع الرسمية' : 'Diagnostics & Final Sign-Off'}</p>
+            </div>
+          </div>
+          <div style={{ textAlign: isAr ? 'left' : 'right', fontSize: '9px', color: BRAND.textMuted }}>
+            <span>ID: HS-{inspection.id} | {formattedDate}</span>
+          </div>
         </div>
 
-        {/* Section Title */}
-        <div style={{
-          padding: '24px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          flexShrink: 0,
-        }}>
-          <div style={{ width: '4px', height: '24px', backgroundColor: BRAND.accent, borderRadius: '3px' }}></div>
-          <h2 style={{ color: BRAND.dark, fontSize: '18px', fontWeight: 'bold', margin: 0, ...(isAr ? arTextStyle : englishStyle) }}>
-            {isAr ? 'خريطة سماكة الطلاء (Heatmap)' : 'Paint Depth Heatmap'}
-          </h2>
-        </div>
+        {/* OBD Scan Results */}
+        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', marginBottom: '15px' }}>
+          <div style={{ margin: '10px 0 10px 0', flexShrink: 0 }}>
+            <h2 style={{ fontSize: '15px', fontWeight: 'bold', color: BRAND.primary, margin: 0 }}>
+              {isAr ? 'تقرير فحص أنظمة الكمبيوتر (OBD-II Scan)' : 'OBD-II Computer Diagnostic Scan'}
+            </h2>
+            <p style={{ fontSize: '10px', color: BRAND.textMuted, margin: '2px 0 0 0' }}>
+              {isAr ? `أكواد الأعطال الإلكترونية النشطة المسجلة بالمركبة (${obdCodes.length} كود)` : `Active electronic DTC codes retrieved (${obdCodes.length} codes).`}
+            </p>
+          </div>
 
-        {/* Heatmap Grid */}
-        <div style={{
-          flex: 1,
-          padding: '0 24px 24px',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: '12px',
-          alignContent: 'start',
-        }}>
-          {PAINT_PANELS.map(panel => {
-            const val = readings[panel.id];
-            let bgColor = '#f8fafc';
-            let borderColor = '#e2e8f0';
-            let textColor = '#64748b';
-            let badgeBg = '#f1f5f9';
-            let badgeColor = '#64748b';
-
-            if (val) {
-              if (val < 150) {
-                bgColor = '#ecfdf5';
-                borderColor = '#10b981';
-                textColor = '#065f46';
-                badgeBg = '#10b981';
-                badgeColor = '#ffffff';
-              } else if (val < 300) {
-                bgColor = '#fffbeb';
-                borderColor = '#f59e0b';
-                textColor = '#92400e';
-                badgeBg = '#f59e0b';
-                badgeColor = '#ffffff';
-              } else {
-                bgColor = '#fef2f2';
-                borderColor = '#ef4444';
-                textColor = '#991b1b';
-                badgeBg = '#ef4444';
-                badgeColor = '#ffffff';
-              }
-            }
-
-            return (
-              <div key={panel.id} style={{
-                backgroundColor: bgColor,
-                border: `2px solid ${borderColor}`,
-                borderRadius: '12px',
-                padding: '16px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-              }}>
-                <div style={{
-                  color: textColor,
-                  fontSize: '14px',
-                  fontWeight: 'bold',
-                  textAlign: 'center',
-                  ...(isAr ? arTextStyle : englishStyle)
-                }}>
-                  {isAr ? panel.labelAr : panel.labelEn}
-                </div>
-                {val ? (
-                  <div style={{
-                    backgroundColor: badgeBg,
-                    color: badgeColor,
-                    padding: '4px 12px',
-                    borderRadius: '20px',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    fontFamily: 'monospace',
-                  }}>
-                    {val} µm
-                  </div>
-                ) : (
-                  <div style={{ color: '#94a3b8', fontSize: '14px' }}>---</div>
-                )}
+          <div style={{ flex: 1, overflowY: 'auto', border: `1px solid ${BRAND.border}`, borderRadius: '6px', backgroundColor: BRAND.light, padding: '8px' }}>
+            {obdCodes.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '24px', color: BRAND.success }}>
+                <span style={{ fontSize: '20px', display: 'block', marginBottom: '4px' }}>✔️</span>
+                <span style={{ fontWeight: 'bold', fontSize: '11px' }}>{isAr ? 'فحص الكمبيوتر سليم - لا توجد أكواد أعطال مسجلة' : 'No DTC Codes Found'}</span>
               </div>
-            );
-          })}
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {obdCodes.map((obd, idx) => (
+                  <div key={idx} style={{ backgroundColor: '#ffffff', border: `1px solid ${BRAND.border}`, borderRadius: '6px', padding: '8px', display: 'flex', gap: '10px' }}>
+                    <div style={{ backgroundColor: BRAND.danger, color: '#ffffff', fontFamily: 'monospace', fontWeight: 'bold', fontSize: '11px', padding: '3px 6px', borderRadius: '3px', alignSelf: 'flex-start' }}>
+                      {obd.code}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <h4 style={{ fontSize: '11px', fontWeight: 'bold', color: BRAND.primary, margin: '0 0 2px 0' }}>
+                        {isAr ? obd.nameAr : obd.nameEn}
+                      </h4>
+                      <p style={{ fontSize: '9px', color: BRAND.textMuted, margin: 0 }}>
+                        {isAr ? obd.diagnosis : obd.nameEn}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Legal Disclaimers (Terms & Conditions) */}
+        <div style={{ backgroundColor: BRAND.light, border: `1px solid ${BRAND.border}`, borderRadius: '6px', padding: '12px', flexShrink: 0, marginBottom: '15px' }}>
+          <h3 style={{ fontSize: '11px', fontWeight: 'bold', color: BRAND.primary, margin: '0 0 6px 0', borderBottom: `1px solid ${BRAND.border}`, paddingBottom: '3px' }}>
+            {isAr ? 'البنود والشروط القانونية لإخلاء المسؤولية' : 'Legal Terms & Disclaimers'}
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 16px', fontSize: '9px', lineHeight: '1.4' }}>
+            <div>
+              <p style={{ margin: 0, fontWeight: 'bold' }}>{isAr ? '1. نطاق ومسؤولية الفحص:' : '1. Diagnostic Scope:'}</p>
+              <p style={{ margin: 0, color: BRAND.textMuted }}>{isAr ? 'المركز مسؤول عن توثيق حالة المركبة وقت الفحص فقط، ولا يضمن عدم حدوث أعطال مستقبلية.' : 'The report reflects vehicle state at inspection time only. Subsequent issues are excluded.'}</p>
+            </div>
+            <div>
+              <p style={{ margin: 0, fontWeight: 'bold' }}>{isAr ? '2. المقتنيات الشخصية:' : '2. Personal Property:'}</p>
+              <p style={{ margin: 0, color: BRAND.textMuted }}>{isAr ? 'المركز لا يتحمل مسؤولية فقدان أي مقتنيات شخصية لم يتم إخراجها من السيارة قبل الفحص.' : 'The center is not liable for personal items left in the vehicle during inspection.'}</p>
+            </div>
+            <div>
+              <p style={{ margin: 0, fontWeight: 'bold' }}>{isAr ? '3. صلاحية التقارير:' : '3. Licensing & Validity:'}</p>
+              <p style={{ margin: 0, color: BRAND.textMuted }}>{isAr ? 'يعتبر هذا التقرير استشارياً فقط لتوجيه المشتري، وليس وثيقة ترخيص رسمية.' : 'This report is advisory and does not replace official licensing checks.'}</p>
+            </div>
+            <div>
+              <p style={{ margin: 0, fontWeight: 'bold' }}>{isAr ? '4. نظام مكافحة التزوير:' : '4. Tamper Protection:'}</p>
+              <p style={{ margin: 0, color: BRAND.textMuted }}>{isAr ? 'التقرير مصدق ومحمي برمز كودي رقمي من المركز للتحقق من سلامة البيانات إلكترونياً.' : 'Report data is secured against tampering under High Safety standards.'}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Signatures & Verification */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: `1px dashed ${BRAND.border}`, borderRadius: '6px', padding: '14px', flexShrink: 0 }}>
+          <div style={{ textAlign: 'center', width: '200px' }}>
+            <span style={{ fontSize: '9px', color: BRAND.textMuted, display: 'block', marginBottom: '15px' }}>{isAr ? 'توقيع الفاحص / المركز' : 'Inspector / Center Signature'}</span>
+            <div style={{ width: '100px', height: '1px', backgroundColor: BRAND.textMuted, margin: '0 auto 4px' }} />
+            <span style={{ fontSize: '8px', color: BRAND.textMuted }}>HIGH SAFETY CENTER</span>
+          </div>
+
+          <div style={{ textAlign: 'center' }}>
+            <img src={logoPath} alt="Verified Logo" style={{ width: '40px', height: '40px', opacity: 0.8 }} />
+            <div style={{ fontSize: '8px', fontWeight: 'bold', color: BRAND.accent, marginTop: '2px', letterSpacing: '1px' }}>VERIFIED REPORT</div>
+          </div>
+
+          <div style={{ textAlign: 'center', width: '200px' }}>
+            <span style={{ fontSize: '9px', color: BRAND.textMuted, display: 'block', marginBottom: '15px' }}>{isAr ? 'توقيع العميل' : 'Customer Signature'}</span>
+            {inspection.customerSignature ? (
+              <img src={inspection.customerSignature} alt="Signature" style={{ height: '30px', objectFit: 'contain', display: 'block', margin: '0 auto' }} />
+            ) : (
+              <div style={{ width: '100px', height: '1px', backgroundColor: BRAND.textMuted, margin: '0 auto 4px' }} />
+            )}
+            <span style={{ fontSize: '8px', color: BRAND.textMuted }}>{inspection.customerName || '-'}</span>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div style={{ borderTop: `1px solid ${BRAND.border}`, paddingTop: '10px', fontSize: '9px', color: BRAND.textMuted, display: 'flex', justifyContent: 'space-between', flexShrink: 0 }}>
+          <span>{isAr ? 'مركز الأمان العالي الدولي لفحص السيارات' : 'High Safety International Vehicle Inspection Center'}</span>
+          <span>صفحة 5 من 5</span>
         </div>
       </div>
     );
   }
 );
-PdfHeatmapPage.displayName = 'PdfHeatmapPage';
+PdfSignaturesPage.displayName = 'PdfSignaturesPage';
