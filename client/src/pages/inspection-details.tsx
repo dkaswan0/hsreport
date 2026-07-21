@@ -57,7 +57,6 @@ export default function InspectionDetails() {
   const [isEditingInfo, setIsEditingInfo] = useState(false);
   const [editInfo, setEditInfo] = useState<Record<string, any>>({});
   const [isObdOpen, setIsObdOpen] = useState(false);
-  const [isPaintOpen, setIsPaintOpen] = useState(false);
   
   const { toast } = useToast();
 
@@ -675,30 +674,6 @@ export default function InspectionDetails() {
           </div>
         </div>
 
-        {/* Paint Depth Button */}
-        <button
-          onClick={() => setIsPaintOpen(true)}
-          className="w-full flex items-center justify-between p-4 md:p-5 bg-white rounded-2xl shadow-sm border border-slate-100 hover:border-[#C5852C] hover:shadow-md transition-all group"
-          data-testid="btn-open-paint-section"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#C5852C] to-[#9c6a23] flex items-center justify-center shadow-sm">
-              <Car className="w-5 h-5 text-white" />
-            </div>
-            <div className="text-right">
-              <div className="font-bold text-slate-900 text-sm">فحص سماكة الطلاء (Heatmap)</div>
-              <div className="text-xs text-slate-400 mt-0.5">
-                {(() => {
-                  const readings = (inspection.paintReadings as Record<string, number> | null) || {};
-                  const count = Object.keys(readings).length;
-                  return count > 0 ? `تم فحص ${count} أجزاء` : 'لم يتم الفحص بعد';
-                })()}
-              </div>
-            </div>
-          </div>
-          <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-[#C5852C] transition-colors" />
-        </button>
-
         {/* OBD Button */}
         <button
           onClick={() => setIsObdOpen(true)}
@@ -727,11 +702,6 @@ export default function InspectionDetails() {
       {/* OBD Full Screen Panel */}
       {isObdOpen && inspection && (
         <ObdCodesSection inspection={inspection} inspectionId={id} onClose={() => setIsObdOpen(false)} />
-      )}
-
-      {/* Paint Heatmap Full Screen Panel */}
-      {isPaintOpen && inspection && (
-        <PaintHeatmapSection inspection={inspection} inspectionId={id} onClose={() => setIsPaintOpen(false)} />
       )}
 
       {/* Mobile Fixed Bottom Action Bar */}
@@ -2228,122 +2198,4 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
   );
 }
 
-const PAINT_PANELS = [
-  { id: 'hood', labelAr: 'الكبوت', labelEn: 'Hood' },
-  { id: 'roof', labelAr: 'السقف', labelEn: 'Roof' },
-  { id: 'trunk', labelAr: 'الشنطة', labelEn: 'Trunk' },
-  { id: 'fender_front_right', labelAr: 'رفرف أمامي يمين', labelEn: 'Front Right Fender' },
-  { id: 'door_front_right', labelAr: 'باب أمامي يمين', labelEn: 'Front Right Door' },
-  { id: 'door_rear_right', labelAr: 'باب خلفي يمين', labelEn: 'Rear Right Door' },
-  { id: 'fender_rear_right', labelAr: 'رفرف خلفي يمين', labelEn: 'Rear Right Fender' },
-  { id: 'fender_front_left', labelAr: 'رفرف أمامي يسار', labelEn: 'Front Left Fender' },
-  { id: 'door_front_left', labelAr: 'باب أمامي يسار', labelEn: 'Front Left Door' },
-  { id: 'door_rear_left', labelAr: 'باب خلفي يسار', labelEn: 'Rear Left Door' },
-  { id: 'fender_rear_left', labelAr: 'رفرف خلفي يسار', labelEn: 'Rear Left Fender' },
-];
 
-function PaintHeatmapSection({ inspection, inspectionId, onClose }: { inspection: Inspection; inspectionId: number; onClose: () => void }) {
-  const { toast } = useToast();
-  const updateInspection = useUpdateInspection();
-  const [readings, setReadings] = useState<Record<string, number>>((inspection.paintReadings as Record<string, number>) || {});
-
-  const handleReadingChange = (panelId: string, value: string) => {
-    const num = parseInt(value, 10);
-    setReadings(prev => {
-      const newReadings = { ...prev };
-      if (isNaN(num)) {
-        delete newReadings[panelId];
-      } else {
-        newReadings[panelId] = num;
-      }
-      return newReadings;
-    });
-  };
-
-  const saveReadings = () => {
-    updateInspection.mutate({ id: inspectionId, paintReadings: readings as any }, {
-      onSuccess: () => {
-        toast({ title: "تم الحفظ", description: "تم حفظ سماكة الطلاء بنجاح" });
-        onClose();
-      },
-      onError: () => {
-        toast({ title: "خطأ", description: "تعذر الحفظ", variant: "destructive" });
-      }
-    });
-  };
-
-  const getHeatmapColorClass = (val: number) => {
-    if (val < 150) return 'bg-emerald-100 text-emerald-800 border-emerald-300';
-    if (val < 300) return 'bg-amber-100 text-amber-800 border-amber-300';
-    return 'bg-red-100 text-red-800 border-red-300';
-  };
-
-  return (
-    <div className="fixed inset-0 z-[60] bg-white md:bg-slate-900/60 md:backdrop-blur-sm md:flex md:items-center md:justify-center" dir="rtl">
-      <div className="w-full h-full md:h-auto md:max-w-2xl md:max-h-[90vh] bg-white md:rounded-2xl md:shadow-2xl flex flex-col overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-l from-[#C5852C] via-[#9c6a23] to-[#734e19] text-white px-5 py-4 shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-                <Car className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h2 className="text-lg font-black">تحليل سماكة الطلاء</h2>
-                <p className="text-orange-200 text-xs font-mono" dir="ltr">Paint Depth Heatmap (µm)</p>
-              </div>
-            </div>
-            <button onClick={onClose} className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center hover:bg-white/30 transition-colors">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto bg-slate-50 p-4 space-y-3">
-          <div className="flex items-center justify-between bg-blue-50 border border-blue-200 p-3 rounded-xl mb-4">
-            <div className="text-xs text-blue-800">
-              <span className="font-bold">دليل الألوان (ميكرون): </span>
-              <span className="inline-block w-3 h-3 bg-emerald-500 rounded-full ml-1 align-middle"></span> وكالة (&lt;150)
-              <span className="inline-block w-3 h-3 bg-amber-500 rounded-full mx-1 align-middle"></span> رش (150-300)
-              <span className="inline-block w-3 h-3 bg-red-500 rounded-full mx-1 align-middle"></span> معجون (&gt;300)
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {PAINT_PANELS.map(panel => {
-              const val = readings[panel.id];
-              const colorClass = val ? getHeatmapColorClass(val) : 'bg-white border-slate-200';
-              return (
-                <div key={panel.id} className={`p-3 rounded-xl border ${colorClass} transition-colors flex flex-col justify-between`}>
-                  <div className="text-xs font-bold text-slate-700 mb-2">{panel.labelAr}</div>
-                  <div className="flex items-center gap-2">
-                    <input 
-                      type="number" 
-                      value={readings[panel.id] || ''} 
-                      onChange={(e) => handleReadingChange(panel.id, e.target.value)}
-                      placeholder="---"
-                      className="w-full px-2 py-1.5 text-center text-sm font-bold bg-white/80 rounded-lg border border-slate-300 outline-none focus:ring-2 focus:ring-[#C5852C]"
-                    />
-                    <span className="text-[10px] text-slate-500">µm</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="px-4 py-3 bg-white border-t border-slate-200 flex justify-end gap-2 shrink-0">
-          <button onClick={onClose} className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition-colors">
-            إلغاء
-          </button>
-          <button onClick={saveReadings} className="px-5 py-2.5 rounded-xl bg-[#C5852C] hover:bg-[#a66f24] text-white font-bold transition-colors disabled:opacity-50 flex items-center gap-2">
-            <Save className="w-4 h-4" />
-            حفظ واعتماد
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}

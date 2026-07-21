@@ -40,7 +40,6 @@ import type { Inspection, InspectionItem } from "@shared/schema";
 import { INSPECTION_CATEGORIES, CATEGORY_GROUPS } from "@shared/categories";
 import { LuxuryOdometer } from "@/components/luxury-odometer";
 import { IntroAnimation } from "@/components/intro-animation";
-import { PaintDepthHeatmap } from "@/components/paint-depth-heatmap";
 
 type InspectionWithItems = Inspection & { items: InspectionItem[] };
 
@@ -1211,9 +1210,6 @@ export default function PublicReport() {
             </div>
           );
         })()}
-
-          {/* Paint Depth Heatmap Section */}
-          <PaintDepthHeatmap paintReadings={inspection.paintReadings as Record<string, number> | null} className="mb-8" />
 
           {/* Autel Computer Report Section */}
         {inspection.autelReportPdf && (

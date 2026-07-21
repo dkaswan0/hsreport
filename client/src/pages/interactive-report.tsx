@@ -45,7 +45,6 @@ import carLeftView from "@assets/generated_images/car_left_side_view.png";
 import { INSPECTION_CATEGORIES, CATEGORY_GROUPS } from "@shared/categories";
 import { getVehicleColor, calculateInspectionStats } from "@/lib/vehicle-utils";
 import { VinPlate } from "@/components/vin-plate";
-import { PaintDepthHeatmap } from "@/components/paint-depth-heatmap";
 
 // Car views configuration
 type ViewAngle = 'front' | 'right' | 'rear' | 'left';
@@ -243,8 +242,7 @@ const CATEGORY_POSITIONS: Record<string, { top: string; left: string; transform?
 };
 
 // Realistic 360° Car Visualization with 4 viewing angles
-const Car3DVisualization = ({ items, paintReadings, onCategoryClick }: { items: any[], paintReadings?: Record<string, number>, onCategoryClick: (cat: string) => void }) => {
-  const [viewMode, setViewMode] = useState<'360' | 'hologram' | 'heatmap'>('360');
+const Car360Visualization = ({ items, onCategoryClick }: { items: any[], onCategoryClick: (cat: string) => void }) => {
   const [currentViewIndex, setCurrentViewIndex] = useState(0);
   const [isAutoRotating, setIsAutoRotating] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
@@ -356,7 +354,6 @@ const Car3DVisualization = ({ items, paintReadings, onCategoryClick }: { items: 
     setIsAutoRotating(!isAutoRotating);
   };
 
-
   // Calculate summary stats based on actual items count
   const stats = useMemo(() => {
     const pass = items.filter(i => i.status === 'pass').length;
@@ -364,66 +361,6 @@ const Car3DVisualization = ({ items, paintReadings, onCategoryClick }: { items: 
     const fail = items.filter(i => i.status === 'fail').length;
     return { good: pass, warning, fail, total: items.length };
   }, [items]);
-
-  const renderHotspot = (catId: string, position: { top: string; left: string }) => {
-    const cat = INSPECTION_CATEGORIES.find(c => c.id === catId);
-    if (!cat) return null;
-    
-    const catItems = getCategoryItems(catId);
-    if (catItems.length === 0) return null; // Hide if no observations are recorded
-    
-    const isSelected = selectedCategory === catId;
-    const pulseColor = 'bg-[#C5852C] shadow-[#C5852C]/50';
-
-    return (
-      <div 
-        className="absolute z-10 transition-all duration-300 -translate-x-1/2 -translate-y-1/2"
-        style={position}
-      >
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleCategoryPress(catId);
-          }}
-          className={cn(
-            "w-4 h-4 rounded-full cursor-pointer border border-white flex items-center justify-center shadow-lg transition-all hover:scale-125",
-            pulseColor,
-            isSelected ? "scale-125 ring-2 ring-white" : "animate-pulse"
-          )}
-        />
-
-        {/* Fault details popup */}
-        {isSelected && (
-          <div 
-            className="absolute bottom-full mb-2 -translate-x-1/2 left-1/2 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-3 min-w-[200px] max-w-[280px] z-50 border border-slate-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-200">
-              <span className="font-bold text-xs text-slate-800 font-arabic">{cat.label}</span>
-              <span className="text-[10px] text-slate-500">{catItems.length} ملاحظة</span>
-            </div>
-            <div className="space-y-2 max-h-[150px] overflow-y-auto">
-              {catItems.map((item, idx) => (
-                <div 
-                  key={idx}
-                  className="p-2 rounded-lg text-xs text-right bg-slate-50 border border-slate-100"
-                >
-                  <div className="flex flex-col gap-1">
-                    <p className="font-bold font-arabic text-slate-800 leading-tight">
-                      {item.faultName.split(' - ')[0]}
-                    </p>
-                    {item.notes && (
-                      <p className="text-slate-500 text-[10px] font-arabic">{item.notes}</p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
 
   return (
     <div 
@@ -440,54 +377,21 @@ const Car3DVisualization = ({ items, paintReadings, onCategoryClick }: { items: 
       {/* Header */}
       <div className="absolute top-0 left-0 right-0 p-4 flex flex-col md:flex-row justify-between items-center gap-3 z-20">
         <div className="flex items-center gap-2">
-          {viewMode === '360' && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={(e) => { e.stopPropagation(); toggleAutoRotate(); }}
-              className={cn(
-                "backdrop-blur-sm text-white",
-                isAutoRotating ? "bg-primary/50 hover:bg-primary/70" : "bg-white/10 hover:bg-white/20"
-              )}
-              data-testid="button-toggle-rotation"
-            >
-              <RotateCcw className={cn("w-5 h-5", isAutoRotating && "animate-spin")} />
-            </Button>
-          )}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={(e) => { e.stopPropagation(); toggleAutoRotate(); }}
+            className={cn(
+              "backdrop-blur-sm text-white",
+              isAutoRotating ? "bg-primary/50 hover:bg-primary/70" : "bg-white/10 hover:bg-white/20"
+            )}
+            data-testid="button-toggle-rotation"
+          >
+            <RotateCcw className={cn("w-5 h-5", isAutoRotating && "animate-spin")} />
+          </Button>
           <div className="bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs font-bold text-white font-arabic">
-            {viewMode === '360' ? currentView.label : viewMode === 'hologram' ? "المخطط الهولوغرامي الذكي" : "خريطة سماكة الطلاء (Heatmap)"}
+            {currentView.label}
           </div>
-        </div>
-
-        {/* View Mode Toggle */}
-        <div className="flex items-center gap-1 bg-white/10 backdrop-blur-sm rounded-full p-1 border border-white/10">
-          <button
-            onClick={(e) => { e.stopPropagation(); setViewMode('360'); }}
-            className={cn(
-              "px-3 py-1 rounded-full text-xs font-bold font-arabic transition-all",
-              viewMode === '360' ? "bg-[#C5852C] text-white" : "text-white/60 hover:text-white"
-            )}
-          >
-            حقيقي 360°
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); setViewMode('hologram'); }}
-            className={cn(
-              "px-3 py-1 rounded-full text-xs font-bold font-arabic transition-all",
-              viewMode === 'hologram' ? "bg-[#C5852C] text-white" : "text-white/60 hover:text-white"
-            )}
-          >
-            مخطط 3D تفاعلي
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); setViewMode('heatmap'); }}
-            className={cn(
-              "px-3 py-1 rounded-full text-xs font-bold font-arabic transition-all",
-              viewMode === 'heatmap' ? "bg-red-500 text-white" : "text-white/60 hover:text-white"
-            )}
-          >
-            سماكة الطلاء
-          </button>
         </div>
 
         <div className="flex gap-2">
@@ -498,247 +402,135 @@ const Car3DVisualization = ({ items, paintReadings, onCategoryClick }: { items: 
       </div>
 
       {/* View Navigation Arrows */}
-      {viewMode === '360' && (
-        <>
-          <button
-            onClick={(e) => { e.stopPropagation(); goToView('prev'); }}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white p-3 rounded-full transition-all"
-            data-testid="button-prev-view"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); goToView('next'); }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white p-3 rounded-full transition-all"
-            data-testid="button-next-view"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </>
-      )}
+      <>
+        <button
+          onClick={(e) => { e.stopPropagation(); goToView('prev'); }}
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white p-3 rounded-full transition-all"
+          data-testid="button-prev-view"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); goToView('next'); }}
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white p-3 rounded-full transition-all"
+          data-testid="button-next-view"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </>
 
       {/* Car View Container */}
       <div className="relative w-full aspect-square md:aspect-[16/10] flex items-center justify-center pt-16">
         {/* Ground reflection */}
         <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-white/5 to-transparent" />
         
-        {viewMode === '360' ? (
-          /* Car Image with transition */
-          <div 
-            className="relative w-[85%] h-[75%] transition-all duration-500 ease-out"
-            style={{ 
-              transform: `translateX(${isDragging ? dragDistance * 0.1 : 0}px)`,
-              opacity: isDragging ? 0.8 : 1
-            }}
-          >
-            <img 
-              src={currentView.image} 
-              alt={`Vehicle - ${currentView.labelEn}`} 
-              className="w-full h-full object-contain drop-shadow-2xl"
-            />
+        {/* Car Image with transition */}
+        <div 
+          className="relative w-[85%] h-[75%] transition-all duration-500 ease-out"
+          style={{ 
+            transform: `translateX(${isDragging ? dragDistance * 0.1 : 0}px)`,
+            opacity: isDragging ? 0.8 : 1
+          }}
+        >
+          <img 
+            src={currentView.image} 
+            alt={`Vehicle - ${currentView.labelEn}`} 
+            className="w-full h-full object-contain drop-shadow-2xl"
+          />
 
-            {/* Category indicators for current view */}
-            {INSPECTION_CATEGORIES.map(cat => {
-              const position = getCategoryPosition(cat.id, currentView.angle);
-              if (!position) return null;
-              
-              const status = getCategoryStatus(cat.id);
-              const hasIssues = status !== 'good';
-              const catItems = getCategoryItems(cat.id);
-              const isSelected = selectedCategory === cat.id;
-              
-              if (!hasIssues) return null;
-              
-              return (
-                <div 
-                  key={cat.id} 
-                  className="absolute z-10 transition-all duration-300" 
-                  style={position as any}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
+          {/* Category indicators for current view */}
+          {INSPECTION_CATEGORIES.map(cat => {
+            const position = getCategoryPosition(cat.id, currentView.angle);
+            if (!position) return null;
+            
+            const status = getCategoryStatus(cat.id);
+            const hasIssues = status !== 'good';
+            const catItems = getCategoryItems(cat.id);
+            const isSelected = selectedCategory === cat.id;
+            
+            if (!hasIssues) return null;
+            
+            return (
+              <div 
+                key={cat.id} 
+                className="absolute z-10 transition-all duration-300" 
+                style={position as any}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCategoryPress(cat.id);
+                  }}
+                  className={cn(
+                    "flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold text-white transition-all duration-300 cursor-pointer",
+                    getStatusColor(status),
+                    "shadow-lg hover:scale-110",
+                    isSelected ? "ring-2 ring-white scale-110" : "animate-pulse"
+                  )}
+                  data-testid={`button-category-${cat.id}`}
                 >
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleCategoryPress(cat.id);
-                    }}
-                    className={cn(
-                      "flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold text-white transition-all duration-300 cursor-pointer",
-                      getStatusColor(status),
-                      "shadow-lg hover:scale-110",
-                      isSelected ? "ring-2 ring-white scale-110" : "animate-pulse"
-                    )}
-                    data-testid={`button-category-${cat.id}`}
+                  {getStatusIcon(status)}
+                  <span className="hidden md:inline truncate max-w-[80px]">{cat.label}</span>
+                </button>
+                
+                {/* Fault details popup */}
+                {isSelected && (
+                  <div 
+                    className="absolute bottom-full mb-2 -translate-x-1/2 left-1/2 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-3 min-w-[200px] max-w-[280px] z-50 border border-slate-200"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    {getStatusIcon(status)}
-                    <span className="hidden md:inline truncate max-w-[80px]">{cat.label}</span>
-                  </button>
-                  
-                  {/* Fault details popup */}
-                  {isSelected && catItems.length > 0 && (
-                    <div 
-                      className="absolute top-full mt-2 right-0 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-3 min-w-[200px] max-w-[280px] z-50 border border-slate-200"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-200">
-                        <span className="font-bold text-xs text-slate-800 font-arabic">{cat.label}</span>
-                        <span className="text-[10px] text-slate-500">{catItems.length}</span>
-                      </div>
-                      <div className="space-y-2 max-h-[150px] overflow-y-auto">
-                        {catItems.map((item, idx) => (
-                          <div 
-                            key={idx}
-                            className={cn(
-                              "p-2 rounded-lg text-xs text-right",
-                              item.status === 'fail' ? "bg-red-50 border border-red-200" : "bg-amber-50 border border-amber-200"
-                            )}
-                          >
-                            <div className="flex items-start gap-2 justify-end">
-                              <div>
-                                <p className={cn(
-                                  "font-bold font-arabic leading-tight",
-                                  item.status === 'fail' ? "text-red-700" : "text-amber-700"
-                                )}>
-                                  {item.faultName.split(' - ')[0]}
-                                </p>
-                                {item.notes && (
-                                  <p className="text-slate-500 text-[10px] mt-1 font-arabic">{item.notes}</p>
-                                )}
-                              </div>
-                              {item.status === 'fail' ? 
-                                <XCircle className="w-3 h-3 text-red-500 shrink-0 mt-0.5" /> : 
-                                <AlertCircle className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" />
-                              }
+                    <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-200">
+                      <span className="font-bold text-xs text-slate-800 font-arabic">{cat.label}</span>
+                      <span className="text-[10px] text-slate-500">{catItems.length} ملاحظة</span>
+                    </div>
+                    <div className="space-y-2 max-h-[150px] overflow-y-auto">
+                      {catItems.map((item, idx) => (
+                        <div 
+                          key={idx}
+                          className={cn(
+                            "p-2 rounded-lg text-xs",
+                            item.status === 'fail' ? "bg-red-50 border border-red-200" : "bg-amber-50 border border-amber-200"
+                          )}
+                        >
+                          <div className="flex items-start gap-2">
+                            {item.status === 'fail' ? 
+                              <XCircle className="w-3 h-3 text-red-500 shrink-0 mt-0.5" /> : 
+                              <AlertCircle className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" />
+                            }
+                            <div>
+                              <p className={cn(
+                                "font-bold font-arabic leading-tight",
+                                item.status === 'fail' ? "text-red-700" : "text-amber-700"
+                              )}>
+                                {item.faultName.split(' - ')[0]}
+                              </p>
+                              {item.notes && (
+                                <p className="text-slate-500 text-[10px] mt-1 font-arabic">{item.notes}</p>
+                              )}
                             </div>
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      ))}
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        ) : viewMode === 'hologram' ? (
-          /* Hologram Blueprint Grid View */
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 w-[95%] h-[80%] overflow-y-auto p-4 select-none relative z-10">
-            {/* Front View Box */}
-            <div className="relative bg-slate-950/40 border border-[#C5852C]/20 rounded-2xl p-4 flex flex-col items-center justify-center min-h-[160px]">
-              <span className="absolute top-2 right-2 text-[10px] text-white/50 font-bold font-arabic">الواجهة الأمامية</span>
-              <img src={carFrontView} className="w-32 h-20 object-contain drop-shadow-[0_0_10px_rgba(197,133,44,0.1)]" />
-              {renderHotspot("front_bumper", { top: "82%", left: "50%" })}
-              {renderHotspot("hood", { top: "52%", left: "50%" })}
-            </div>
-
-            {/* Rear View Box */}
-            <div className="relative bg-slate-950/40 border border-[#C5852C]/20 rounded-2xl p-4 flex flex-col items-center justify-center min-h-[160px]">
-              <span className="absolute top-2 right-2 text-[10px] text-white/50 font-bold font-arabic">الجهة الخلفية</span>
-              <img src={carRearView} className="w-32 h-20 object-contain" />
-              {renderHotspot("rear_bumper", { top: "82%", left: "50%" })}
-              {renderHotspot("trunk", { top: "52%", left: "50%" })}
-            </div>
-
-            {/* Top Down / Anatomy Box */}
-            <div className="relative bg-slate-950/40 border border-[#C5852C]/20 rounded-2xl p-4 flex flex-col items-center justify-center min-h-[160px] col-span-2 md:col-span-1">
-              <span className="absolute top-2 right-2 text-[10px] text-white/50 font-bold font-arabic">الهيكل الميكانيكي والسقف</span>
-              <img src={carVisualizationPath} className="w-28 h-20 object-contain invert opacity-60" />
-              {renderHotspot("engine", { top: "25%", left: "50%" })}
-              {renderHotspot("roof", { top: "50%", left: "50%" })}
-              {renderHotspot("chassis_frame", { top: "75%", left: "50%" })}
-            </div>
-
-            {/* Left Side Box */}
-            <div className="relative bg-slate-950/40 border border-[#C5852C]/20 rounded-2xl p-4 flex flex-col items-center justify-center min-h-[160px]">
-              <span className="absolute top-2 right-2 text-[10px] text-white/50 font-bold font-arabic">الجانب الأيسر</span>
-              <img src={carLeftView} className="w-40 h-20 object-contain" />
-              {renderHotspot("door_front_left", { top: "50%", left: "38%" })}
-              {renderHotspot("door_rear_left", { top: "50%", left: "62%" })}
-              {renderHotspot("quarter_panel_left", { top: "45%", left: "80%" })}
-            </div>
-
-            {/* Right Side Box */}
-            <div className="relative bg-slate-950/40 border border-[#C5852C]/20 rounded-2xl p-4 flex flex-col items-center justify-center min-h-[160px]">
-              <span className="absolute top-2 right-2 text-[10px] text-white/50 font-bold font-arabic">الجانب الأيمن</span>
-              <img src={carRightView} className="w-40 h-20 object-contain" />
-              {renderHotspot("door_front_right", { top: "50%", left: "62%" })}
-              {renderHotspot("door_rear_right", { top: "50%", left: "38%" })}
-              {renderHotspot("quarter_panel_right", { top: "45%", left: "20%" })}
-            </div>
-          </div>
-        ) : (
-          /* Heatmap View */
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 w-[95%] h-[80%] overflow-y-auto p-4 select-none relative z-10">
-            {Object.entries({
-              'hood': { label: 'الكبوت', view: carFrontView, iconSize: 'w-24 h-16' },
-              'roof': { label: 'السقف', view: carVisualizationPath, iconSize: 'w-24 h-16 invert opacity-60' },
-              'trunk': { label: 'الشنطة', view: carRearView, iconSize: 'w-24 h-16' },
-              'fender_front_right': { label: 'رفرف أمامي يمين', view: carRightView, iconSize: 'w-32 h-16' },
-              'door_front_right': { label: 'باب أمامي يمين', view: carRightView, iconSize: 'w-32 h-16' },
-              'door_rear_right': { label: 'باب خلفي يمين', view: carRightView, iconSize: 'w-32 h-16' },
-              'fender_rear_right': { label: 'رفرف خلفي يمين', view: carRightView, iconSize: 'w-32 h-16' },
-              'fender_front_left': { label: 'رفرف أمامي يسار', view: carLeftView, iconSize: 'w-32 h-16' },
-              'door_front_left': { label: 'باب أمامي يسار', view: carLeftView, iconSize: 'w-32 h-16' },
-              'door_rear_left': { label: 'باب خلفي يسار', view: carLeftView, iconSize: 'w-32 h-16' },
-              'fender_rear_left': { label: 'رفرف خلفي يسار', view: carLeftView, iconSize: 'w-32 h-16' },
-            }).map(([panelId, config]) => {
-              const reading = paintReadings?.[panelId];
-              let bgColor = 'bg-slate-900/50 border-slate-700/50';
-              let badgeColor = 'bg-slate-700 text-slate-300';
-              
-              if (reading) {
-                if (reading < 150) { bgColor = 'bg-emerald-900/40 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.2)]'; badgeColor = 'bg-emerald-500 text-white'; }
-                else if (reading < 300) { bgColor = 'bg-amber-900/40 border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.2)]'; badgeColor = 'bg-amber-500 text-white'; }
-                else { bgColor = 'bg-red-900/40 border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)]'; badgeColor = 'bg-red-500 text-white'; }
-              }
-              
-              return (
-                <div key={panelId} className={`relative rounded-2xl p-4 flex flex-col items-center justify-center min-h-[120px] border transition-all ${bgColor}`}>
-                  <span className="absolute top-2 right-2 text-[10px] text-white/70 font-bold font-arabic">{config.label}</span>
-                  <img src={config.view} className={`object-contain mt-2 opacity-50 ${config.iconSize}`} />
-                  <div className="absolute bottom-2 left-2 right-2 flex justify-center">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold font-mono ${badgeColor}`}>
-                      {reading ? `${reading} µm` : '---'}
-                    </span>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* View Indicators (dots) */}
-      {viewMode === '360' && (
-        <div className="absolute bottom-20 left-0 right-0 flex justify-center gap-2">
-          {CAR_VIEWS.map((view, idx) => (
-            <button
-              key={view.angle}
-              onClick={(e) => { e.stopPropagation(); setCurrentViewIndex(idx); }}
-              className={cn(
-                "w-2.5 h-2.5 rounded-full transition-all",
-                idx === currentViewIndex 
-                  ? "bg-accent w-8" 
-                  : "bg-white/30 hover:bg-white/50"
-              )}
-              data-testid={`button-view-${view.angle}`}
-            />
-          ))}
+                )}
+              </div>
+            );
+          })}
         </div>
-      )}
+      </div>
 
       {/* Legend and Instructions */}
       <div className="absolute bottom-4 left-0 right-0 space-y-2">
         <div className="flex justify-center">
           <div className="bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5 text-[10px] text-white/60 font-arabic">
-            {viewMode === '360'
-              ? (isDragging ? "جارٍ التدوير..." : "اسحب أو استخدم الأسهم للتدوير 360° - اضغط على النقاط لعرض التفاصيل")
-              : viewMode === 'hologram'
-              ? "اضغط على نقاط الهيكل لعرض تفاصيل الفحص لكل قطعة"
-              : "الأخضر: طلاء أصلي | الأصفر: رش | الأحمر: سمكرة/معجون"}
+            {isDragging ? "جارٍ التدوير..." : "اسحب أو استخدم الأسهم للتدوير 360° - اضغط على النقاط لعرض التفاصيل"}
           </div>
         </div>
       </div>
@@ -2159,8 +1951,8 @@ export default function InteractiveReport() {
         {/* Company Header */}
         <CompanyHeader />
 
-        {/* 3D Car Visualization */}
-        <Car3DVisualization 
+        {/* 360 Car Visualization */}
+        <Car360Visualization 
           items={inspection.items || []} 
           onCategoryClick={handleCategoryClick}
         />
@@ -2304,9 +2096,6 @@ export default function InteractiveReport() {
           );
         })()}
 
-          {/* Paint Depth Heatmap Section */}
-          <PaintDepthHeatmap paintReadings={inspection.paintReadings as Record<string, number> | null} className="mb-8" />
-
         {/* Autel Computer Report Section */}
         {inspection.autelReportPdf && (
           <div className="bg-white rounded-3xl overflow-hidden shadow-xl border-2 border-orange-200" data-testid="autel-report-section">
@@ -2446,14 +2235,14 @@ export default function InteractiveReport() {
       {/* Hidden PDF Templates */}
       <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', opacity: 0, pointerEvents: 'none' }}>
         <PdfCoverPage ref={pdfCoverRef} inspection={inspection} lang="ar" />
-        <PdfReportTemplate ref={pdfTemplateRef} inspection={inspection} lang="ar" />
-        <PdfCarPhotosPage ref={pdfPhotosPageRef} inspection={inspection} lang="ar" />
-        <PdfSignaturesPage ref={pdfSignaturesRef} inspection={inspection} lang="ar" />
+        <PdfReportTemplate ref={pdfTemplateRef} inspection={inspection} lang="ar" pageNum={2} totalPages={inspection ? (!!(inspection.rearLeftDoorPhoto || inspection.rearRightDoorPhoto || inspection.frontLeftDoorPhoto || inspection.frontRightDoorPhoto || inspection.hoodPhoto || inspection.trunkPhoto) ? 4 : 3) : 4} />
+        <PdfCarPhotosPage ref={pdfPhotosPageRef} inspection={inspection} lang="ar" pageNum={3} totalPages={4} />
+        <PdfSignaturesPage ref={pdfSignaturesRef} inspection={inspection} lang="ar" pageNum={inspection ? (!!(inspection.rearLeftDoorPhoto || inspection.rearRightDoorPhoto || inspection.frontLeftDoorPhoto || inspection.frontRightDoorPhoto || inspection.hoodPhoto || inspection.trunkPhoto) ? 4 : 3) : 4} totalPages={inspection ? (!!(inspection.rearLeftDoorPhoto || inspection.rearRightDoorPhoto || inspection.frontLeftDoorPhoto || inspection.frontRightDoorPhoto || inspection.hoodPhoto || inspection.trunkPhoto) ? 4 : 3) : 4} />
         
         <PdfCoverPage ref={pdfCoverEnRef} inspection={inspection} lang="en" />
-        <PdfReportTemplate ref={pdfTemplateEnRef} inspection={inspection} lang="en" />
-        <PdfCarPhotosPage ref={pdfPhotosPageEnRef} inspection={inspection} lang="en" />
-        <PdfSignaturesPage ref={pdfSignaturesEnRef} inspection={inspection} lang="en" />
+        <PdfReportTemplate ref={pdfTemplateEnRef} inspection={inspection} lang="en" pageNum={2} totalPages={inspection ? (!!(inspection.rearLeftDoorPhoto || inspection.rearRightDoorPhoto || inspection.frontLeftDoorPhoto || inspection.frontRightDoorPhoto || inspection.hoodPhoto || inspection.trunkPhoto) ? 4 : 3) : 4} />
+        <PdfCarPhotosPage ref={pdfPhotosPageEnRef} inspection={inspection} lang="en" pageNum={3} totalPages={4} />
+        <PdfSignaturesPage ref={pdfSignaturesEnRef} inspection={inspection} lang="en" pageNum={inspection ? (!!(inspection.rearLeftDoorPhoto || inspection.rearRightDoorPhoto || inspection.frontLeftDoorPhoto || inspection.frontRightDoorPhoto || inspection.hoodPhoto || inspection.trunkPhoto) ? 4 : 3) : 4} totalPages={inspection ? (!!(inspection.rearLeftDoorPhoto || inspection.rearRightDoorPhoto || inspection.frontLeftDoorPhoto || inspection.frontRightDoorPhoto || inspection.hoodPhoto || inspection.trunkPhoto) ? 4 : 3) : 4} />
       </div>
     </div>
   );

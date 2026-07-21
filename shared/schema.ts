@@ -49,7 +49,6 @@ export const inspections = pgTable("inspections", {
   obdCodes: jsonb("obd_codes").$type<any[]>(), // Array of OBD fault codes: [{code, nameEn, nameAr, diagnosis, causes, solutions}]
   autelReportPdf: text("autel_report_pdf"), // Base64 encoded Autel PDF report
   autelReportName: text("autel_report_name"), // Original filename of Autel report
-  paintReadings: jsonb("paint_readings").$type<Record<string, number>>(), // Record<string, number> mapping panel names to thickness in microns
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({

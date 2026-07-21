@@ -42,7 +42,6 @@ interface Inspection {
   hoodInteriorPhoto?: string | null;
   trunkInteriorPhoto?: string | null;
   obdCodes?: any;
-  paintReadings?: Record<string, number> | null;
 }
 
 type PdfLang = 'ar' | 'en';
@@ -50,9 +49,10 @@ type PdfLang = 'ar' | 'en';
 interface PdfReportTemplateProps {
   inspection: Inspection;
   lang?: PdfLang;
+  pageNum?: number;
+  totalPages?: number;
 }
 
-// Clean, high-end corporate styling. Using Cairo font for Arabic to prevent disconnected letters.
 const BRAND = {
   primary: '#0F172A',      // Slate 900
   secondary: '#334155',    // Slate 700
@@ -107,8 +107,8 @@ const CATEGORIES: Record<string, { ar: string; en: string; section?: string }> =
   quarter_panel_right: { ar: 'اللوح الجانبي الأيمن', en: 'Right Quarter Panel', section: 'body' },
   roof: { ar: 'السقف', en: 'Roof', section: 'body' },
   pillars: { ar: 'القوائم', en: 'Pillars', section: 'body' },
-  front_chest: { ar: 'الصدر الأمامي', en: 'Front Frame', section: 'body' },
-  rear_chest: { ar: 'الصدر الخلفي', en: 'Rear Frame', section: 'body' },
+  front_chest: { ar: 'صدر أمامي', en: 'Front Frame', section: 'body' },
+  rear_chest: { ar: 'صدر خلفي', en: 'Rear Frame', section: 'body' },
   front_bumper: { ar: 'الدعامية الأمامية', en: 'Front Bumper', section: 'body' },
   rear_bumper: { ar: 'الدعامية الخلفية', en: 'Rear Bumper', section: 'body' },
   bumper_frame_front: { ar: 'جسر الدعامية الأمامية', en: 'Front Bumper Frame', section: 'body' },
@@ -279,7 +279,7 @@ PdfCoverPage.displayName = 'PdfCoverPage';
 // 2. PAGE 2: MAIN REPORT (OVERVIEW & ISSUES)
 // ==========================================
 export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplateProps>(
-  ({ inspection, lang = 'ar' }, ref) => {
+  ({ inspection, lang = 'ar', pageNum = 2, totalPages = 4 }, ref) => {
     const isAr = lang === 'ar';
     const items = inspection.items || [];
     const failItems = items.filter(i => i.status === 'fail');
@@ -434,7 +434,7 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
         {/* Footer */}
         <div style={{ borderTop: `1px solid ${BRAND.border}`, paddingTop: '10px', fontSize: '9px', color: BRAND.textMuted, display: 'flex', justifyContent: 'space-between', flexShrink: 0 }}>
           <span>{isAr ? 'مركز الأمان العالي الدولي لفحص السيارات' : 'High Safety International Vehicle Inspection Center'}</span>
-          <span>صفحة 2 من 4</span>
+          <span>{isAr ? `صفحة ${pageNum} من ${totalPages}` : `Page ${pageNum} of ${totalPages}`}</span>
         </div>
       </div>
     );
@@ -454,7 +454,7 @@ interface CarPhotoSection {
 }
 
 export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProps>(
-  ({ inspection, lang = 'ar' }, ref) => {
+  ({ inspection, lang = 'ar', pageNum = 3, totalPages = 4 }, ref) => {
     const isAr = lang === 'ar';
     const sections: CarPhotoSection[] = [
       { key: 'frontRight', ar: 'الباب الأمامي الأيمن', en: 'Front Right Door', exteriorPhoto: inspection.frontRightDoorPhoto, interiorPhoto: null },
@@ -545,7 +545,7 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
         {/* Footer */}
         <div style={{ borderTop: `1px solid ${BRAND.border}`, paddingTop: '10px', fontSize: '9px', color: BRAND.textMuted, display: 'flex', justifyContent: 'space-between', flexShrink: 0 }}>
           <span>{isAr ? 'مركز الأمان العالي الدولي لفحص السيارات' : 'High Safety International Vehicle Inspection Center'}</span>
-          <span>صفحة 3 من 4</span>
+          <span>{isAr ? `صفحة ${pageNum} من ${totalPages}` : `Page ${pageNum} of ${totalPages}`}</span>
         </div>
       </div>
     );
@@ -554,10 +554,10 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
 PdfCarPhotosPage.displayName = 'PdfCarPhotosPage';
 
 // ==========================================
-// 4. PAGE 4: COMPUTER DIAGNOSTICS & DISCLAIMERS
+// 4. PAGE 4: COMPUTER DIAGNOSTICS & SIGNATURES
 // ==========================================
 export const PdfSignaturesPage = forwardRef<HTMLDivElement, PdfReportTemplateProps>(
-  ({ inspection, lang = 'ar' }, ref) => {
+  ({ inspection, lang = 'ar', pageNum = 4, totalPages = 4 }, ref) => {
     const isAr = lang === 'ar';
     const obdCodes = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string; diagnosis?: string}> | null) || [];
     const formattedDate = inspection.createdAt 
@@ -660,7 +660,7 @@ export const PdfSignaturesPage = forwardRef<HTMLDivElement, PdfReportTemplatePro
         </div>
 
         {/* Signatures & Verification */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: `1px dashed ${BRAND.border}`, borderRadius: '6px', padding: '14px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', justifyBetween: 'space-between', justifyContent: 'space-between', alignItems: 'center', border: `1px dashed ${BRAND.border}`, borderRadius: '6px', padding: '14px', flexShrink: 0 }}>
           <div style={{ textAlign: 'center', width: '200px' }}>
             <span style={{ fontSize: '9px', color: BRAND.textMuted, display: 'block', marginBottom: '15px' }}>{isAr ? 'توقيع الفاحص / المركز' : 'Inspector / Center Signature'}</span>
             <div style={{ width: '100px', height: '1px', backgroundColor: BRAND.textMuted, margin: '0 auto 4px' }} />
@@ -686,7 +686,7 @@ export const PdfSignaturesPage = forwardRef<HTMLDivElement, PdfReportTemplatePro
         {/* Footer */}
         <div style={{ borderTop: `1px solid ${BRAND.border}`, paddingTop: '10px', fontSize: '9px', color: BRAND.textMuted, display: 'flex', justifyContent: 'space-between', flexShrink: 0 }}>
           <span>{isAr ? 'مركز الأمان العالي الدولي لفحص السيارات' : 'High Safety International Vehicle Inspection Center'}</span>
-          <span>صفحة 4 من 4</span>
+          <span>{isAr ? `صفحة ${pageNum} من ${totalPages}` : `Page ${pageNum} of ${totalPages}`}</span>
         </div>
       </div>
     );
