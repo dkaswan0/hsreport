@@ -1,6 +1,47 @@
 import { forwardRef } from 'react';
 import logoPath from '@assets/hs-logo.png';
 import hsCarBranding from '@assets/hs_car_branding.png';
+import reshaper from 'arabic-reshaper';
+
+// Helper function to connect and reverse Arabic text specifically for html2canvas rendering
+const fixArabic = (text: any): string => {
+  if (text === null || text === undefined) return '';
+  const str = String(text).trim();
+  if (!str) return '';
+
+  const arabicRegex = /[\u0600-\u06FF]/;
+  if (!arabicRegex.test(str)) {
+    return str; // Return unchanged if there's no Arabic characters
+  }
+
+  // Resolve named/default export of arabic-reshaper CommonJS module
+  const convertArabic = (reshaper as any).convertArabic || 
+                        (reshaper as any).default?.convertArabic || 
+                        reshaper;
+
+  if (typeof convertArabic !== 'function') {
+    return str;
+  }
+
+  const shaped = convertArabic(str);
+  
+  // Split by space boundaries while keeping the spaces in the array
+  const tokens = shaped.split(/(\s+)/);
+  
+  // Reverse the individual character sequences of Arabic tokens, keep others unchanged
+  const processed = tokens.map((token: string) => {
+    if (arabicRegex.test(token)) {
+      return token.split('').reverse().join('');
+    }
+    return token;
+  });
+
+  // Reverse the entire token sequence to lay out RTL words from left to right for canvas
+  return processed.reverse().join('');
+};
+
+// Shorthand helper for JSX clean syntax
+const f = (text: any): string => fixArabic(text);
 
 interface InspectionItem {
   id: number;
@@ -160,7 +201,6 @@ const getInspectionTypeLabel = (type?: string | null) => {
   }
 };
 
-// CRITICAL: Explicitly set Cairo font and remove letter-spacing to fix broken/fragmented Arabic text in html2canvas!
 const textStyle: React.CSSProperties = {
   fontFamily: '"Cairo", "Segoe UI", Tahoma, sans-serif',
   letterSpacing: '0px',
@@ -206,18 +246,18 @@ export const PdfCoverPage = forwardRef<HTMLDivElement, PdfReportTemplateProps>(
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <img src={logoPath} alt="Logo" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
           <div style={{ textAlign: isAr ? 'left' : 'right' }}>
-            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: BRAND.accent, letterSpacing: '1px' }}>HIGH SAFETY</h2>
-            <p style={{ margin: '4px 0 0 0', fontSize: '10px', color: '#94A3B8', letterSpacing: '0.5px' }}>INTERNATIONAL INSPECTION CENTER</p>
+            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: BRAND.accent, letterSpacing: '1px' }}>{f('HIGH SAFETY')}</h2>
+            <p style={{ margin: '4px 0 0 0', fontSize: '10px', color: '#94A3B8', letterSpacing: '0.5px' }}>{f('INTERNATIONAL INSPECTION CENTER')}</p>
           </div>
         </div>
 
         <div style={{ margin: '40px 0', textAlign: 'center' }}>
           <div style={{ display: 'inline-block', height: '3px', width: '60px', backgroundColor: BRAND.accent, marginBottom: '20px' }} />
           <h1 style={{ fontSize: '26px', fontWeight: '900', margin: '0 0 8px 0', letterSpacing: '0.5px' }}>
-            {isAr ? typeLabel.ar : typeLabel.en}
+            {f(isAr ? typeLabel.ar : typeLabel.en)}
           </h1>
           <p style={{ fontSize: '13px', color: '#94A3B8', margin: 0 }}>
-            {isAr ? typeLabel.en : typeLabel.ar}
+            {f(isAr ? typeLabel.en : typeLabel.ar)}
           </p>
         </div>
 
@@ -248,26 +288,26 @@ export const PdfCoverPage = forwardRef<HTMLDivElement, PdfReportTemplateProps>(
           gap: '16px',
         }}>
           <div>
-            <span style={{ fontSize: '10px', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>{isAr ? 'المركبة' : 'VEHICLE'}</span>
-            <span style={{ fontSize: '16px', fontWeight: 'bold' }}>{inspection.make} {inspection.model} ({inspection.year})</span>
+            <span style={{ fontSize: '10px', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>{f(isAr ? 'المركبة' : 'VEHICLE')}</span>
+            <span style={{ fontSize: '16px', fontWeight: 'bold' }}>{f(inspection.make)} {f(inspection.model)} ({f(inspection.year)})</span>
           </div>
           <div>
-            <span style={{ fontSize: '10px', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>{isAr ? 'رقم الشاصي (VIN)' : 'CHASSIS NO. (VIN)'}</span>
-            <span style={{ fontSize: '14px', fontFamily: 'monospace', fontWeight: 'bold', letterSpacing: '1px' }}>{inspection.vin}</span>
+            <span style={{ fontSize: '10px', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>{f(isAr ? 'رقم الشاصي (VIN)' : 'CHASSIS NO. (VIN)')}</span>
+            <span style={{ fontSize: '14px', fontFamily: 'monospace', fontWeight: 'bold', letterSpacing: '1px' }}>{f(inspection.vin)}</span>
           </div>
           <div>
-            <span style={{ fontSize: '10px', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>{isAr ? 'اسم العميل' : 'CUSTOMER NAME'}</span>
-            <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{inspection.customerName || '-'}</span>
+            <span style={{ fontSize: '10px', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>{f(isAr ? 'اسم العميل' : 'CUSTOMER NAME')}</span>
+            <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{f(inspection.customerName || '-')}</span>
           </div>
           <div>
-            <span style={{ fontSize: '10px', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>{isAr ? 'تاريخ الفحص' : 'INSPECTION DATE'}</span>
-            <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{formattedDate}</span>
+            <span style={{ fontSize: '10px', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>{f(isAr ? 'تاريخ الفحص' : 'INSPECTION DATE')}</span>
+            <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{f(formattedDate)}</span>
           </div>
         </div>
 
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', color: '#94A3B8' }}>
-          <span>{isAr ? 'مركز الأمان العالي الدولي لفحص السيارات' : 'High Safety International Vehicle Inspection Center'}</span>
-          <span>ID: HS-{inspection.id}</span>
+          <span>{f(isAr ? 'مركز الأمان العالي الدولي لفحص السيارات' : 'High Safety International Vehicle Inspection Center')}</span>
+          <span>{f(`ID: HS-${inspection.id}`)}</span>
         </div>
       </div>
     );
@@ -311,35 +351,35 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <img src={logoPath} alt="Logo" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
             <div>
-              <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: BRAND.primary }}>{isAr ? 'مركز الأمان العالي' : 'High Safety Center'}</h3>
-              <p style={{ margin: 0, fontSize: '8px', color: BRAND.textMuted }}>{isAr ? 'تقرير الملاحظات والعيوب المكتشفة' : 'Defect Inspection Findings'}</p>
+              <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: BRAND.primary }}>{f(isAr ? 'مركز الأمان العالي' : 'High Safety Center')}</h3>
+              <p style={{ margin: 0, fontSize: '8px', color: BRAND.textMuted }}>{f(isAr ? 'تقرير الملاحظات والعيوب المكتشفة' : 'Defect Inspection Findings')}</p>
             </div>
           </div>
           <div style={{ textAlign: isAr ? 'left' : 'right', fontSize: '9px', color: BRAND.textMuted }}>
-            <span>ID: HS-{inspection.id} | {formattedDate}</span>
+            <span>{f(`ID: HS-${inspection.id} | ${formattedDate}`)}</span>
           </div>
         </div>
 
         {/* Overview cards */}
         <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '12px', margin: '15px 0 10px', flexShrink: 0 }}>
           <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '8px', padding: '12px', backgroundColor: BRAND.light }}>
-            <h4 style={{ margin: '0 0 6px 0', fontSize: '11px', color: BRAND.textMuted }}>{isAr ? 'معلومات المركبة الأساسية' : 'Vehicle Specifications'}</h4>
+            <h4 style={{ margin: '0 0 6px 0', fontSize: '11px', color: BRAND.textMuted }}>{f(isAr ? 'معلومات المركبة الأساسية' : 'Vehicle Specifications')}</h4>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '11px' }}>
-              <div><strong>{isAr ? 'الصانع والموديل:' : 'Make/Model:'}</strong> {inspection.make} {inspection.model}</div>
-              <div><strong>{isAr ? 'سنة الصنع:' : 'Year:'}</strong> {inspection.year}</div>
-              <div><strong>{isAr ? 'الممشى (المسافة):' : 'Odometer:'}</strong> {inspection.odometer?.toLocaleString() || inspection.mileage?.toLocaleString() || '-'} km</div>
-              <div><strong>{isAr ? 'لون الهيكل:' : 'Color:'}</strong> {inspection.color || '-'}</div>
+              <div><strong>{f(isAr ? 'الصانع والموديل:' : 'Make/Model:')}</strong> {f(inspection.make)} {f(inspection.model)}</div>
+              <div><strong>{f(isAr ? 'سنة الصنع:' : 'Year:')}</strong> {f(inspection.year)}</div>
+              <div><strong>{f(isAr ? 'الممشى (المسافة):' : 'Odometer:')}</strong> {f(`${(inspection.odometer || inspection.mileage || 0).toLocaleString()} km`)}</div>
+              <div><strong>{f(isAr ? 'لون الهيكل:' : 'Color:')}</strong> {f(inspection.color || '-')}</div>
             </div>
           </div>
-          <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '8px', padding: '12px', display: 'flex', justifyAround: 'space-around', justifyContent: 'space-around', alignItems: 'center', backgroundColor: BRAND.light }}>
+          <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '8px', padding: '12px', display: 'flex', justifyContent: 'space-around', alignItems: 'center', backgroundColor: BRAND.light }}>
             <div style={{ textAlign: 'center' }}>
-              <span style={{ fontSize: '20px', fontWeight: 'bold', color: BRAND.danger }}>{failItems.length}</span>
-              <span style={{ display: 'block', fontSize: '9px', color: BRAND.textMuted }}>{isAr ? 'أعطال حرجة' : 'Critical Faults'}</span>
+              <span style={{ fontSize: '20px', fontWeight: 'bold', color: BRAND.danger }}>{f(failItems.length)}</span>
+              <span style={{ display: 'block', fontSize: '9px', color: BRAND.textMuted }}>{f(isAr ? 'أعطال حرجة' : 'Critical Faults')}</span>
             </div>
             <div style={{ width: '1px', height: '30px', backgroundColor: BRAND.border }} />
             <div style={{ textAlign: 'center' }}>
-              <span style={{ fontSize: '20px', fontWeight: 'bold', color: BRAND.warning }}>{warningItems.length}</span>
-              <span style={{ display: 'block', fontSize: '9px', color: BRAND.textMuted }}>{isAr ? 'ملاحظات/تنبيهات' : 'Warnings'}</span>
+              <span style={{ fontSize: '20px', fontWeight: 'bold', color: BRAND.warning }}>{f(warningItems.length)}</span>
+              <span style={{ display: 'block', fontSize: '9px', color: BRAND.textMuted }}>{f(isAr ? 'ملاحظات/تنبيهات' : 'Warnings')}</span>
             </div>
           </div>
         </div>
@@ -347,7 +387,7 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
         {/* Section Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexShrink: 0 }}>
           <h2 style={{ fontSize: '15px', fontWeight: 'bold', color: BRAND.primary, margin: 0 }}>
-            {isAr ? 'قائمة الفحص التفصيلية (الأعطال والملاحظات)' : 'Detailed Inspection Findings'}
+            {f(isAr ? 'قائمة الفحص التفصيلية (الأعطال والملاحظات)' : 'Detailed Inspection Findings')}
           </h2>
         </div>
 
@@ -363,8 +403,8 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
               margin: 'auto 0',
             }}>
               <span style={{ fontSize: '24px', display: 'block', marginBottom: '8px' }}>💚</span>
-              <h3 style={{ color: BRAND.success, margin: '0 0 4px 0', fontWeight: 'bold' }}>{isAr ? 'المركبة سليمة وخالية من الأعطال' : 'Vehicle is Healthy'}</h3>
-              <p style={{ color: BRAND.textMuted, fontSize: '11px', margin: 0 }}>{isAr ? 'لم يتم رصد أي أعطال أو ملاحظات فنية على المركبة.' : 'No faults or warnings were recorded during this inspection.'}</p>
+              <h3 style={{ color: BRAND.success, margin: '0 0 4px 0', fontWeight: 'bold' }}>{f(isAr ? 'المركبة سليمة وخالية من الأعطال' : 'Vehicle is Healthy')}</h3>
+              <p style={{ color: BRAND.textMuted, fontSize: '11px', margin: 0 }}>{f(isAr ? 'لم يتم رصد أي أعطال أو ملاحظات فنية على المركبة.' : 'No faults or warnings were recorded during this inspection.')}</p>
             </div>
           ) : (
             <div style={{ 
@@ -411,17 +451,17 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
                           padding: '1px 4px', 
                           borderRadius: '3px' 
                         }}>
-                          {isAr ? (isFail ? 'عطل' : 'تنبيه') : (isFail ? 'FAIL' : 'WARN')}
+                          {f(isAr ? (isFail ? 'عطل' : 'تنبيه') : (isFail ? 'FAIL' : 'WARN'))}
                         </span>
                         <span style={{ fontSize: '9px', fontWeight: 'bold', color: BRAND.textMuted }}>
-                          {isAr ? catLabel.ar : catLabel.en}
+                          {f(isAr ? catLabel.ar : catLabel.en)}
                         </span>
                       </div>
                       <h4 style={{ fontSize: '12px', fontWeight: 'bold', color: BRAND.primary, margin: '0 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {item.faultName}
+                        {f(item.faultName)}
                       </h4>
                       <p style={{ fontSize: '10px', color: BRAND.textMuted, margin: 0, lineHeight: '1.3', height: '2.6em', overflow: 'hidden' }}>
-                        {item.description || item.notes || (isAr ? 'لا يوجد تفاصيل إضافية.' : 'No additional details.')}
+                        {f(item.description || item.notes || (isAr ? 'لا يوجد تفاصيل إضافية.' : 'No additional details.'))}
                       </p>
                     </div>
                   </div>
@@ -433,8 +473,8 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
 
         {/* Footer */}
         <div style={{ borderTop: `1px solid ${BRAND.border}`, paddingTop: '10px', fontSize: '9px', color: BRAND.textMuted, display: 'flex', justifyContent: 'space-between', flexShrink: 0 }}>
-          <span>{isAr ? 'مركز الأمان العالي الدولي لفحص السيارات' : 'High Safety International Vehicle Inspection Center'}</span>
-          <span>{isAr ? `صفحة ${pageNum} من ${totalPages}` : `Page ${pageNum} of ${totalPages}`}</span>
+          <span>{f(isAr ? 'مركز الأمان العالي الدولي لفحص السيارات' : 'High Safety International Vehicle Inspection Center')}</span>
+          <span>{f(isAr ? `صفحة ${pageNum} من ${totalPages}` : `Page ${pageNum} of ${totalPages}`)}</span>
         </div>
       </div>
     );
@@ -494,21 +534,21 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <img src={logoPath} alt="Logo" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
             <div>
-              <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: BRAND.primary }}>{isAr ? 'مركز الأمان العالي' : 'High Safety Center'}</h3>
-              <p style={{ margin: 0, fontSize: '8px', color: BRAND.textMuted }}>{isAr ? 'تقرير التوثيق الفوتوغرافي' : 'Photographic Section Documentation'}</p>
+              <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: BRAND.primary }}>{f(isAr ? 'مركز الأمان العالي' : 'High Safety Center')}</h3>
+              <p style={{ margin: 0, fontSize: '8px', color: BRAND.textMuted }}>{f(isAr ? 'تقرير التوثيق الفوتوغرافي' : 'Photographic Section Documentation')}</p>
             </div>
           </div>
           <div style={{ textAlign: isAr ? 'left' : 'right', fontSize: '9px', color: BRAND.textMuted }}>
-            <span>ID: HS-{inspection.id} | {formattedDate}</span>
+            <span>{f(`ID: HS-${inspection.id} | ${formattedDate}`)}</span>
           </div>
         </div>
 
         <div style={{ margin: '15px 0 10px 0', flexShrink: 0 }}>
           <h2 style={{ fontSize: '16px', fontWeight: 'bold', color: BRAND.primary, margin: 0 }}>
-            {isAr ? 'صور أجزاء هيكل السيارة' : 'Vehicle Body Section Photos'}
+            {f(isAr ? 'صور أجزاء هيكل السيارة' : 'Vehicle Body Section Photos')}
           </h2>
           <p style={{ fontSize: '10px', color: BRAND.textMuted, margin: '2px 0 0 0' }}>
-            {isAr ? 'توثيق فوتوغرافي عالي الدقة لأقسام السيارة المختلفة أثناء عملية الفحص' : 'High-resolution photographic records of various sections during the inspection.'}
+            {f(isAr ? 'توثيق فوتوغرافي عالي الدقة لأقسام السيارة المختلفة أثناء عملية الفحص' : 'High-resolution photographic records of various sections during the inspection.')}
           </p>
         </div>
 
@@ -526,14 +566,14 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
             return (
               <div key={section.key} style={{ border: `1px solid ${BRAND.border}`, borderRadius: '6px', overflow: 'hidden', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff' }}>
                 <div style={{ background: BRAND.primary, padding: '4px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-                  <span style={{ color: '#ffffff', fontSize: '9px', fontWeight: 'bold' }}>{isAr ? section.ar : section.en}</span>
+                  <span style={{ color: '#ffffff', fontSize: '9px', fontWeight: 'bold' }}>{f(isAr ? section.ar : section.en)}</span>
                 </div>
                 <div style={{ flex: 1, display: 'flex', padding: '2px', minHeight: 0 }}>
                   {hasExterior ? (
                     <img src={section.exteriorPhoto || undefined} alt={`${section.en}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: '3px' }} />
                   ) : (
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: BRAND.light, borderRadius: '3px', border: `1px dashed ${BRAND.border}` }}>
-                      <span style={{ color: BRAND.textMuted, fontSize: '9px' }}>{isAr ? 'لا توجد صور متوفرة' : 'No Photos'}</span>
+                      <span style={{ color: BRAND.textMuted, fontSize: '9px' }}>{f(isAr ? 'لا توجد صور متوفرة' : 'No Photos')}</span>
                     </div>
                   )}
                 </div>
@@ -544,8 +584,8 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
 
         {/* Footer */}
         <div style={{ borderTop: `1px solid ${BRAND.border}`, paddingTop: '10px', fontSize: '9px', color: BRAND.textMuted, display: 'flex', justifyContent: 'space-between', flexShrink: 0 }}>
-          <span>{isAr ? 'مركز الأمان العالي الدولي لفحص السيارات' : 'High Safety International Vehicle Inspection Center'}</span>
-          <span>{isAr ? `صفحة ${pageNum} من ${totalPages}` : `Page ${pageNum} of ${totalPages}`}</span>
+          <span>{f(isAr ? 'مركز الأمان العالي الدولي لفحص السيارات' : 'High Safety International Vehicle Inspection Center')}</span>
+          <span>{f(isAr ? `صفحة ${pageNum} من ${totalPages}` : `Page ${pageNum} of ${totalPages}`)}</span>
         </div>
       </div>
     );
@@ -586,12 +626,12 @@ export const PdfSignaturesPage = forwardRef<HTMLDivElement, PdfReportTemplatePro
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <img src={logoPath} alt="Logo" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
             <div>
-              <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: BRAND.primary }}>{isAr ? 'مركز الأمان العالي' : 'High Safety Center'}</h3>
-              <p style={{ margin: 0, fontSize: '8px', color: BRAND.textMuted }}>{isAr ? 'تقرير الأعطال والتواقيع الرسمية' : 'Diagnostics & Final Sign-Off'}</p>
+              <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: BRAND.primary }}>{f(isAr ? 'مركز الأمان العالي' : 'High Safety Center')}</h3>
+              <p style={{ margin: 0, fontSize: '8px', color: BRAND.textMuted }}>{f(isAr ? 'تقرير الأعطال والتواقيع الرسمية' : 'Diagnostics & Final Sign-Off')}</p>
             </div>
           </div>
           <div style={{ textAlign: isAr ? 'left' : 'right', fontSize: '9px', color: BRAND.textMuted }}>
-            <span>ID: HS-{inspection.id} | {formattedDate}</span>
+            <span>{f(`ID: HS-{inspection.id} | ${formattedDate}`)}</span>
           </div>
         </div>
 
@@ -599,10 +639,10 @@ export const PdfSignaturesPage = forwardRef<HTMLDivElement, PdfReportTemplatePro
         <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', marginBottom: '15px' }}>
           <div style={{ margin: '10px 0 10px 0', flexShrink: 0 }}>
             <h2 style={{ fontSize: '15px', fontWeight: 'bold', color: BRAND.primary, margin: 0 }}>
-              {isAr ? 'تقرير فحص أنظمة الكمبيوتر (OBD-II Scan)' : 'OBD-II Computer Diagnostic Scan'}
+              {f(isAr ? 'تقرير فحص أنظمة الكمبيوتر (OBD-II Scan)' : 'OBD-II Computer Diagnostic Scan')}
             </h2>
             <p style={{ fontSize: '10px', color: BRAND.textMuted, margin: '2px 0 0 0' }}>
-              {isAr ? `أكواد الأعطال الإلكترونية النشطة المسجلة بالمركبة (${obdCodes.length} كود)` : `Active electronic DTC codes retrieved (${obdCodes.length} codes).`}
+              {f(isAr ? `أكواد الأعطال الإلكترونية النشطة المسجلة بالمركبة (${obdCodes.length} كود)` : `Active electronic DTC codes retrieved (${obdCodes.length} codes).`)}
             </p>
           </div>
 
@@ -610,21 +650,21 @@ export const PdfSignaturesPage = forwardRef<HTMLDivElement, PdfReportTemplatePro
             {obdCodes.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '24px', color: BRAND.success }}>
                 <span style={{ fontSize: '20px', display: 'block', marginBottom: '4px' }}>✔️</span>
-                <span style={{ fontWeight: 'bold', fontSize: '11px' }}>{isAr ? 'فحص الكمبيوتر سليم - لا توجد أكواد أعطال مسجلة' : 'No DTC Codes Found'}</span>
+                <span style={{ fontWeight: 'bold', fontSize: '11px' }}>{f(isAr ? 'فحص الكمبيوتر سليم - لا توجد أكواد أعطال مسجلة' : 'No DTC Codes Found')}</span>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {obdCodes.map((obd, idx) => (
                   <div key={idx} style={{ backgroundColor: '#ffffff', border: `1px solid ${BRAND.border}`, borderRadius: '6px', padding: '8px', display: 'flex', gap: '10px' }}>
                     <div style={{ backgroundColor: BRAND.danger, color: '#ffffff', fontFamily: 'monospace', fontWeight: 'bold', fontSize: '11px', padding: '3px 6px', borderRadius: '3px', alignSelf: 'flex-start' }}>
-                      {obd.code}
+                      {f(obd.code)}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <h4 style={{ fontSize: '11px', fontWeight: 'bold', color: BRAND.primary, margin: '0 0 2px 0' }}>
-                        {isAr ? obd.nameAr : obd.nameEn}
+                        {f(isAr ? obd.nameAr : obd.nameEn)}
                       </h4>
                       <p style={{ fontSize: '9px', color: BRAND.textMuted, margin: 0 }}>
-                        {isAr ? obd.diagnosis : obd.nameEn}
+                        {f(isAr ? obd.diagnosis : obd.nameEn)}
                       </p>
                     </div>
                   </div>
@@ -637,56 +677,56 @@ export const PdfSignaturesPage = forwardRef<HTMLDivElement, PdfReportTemplatePro
         {/* Legal Disclaimers (Terms & Conditions) */}
         <div style={{ backgroundColor: BRAND.light, border: `1px solid ${BRAND.border}`, borderRadius: '6px', padding: '12px', flexShrink: 0, marginBottom: '15px' }}>
           <h3 style={{ fontSize: '11px', fontWeight: 'bold', color: BRAND.primary, margin: '0 0 6px 0', borderBottom: `1px solid ${BRAND.border}`, paddingBottom: '3px' }}>
-            {isAr ? 'البنود والشروط القانونية لإخلاء المسؤولية' : 'Legal Terms & Disclaimers'}
+            {f(isAr ? 'البنود والشروط القانونية لإخلاء المسؤولية' : 'Legal Terms & Disclaimers')}
           </h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 16px', fontSize: '9px', lineHeight: '1.4' }}>
             <div>
-              <p style={{ margin: 0, fontWeight: 'bold' }}>{isAr ? '1. نطاق ومسؤولية الفحص:' : '1. Diagnostic Scope:'}</p>
-              <p style={{ margin: 0, color: BRAND.textMuted }}>{isAr ? 'المركز مسؤول عن توثيق حالة المركبة وقت الفحص فقط، ولا يضمن عدم حدوث أعطال مستقبلية.' : 'The report reflects vehicle state at inspection time only. Subsequent issues are excluded.'}</p>
+              <p style={{ margin: 0, fontWeight: 'bold' }}>{f(isAr ? '1. نطاق ومسؤولية الفحص:' : '1. Diagnostic Scope:')}</p>
+              <p style={{ margin: 0, color: BRAND.textMuted }}>{f(isAr ? 'المركز مسؤول عن توثيق حالة المركبة وقت الفحص فقط، ولا يضمن عدم حدوث أعطال مستقبلية.' : 'The report reflects vehicle state at inspection time only. Subsequent issues are excluded.')}</p>
             </div>
             <div>
-              <p style={{ margin: 0, fontWeight: 'bold' }}>{isAr ? '2. المقتنيات الشخصية:' : '2. Personal Property:'}</p>
-              <p style={{ margin: 0, color: BRAND.textMuted }}>{isAr ? 'المركز لا يتحمل مسؤولية فقدان أي مقتنيات شخصية لم يتم إخراجها من السيارة قبل الفحص.' : 'The center is not liable for personal items left in the vehicle during inspection.'}</p>
+              <p style={{ margin: 0, fontWeight: 'bold' }}>{f(isAr ? '2. المقتنيات الشخصية:' : '2. Personal Property:')}</p>
+              <p style={{ margin: 0, color: BRAND.textMuted }}>{f(isAr ? 'المركز لا يتحمل مسؤولية فقدان أي مقتنيات شخصية لم يتم إخراجها من السيارة قبل الفحص.' : 'The center is not liable for personal items left in the vehicle during inspection.')}</p>
             </div>
             <div>
-              <p style={{ margin: 0, fontWeight: 'bold' }}>{isAr ? '3. صلاحية التقارير:' : '3. Licensing & Validity:'}</p>
-              <p style={{ margin: 0, color: BRAND.textMuted }}>{isAr ? 'يعتبر هذا التقرير استشارياً فقط لتوجيه المشتري، وليس وثيقة ترخيص رسمية.' : 'This report is advisory and does not replace official licensing checks.'}</p>
+              <p style={{ margin: 0, fontWeight: 'bold' }}>{f(isAr ? '3. صلاحية التقارير:' : '3. Licensing & Validity:')}</p>
+              <p style={{ margin: 0, color: BRAND.textMuted }}>{f(isAr ? 'يعتبر هذا التقرير استشارياً فقط لتوجيه المشتري، وليس وثيقة ترخيص رسمية.' : 'This report is advisory and does not replace official licensing checks.')}</p>
             </div>
             <div>
-              <p style={{ margin: 0, fontWeight: 'bold' }}>{isAr ? '4. نظام مكافحة التزوير:' : '4. Tamper Protection:'}</p>
-              <p style={{ margin: 0, color: BRAND.textMuted }}>{isAr ? 'التقرير مصدق ومحمي برمز كودي رقمي من المركز للتحقق من سلامة البيانات إلكترونياً.' : 'Report data is secured against tampering under High Safety standards.'}</p>
+              <p style={{ margin: 0, fontWeight: 'bold' }}>{f(isAr ? '4. نظام مكافحة التزوير:' : '4. Tamper Protection:')}</p>
+              <p style={{ margin: 0, color: BRAND.textMuted }}>{f(isAr ? 'التقرير مصدق ومحمي برمز كودي رقمي من المركز للتحقق من سلامة البيانات إلكترونياً.' : 'Report data is secured against tampering under High Safety standards.')}</p>
             </div>
           </div>
         </div>
 
         {/* Signatures & Verification */}
-        <div style={{ display: 'flex', justifyBetween: 'space-between', justifyContent: 'space-between', alignItems: 'center', border: `1px dashed ${BRAND.border}`, borderRadius: '6px', padding: '14px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: `1px dashed ${BRAND.border}`, borderRadius: '6px', padding: '14px', flexShrink: 0 }}>
           <div style={{ textAlign: 'center', width: '200px' }}>
-            <span style={{ fontSize: '9px', color: BRAND.textMuted, display: 'block', marginBottom: '15px' }}>{isAr ? 'توقيع الفاحص / المركز' : 'Inspector / Center Signature'}</span>
+            <span style={{ fontSize: '9px', color: BRAND.textMuted, display: 'block', marginBottom: '15px' }}>{f(isAr ? 'توقيع الفاحص / المركز' : 'Inspector / Center Signature')}</span>
             <div style={{ width: '100px', height: '1px', backgroundColor: BRAND.textMuted, margin: '0 auto 4px' }} />
-            <span style={{ fontSize: '8px', color: BRAND.textMuted }}>HIGH SAFETY CENTER</span>
+            <span style={{ fontSize: '8px', color: BRAND.textMuted }}>{f('HIGH SAFETY CENTER')}</span>
           </div>
 
           <div style={{ textAlign: 'center' }}>
             <img src={logoPath} alt="Verified Logo" style={{ width: '40px', height: '40px', opacity: 0.8 }} />
-            <div style={{ fontSize: '8px', fontWeight: 'bold', color: BRAND.accent, marginTop: '2px', letterSpacing: '1px' }}>VERIFIED REPORT</div>
+            <div style={{ fontSize: '8px', fontWeight: 'bold', color: BRAND.accent, marginTop: '2px', letterSpacing: '1px' }}>{f('VERIFIED REPORT')}</div>
           </div>
 
           <div style={{ textAlign: 'center', width: '200px' }}>
-            <span style={{ fontSize: '9px', color: BRAND.textMuted, display: 'block', marginBottom: '15px' }}>{isAr ? 'توقيع العميل' : 'Customer Signature'}</span>
+            <span style={{ fontSize: '9px', color: BRAND.textMuted, display: 'block', marginBottom: '15px' }}>{f(isAr ? 'توقيع العميل' : 'Customer Signature')}</span>
             {inspection.customerSignature ? (
               <img src={inspection.customerSignature} alt="Signature" style={{ height: '30px', objectFit: 'contain', display: 'block', margin: '0 auto' }} />
             ) : (
               <div style={{ width: '100px', height: '1px', backgroundColor: BRAND.textMuted, margin: '0 auto 4px' }} />
             )}
-            <span style={{ fontSize: '8px', color: BRAND.textMuted }}>{inspection.customerName || '-'}</span>
+            <span style={{ fontSize: '8px', color: BRAND.textMuted }}>{f(inspection.customerName || '-')}</span>
           </div>
         </div>
 
         {/* Footer */}
         <div style={{ borderTop: `1px solid ${BRAND.border}`, paddingTop: '10px', fontSize: '9px', color: BRAND.textMuted, display: 'flex', justifyContent: 'space-between', flexShrink: 0 }}>
-          <span>{isAr ? 'مركز الأمان العالي الدولي لفحص السيارات' : 'High Safety International Vehicle Inspection Center'}</span>
-          <span>{isAr ? `صفحة ${pageNum} من ${totalPages}` : `Page ${pageNum} of ${totalPages}`}</span>
+          <span>{f(isAr ? 'مركز الأمان العالي الدولي لفحص السيارات' : 'High Safety International Vehicle Inspection Center')}</span>
+          <span>{f(isAr ? `صفحة ${pageNum} من ${totalPages}` : `Page ${pageNum} of ${totalPages}`)}</span>
         </div>
       </div>
     );
