@@ -102,7 +102,7 @@ app.use(
     saveUninitialized: false,
     store: new PgSession({
       conString: process.env.DATABASE_URL,
-      createTableIfMissing: true,
+      createTableIfMissing: false,
       tableName: "user_sessions",
     }),
     cookie: {
