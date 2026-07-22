@@ -56,7 +56,7 @@ export async function registerRoutes(
     }
     const username = String(rawUsername).trim();
     const adminUser = (process.env.ADMIN_USERNAME || "hs").trim();
-    const adminPass = (process.env.ADMIN_PASSWORD || "ahmed").trim();
+    const adminPass = (process.env.ADMIN_PASSWORD || "hs").trim();
 
     // Check if there's a stored password override in the users table
     let passwordMatches = false;
@@ -104,7 +104,7 @@ export async function registerRoutes(
       }
 
       const adminUser = (process.env.ADMIN_USERNAME || "hs").trim();
-      const adminPass = (process.env.ADMIN_PASSWORD || "ahmed").trim();
+      const adminPass = (process.env.ADMIN_PASSWORD || "hs").trim();
 
       const { db } = await import("./db");
       const { users } = await import("@shared/schema");

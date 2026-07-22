@@ -15,7 +15,7 @@ for (const key of requiredEnvVars) {
   }
 }
 if (!process.env.ADMIN_USERNAME) process.env.ADMIN_USERNAME = "hs";
-if (!process.env.ADMIN_PASSWORD) process.env.ADMIN_PASSWORD = "ahmed";
+if (!process.env.ADMIN_PASSWORD) process.env.ADMIN_PASSWORD = "hs";
 
 const app = express();
 const httpServer = createServer(app);
