@@ -49,6 +49,8 @@ export const inspections = pgTable("inspections", {
   obdCodes: jsonb("obd_codes").$type<any[]>(), // Array of OBD fault codes: [{code, nameEn, nameAr, diagnosis, causes, solutions}]
   autelReportPdf: text("autel_report_pdf"), // Base64 encoded Autel PDF report
   autelReportName: text("autel_report_name"), // Original filename of Autel report
+  mojazRecord: text("mojaz_record"), // سجل حوادث موجز المكتوب/الملصق
+  mojazAnalysis: jsonb("mojaz_analysis").$type<any>(), // تحليل تطابق الحوادث بالذكاء الاصطناعي
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({

@@ -26,6 +26,7 @@ import {
   Wrench,
   Sparkles,
   Search,
+  X,
 } from "lucide-react";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
@@ -239,6 +240,53 @@ const CATEGORY_POSITIONS: Record<string, { top: string; left: string; transform?
   fuel_pump: { top: "72%", left: "78%" },
   tie_rod: { top: "90%", left: "40%" },
   stabilizer_link: { top: "90%", left: "60%" },
+};
+
+const ImageModal = ({ imageUrl, faultName, onClose }: { imageUrl: string; faultName: string; onClose: () => void }) => {
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+
+  return (
+    <div 
+      className="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-[100] flex items-center justify-center p-4 transition-all duration-300 animate-in fade-in"
+      onClick={onClose}
+      data-testid="image-lightbox-overlay"
+      dir="rtl"
+    >
+      {/* Top Bar with Title and Close Button */}
+      <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-50 bg-gradient-to-b from-black/60 to-transparent">
+        <h3 className="text-white font-bold font-arabic text-base md:text-lg truncate max-w-[70%] text-right">{faultName}</h3>
+        <button 
+          onClick={(e) => { e.stopPropagation(); onClose(); }}
+          className="w-11 h-11 bg-white/10 hover:bg-white/20 active:scale-95 text-white rounded-full flex items-center justify-center border border-white/20 transition-all cursor-pointer shadow-lg"
+          title="إغلاق"
+          data-testid="btn-close-lightbox"
+        >
+          <X className="w-6 h-6" />
+        </button>
+      </div>
+
+      {/* Main Image Container */}
+      <div className="relative max-w-5xl max-h-[80vh] w-full flex items-center justify-center animate-in scale-in duration-300" onClick={e => e.stopPropagation()}>
+        <img 
+          src={imageUrl} 
+          alt={faultName} 
+          className="max-w-full max-h-[80vh] object-contain rounded-2xl border border-white/10 shadow-2xl"
+        />
+      </div>
+
+      {/* Dismiss Hint at the bottom */}
+      <div className="absolute bottom-6 left-0 right-0 text-center">
+        <span className="bg-black/60 text-slate-300 text-xs px-4 py-2 rounded-full font-arabic backdrop-blur-sm border border-white/5">
+          اضغط في أي مكان خارج الصورة أو على زر (X) للإغلاق
+        </span>
+      </div>
+    </div>
+  );
 };
 
 // Realistic 360° Car Visualization with 4 viewing angles
@@ -909,7 +957,15 @@ const CustomerInfoCard = ({ inspection }: { inspection: any }) => (
 );
 
 // Inspection Results Section
-const InspectionResults = ({ inspection, highlightedCategory }: { inspection: any, highlightedCategory: string | null }) => {
+const InspectionResults = ({ 
+  inspection, 
+  highlightedCategory, 
+  onImageClick 
+}: { 
+  inspection: any; 
+  highlightedCategory: string | null; 
+  onImageClick?: (url: string, name: string) => void;
+}) => {
   const items = inspection.items || [];
   
   return (
@@ -954,9 +1010,15 @@ const InspectionResults = ({ inspection, highlightedCategory }: { inspection: an
                   className="flex flex-col md:flex-row-reverse gap-4 p-4 bg-slate-50 rounded-2xl"
                 >
                   {item.imageUrl && (
-                    <div className="w-full md:w-32 h-32 rounded-xl overflow-hidden shrink-0">
-                      <img src={item.imageUrl} className="w-full h-full object-cover" alt="صورة العطل" />
-                    </div>
+                    <button
+                      onClick={() => onImageClick?.(item.imageUrl!, item.faultName.split(' - ')[0])}
+                      className="relative w-full md:w-32 h-32 rounded-xl overflow-hidden shrink-0 group cursor-pointer"
+                    >
+                      <img src={item.imageUrl} className="w-full h-full object-cover transition-transform group-hover:scale-105" alt="صورة العطل" />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                        <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                    </button>
                   )}
                   <div className="flex-1 text-right">
                     <h4 className="font-bold text-slate-900 font-arabic text-lg mb-2">{item.faultName.split(' - ')[0]}</h4>
@@ -992,6 +1054,7 @@ export default function InteractiveReport() {
   const { data: inspection, isLoading } = useInspection(id);
   const { toast } = useToast();
   const [highlightedCategory, setHighlightedCategory] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<{ url: string; name: string } | null>(null);
   const pdfTemplateRef = useRef<HTMLDivElement>(null);
   const pdfPhotosPageRef = useRef<HTMLDivElement>(null);
   const pdfTemplateEnRef = useRef<HTMLDivElement>(null);
@@ -1971,7 +2034,11 @@ export default function InteractiveReport() {
         <CarSectionPhotosGallery inspection={inspection} />
 
         {/* Inspection Results */}
-        <InspectionResults inspection={inspection} highlightedCategory={highlightedCategory} />
+        <InspectionResults 
+          inspection={inspection} 
+          highlightedCategory={highlightedCategory} 
+          onImageClick={(url, name) => setSelectedImage({ url, name })}
+        />
 
         {/* OBD Codes Section - Professional HS Report */}
         {(() => {
@@ -2233,6 +2300,14 @@ export default function InteractiveReport() {
           </div>
         </div>
       </div>
+
+      {selectedImage && (
+        <ImageModal 
+          imageUrl={selectedImage.url} 
+          faultName={selectedImage.name} 
+          onClose={() => setSelectedImage(null)} 
+        />
+      )}
 
       {/* Hidden PDF Templates */}
       <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', opacity: 0, pointerEvents: 'none' }}>

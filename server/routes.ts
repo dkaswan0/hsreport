@@ -300,7 +300,7 @@ export async function registerRoutes(
         messages: [
           {
             role: "system",
-            content: "You are an expert automotive mechanic. Provide a structured JSON response for a car fault including: faultName, description (technical but clear), severity (low/medium/high), and solution (steps to fix). Respond in JSON format only."
+            content: "You are an expert automotive mechanic. Provide a structured JSON response for a car fault including: faultName, description (technical but clear), severity (low/medium/high), and solution (steps to fix). Respond in JSON format only. Respond only in Arabic. Describe the fault directly and objectively. DO NOT suggest repair or replacement recommendations. Do NOT use phrases like 'يتطلب الاستبدال', 'يستدعي استبداله', 'مما يكشف أجزاء المحرك الداخلية', or any similar repair/replacement proposals."
           },
           {
             role: "user",
@@ -408,6 +408,66 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("OBD Extract Error:", error?.message || error);
       res.status(500).json({ error: error?.message || "Failed to extract OBD codes from image" });
+    }
+  });
+
+  // VIN Extract from Image - Use AI vision to read VIN from label or metal stamp photo
+  app.post("/api/vin/extract-from-image", async (req, res) => {
+    try {
+      const { imageBase64 } = req.body;
+      if (!imageBase64) {
+        return res.status(400).json({ error: "No image provided" });
+      }
+      const vin = await ImageAnalysisService.extractVin(imageBase64);
+      if (!vin) {
+        return res.status(404).json({ error: true, message: "لم يتم العثور على رقم شاصي (VIN) في الصورة" });
+      }
+      res.json({ vin });
+    } catch (error: any) {
+      console.error("VIN Extract Error:", error?.message || error);
+      res.status(500).json({ error: error?.message || "Failed to extract VIN from image" });
+    }
+  });
+
+  // AI Mojaz Analysis Endpoint
+  app.post("/api/inspections/:id/analyze-mojaz", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const { mojazRecord } = req.body;
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid inspection ID" });
+      }
+
+      const { db } = await import("./db");
+      const { inspections, inspectionItems } = await import("@shared/schema");
+      const { eq } = await import("drizzle-orm");
+
+      // Fetch inspection details and items
+      const [inspection] = await db.select().from(inspections).where(eq(inspections.id, id));
+      if (!inspection) {
+        return res.status(404).json({ error: "Inspection not found" });
+      }
+
+      const items = await db.select().from(inspectionItems).where(eq(inspectionItems.inspectionId, id));
+
+      let analysisResult = null;
+      if (mojazRecord && mojazRecord.trim().length > 0) {
+        analysisResult = await ImageAnalysisService.analyzeMojazMatch(mojazRecord, items);
+      }
+
+      // Update in db
+      const [updated] = await db.update(inspections)
+        .set({
+          mojazRecord: mojazRecord || null,
+          mojazAnalysis: analysisResult
+        })
+        .where(eq(inspections.id, id))
+        .returning();
+
+      res.json({ success: true, inspection: updated });
+    } catch (error: any) {
+      console.error("Mojaz analysis error:", error);
+      res.status(500).json({ error: error.message || "Failed to analyze Mojaz record" });
     }
   });
 

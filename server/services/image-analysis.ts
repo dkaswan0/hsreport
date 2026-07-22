@@ -1,4 +1,6 @@
 import { Buffer } from "node:buffer";
+import fs from "node:fs";
+import path from "node:path";
 
 export interface PhotoAnalysisResult {
   detectedPart: string;
@@ -27,6 +29,28 @@ export interface ObdLookupResult {
   solutions: string;
 }
 
+const CACHE_FILE = path.join(process.cwd(), "server", "services", "obd-cache.json");
+
+function readObdCache(): Record<string, ObdLookupResult> {
+  try {
+    if (fs.existsSync(CACHE_FILE)) {
+      const data = fs.readFileSync(CACHE_FILE, "utf-8");
+      return JSON.parse(data);
+    }
+  } catch (e) {
+    console.error("Failed to read OBD cache:", e);
+  }
+  return {};
+}
+
+function writeObdCache(cache: Record<string, ObdLookupResult>) {
+  try {
+    fs.writeFileSync(CACHE_FILE, JSON.stringify(cache, null, 2), "utf-8");
+  } catch (e) {
+    console.error("Failed to write OBD cache:", e);
+  }
+}
+
 export class ImageAnalysisService {
   private static getApiKey(): string {
     const key = process.env.GEMINI_API_KEY;
@@ -46,25 +70,18 @@ export class ImageAnalysisService {
 
   private static async callGemini(
     prompt: string,
-    imageBase64: string,
+    imageBase64?: string,
     responseSchema?: any
   ): Promise<any> {
     const apiKey = this.getApiKey();
-    const { mimeType, data } = this.cleanBase64(imageBase64);
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const body: any = {
       contents: [
         {
           parts: [
-            { text: prompt },
-            {
-              inlineData: {
-                mimeType,
-                data
-              }
-            }
+            { text: prompt }
           ]
         }
       ],
@@ -72,6 +89,16 @@ export class ImageAnalysisService {
         responseMimeType: "application/json"
       }
     };
+
+    if (imageBase64) {
+      const { mimeType, data } = this.cleanBase64(imageBase64);
+      body.contents[0].parts.push({
+        inlineData: {
+          mimeType,
+          data
+        }
+      });
+    }
 
     if (responseSchema) {
       body.generationConfig.responseSchema = responseSchema;
@@ -111,8 +138,10 @@ export class ImageAnalysisService {
 
   public static async analyzePhoto(imageBase64: string): Promise<PhotoAnalysisResult> {
     const prompt = `حلل هذه الصورة لقطعة سيارة أو عطل سيارة. حدد اسم الجزء المكتشف باللغة الإنجليزية والعربية، وصنف الفئة الخاصة به (مثل: المحرك، الهيكل الخارجي، ناقل الحركة، الهيكل السفلي، الأجزاء الكهربائية، الداخلية والسلامة).
-إذا كان هناك عطل مرئي، اقترح قائمة بالأعطال المحتملة مع تحديد درجة خطورتها (low/medium/high) ووصف دقيق لها.
-اكتب أيضاً ملاحظة فنية احترافية كفاحص سيارات (professionalNotes) يمكن إضافتها لتقرير الفحص باللغة العربية.
+إذا كان هناك عطل مرئي، اقترح قائمة بالأعطال المحتملة مع وصف دقيق لها.
+اكتب أيضاً ملاحظة فنية احترافية كفاحص سيارات (professionalNotes) يمكن إضافتها لتقرير الفحص باللغة العربية تصف فيها المشكلة فقط.
+
+تنبيه هام للغاية وصارم: يمنع منعاً باتاً استخدام عبارات مثل "يتطلب الاستبدال" أو "مما يستدعي استبداله" أو "مما يكشف أجزاء المحرك الداخلية" أو أي توصيات مشابهة بالإصلاح أو الاستبدال أو الصيانة. المطلوب هو وصف وذكر العطل الملاحظ فقط بشكل مباشر واحترافي دون اقتراح أي نوع من أنواع الإصلاح أو الاستبدال.
 
 يجب إرجاع النتيجة بصيغة JSON مطابقة للنموذج التالي:
 {
@@ -126,7 +155,7 @@ export class ImageAnalysisService {
       "description": "وصف العطل بدقة"
     }
   ],
-  "professionalNotes": "ملاحظة فنية واحترافية للفحص بالعربية"
+  "professionalNotes": "ملاحظة فنية واحترافية تصف المشكلة فقط بالعربية دون أي توصيات بالإصلاح أو الاستبدال"
 }`;
 
     const schema = {
@@ -206,8 +235,30 @@ JSON format:
   }
 
   public static async lookupObdCodes(codes: string[]): Promise<ObdLookupResult[]> {
+    if (!codes || codes.length === 0) return [];
+    
+    // 1. Load cache
+    const cache = readObdCache();
+    const results: ObdLookupResult[] = [];
+    const missingCodes: string[] = [];
+
+    for (const code of codes) {
+      const normalized = code.trim().toUpperCase();
+      if (cache[normalized]) {
+        results.push(cache[normalized]);
+      } else {
+        missingCodes.push(normalized);
+      }
+    }
+
+    // 2. If nothing is missing, return cached results immediately
+    if (missingCodes.length === 0) {
+      return results;
+    }
+
+    // 3. Query Gemini for missing codes
     const apiKey = this.getApiKey();
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const prompt = `You are an expert automotive OBD-II diagnostics specialist. You must provide accurate DTC (Diagnostic Trouble Code) information.
 For each code, provide:
@@ -218,7 +269,7 @@ For each code, provide:
 - causes: Common causes in Arabic (comma separated)
 - solutions: Recommended repair solutions in Arabic (comma separated)
 
-Provide full details for these OBD-II fault codes: ${codes.join(', ')}
+Provide full details for these OBD-II fault codes: ${missingCodes.join(', ')}
 
 Return a JSON array of objects.`;
 
@@ -259,7 +310,18 @@ Return a JSON array of objects.`;
     if (!textResponse) {
       throw new Error("No OBD lookup description returned from Gemini.");
     }
-    return JSON.parse(textResponse);
+
+    const newResults: ObdLookupResult[] = JSON.parse(textResponse);
+
+    // 4. Update cache
+    for (const res of newResults) {
+      const normalized = res.code.trim().toUpperCase();
+      cache[normalized] = res;
+      results.push(res);
+    }
+    writeObdCache(cache);
+
+    return results;
   }
 
   public static async analyzeVoice(audioBase64: string, mimeType: string): Promise<any> {
@@ -309,5 +371,78 @@ Return a JSON array of objects.`;
     };
 
     return this.callGemini(prompt, `data:${mimeType};base64,${audioBase64}`, schema);
+  }
+
+  public static async extractVin(imageBase64: string): Promise<string> {
+    const prompt = `You are an expert at reading vehicle chassis numbers (VIN) from labels, metal plates, barcodes, or windshields.
+Identify the 17-character VIN number from the image.
+A VIN code consists of exactly 17 characters (numbers and uppercase letters) excluding I, O, Q (which are normalized or avoided in VIN standards, but if they appear, extract them exactly as printed).
+Return a JSON object containing the extracted VIN. If no VIN is found, return an empty string.
+
+JSON format:
+{
+  "vin": "WBA3A5C50DF123456"
+}`;
+
+    const schema = {
+      type: "OBJECT",
+      properties: {
+        vin: { type: "STRING" }
+      },
+      required: ["vin"]
+    };
+
+    const result = await this.callGemini(prompt, imageBase64, schema);
+    return result.vin || "";
+  }
+
+  public static async analyzeMojazMatch(mojazRecord: string, items: any[]): Promise<any> {
+    const prompt = `You are an expert collision investigator. Compare the previous accidents history from the Mojaz report with the current physical inspection findings of the vehicle.
+Mojaz Accidents Records:
+"""
+${mojazRecord}
+"""
+
+Current Physical Inspection Findings:
+${JSON.stringify(items.map(i => ({ category: i.category, faultName: i.faultName, status: i.status, description: i.description })))}
+
+Analyze and match the accident locations with the current damages. Assess the repair quality (e.g. professional repair, visible weld marks, poor repainting, or unaddressed damage).
+Return the result in Arabic as a JSON object matching the following structure:
+{
+  "matches": [
+    {
+      "accidentDate": "تاريخ الحادث (إن وجد)",
+      "accidentDescription": "وصف الحادث المسجل في موجز",
+      "matchedPart": "الجزء المتطابق في الفحص الحالي (مثل الرفرف الخلفي الأيمن)",
+      "repairQuality": "تقييم جودة الإصلاح (مثال: إصلاح ممتاز بمواصفات المصنع / أو إصلاح تجاري مع وجود معجون)",
+      "matchStatus": "متطابق / غير متطابق / لا يمكن التأكيد"
+    }
+  ],
+  "overallRepairAssessment": "تقييم عام باللغة العربية لجودة إصلاح الحوادث السابقة المسجلة بالسيارة ومدى مطابقتها للحالة الراهنة"
+}`;
+
+    const schema = {
+      type: "OBJECT",
+      properties: {
+        matches: {
+          type: "ARRAY",
+          items: {
+            type: "OBJECT",
+            properties: {
+              accidentDate: { type: "STRING" },
+              accidentDescription: { type: "STRING" },
+              matchedPart: { type: "STRING" },
+              repairQuality: { type: "STRING" },
+              matchStatus: { type: "STRING" }
+            },
+            required: ["accidentDate", "accidentDescription", "matchedPart", "repairQuality", "matchStatus"]
+          }
+        },
+        overallRepairAssessment: { type: "STRING" }
+      },
+      required: ["matches", "overallRepairAssessment"]
+    };
+
+    return this.callGemini(prompt, undefined, schema);
   }
 }

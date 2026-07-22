@@ -1,6 +1,7 @@
 import { forwardRef } from 'react';
 import logoPath from '@assets/hs-logo.png';
 import hsCarBranding from '@assets/hs_car_branding.png';
+// @ts-expect-error untyped module
 import reshaper from 'arabic-reshaper';
 
 // Helper function to connect Arabic text for html2canvas rendering
@@ -231,19 +232,34 @@ export const PdfCoverPage = forwardRef<HTMLDivElement, PdfReportTemplateProps>(
         <div style={{ position: 'absolute', bottom: 0, left: 0, width: '150px', height: '150px', borderLeft: `4px solid ${BRAND.accent}`, borderBottom: `4px solid ${BRAND.accent}`, opacity: 0.8 }} />
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <img src={logoPath} alt="Logo" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+          <img src={logoPath} alt="Logo" style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: `2px solid ${BRAND.accent}` }} />
           <div style={{ textAlign: isAr ? 'left' : 'right' }}>
             <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: BRAND.accent, letterSpacing: '1px' }}>{f('HIGH SAFETY')}</h2>
             <p style={{ margin: '4px 0 0 0', fontSize: '10px', color: '#94A3B8', letterSpacing: '0.5px' }}>{f('INTERNATIONAL INSPECTION CENTER')}</p>
           </div>
         </div>
 
-        <div style={{ margin: '40px 0', textAlign: 'center' }}>
-          <div style={{ display: 'inline-block', height: '3px', width: '60px', backgroundColor: BRAND.accent, marginBottom: '20px' }} />
-          <h1 style={{ fontSize: '26px', fontWeight: '900', margin: '0 0 8px 0', letterSpacing: '0.5px' }}>
+        <div style={{ margin: '40px 0', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div style={{ display: 'inline-block', height: '4px', width: '80px', background: `linear-gradient(to right, ${BRAND.accent}, #F5E6D3, ${BRAND.accent})`, borderRadius: '2px', marginBottom: '20px' }} />
+          <h1 style={{ 
+            fontSize: '32px', 
+            fontWeight: '900', 
+            margin: '0 0 10px 0', 
+            color: '#ffffff',
+            textShadow: '0 4px 10px rgba(0,0,0,0.5)',
+            letterSpacing: '0px',
+            fontSmooth: 'always',
+          }}>
             {f(isAr ? typeLabel.ar : typeLabel.en)}
           </h1>
-          <p style={{ fontSize: '13px', color: '#94A3B8', margin: 0 }}>
+          <p style={{ 
+            fontSize: '13px', 
+            color: BRAND.accent, 
+            fontWeight: 'bold',
+            margin: 0,
+            letterSpacing: '1px',
+            textTransform: 'uppercase'
+          }}>
             {f(isAr ? typeLabel.en : typeLabel.ar)}
           </p>
         </div>
@@ -266,28 +282,36 @@ export const PdfCoverPage = forwardRef<HTMLDivElement, PdfReportTemplateProps>(
         </div>
 
         <div style={{
-          backgroundColor: 'rgba(30, 41, 59, 0.6)',
-          border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: '8px',
-          padding: '24px',
+          backgroundColor: 'rgba(15, 23, 42, 0.85)',
+          border: `1px solid ${BRAND.accent}50`,
+          borderRadius: '12px',
+          padding: '20px 24px',
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '16px',
+          gridTemplateColumns: '1fr 1fr 1fr',
+          gap: '16px 20px',
         }}>
           <div>
-            <span style={{ fontSize: '10px', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>{f(isAr ? 'المركبة' : 'VEHICLE')}</span>
-            <span style={{ fontSize: '16px', fontWeight: 'bold' }}>{f(inspection.make)} {f(inspection.model)} ({f(inspection.year)})</span>
+            <span style={{ fontSize: '9px', color: '#94A3B8', display: 'block', marginBottom: '2px' }}>{f(isAr ? 'المركبة' : 'VEHICLE')}</span>
+            <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{f(`${inspection.make} ${inspection.model} (${inspection.year})`)}</span>
           </div>
           <div>
-            <span style={{ fontSize: '10px', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>{f(isAr ? 'رقم الشاصي (VIN)' : 'CHASSIS NO. (VIN)')}</span>
-            <span style={{ fontSize: '14px', fontFamily: 'monospace', fontWeight: 'bold', letterSpacing: '1px' }}>{f(inspection.vin)}</span>
+            <span style={{ fontSize: '9px', color: '#94A3B8', display: 'block', marginBottom: '2px' }}>{f(isAr ? 'رقم الشاصي (VIN)' : 'CHASSIS NO. (VIN)')}</span>
+            <span style={{ fontSize: '12px', fontFamily: 'monospace', fontWeight: 'bold', letterSpacing: '0.5px' }}>{f(inspection.vin)}</span>
           </div>
           <div>
-            <span style={{ fontSize: '10px', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>{f(isAr ? 'اسم العميل' : 'CUSTOMER NAME')}</span>
+            <span style={{ fontSize: '9px', color: '#94A3B8', display: 'block', marginBottom: '2px' }}>{f(isAr ? 'المسافة المقطوعة' : 'ODOMETER')}</span>
+            <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{f(`${(inspection.odometer || inspection.mileage || 0).toLocaleString()} km`)}</span>
+          </div>
+          <div>
+            <span style={{ fontSize: '9px', color: '#94A3B8', display: 'block', marginBottom: '2px' }}>{f(isAr ? 'اسم العميل' : 'CUSTOMER NAME')}</span>
             <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{f(inspection.customerName || '-')}</span>
           </div>
           <div>
-            <span style={{ fontSize: '10px', color: '#94A3B8', display: 'block', marginBottom: '4px' }}>{f(isAr ? 'تاريخ الفحص' : 'INSPECTION DATE')}</span>
+            <span style={{ fontSize: '9px', color: '#94A3B8', display: 'block', marginBottom: '2px' }}>{f(isAr ? 'اللون الخارجي' : 'COLOR')}</span>
+            <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{f(inspection.color || '-')}</span>
+          </div>
+          <div>
+            <span style={{ fontSize: '9px', color: '#94A3B8', display: 'block', marginBottom: '2px' }}>{f(isAr ? 'تاريخ الفحص' : 'INSPECTION DATE')}</span>
             <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{f(formattedDate)}</span>
           </div>
         </div>
@@ -372,7 +396,7 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `2px solid ${BRAND.border}`, paddingBottom: '12px', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <img src={logoPath} alt="Logo" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
+            <img src={logoPath} alt="Logo" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: `1px solid ${BRAND.border}` }} />
             <div>
               <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: BRAND.primary }}>{f(isAr ? 'مركز الأمان العالي' : 'High Safety Center')}</h3>
               <p style={{ margin: 0, fontSize: '8px', color: BRAND.textMuted }}>{f(isAr ? 'تقرير فحص الأنظمة والعيوب المكتشفة' : 'System Diagnostic & Findings')}</p>
@@ -383,148 +407,119 @@ export const PdfReportTemplate = forwardRef<HTMLDivElement, PdfReportTemplatePro
           </div>
         </div>
 
-        {/* Overall Status Bar (No specs duplication) */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: `1px solid ${BRAND.border}`, borderRadius: '8px', padding: '10px 16px', backgroundColor: BRAND.light, margin: '10px 0', flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 'bold', color: BRAND.textMuted }}>{f(isAr ? 'حالة المركبة العامة:' : 'Overall Vehicle Status:')}</span>
-            <span style={{ fontSize: '11px', fontWeight: 'bold', color: failItems.length > 0 ? BRAND.danger : warningItems.length > 0 ? BRAND.warning : BRAND.success }}>
-              {f(failItems.length > 0 ? (isAr ? 'يوجد أعطال حرجة بحاجة لإصلاح' : 'Critical faults detected') : warningItems.length > 0 ? (isAr ? 'توجد ملاحظات بحاجة لمتابعة' : 'Warnings detected') : (isAr ? 'المركبة سليمة وخالية من الأعطال' : 'Vehicle is in good condition'))}
-            </span>
-          </div>
-          <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-            <div style={{ fontSize: '11px' }}>
-              <strong style={{ color: BRAND.danger }}>{f(failItems.length)}</strong> {f(isAr ? ' أعطال حرجة' : ' Critical Faults')}
-            </div>
-            <div style={{ width: '1px', height: '14px', backgroundColor: BRAND.border }} />
-            <div style={{ fontSize: '11px' }}>
-              <strong style={{ color: BRAND.warning }}>{f(warningItems.length)}</strong> {f(isAr ? ' ملاحظات' : ' Warnings')}
-            </div>
-          </div>
-        </div>
-
-        {/* 1. Systems Inspection Summary Grid */}
-        <div style={{ flexShrink: 0, marginBottom: '8px' }}>
-          <h2 style={{ fontSize: '12px', fontWeight: 'bold', color: BRAND.primary, borderBottom: `1px solid ${BRAND.border}`, paddingBottom: '4px', margin: '0 0 6px 0' }}>
-            {f(isAr ? 'ملخص فحص الأنظمة والقطاعات الرئيسية' : 'Systems Inspection Status Summary')}
-          </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-            {mainCategories.map(cat => {
-              const status = getCategoryStatus(cat.id);
-              const style = getStatusStyle(status);
-              return (
-                <div 
-                  key={cat.id} 
-                  style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center', 
-                    padding: '6px 10px', 
-                    borderRadius: '6px', 
-                    border: `1px solid ${style.border}30`, 
-                    backgroundColor: style.bg,
-                    fontSize: '11px'
-                  }}
-                >
-                  <span style={{ fontWeight: 'bold', color: BRAND.text }}>{f(isAr ? cat.ar : cat.en)}</span>
-                  <span style={{ 
-                    fontWeight: 'bold', 
-                    color: style.text, 
-                    fontSize: '10px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}>
-                    <span>{style.icon}</span>
-                    <span>{f(style.label)}</span>
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
         {/* 2. Detailed Findings List */}
-        <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-          <h2 style={{ fontSize: '12px', fontWeight: 'bold', color: BRAND.primary, borderBottom: `1px solid ${BRAND.border}`, paddingBottom: '4px', margin: '0 0 6px 0', flexShrink: 0 }}>
-            {f(isAr ? 'تفاصيل الملاحظات والعيوب المسجلة' : 'Detailed Defect & Findings List')}
+        <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0, marginTop: '10px' }}>
+          <h2 style={{ fontSize: '13px', fontWeight: 'bold', color: BRAND.primary, borderBottom: `1px solid ${BRAND.border}`, paddingBottom: '6px', margin: '0 0 10px 0', flexShrink: 0 }}>
+            {f(isAr ? 'الملاحظات والعيوب المسجلة' : 'Recorded Findings & Observations')}
           </h2>
           
-          <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+          <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             {issueItems.length === 0 ? (
               <div style={{
-                backgroundColor: BRAND.successBg,
-                border: `1px solid ${BRAND.success}30`,
+                border: `1px solid ${BRAND.border}`,
                 borderRadius: '8px',
-                padding: '24px',
+                padding: '30px 20px',
                 textAlign: 'center',
+                backgroundColor: BRAND.light,
                 margin: '20px 0',
               }}>
-                <span style={{ fontSize: '20px', display: 'block', marginBottom: '4px' }}>💚</span>
-                <h3 style={{ color: BRAND.success, margin: '0 0 4px 0', fontWeight: 'bold', fontSize: '12px' }}>
-                  {f(isAr ? 'المركبة سليمة وفحص الأنظمة ممتاز' : 'All Inspected Systems are Healthy')}
+                <span style={{ fontSize: '20px', display: 'block', marginBottom: '6px' }}>📝</span>
+                <h3 style={{ color: BRAND.primary, margin: '0 0 4px 0', fontWeight: 'bold', fontSize: '12px' }}>
+                  {f(isAr ? 'تقرير خلو الملاحظات والعيوب' : 'No Observations Recorded')}
                 </h3>
                 <p style={{ color: BRAND.textMuted, fontSize: '10px', margin: 0 }}>
-                  {f(isAr ? 'لم يتم رصد أي ملاحظات فنية أو أعطال في الفحص البصري والميكانيكي.' : 'No faults or warnings were recorded during this inspection.')}
+                  {f(isAr ? 'لم يتم تسجيل أي ملاحظات فنية أو عيوب على هذه المركبة خلال فحص الأنظمة.' : 'No technical faults or observations have been recorded for this vehicle.')}
                 </p>
               </div>
             ) : (
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: '1fr 1fr', 
-                gap: '8px',
-                paddingBottom: '8px'
-              }}>
-                {issueItems.slice(0, 10).map((item, idx) => {
-                  const isFail = item.status === 'fail';
-                  const statusColor = isFail ? BRAND.danger : BRAND.warning;
-                  const catLabel = getCategoryLabel(item.category);
+              <div style={{ display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'space-between' }}>
+                <div style={{ 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  gap: issueItems.length <= 3 ? '14px' : '8px',
+                  paddingBottom: '8px'
+                }}>
+                  {issueItems.slice(0, 6).map((item, idx) => {
+                    const catLabel = getCategoryLabel(item.category);
 
-                  return (
-                    <div 
-                      key={item.id || idx}
-                      style={{
-                        border: `1px solid ${BRAND.border}`,
-                        borderRadius: '6px',
-                        padding: '8px',
-                        backgroundColor: '#ffffff',
-                        display: 'flex',
-                        gap: '8px',
-                        alignItems: 'flex-start',
-                      }}
-                    >
-                      {item.imageUrl && (
-                        <img 
-                          src={item.imageUrl} 
-                          alt="Defect" 
-                          style={{ width: '54px', height: '54px', objectFit: 'cover', borderRadius: '4px', border: `1px solid ${BRAND.border}`, flexShrink: 0 }} 
-                        />
-                      )}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', gap: '4px', marginBottom: '2px', alignItems: 'center' }}>
-                          <span style={{ 
-                            fontSize: '8px', 
-                            fontWeight: 'bold', 
-                            color: '#ffffff', 
-                            backgroundColor: statusColor, 
-                            padding: '1px 4px', 
-                            borderRadius: '3px' 
-                          }}>
-                            {f(isAr ? (isFail ? 'عطل' : 'تنبيه') : (isFail ? 'FAIL' : 'WARN'))}
-                          </span>
-                          <span style={{ fontSize: '9px', fontWeight: 'bold', color: BRAND.textMuted }}>
-                            {f(isAr ? catLabel.ar : catLabel.en)}
-                          </span>
+                    return (
+                      <div 
+                        key={item.id || idx}
+                        style={{
+                          border: `1px solid ${BRAND.border}`,
+                          borderRadius: '8px',
+                          padding: '10px 12px',
+                          backgroundColor: '#ffffff',
+                          display: 'flex',
+                          gap: '16px',
+                          alignItems: 'center',
+                        }}
+                      >
+                        {item.imageUrl && (
+                          <img 
+                            src={item.imageUrl} 
+                            alt="Defect" 
+                            style={{ width: '130px', height: '90px', objectFit: 'cover', borderRadius: '6px', border: `1px solid ${BRAND.border}`, flexShrink: 0 }} 
+                          />
+                        )}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', gap: '6px', marginBottom: '4px', alignItems: 'center' }}>
+                            <span style={{ fontSize: '9px', fontWeight: 'bold', color: BRAND.accent }}>
+                              {f(isAr ? catLabel.ar : catLabel.en)}
+                            </span>
+                          </div>
+                          <h4 style={{ fontSize: '12px', fontWeight: 'bold', color: BRAND.primary, margin: '0 0 4px 0' }}>
+                            {f(item.faultName)}
+                          </h4>
+                          <p style={{ fontSize: '10px', color: BRAND.textMuted, margin: 0, lineHeight: '1.4' }}>
+                            {f(item.description || item.notes || (isAr ? 'لا يوجد تفاصيل إضافية.' : 'No additional details.'))}
+                          </p>
                         </div>
-                        <h4 style={{ fontSize: '11px', fontWeight: 'bold', color: BRAND.primary, margin: '0 0 2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {f(item.faultName)}
-                        </h4>
-                        <p style={{ fontSize: '9px', color: BRAND.textMuted, margin: 0, lineHeight: '1.3', height: '2.6em', overflow: 'hidden' }}>
-                          {f(item.description || item.notes || (isAr ? 'لا يوجد تفاصيل إضافية.' : 'No additional details.'))}
-                        </p>
                       </div>
+                    );
+                  })}
+                </div>
+
+                {issueItems.length <= 3 && (
+                  <div style={{
+                    border: `1px dashed ${BRAND.accent}80`,
+                    borderRadius: '10px',
+                    padding: '16px 20px',
+                    backgroundColor: '#FFFDF9',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginTop: '15px',
+                  }}>
+                    <div style={{ flex: 1, minWidth: 0, paddingLeft: isAr ? '16px' : '0', paddingRight: isAr ? '0' : '16px' }}>
+                      <h4 style={{ fontSize: '11px', fontWeight: 'bold', color: BRAND.primary, margin: '0 0 4px 0' }}>
+                        {f(isAr ? 'تأكيد الفحص والاعتماد الرقمي المعتمد' : 'Inspection Verification & Digital Trust')}
+                      </h4>
+                      <p style={{ fontSize: '9px', color: BRAND.textMuted, margin: 0, lineHeight: '1.5' }}>
+                        {f(isAr 
+                          ? 'هذا التقرير معتمد وموثق رقمياً من قبل مركز هاي سيفتي الدولي لفحص وتوثيق المركبات. يرجى مسح رمز التحقق الرقمي المرفق في نهاية هذا التقرير لمطابقة البيانات بشكل فوري والتحقق من صحتها إلكترونياً.' 
+                          : 'This report is officially certified and digitally verified by High Safety International Center. Please scan the QR code located on the final page of this document to confirm record matching and verify authentic data.'
+                        )}
+                      </p>
                     </div>
-                  );
-                })}
+                    <div style={{
+                      border: `1px solid ${BRAND.accent}40`,
+                      borderRadius: '8px',
+                      padding: '8px 12px',
+                      backgroundColor: '#ffffff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      flexShrink: 0
+                    }}>
+                      <div style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: '8px', fontWeight: 'bold', color: BRAND.accent, letterSpacing: '0.5px' }}>{f('APPROVED')}</div>
+                        <div style={{ fontSize: '8px', fontWeight: 'bold', color: BRAND.primary }}>{f('INSPECTION')}</div>
+                      </div>
+                      <img src={logoPath} alt="Verified logo" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: `1px solid ${BRAND.accent}30` }} />
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -683,7 +678,7 @@ export const PdfSignaturesPage = forwardRef<HTMLDivElement, PdfReportTemplatePro
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `2px solid ${BRAND.border}`, paddingBottom: '12px', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <img src={logoPath} alt="Logo" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
+            <img src={logoPath} alt="Logo" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: `1px solid ${BRAND.border}` }} />
             <div>
               <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: BRAND.primary }}>{f(isAr ? 'مركز الأمان العالي' : 'High Safety Center')}</h3>
               <p style={{ margin: 0, fontSize: '8px', color: BRAND.textMuted }}>{f(isAr ? 'تقرير فحص الكمبيوتر والتواقيع الرسمية' : 'Diagnostics & Final Sign-Off')}</p>
@@ -696,35 +691,39 @@ export const PdfSignaturesPage = forwardRef<HTMLDivElement, PdfReportTemplatePro
 
         {/* OBD Scan Results */}
         <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', marginBottom: '15px' }}>
-          <div style={{ margin: '10px 0 10px 0', flexShrink: 0 }}>
-            <h2 style={{ fontSize: '14px', fontWeight: 'bold', color: BRAND.primary, margin: 0 }}>
+          <div style={{ 
+            backgroundColor: BRAND.primary, 
+            padding: '10px 16px', 
+            borderRadius: '6px', 
+            borderRight: `4px solid ${BRAND.accent}`, 
+            marginBottom: '10px',
+            flexShrink: 0 
+          }}>
+            <h2 style={{ fontSize: '13px', fontWeight: 'bold', color: '#ffffff', margin: 0 }}>
               {f(isAr ? 'تقرير فحص أنظمة الكمبيوتر (OBD-II Scan)' : 'OBD-II Computer Diagnostic Scan')}
             </h2>
-            <p style={{ fontSize: '10px', color: BRAND.textMuted, margin: '2px 0 0 0' }}>
+            <p style={{ fontSize: '9px', color: BRAND.accent, margin: '2px 0 0 0', fontWeight: 'bold' }}>
               {f(isAr ? `أكواد الأعطال الإلكترونية النشطة المسجلة بالمركبة (${obdCodes.length} كود)` : `Active electronic DTC codes retrieved (${obdCodes.length} codes).`)}
             </p>
           </div>
 
           <div style={{ flex: 1, overflowY: 'auto', border: `1px solid ${BRAND.border}`, borderRadius: '6px', backgroundColor: BRAND.light, padding: '8px' }}>
             {obdCodes.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '24px', color: BRAND.success }}>
-                <span style={{ fontSize: '20px', display: 'block', marginBottom: '4px' }}>✔️</span>
-                <span style={{ fontWeight: 'bold', fontSize: '11px' }}>{f(isAr ? 'فحص الكمبيوتر سليم - لا توجد أكواد أعطال مسجلة' : 'No DTC Codes Found')}</span>
+              <div style={{ textAlign: 'center', padding: '24px', color: BRAND.primary }}>
+                <span style={{ fontSize: '20px', display: 'block', marginBottom: '4px' }}>🔍</span>
+                <span style={{ fontWeight: 'bold', fontSize: '11px' }}>{f(isAr ? 'لم يتم رصد أي أكواد أعطال مسجلة' : 'No DTC Codes Recorded')}</span>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {obdCodes.map((obd, idx) => (
-                  <div key={idx} style={{ backgroundColor: '#ffffff', border: `1px solid ${BRAND.border}`, borderRadius: '6px', padding: '8px', display: 'flex', gap: '10px' }}>
-                    <div style={{ backgroundColor: BRAND.danger, color: '#ffffff', fontFamily: 'monospace', fontWeight: 'bold', fontSize: '11px', padding: '3px 6px', borderRadius: '3px', alignSelf: 'flex-start' }}>
+                  <div key={idx} style={{ backgroundColor: '#ffffff', border: `1px solid ${BRAND.border}`, borderRadius: '6px', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ backgroundColor: BRAND.danger, color: '#ffffff', fontFamily: 'monospace', fontWeight: 'bold', fontSize: '11px', padding: '3px 6px', borderRadius: '3px', flexShrink: 0 }}>
                       {f(obd.code)}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <h4 style={{ fontSize: '11px', fontWeight: 'bold', color: BRAND.primary, margin: '0 0 2px 0' }}>
+                      <h4 style={{ fontSize: '11px', fontWeight: 'bold', color: BRAND.primary, margin: 0 }}>
                         {f(isAr ? obd.nameAr : obd.nameEn)}
                       </h4>
-                      <p style={{ fontSize: '9px', color: BRAND.textMuted, margin: 0 }}>
-                        {f(isAr ? obd.diagnosis : obd.nameEn)}
-                      </p>
                     </div>
                   </div>
                 ))}
@@ -766,8 +765,8 @@ export const PdfSignaturesPage = forwardRef<HTMLDivElement, PdfReportTemplatePro
             <span style={{ fontSize: '8px', color: BRAND.textMuted }}>{f('HIGH SAFETY CENTER')}</span>
           </div>
 
-          <div style={{ textAlign: 'center' }}>
-            <img src={logoPath} alt="Verified Logo" style={{ width: '40px', height: '40px', opacity: 0.8 }} />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <img src={logoPath} alt="Verified Logo" style={{ width: '45px', height: '45px', borderRadius: '50%', objectFit: 'cover', border: `1px solid ${BRAND.accent}60`, opacity: 0.9 }} />
             <div style={{ fontSize: '8px', fontWeight: 'bold', color: BRAND.accent, marginTop: '2px', letterSpacing: '1px' }}>{f('VERIFIED REPORT')}</div>
           </div>
 

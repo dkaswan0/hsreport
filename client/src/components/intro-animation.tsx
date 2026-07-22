@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import newLogoPath from "@assets/2d686a58-6e3c-4416-ab74-162301834ccb_1768145790398.jpg";
+import newLogoPath from "@assets/hs-logo.png";
 
 interface IntroAnimationProps {
   onComplete: () => void;

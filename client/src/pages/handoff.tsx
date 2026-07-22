@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import newLogoPath from "@assets/2d686a58-6e3c-4416-ab74-162301834ccb_1768145790398.jpg";
+import newLogoPath from "@assets/hs-logo.png";
 import type { Inspection, InspectionItem } from "@shared/schema";
 
 type InspectionWithItems = Inspection & { items: InspectionItem[] };
@@ -223,32 +223,16 @@ export default function HandoffPage() {
             </div>
           </div>
 
-          {/* Status Badge */}
-          <div className={`flex items-center justify-center gap-3 py-3 rounded-xl ${status.bg}`}>
-            <status.icon className={`w-6 h-6 ${status.color}`} />
-            <div className="text-center">
-              <span className={`text-lg font-bold font-arabic ${status.color}`}>
-                {status.label}
+          {/* Status Badge - Replacement with official trust text */}
+          <div className="flex flex-col items-center justify-center gap-2 py-4 px-6 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-center">
+            <ShieldCheck className="w-8 h-8 text-[#C5852C] animate-pulse" />
+            <div>
+              <span className="text-base font-bold font-arabic text-white block">
+                تقرير فحص فني معتمد إلكترونياً
               </span>
-              <span className={`text-xs block ${status.color} opacity-70`}>
-                {status.labelEn}
+              <span className="text-xs text-white/60 block mt-0.5">
+                Digitally Certified Inspection Report
               </span>
-            </div>
-          </div>
-
-          {/* Quick Stats */}
-          <div className="grid grid-cols-3 gap-3 mt-4">
-            <div className="text-center p-3 rounded-xl bg-emerald-500/10">
-              <div className="text-2xl font-bold text-emerald-400">{passCount}</div>
-              <div className="text-xs text-white/60 font-arabic">سليم</div>
-            </div>
-            <div className="text-center p-3 rounded-xl bg-amber-500/10">
-              <div className="text-2xl font-bold text-amber-400">{warningCount}</div>
-              <div className="text-xs text-white/60 font-arabic">تحذير</div>
-            </div>
-            <div className="text-center p-3 rounded-xl bg-red-500/10">
-              <div className="text-2xl font-bold text-red-400">{failCount}</div>
-              <div className="text-xs text-white/60 font-arabic">خطير</div>
             </div>
           </div>
         </motion.div>

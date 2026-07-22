@@ -8,6 +8,13 @@
       "when": 1768219171979,
       "tag": "0000_wide_madame_hydra",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1784657344620,
+      "tag": "0001_many_vector",
+      "breakpoints": true
     }
   ]
 }

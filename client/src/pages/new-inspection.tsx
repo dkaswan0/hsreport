@@ -4,7 +4,7 @@ import { insertInspectionSchema } from "@shared/schema";
 import { useCreateInspection } from "@/hooks/use-inspections";
 import { useLocation } from "wouter";
 import { z } from "zod";
-import { Loader2, ArrowLeft, Camera, Car, FileCheck, Upload, X, Image } from "lucide-react";
+import { Loader2, ArrowLeft, Camera, Car, FileCheck, Upload, X, Image, Sparkles } from "lucide-react";
 import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -97,6 +97,69 @@ export default function NewInspection() {
   });
 
   const [isDecodingVin, setIsDecodingVin] = useState(false);
+  const [isScanningVin, setIsScanningVin] = useState(false);
+  const vinPhotoRef = useRef<HTMLInputElement>(null);
+
+  const handleVinPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsScanningVin(true);
+    toast({
+      title: "جاري تحليل الصورة",
+      description: "جاري استخراج رقم الشاصي (VIN) بالذكاء الاصطناعي..."
+    });
+
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const rawBase64 = reader.result as string;
+          const compressedBase64 = await compressImage(rawBase64);
+
+          const response = await fetch("/api/vin/extract-from-image", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ imageBase64: compressedBase64 })
+          });
+
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.message || "فشل استخراج رقم الشاصي من الصورة");
+          }
+
+          const data = await response.json();
+          if (data.vin) {
+            form.setValue("vin", data.vin);
+            toast({
+              title: "تم استخراج رقم الشاصي بنجاح",
+              description: `رقم الشاصي: ${data.vin}`
+            });
+            // Automatically decode VIN to fetch specs!
+            await decodeVin(data.vin);
+          } else {
+            throw new Error("لم يتم العثور على رقم شاصي في الصورة");
+          }
+        } catch (error: any) {
+          toast({
+            title: "خطأ في استخراج رقم الشاصي",
+            description: error.message || "حدث خطأ غير متوقع",
+            variant: "destructive"
+          });
+        } finally {
+          setIsScanningVin(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (err: any) {
+      toast({
+        title: "خطأ",
+        description: "فشل في قراءة ملف الصورة",
+        variant: "destructive"
+      });
+      setIsScanningVin(false);
+    }
+  };
 
   const decodeVin = async (vinCode: string) => {
     setIsDecodingVin(true);
@@ -299,11 +362,32 @@ export default function NewInspection() {
                     maxLength={17}
                     data-testid="input-vin"
                   />
-                  {isDecodingVin && (
+                  {isScanningVin ? (
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center">
+                      <Loader2 className="w-5 h-5 animate-spin text-[#C5852C]" />
+                    </div>
+                  ) : isDecodingVin ? (
                     <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center">
                       <Loader2 className="w-5 h-5 animate-spin text-primary" />
                     </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => vinPhotoRef.current?.click()}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-accent transition-colors"
+                      title="مسح رقم الشاصي من ملصق أو باركود"
+                      data-testid="button-scan-vin"
+                    >
+                      <Sparkles className="w-4 h-4 text-[#C5852C] animate-pulse" />
+                    </button>
                   )}
+                  <input
+                    ref={vinPhotoRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleVinPhotoChange}
+                  />
                 </div>
               </div>
 

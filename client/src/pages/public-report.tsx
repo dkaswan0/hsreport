@@ -25,6 +25,7 @@ import {
   Wrench,
   Sparkles,
   Search,
+  Info,
 } from "lucide-react";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
@@ -497,29 +498,52 @@ const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
   );
 };
 
-const ImageModal = ({ imageUrl, faultName, onClose }: { imageUrl: string; faultName: string; onClose: () => void }) => (
-  <div 
-    className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
-    onClick={onClose}
-  >
-    <button 
-      className="absolute top-4 right-4 p-2 bg-white/10 rounded-full text-white hover:bg-white/20 transition-colors"
+const ImageModal = ({ imageUrl, faultName, onClose }: { imageUrl: string; faultName: string; onClose: () => void }) => {
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+
+  return (
+    <div 
+      className="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-[100] flex items-center justify-center p-4 transition-all duration-300 animate-in fade-in"
       onClick={onClose}
+      data-testid="image-lightbox-overlay"
+      dir="rtl"
     >
-      <X className="w-6 h-6" />
-    </button>
-    <div className="max-w-4xl max-h-[90vh] w-full" onClick={e => e.stopPropagation()}>
-      <img 
-        src={imageUrl} 
-        alt={faultName} 
-        className="w-full h-full object-contain rounded-2xl"
-      />
-      <div className="mt-4 text-center text-white">
-        <h3 className="text-xl font-bold font-arabic">{faultName}</h3>
+      {/* Top Bar with Title and Close Button */}
+      <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-50 bg-gradient-to-b from-black/60 to-transparent">
+        <h3 className="text-white font-bold font-arabic text-base md:text-lg truncate max-w-[70%] text-right">{faultName}</h3>
+        <button 
+          onClick={(e) => { e.stopPropagation(); onClose(); }}
+          className="w-11 h-11 bg-white/10 hover:bg-white/20 active:scale-95 text-white rounded-full flex items-center justify-center border border-white/20 transition-all cursor-pointer shadow-lg"
+          title="إغلاق"
+          data-testid="btn-close-lightbox"
+        >
+          <X className="w-6 h-6" />
+        </button>
+      </div>
+
+      {/* Main Image Container */}
+      <div className="relative max-w-5xl max-h-[80vh] w-full flex items-center justify-center animate-in scale-in duration-300" onClick={e => e.stopPropagation()}>
+        <img 
+          src={imageUrl} 
+          alt={faultName} 
+          className="max-w-full max-h-[80vh] object-contain rounded-2xl border border-white/10 shadow-2xl"
+        />
+      </div>
+
+      {/* Dismiss Hint at the bottom */}
+      <div className="absolute bottom-6 left-0 right-0 text-center">
+        <span className="bg-black/60 text-slate-300 text-xs px-4 py-2 rounded-full font-arabic backdrop-blur-sm border border-white/5">
+          اضغط في أي مكان خارج الصورة أو على زر (X) للإغلاق
+        </span>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const CarAnatomyVisualization = ({ items, onCategoryClick }: { items: InspectionItem[], onCategoryClick: (cat: string) => void }) => {
   const [currentViewIndex, setCurrentViewIndex] = useState(0);
@@ -542,19 +566,11 @@ const CarAnatomyVisualization = ({ items, onCategoryClick }: { items: Inspection
   const getCategoryItems = (catId: string) => items.filter(i => i.category === catId);
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'fail': return 'bg-red-500 shadow-red-500/50';
-      case 'warning': return 'bg-amber-500 shadow-amber-500/50';
-      default: return 'bg-emerald-500 shadow-emerald-500/50';
-    }
+    return 'bg-[#C5852C] shadow-[#C5852C]/50';
   };
 
   const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'fail': return <XCircle className="w-3 h-3" />;
-      case 'warning': return <AlertCircle className="w-3 h-3" />;
-      default: return <CheckCircle2 className="w-3 h-3" />;
-    }
+    return <Info className="w-3 h-3" />;
   };
 
   const handleCategoryPress = (catId: string) => {
@@ -565,7 +581,7 @@ const CarAnatomyVisualization = ({ items, onCategoryClick }: { items: Inspection
   const stats = useMemo(() => {
     const warning = items.filter(i => i.status === 'warning').length;
     const fail = items.filter(i => i.status === 'fail').length;
-    return { warning, fail };
+    return { warning, fail, total: items.length };
   }, [items]);
 
   const getPosition = (catId: string) => {
@@ -627,18 +643,9 @@ const CarAnatomyVisualization = ({ items, onCategoryClick }: { items: Inspection
           {currentView.label}
         </div>
         <div className="flex gap-2">
-          {stats.warning > 0 && (
-            <div className="flex items-center gap-1.5 bg-amber-500/20 text-amber-400 px-2 md:px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm border border-amber-500/30">
-              <AlertCircle className="w-3 h-3 md:w-3.5 md:h-3.5" />
-              <span>{stats.warning} تحذير</span>
-            </div>
-          )}
-          {stats.fail > 0 && (
-            <div className="flex items-center gap-1.5 bg-red-500/20 text-red-400 px-2 md:px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm border border-red-500/30">
-              <XCircle className="w-3 h-3 md:w-3.5 md:h-3.5" />
-              <span>{stats.fail} خطير</span>
-            </div>
-          )}
+          <div className="flex items-center gap-1.5 bg-[#C5852C]/20 text-[#C5852C] border border-[#C5852C]/30 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm font-arabic">
+            <span>الملاحظات المسجلة: {stats.total}</span>
+          </div>
         </div>
       </div>
 
@@ -714,20 +721,10 @@ const CarAnatomyVisualization = ({ items, onCategoryClick }: { items: Inspection
                       {catItems.map((item, idx) => (
                         <div 
                           key={idx}
-                          className={cn(
-                            "p-2 rounded-lg text-xs",
-                            item.status === 'fail' ? "bg-red-50 border border-red-200" : "bg-amber-50 border border-amber-200"
-                          )}
+                          className="p-2 rounded-lg text-xs bg-slate-50 border border-slate-200"
                         >
                           <div className="flex items-start gap-2">
-                            {item.status === 'fail' ? 
-                              <XCircle className="w-3 h-3 text-red-500 shrink-0 mt-0.5" /> : 
-                              <AlertCircle className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" />
-                            }
-                            <p className={cn(
-                              "font-bold font-arabic leading-tight text-[11px]",
-                              item.status === 'fail' ? "text-red-700" : "text-amber-700"
-                            )}>
+                            <p className="font-bold font-arabic leading-tight text-[11px] text-slate-800">
                               {item.faultName.split(' - ')[0]}
                             </p>
                           </div>
@@ -760,24 +757,12 @@ const CarAnatomyVisualization = ({ items, onCategoryClick }: { items: Inspection
       </div>
 
       {/* Legend & Hint */}
-      <div className="absolute bottom-2 left-0 right-0 space-y-1">
-        <div className="flex justify-center gap-4 md:gap-6">
-          <div className="flex items-center gap-1">
-            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50" />
-            <span className="text-[9px] md:text-[10px] text-white/70 font-arabic">سليم</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50" />
-            <span className="text-[9px] md:text-[10px] text-white/70 font-arabic">تحذير</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-sm shadow-red-500/50" />
-            <span className="text-[9px] md:text-[10px] text-white/70 font-arabic">خطير</span>
+      <div className="absolute bottom-4 left-0 right-0 space-y-2">
+        <div className="flex justify-center">
+          <div className="bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5 text-[10px] text-white/60 font-arabic">
+            اسحب أو استخدم الأسهم للتدوير 360° - اضغط على النقاط لعرض التفاصيل
           </div>
         </div>
-        <p className="text-center text-[8px] md:text-[9px] text-white/40 font-arabic">
-          اسحب لتدوير السيارة 360° • اضغط على العلامة لمعرفة التفاصيل
-        </p>
       </div>
     </div>
   );
@@ -790,7 +775,6 @@ export default function PublicReport() {
   const [highlightedCategory, setHighlightedCategory] = useState<string | null>(null);
   const [showIntro, setShowIntro] = useState(true);
   const [introComplete, setIntroComplete] = useState(false);
-  
   const { data: inspection, isLoading, error } = useQuery<InspectionWithItems>({
     queryKey: ['/api/public/report', token],
     queryFn: async () => {
@@ -840,13 +824,6 @@ export default function PublicReport() {
   const failCount = items.filter(i => i.status === 'fail').length;
   const warningCount = items.filter(i => i.status === 'warning').length;
 
-  const getOverallStatus = () => {
-    if (failCount > 0) return { label: 'يحتاج مراجعة', color: 'text-red-400', bg: 'bg-red-500/20', icon: XCircle };
-    if (warningCount > 0) return { label: 'تحذيرات', color: 'text-amber-400', bg: 'bg-amber-500/20', icon: AlertCircle };
-    return { label: 'ممتازة', color: 'text-emerald-400', bg: 'bg-emerald-500/20', icon: CheckCircle2 };
-  };
-
-  const status = getOverallStatus();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100" dir="rtl">
@@ -872,7 +849,7 @@ export default function PublicReport() {
               style={{ maxHeight: '130px', objectPosition: 'center' }}
             />
           </div>
-          <div className="bg-gradient-to-l from-[#0C1A28] to-[#0f2035] text-white px-6 py-3 flex items-center justify-center border-t border-[#C5852C]/40">
+          <div className="bg-gradient-to-l from-[#0C1A28] to-[#0f2035] text-white px-6 py-3 flex items-center justify-between border-t border-[#C5852C]/40">
             <div className="flex items-center gap-3">
               <div className="w-2 h-2 rounded-full bg-[#C5852C]" />
               <p className="text-[#C5852C] text-sm font-bold tracking-widest font-arabic">تقرير الفحص التفاعلي</p>
@@ -986,23 +963,6 @@ export default function PublicReport() {
         {/* Car Section Photos Gallery */}
         <CarSectionPhotosGallery inspection={inspection} />
 
-        <div className="grid grid-cols-2 gap-2 md:gap-4">
-          <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-4 text-center shadow-sm border border-slate-100">
-            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-amber-100 flex items-center justify-center mx-auto mb-2">
-              <AlertCircle className="w-5 h-5 md:w-6 md:h-6 text-amber-600" />
-            </div>
-            <div className="text-xl md:text-2xl font-black text-amber-600">{warningCount}</div>
-            <div className="text-xs md:text-sm text-slate-600 font-arabic font-semibold">تحذير</div>
-          </div>
-          <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-4 text-center shadow-sm border border-slate-100">
-            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg md:rounded-xl bg-red-100 flex items-center justify-center mx-auto mb-2">
-              <XCircle className="w-5 h-5 md:w-6 md:h-6 text-red-600" />
-            </div>
-            <div className="text-xl md:text-2xl font-black text-red-600">{failCount}</div>
-            <div className="text-xs md:text-sm text-slate-600 font-arabic font-semibold">خطير</div>
-          </div>
-        </div>
-
         {issueItems.length > 0 && (
           <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100">
             <div className="p-6 border-b border-slate-100">
@@ -1037,10 +997,7 @@ export default function PublicReport() {
                       {catItems.map(item => (
                         <div 
                           key={item.id} 
-                          className={cn(
-                            "p-4 rounded-xl flex flex-col md:flex-row-reverse gap-4",
-                            item.status === 'fail' ? 'bg-red-50 border border-red-100' : 'bg-amber-50 border border-amber-100'
-                          )}
+                          className="p-4 rounded-xl flex flex-col md:flex-row-reverse gap-4 bg-slate-50 border border-slate-100"
                         >
                           {item.imageUrl && (
                             <button
@@ -1054,19 +1011,13 @@ export default function PublicReport() {
                             </button>
                           )}
                           <div className="flex-1 text-right">
-                            <div className="flex items-start gap-3">
-                              {item.status === 'fail' ? <XCircle className="w-5 h-5 text-red-500 shrink-0 mt-1" /> :
-                               <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-1" />}
-                              <div className="flex-1">
-                                <div className="font-bold text-slate-800 font-arabic text-lg">{item.faultName.split(' - ')[0]}</div>
-                                {item.faultName.split(' - ')[1] && (
-                                  <p className="text-xs text-slate-400 font-mono">{item.faultName.split(' - ')[1]}</p>
-                                )}
-                                {item.description && (
-                                  <p className="text-sm text-slate-600 mt-2 font-arabic leading-relaxed">{item.description}</p>
-                                )}
-                              </div>
-                            </div>
+                            <div className="font-bold text-slate-800 font-arabic text-lg">{item.faultName.split(' - ')[0]}</div>
+                            {item.faultName.split(' - ')[1] && (
+                              <p className="text-xs text-slate-400 font-mono">{item.faultName.split(' - ')[1]}</p>
+                            )}
+                            {item.description && (
+                              <p className="text-sm text-slate-600 mt-2 font-arabic leading-relaxed">{item.description}</p>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -1122,85 +1073,22 @@ export default function PublicReport() {
                 </div>
               </div>
 
-              <div className="divide-y divide-slate-100 px-2 pb-2">
-                <Accordion type="single" collapsible className="w-full">
-                  {obdCodes.map((obd, idx) => {
-                    const type = getCodeType(obd.code);
-                    const hasAiDetails = obd.diagnosis || obd.causes || obd.solutions;
-                    
-                    return (
-                      <AccordionItem value={`item-${idx}`} key={idx} className="border-b-0 mb-2 bg-slate-50/50 rounded-2xl overflow-hidden data-[state=open]:bg-white data-[state=open]:shadow-md data-[state=open]:ring-1 data-[state=open]:ring-slate-200 transition-all">
-                        <AccordionTrigger className="px-4 py-4 hover:no-underline [&[data-state=open]>div>div>div.ai-badge]:opacity-0 [&[data-state=open]>div>div>div.ai-badge]:scale-95">
-                          <div className="flex items-center gap-4 w-full text-right">
-                            <div className="shrink-0">
-                              <div className={`font-mono font-black text-white text-lg px-4 py-2 rounded-xl ${type.color} shadow-md min-w-[85px] text-center`}>{obd.code}</div>
-                              <div className="text-[10px] text-center text-slate-500 mt-1.5 font-arabic font-medium">{type.labelAr}</div>
-                            </div>
-                            <div className="flex-1 min-w-0 flex justify-between items-center pr-2">
-                              <div>
-                                <div className="text-base font-bold text-slate-900 font-arabic leading-snug text-right">{obd.nameAr}</div>
-                                <div className="text-sm text-slate-500 font-mono mt-1 text-right" dir="ltr">{obd.nameEn}</div>
-                              </div>
-                              {hasAiDetails && (
-                                <div className="ai-badge shrink-0 flex items-center gap-1.5 bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-full border border-indigo-100 transition-all duration-300">
-                                  <Sparkles className="w-3.5 h-3.5" />
-                                  <span className="text-xs font-bold font-arabic">شرح العطل</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </AccordionTrigger>
-                        {hasAiDetails && (
-                          <AccordionContent className="px-4 pb-4 text-right" dir="rtl">
-                            <div className="pt-2 border-t border-slate-100 space-y-4">
-                              
-                              {obd.diagnosis && (
-                                <div className="bg-indigo-50/50 rounded-xl p-4 border border-indigo-100/50">
-                                  <div className="flex items-center gap-2 mb-2 text-indigo-700">
-                                    <Stethoscope className="w-5 h-5" />
-                                    <h4 className="font-black font-arabic text-sm">التشخيص الذكي (AI Diagnosis)</h4>
-                                  </div>
-                                  <p className="text-slate-700 text-sm font-arabic leading-relaxed">
-                                    {obd.diagnosis}
-                                  </p>
-                                </div>
-                              )}
-
-                              {obd.causes && (
-                                <div className="bg-amber-50/50 rounded-xl p-4 border border-amber-100/50">
-                                  <div className="flex items-center gap-2 mb-2 text-amber-700">
-                                    <Search className="w-5 h-5" />
-                                    <h4 className="font-black font-arabic text-sm">الأسباب المحتملة (Possible Causes)</h4>
-                                  </div>
-                                  <ul className="list-disc list-inside text-slate-700 text-sm font-arabic leading-relaxed space-y-1 pr-1">
-                                    {obd.causes.split(',').map((cause, i) => (
-                                      <li key={i}>{cause.trim()}</li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
-
-                              {obd.solutions && (
-                                <div className="bg-emerald-50/50 rounded-xl p-4 border border-emerald-100/50">
-                                  <div className="flex items-center gap-2 mb-2 text-emerald-700">
-                                    <Wrench className="w-5 h-5" />
-                                    <h4 className="font-black font-arabic text-sm">خطوات الإصلاح (Solutions)</h4>
-                                  </div>
-                                  <ul className="list-disc list-inside text-slate-700 text-sm font-arabic leading-relaxed space-y-1 pr-1">
-                                    {obd.solutions.split(',').map((solution, i) => (
-                                      <li key={i}>{solution.trim()}</li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
-
-                            </div>
-                          </AccordionContent>
-                        )}
-                      </AccordionItem>
-                    );
-                  })}
-                </Accordion>
+              <div className="space-y-2 px-4 py-4">
+                {obdCodes.map((obd, idx) => {
+                  const type = getCodeType(obd.code);
+                  return (
+                    <div key={idx} className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 text-right" dir="rtl">
+                      <div className="shrink-0 text-center">
+                        <div className={`font-mono font-black text-white text-base px-3 py-1.5 rounded-lg ${type.color} shadow-sm min-w-[80px] text-center`}>{obd.code}</div>
+                        <div className="text-[10px] text-center text-slate-500 mt-1 font-arabic font-medium">{type.labelAr}</div>
+                      </div>
+                      <div className="flex-1 min-w-0 pr-2">
+                        <div className="text-base font-bold text-slate-900 font-arabic leading-snug">{obd.nameAr}</div>
+                        <div className="text-xs text-slate-500 font-mono mt-0.5" dir="ltr">{obd.nameEn}</div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
               <div className="bg-slate-100 border-t-2 border-slate-200 px-5 py-3 flex items-center justify-between">
@@ -1294,7 +1182,7 @@ export default function PublicReport() {
           <div className="flex justify-center mb-4">
             <div className="relative">
               <div className="absolute -inset-2 rounded-full bg-gradient-to-br from-yellow-400/40 via-[#C5852C]/30 to-yellow-600/40 blur-lg" />
-              <img src={logoPath} alt="High Safety" className="h-16 w-16 object-contain relative z-10" style={{ filter: 'drop-shadow(0 0 10px rgba(197,133,44,0.8))' }} />
+              <img src={logoPath} alt="High Safety" className="h-16 w-16 rounded-full object-cover border border-[#C5852C]/30 relative z-10" style={{ filter: 'drop-shadow(0 0 10px rgba(197,133,44,0.8))' }} />
             </div>
           </div>
           <div className="bg-[#C5852C]/10 rounded-xl px-6 py-3 inline-block mb-3 border border-[#C5852C]/30">
@@ -1331,7 +1219,7 @@ export default function PublicReport() {
             </div>
           </div>
           <p className="text-white/40 text-sm mt-4 font-arabic">
-            تاريخ التقرير: {new Date().toLocaleDateString('ar-AE', { year: 'numeric', month: 'long', day: 'numeric' })}
+              تاريخ التقرير: {new Date().toLocaleDateString('ar-AE', { year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
         </div>
 
