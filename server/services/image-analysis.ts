@@ -396,8 +396,8 @@ Return a JSON array of objects.`;
     const prompt = `Examine this image carefully. Find any Vehicle Identification Number (VIN) / Chassis Number / رقم الهيكل / رقم الشاصي.
 Look at metal plates, stickers, barcodes, door jambs, engine bay labels, registration documents, or windshield plates.
 Extract the 17-character VIN code (letters A-Z and digits 0-9).
-If there are spaces, dashes, or labels like "VIN:", remove them and return ONLY the 17-character alphanumeric string.
-If you see a barcode with numbers underneath, extract the VIN string.
+Barcodes often start and end with asterisks (e.g. *1HGCR2F83HA123456*), or have labels like "VIN:". Strip all asterisks, spaces, dashes, or labels.
+Return ONLY the 17-character alphanumeric string.
 
 Return JSON format:
 {
@@ -414,7 +414,7 @@ Return JSON format:
 
     try {
       const result = await this.callGemini(prompt, imageBase64, schema);
-      let rawVin = (result?.vin || "").toUpperCase().replace(/[^A-Z0-9]/g, '');
+      let rawVin = (result?.vin || "").toUpperCase().replace(/[*_\s-]/g, '').replace(/[^A-Z0-9]/g, '');
 
       // Check if rawVin has a 17-char VIN match
       const vinRegex = /[A-HJ-NPR-Z0-9]{17}/i;
@@ -430,8 +430,11 @@ Return JSON format:
       }
 
       return rawVin.length === 17 ? rawVin : "";
-    } catch (e) {
+    } catch (e: any) {
       console.error("extractVin Error:", e);
+      if (e?.message?.includes("GEMINI_API_KEY") || e?.message?.includes("مفتاح API")) {
+        throw e;
+      }
       return "";
     }
   }
