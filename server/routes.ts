@@ -50,12 +50,13 @@ export async function registerRoutes(
 ): Promise<Server> {
   // === Authentication Routes ===
   app.post("/api/auth/login", async (req, res) => {
-    const { username, password } = req.body;
-    if (!username || !password) {
+    const { username: rawUsername, password } = req.body;
+    if (!rawUsername || !password) {
       return res.status(400).json({ success: false, message: "Username and password are required." });
     }
-    const adminUser = process.env.ADMIN_USERNAME!;
-    const adminPass = process.env.ADMIN_PASSWORD!;
+    const username = String(rawUsername).trim();
+    const adminUser = (process.env.ADMIN_USERNAME || "hs").trim();
+    const adminPass = (process.env.ADMIN_PASSWORD || "ahmed").trim();
 
     // Check if there's a stored password override in the users table
     let passwordMatches = false;
@@ -63,11 +64,11 @@ export async function registerRoutes(
       const { db } = await import("./db");
       const { users } = await import("@shared/schema");
       const { eq } = await import("drizzle-orm");
-      const storedUser = await db.select().from(users).where(eq(users.username, adminUser)).limit(1);
+      const storedUser = await db.select().from(users).where(eq(users.username, username)).limit(1);
       if (storedUser.length > 0 && storedUser[0].password) {
         // Compare sha256 hash
         const providedHash = createHash("sha256").update(password).digest("hex");
-        passwordMatches = (username === adminUser) && (storedUser[0].password === providedHash);
+        passwordMatches = storedUser[0].password === providedHash;
       } else {
         // Fall back to env var
         passwordMatches = (username === adminUser) && (password === adminPass);
@@ -102,8 +103,8 @@ export async function registerRoutes(
         return res.status(400).json({ success: false, message: "كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل" });
       }
 
-      const adminUser = process.env.ADMIN_USERNAME!;
-      const adminPass = process.env.ADMIN_PASSWORD!;
+      const adminUser = (process.env.ADMIN_USERNAME || "hs").trim();
+      const adminPass = (process.env.ADMIN_PASSWORD || "ahmed").trim();
 
       const { db } = await import("./db");
       const { users } = await import("@shared/schema");

@@ -14,9 +14,8 @@ for (const key of requiredEnvVars) {
     throw new Error(`Missing required environment variable: ${key}`);
   }
 }
-if (!process.env.ADMIN_USERNAME || !process.env.ADMIN_PASSWORD) {
-  throw new Error("ADMIN_USERNAME and ADMIN_PASSWORD must be set as environment variables.");
-}
+if (!process.env.ADMIN_USERNAME) process.env.ADMIN_USERNAME = "hs";
+if (!process.env.ADMIN_PASSWORD) process.env.ADMIN_PASSWORD = "ahmed";
 
 const app = express();
 const httpServer = createServer(app);
