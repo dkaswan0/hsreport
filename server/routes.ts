@@ -79,9 +79,15 @@ export async function registerRoutes(
     if (passwordMatches) {
       req.session.isAuthenticated = true;
       req.session.username = username;
-      res.json({ success: true, message: "Login successful" });
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+          return res.status(500).json({ success: false, message: "فشل حفظ الجلسة" });
+        }
+        return res.json({ success: true, message: "Login successful" });
+      });
     } else {
-      res.status(401).json({ success: false, message: "Invalid credentials" });
+      return res.status(401).json({ success: false, message: "Invalid credentials" });
     }
   });
 
