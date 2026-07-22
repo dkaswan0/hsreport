@@ -74,66 +74,85 @@ export class ImageAnalysisService {
     responseSchema?: any
   ): Promise<any> {
     const apiKey = this.getApiKey();
+    const models = [
+      "gemini-2.5-flash",
+      "gemini-2.0-flash",
+      "gemini-1.5-flash",
+      "gemini-1.5-pro"
+    ];
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    let lastError: Error | null = null;
 
-    const body: any = {
-      contents: [
-        {
-          parts: [
-            { text: prompt }
-          ]
-        }
-      ],
-      generationConfig: {
-        responseMimeType: "application/json"
-      }
-    };
-
-    if (imageBase64) {
-      const { mimeType, data } = this.cleanBase64(imageBase64);
-      body.contents[0].parts.push({
-        inlineData: {
-          mimeType,
-          data
-        }
-      });
-    }
-
-    if (responseSchema) {
-      body.generationConfig.responseSchema = responseSchema;
-    }
-
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(body)
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      let parsedErr;
+    for (const model of models) {
       try {
-        parsedErr = JSON.parse(errText);
-      } catch {
-        parsedErr = { error: { message: errText } };
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+        const body: any = {
+          contents: [
+            {
+              parts: [
+                { text: prompt }
+              ]
+            }
+          ],
+          generationConfig: {
+            responseMimeType: "application/json"
+          }
+        };
+
+        if (imageBase64) {
+          const { mimeType, data } = this.cleanBase64(imageBase64);
+          body.contents[0].parts.push({
+            inlineData: {
+              mimeType,
+              data
+            }
+          });
+        }
+
+        if (responseSchema) {
+          body.generationConfig.responseSchema = responseSchema;
+        }
+
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(body)
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          let parsedErr;
+          try {
+            parsedErr = JSON.parse(errText);
+          } catch {
+            parsedErr = { error: { message: errText } };
+          }
+          throw new Error(`[${model}] ${parsedErr?.error?.message || response.statusText}`);
+        }
+
+        const result = await response.json();
+        const textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!textResponse) {
+          throw new Error(`[${model}] Empty response`);
+        }
+
+        const cleanedText = textResponse
+          .replace(/^```json\s*/i, '')
+          .replace(/^```\s*/, '')
+          .replace(/\s*```$/, '')
+          .trim();
+
+        return JSON.parse(cleanedText);
+      } catch (e: any) {
+        console.warn(`Gemini Model ${model} failed:`, e.message);
+        lastError = e;
       }
-      throw new Error(`فشل الاتصال بخدمة الذكاء الاصطناعي (Gemini): ${parsedErr?.error?.message || response.statusText}`);
     }
 
-    const result = await response.json();
-    try {
-      const textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!textResponse) {
-        throw new Error("لم يتم إرجاع نتيجة من خادم الذكاء الاصطناعي.");
-      }
-      return JSON.parse(textResponse);
-    } catch (e: any) {
-      console.error("Gemini Parse Error. Raw response:", JSON.stringify(result));
-      throw new Error(`فشل تحليل استجابة الذكاء الاصطناعي: ${e.message}`);
-    }
+    throw new Error(`فشل الاتصال بخدمة الذكاء الاصطناعي (Gemini): ${lastError?.message || "خطأ غير معروف"}`);
   }
 
   public static async analyzePhoto(imageBase64: string): Promise<PhotoAnalysisResult> {
@@ -374,14 +393,15 @@ Return a JSON array of objects.`;
   }
 
   public static async extractVin(imageBase64: string): Promise<string> {
-    const prompt = `You are an expert at reading vehicle chassis numbers (VIN) from labels, metal plates, barcodes, or windshields.
-Identify the 17-character VIN number from the image.
-A VIN code consists of exactly 17 characters (numbers and uppercase letters) excluding I, O, Q (which are normalized or avoided in VIN standards, but if they appear, extract them exactly as printed).
-Return a JSON object containing the extracted VIN. If no VIN is found, return an empty string.
+    const prompt = `Examine this image carefully. Find any Vehicle Identification Number (VIN) / Chassis Number / رقم الهيكل / رقم الشاصي.
+Look at metal plates, stickers, barcodes, door jambs, engine bay labels, registration documents, or windshield plates.
+Extract the 17-character VIN code (letters A-Z and digits 0-9).
+If there are spaces, dashes, or labels like "VIN:", remove them and return ONLY the 17-character alphanumeric string.
+If you see a barcode with numbers underneath, extract the VIN string.
 
-JSON format:
+Return JSON format:
 {
-  "vin": "WBA3A5C50DF123456"
+  "vin": "1HGCR2F83HA123456"
 }`;
 
     const schema = {
@@ -392,8 +412,28 @@ JSON format:
       required: ["vin"]
     };
 
-    const result = await this.callGemini(prompt, imageBase64, schema);
-    return result.vin || "";
+    try {
+      const result = await this.callGemini(prompt, imageBase64, schema);
+      let rawVin = (result?.vin || "").toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+      // Check if rawVin has a 17-char VIN match
+      const vinRegex = /[A-HJ-NPR-Z0-9]{17}/i;
+      const match = rawVin.match(vinRegex);
+      if (match) {
+        return match[0].toUpperCase();
+      }
+
+      // If rawVin is 17 chars long even if it has I/O/Q, normalize them (I->1, O->0, Q->0)
+      if (rawVin.length >= 17) {
+        const candidate = rawVin.substring(0, 17).replace(/I/g, '1').replace(/O/g, '0').replace(/Q/g, '0');
+        return candidate;
+      }
+
+      return rawVin.length === 17 ? rawVin : "";
+    } catch (e) {
+      console.error("extractVin Error:", e);
+      return "";
+    }
   }
 
   public static async analyzeMojazMatch(mojazRecord: string, items: any[]): Promise<any> {

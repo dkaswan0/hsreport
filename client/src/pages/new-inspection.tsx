@@ -115,7 +115,7 @@ export default function NewInspection() {
       reader.onloadend = async () => {
         try {
           const rawBase64 = reader.result as string;
-          const compressedBase64 = await compressImage(rawBase64);
+          const compressedBase64 = await compressImage(rawBase64, 1800, 0.9);
 
           const response = await fetch("/api/vin/extract-from-image", {
             method: "POST",
