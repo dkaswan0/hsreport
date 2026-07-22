@@ -22,10 +22,24 @@ export default function Login({ onLoginSuccess }: { onLoginSuccess: () => void }
       if (data.success) {
         onLoginSuccess();
         setLocation("/");
+      } else {
+        setError(data.message || "اسم المستخدم أو كلمة المرور غير صحيحة");
       }
     },
-    onError: () => {
-      setError("اسم المستخدم أو كلمة المرور غير صحيحة");
+    onError: (err: any) => {
+      let msg = "اسم المستخدم أو كلمة المرور غير صحيحة";
+      if (err?.message) {
+        const cleanMsg = err.message.replace(/^\d+:\s*/, '');
+        try {
+          const parsed = JSON.parse(cleanMsg);
+          msg = parsed.message || msg;
+        } catch {
+          if (!cleanMsg.includes("401")) {
+            msg = cleanMsg;
+          }
+        }
+      }
+      setError(msg);
     },
   });
 
