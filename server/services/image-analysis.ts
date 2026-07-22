@@ -146,13 +146,134 @@ export class ImageAnalysisService {
           .trim();
 
         return JSON.parse(cleanedText);
-      } catch (e: any) {
-        console.warn(`Gemini Model ${model} failed:`, e.message);
-        lastError = e;
+      } catch (err: any) {
+        lastError = err;
+        console.warn(`Gemini model ${model} failed:`, err.message);
       }
     }
 
-    throw new Error(`فشل الاتصال بخدمة الذكاء الاصطناعي (Gemini): ${lastError?.message || "خطأ غير معروف"}`);
+    throw lastError || new Error("All Gemini models failed.");
+  }
+
+  private static async callOpenRouter(
+    prompt: string,
+    imageBase64?: string
+  ): Promise<any> {
+    const apiKey = process.env.OPENROUTER_API_KEY || "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";
+    if (!apiKey) {
+      throw new Error("OPENROUTER_API_KEY is not configured.");
+    }
+
+    const messages: any[] = [];
+    if (imageBase64) {
+      const { mimeType, data } = this.cleanBase64(imageBase64);
+      messages.push({
+        role: "user",
+        content: [
+          { type: "text", text: prompt },
+          { type: "image_url", image_url: { url: `data:${mimeType};base64,${data}` } }
+        ]
+      });
+    } else {
+      messages.push({
+        role: "user",
+        content: prompt
+      });
+    }
+
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "openai/gpt-4o-mini",
+        response_format: { type: "json_object" },
+        messages
+      })
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`[OpenRouter gpt-4o-mini] HTTP ${response.status}: ${errText.substring(0, 150)}`);
+    }
+
+    const result = await response.json();
+    const content = result.choices?.[0]?.message?.content;
+    if (!content) {
+      throw new Error("[OpenRouter gpt-4o-mini] Empty response text");
+    }
+
+    const cleaned = content.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '').trim();
+    return JSON.parse(cleaned);
+  }
+
+  private static async callGroq(
+    prompt: string
+  ): Promise<any> {
+    const apiKey = process.env.GROQ_API_KEY || "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";
+    if (!apiKey) {
+      throw new Error("GROQ_API_KEY is not configured.");
+    }
+
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        response_format: { type: "json_object" },
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`[Groq llama-3.3-70b] HTTP ${response.status}: ${errText.substring(0, 150)}`);
+    }
+
+    const result = await response.json();
+    const content = result.choices?.[0]?.message?.content;
+    if (!content) {
+      throw new Error("[Groq llama-3.3-70b] Empty response text");
+    }
+
+    const cleaned = content.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '').trim();
+    return JSON.parse(cleaned);
+  }
+
+  private static async callAI(
+    prompt: string,
+    imageBase64?: string,
+    responseSchema?: any
+  ): Promise<any> {
+    // 1. Try OpenRouter Vision first (gpt-4o-mini)
+    try {
+      return await this.callOpenRouter(prompt, imageBase64);
+    } catch (err: any) {
+      console.warn("OpenRouter AI attempt failed, trying Gemini API:", err?.message || err);
+    }
+
+    // 2. Try Google Gemini API
+    try {
+      return await this.callGemini(prompt, imageBase64, responseSchema);
+    } catch (err: any) {
+      console.warn("Gemini AI attempt failed:", err?.message || err);
+    }
+
+    // 3. Try Groq (for text prompts)
+    if (!imageBase64) {
+      try {
+        return await this.callGroq(prompt);
+      } catch (err: any) {
+        console.warn("Groq AI attempt failed:", err?.message || err);
+      }
+    }
+
+    throw new Error("All AI providers (OpenRouter, Gemini, Groq) failed.");
   }
 
   public static async analyzePhoto(imageBase64: string): Promise<PhotoAnalysisResult> {
@@ -201,7 +322,7 @@ export class ImageAnalysisService {
     };
 
     try {
-      return await this.callGemini(prompt, imageBase64, schema);
+      return await this.callAI(prompt, imageBase64, schema);
     } catch (err: any) {
       console.warn("Gemini Photo Analysis failed, utilizing dynamic automotive vision fallback:", err?.message || err);
 
@@ -347,7 +468,7 @@ export class ImageAnalysisService {
     };
 
     try {
-      return await this.callGemini(prompt, imageBase64, schema);
+      return await this.callAI(prompt, imageBase64, schema);
     } catch (err: any) {
       console.warn("Odometer analysis warning:", err?.message || err);
       return {
@@ -379,7 +500,7 @@ JSON format:
       required: ["codes"]
     };
 
-    const result = await this.callGemini(prompt, imageBase64, schema);
+    const result = await this.callAI(prompt, imageBase64, schema);
     return result.codes || [];
   }
 
@@ -543,7 +664,7 @@ Return JSON format:
     };
 
     try {
-      const result = await this.callGemini(prompt, imageBase64, schema);
+      const result = await this.callAI(prompt, imageBase64, schema);
       let rawVin = (result?.vin || "").toUpperCase().replace(/[*_\s-]/g, '').replace(/[^A-Z0-9]/g, '');
 
       // Check if rawVin has a 17-char VIN match
@@ -616,6 +737,6 @@ Return the result in Arabic as a JSON object matching the following structure:
       required: ["matches", "overallRepairAssessment"]
     };
 
-    return this.callGemini(prompt, undefined, schema);
+    return this.callAI(prompt, undefined, schema);
   }
 }
