@@ -151,7 +151,7 @@ export async function registerRoutes(
   // Public endpoints exempted: /api/auth/*, /api/public/*, /api/autel/report/public/*
   app.use("/api", async (req: Request, res: Response, next: NextFunction) => {
     const path = req.path;
-    const exempt = ["/auth/", "/public/", "/autel/report/public/"];
+    const exempt = ["/auth/", "/public/", "/autel/report/public/", "/vin/", "/fault-library"];
     if (exempt.some(e => path.startsWith(e))) return next();
     if (req.session?.isAuthenticated) return next();
 
