@@ -43,11 +43,15 @@ export function useCreateInspection() {
         credentials: "include",
       });
       if (!res.ok) {
-        if (res.status === 400) {
-          const error = api.inspections.create.responses[400].parse(await res.json());
-          throw new Error(error.message);
+        const errText = await res.text().catch(() => '');
+        let errMsg = 'فشل حفظ الفحص';
+        try {
+          const parsed = JSON.parse(errText);
+          errMsg = parsed.message || parsed.error || errMsg;
+        } catch {
+          if (errText) errMsg = errText;
         }
-        throw new Error('Failed to create inspection');
+        throw new Error(errMsg);
       }
       return api.inspections.create.responses[201].parse(await res.json());
     },
