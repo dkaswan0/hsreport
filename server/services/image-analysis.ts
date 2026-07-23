@@ -245,6 +245,42 @@ export class ImageAnalysisService {
     return JSON.parse(cleaned);
   }
 
+  private static async callDeepSeek(
+    prompt: string
+  ): Promise<any> {
+    const apiKey = process.env.DEEPSEEK_API_KEY || "sk-62de4a573994406583eb4b3fbcaf0a75";
+    if (!apiKey) {
+      throw new Error("DEEPSEEK_API_KEY is not configured.");
+    }
+
+    const response = await fetch("https://api.deepseek.com/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "deepseek-chat",
+        response_format: { type: "json_object" },
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`[DeepSeek deepseek-chat] HTTP ${response.status}: ${errText.substring(0, 150)}`);
+    }
+
+    const result = await response.json();
+    const content = result.choices?.[0]?.message?.content;
+    if (!content) {
+      throw new Error("[DeepSeek deepseek-chat] Empty response text");
+    }
+
+    const cleaned = content.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '').trim();
+    return JSON.parse(cleaned);
+  }
+
   private static async callAI(
     prompt: string,
     imageBase64?: string,
@@ -269,11 +305,18 @@ export class ImageAnalysisService {
       try {
         return await this.callGroq(prompt);
       } catch (err: any) {
-        console.warn("Groq AI attempt failed:", err?.message || err);
+        console.warn("Groq AI attempt failed, trying DeepSeek:", err?.message || err);
+      }
+
+      // 4. Try DeepSeek (for text reasoning prompts)
+      try {
+        return await this.callDeepSeek(prompt);
+      } catch (err: any) {
+        console.warn("DeepSeek AI attempt failed:", err?.message || err);
       }
     }
 
-    throw new Error("All AI providers (OpenRouter, Gemini, Groq) failed.");
+    throw new Error("All AI providers (OpenRouter, Gemini, Groq, DeepSeek) failed.");
   }
 
   public static async analyzePhoto(imageBase64: string): Promise<PhotoAnalysisResult> {
