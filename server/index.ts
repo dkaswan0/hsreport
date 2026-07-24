@@ -14,8 +14,8 @@ for (const key of requiredEnvVars) {
     throw new Error(`Missing required environment variable: ${key}`);
   }
 }
-if (!process.env.ADMIN_USERNAME) process.env.ADMIN_USERNAME = "hs";
-if (!process.env.ADMIN_PASSWORD) process.env.ADMIN_PASSWORD = "hs";
+import { seedGulfFaults } from "./seed-gulf-faults";
+seedGulfFaults().catch(() => {});
 
 const app = express();
 const httpServer = createServer(app);
