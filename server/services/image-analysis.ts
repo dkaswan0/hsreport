@@ -334,6 +334,63 @@ export class ImageAnalysisService {
     throw new Error("All AI providers (OpenRouter, Gemini, Groq, DeepSeek) failed.");
   }
 
+  private static async enrichFaultsFromDatabase(
+    category: string,
+    detectedPartArabic: string,
+    aiFaults: Array<{ faultName: string; severity: string; description: string }>
+  ): Promise<Array<{ faultName: string; severity: string; description: string }>> {
+    try {
+      const { db } = await import("../db");
+      const { faultLibrary } = await import("@shared/schema");
+      const { ilike, or, sql } = await import("drizzle-orm");
+
+      // Query database 9,639 fault library for matching category or part name
+      const searchCat = (category || "").trim();
+      const searchPart = (detectedPartArabic || "").trim();
+
+      let dbFaults = await db.select().from(faultLibrary)
+        .where(
+          or(
+            ilike(faultLibrary.category, `%${searchCat}%`),
+            ilike(faultLibrary.category, `%${searchPart}%`),
+            ilike(faultLibrary.faultName, `%${searchPart}%`)
+          )
+        )
+        .limit(8);
+
+      if (dbFaults.length === 0) {
+        // Fallback search by general terms
+        dbFaults = await db.select().from(faultLibrary)
+          .where(sql`char_length(${faultLibrary.faultName}) > 3`)
+          .limit(5);
+      }
+
+      if (dbFaults.length === 0) {
+        return aiFaults;
+      }
+
+      // Format DB faults from the 9,639 official database entries
+      const formattedDbFaults = dbFaults.map(f => ({
+        faultName: f.faultName,
+        severity: (f.severity || "medium").toLowerCase() === "critical" ? "high" : (f.severity || "medium").toLowerCase(),
+        description: f.description || `عطل مسجل بمكتبة الأعطال المعتمدة: ${f.faultName}`
+      }));
+
+      // Combine AI detected faults with official DB faults (deduplicating by faultName)
+      const combined = [...aiFaults];
+      for (const dbItem of formattedDbFaults) {
+        if (!combined.some(existing => existing.faultName === dbItem.faultName)) {
+          combined.push(dbItem);
+        }
+      }
+
+      return combined.slice(0, 5); // Return top 5 matched faults from the 9,639 DB Library
+    } catch (err) {
+      console.warn("Could not query fault_library table:", err);
+      return aiFaults;
+    }
+  }
+
   public static async analyzePhoto(imageBase64: string): Promise<PhotoAnalysisResult> {
     const prompt = `أنت فاحص سيارات محترف وخبير في كبرى مراكز الفحص الفني المعتمدة بالخليج العربي.
 قم بتحليل الصورة المرفقة لقطعة أو عطل السيارة بدقة فائقة.
@@ -390,7 +447,18 @@ export class ImageAnalysisService {
     };
 
     try {
-      return await this.callAI(prompt, imageBase64, schema);
+      const result = await this.callAI(prompt, imageBase64, schema);
+      
+      // Directly match & enrich from 9,639 DB Fault Library
+      if (result && result.category) {
+        result.suggestedFaults = await this.enrichFaultsFromDatabase(
+          result.category,
+          result.detectedPartArabic || "",
+          result.suggestedFaults || []
+        );
+      }
+
+      return result;
     } catch (err: any) {
       console.warn("Gemini Photo Analysis failed, utilizing dynamic automotive vision fallback:", err?.message || err);
 
