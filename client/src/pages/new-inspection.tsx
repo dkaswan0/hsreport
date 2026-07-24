@@ -4,10 +4,11 @@ import { insertInspectionSchema } from "@shared/schema";
 import { useCreateInspection } from "@/hooks/use-inspections";
 import { useLocation } from "wouter";
 import { z } from "zod";
-import { Loader2, ArrowLeft, Camera, Car, FileCheck, Upload, X, Image, Sparkles } from "lucide-react";
+import { Loader2, ArrowLeft, Camera, Car, FileCheck, Upload, X, Image, Sparkles, Globe } from "lucide-react";
 import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { SearchRouterModal } from "@/components/search-router-modal";
 
 const compressImage = (dataUrl: string, maxWidth = 1200, quality = 0.7): Promise<string> => {
   return new Promise((resolve) => {
@@ -98,6 +99,7 @@ export default function NewInspection() {
 
   const [isDecodingVin, setIsDecodingVin] = useState(false);
   const [isScanningVin, setIsScanningVin] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const vinPhotoRef = useRef<HTMLInputElement>(null);
 
   const handleVinPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -287,10 +289,20 @@ export default function NewInspection() {
 
           {/* ── 1. بيانات السيارة ── */}
           <div>
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-primary border-b pb-2 font-arabic">
-              <span className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center text-sm">1</span>
-              بيانات السيارة
-            </h3>
+            <div className="flex items-center justify-between border-b pb-2 mb-4">
+              <h3 className="text-lg font-bold flex items-center gap-2 text-primary font-arabic">
+                <span className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center text-sm">1</span>
+                بيانات السيارة
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsSearchModalOpen(true)}
+                className="text-xs bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-950 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all font-medium shadow-sm"
+              >
+                <Globe className="w-3.5 h-3.5 text-blue-600 animate-pulse" />
+                بحث عيوب واستدعاءات الموديل حياً (Search Router)
+              </button>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
@@ -603,6 +615,14 @@ export default function NewInspection() {
           </div>
         </form>
       </div>
+
+      <SearchRouterModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+        defaultMake={form.watch("make") || undefined}
+        defaultModel={form.watch("model") || undefined}
+        defaultYear={form.watch("year") || undefined}
+      />
     </div>
   );
 }

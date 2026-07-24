@@ -12,8 +12,10 @@ import {
   RefreshCw,
   ChevronDown,
   ChevronUp,
-  Trash2
+  Trash2,
+  Globe
 } from "lucide-react";
+import { SearchRouterModal } from "@/components/search-router-modal";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -184,6 +186,7 @@ const getSeverityInfo = (severity: string | null) => {
 export default function FaultLibrary() {
   const { lang, t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSeverity, setSelectedSeverity] = useState<string | null>(null);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
@@ -377,6 +380,14 @@ export default function FaultLibrary() {
               )}
             </Button>
           )}
+          <Button
+            variant="outline"
+            onClick={() => setIsSearchModalOpen(true)}
+            className="font-arabic bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-950 dark:text-blue-300 border-blue-200 dark:border-blue-800"
+          >
+            <Globe className="w-4 h-4 ml-2 text-blue-600 animate-pulse" />
+            البحث الحي عبر الإنترنت (Search Router)
+          </Button>
           <Badge variant="secondary" className="font-arabic">
             {stats.total} عطل
           </Badge>
@@ -638,6 +649,11 @@ export default function FaultLibrary() {
           <p className="text-muted-foreground font-arabic">حاول تعديل معايير البحث</p>
         </div>
       )}
+
+      <SearchRouterModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+      />
     </div>
   );
 }
