@@ -342,13 +342,18 @@ export class ImageAnalysisService {
     try {
       const { db } = await import("../db");
       const { faultLibrary } = await import("@shared/schema");
-      const { ilike, or, sql } = await import("drizzle-orm");
+      const { ilike, or } = await import("drizzle-orm");
 
-      // Query database 9,639 fault library for matching category or part name
       const searchCat = (category || "").trim();
       const searchPart = (detectedPartArabic || "").trim();
 
-      let dbFaults = await db.select().from(faultLibrary)
+      // Only search DB if category or part name is provided
+      if (!searchCat && !searchPart) {
+        return aiFaults;
+      }
+
+      // Query database 9,639 fault library for STRICT matching category or part name
+      const dbFaults = await db.select().from(faultLibrary)
         .where(
           or(
             ilike(faultLibrary.category, `%${searchCat}%`),
@@ -356,35 +361,29 @@ export class ImageAnalysisService {
             ilike(faultLibrary.faultName, `%${searchPart}%`)
           )
         )
-        .limit(8);
+        .limit(5);
 
-      if (dbFaults.length === 0) {
-        // Fallback search by general terms
-        dbFaults = await db.select().from(faultLibrary)
-          .where(sql`char_length(${faultLibrary.faultName}) > 3`)
-          .limit(5);
-      }
-
+      // If no strict DB matches found, return purely what the AI visually detected
       if (dbFaults.length === 0) {
         return aiFaults;
       }
 
-      // Format DB faults from the 9,639 official database entries
+      // Format DB faults from the official database entries
       const formattedDbFaults = dbFaults.map(f => ({
         faultName: f.faultName,
         severity: (f.severity || "medium").toLowerCase() === "critical" ? "high" : (f.severity || "medium").toLowerCase(),
         description: f.description || `عطل مسجل بمكتبة الأعطال المعتمدة: ${f.faultName}`
       }));
 
-      // Combine AI detected faults with official DB faults (deduplicating by faultName)
+      // Combine AI detected faults with matching DB faults, prioritizing AI visual findings
       const combined = [...aiFaults];
       for (const dbItem of formattedDbFaults) {
-        if (!combined.some(existing => existing.faultName === dbItem.faultName)) {
+        if (!combined.some(existing => existing.faultName === dbItem.faultName || existing.faultName.includes(dbItem.faultName))) {
           combined.push(dbItem);
         }
       }
 
-      return combined.slice(0, 5); // Return top 5 matched faults from the 9,639 DB Library
+      return combined.slice(0, 4); // Max 4 relevant suggestions
     } catch (err) {
       console.warn("Could not query fault_library table:", err);
       return aiFaults;
