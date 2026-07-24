@@ -78,6 +78,9 @@ function AppContent() {
       <Route path="/view/:token">
         {() => <PublicReport />}
       </Route>
+      <Route path="/report/:id">
+        {() => <InteractiveReport />}
+      </Route>
       <Route path="/reports/:id">
         {() => <InteractiveReport />}
       </Route>

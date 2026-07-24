@@ -35,6 +35,7 @@ import { useToast } from "@/hooks/use-toast";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import logoPath from "@assets/hs-logo.png";
 import hsBannerPath from "@assets/hs-banner.jpeg";
 import { PdfCoverPage, PdfReportTemplate, PdfCarPhotosPage, PdfSignaturesPage } from "@/components/pdf-report-template";
@@ -1115,9 +1116,27 @@ const InspectionResults = ({
 
 // Main Report Component
 export default function InteractiveReport() {
-  const [, params] = useRoute("/reports/:id");
-  const id = Number(params?.id);
-  const { data: inspection, isLoading } = useInspection(id);
+  const [matchReports, paramsReports] = useRoute("/reports/:id");
+  const [matchReport, paramsReport] = useRoute("/report/:id");
+  
+  const paramVal = paramsReports?.id || paramsReport?.id || window.location.pathname.split('/').filter(Boolean).pop();
+  const numericId = Number(paramVal);
+  const isNumeric = !isNaN(numericId) && numericId > 0;
+
+  const { data: idInspection, isLoading: isIdLoading } = useInspection(isNumeric ? numericId : 0);
+
+  const { data: tokenInspection, isLoading: isTokenLoading } = useQuery<any>({
+    queryKey: ['/api/public/report', paramVal],
+    queryFn: async () => {
+      const res = await fetch(`/api/public/report/${paramVal}`);
+      if (!res.ok) throw new Error('Report not found');
+      return res.json();
+    },
+    enabled: !isNumeric && !!paramVal
+  });
+
+  const inspection = isNumeric ? idInspection : tokenInspection;
+  const isLoading = isNumeric ? isIdLoading : isTokenLoading;
   const { toast } = useToast();
   const [highlightedCategory, setHighlightedCategory] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<{ url: string; name: string } | null>(null);
@@ -1422,7 +1441,7 @@ export default function InteractiveReport() {
       } else {
         // Group by category
         for (const cat of INSPECTION_CATEGORIES) {
-          const catItemsWithImages = itemsWithImages.filter(({ item }) => item.category === cat.id);
+          const catItemsWithImages = itemsWithImages.filter(({ item }: any) => item.category === cat.id);
           if (catItemsWithImages.length === 0) continue;
           
           // Category header
@@ -1433,7 +1452,7 @@ export default function InteractiveReport() {
           });
           
           // Items in this category
-          catItemsWithImages.forEach(({ item, imageBase64 }) => {
+          catItemsWithImages.forEach(({ item, imageBase64 }: any) => {
             const faultAr = item.faultName.split(' - ')[0] || item.faultName;
             const statusSymbol = item.status === 'fail' ? '●' : '◐';
             const statusColor = item.status === 'fail' ? '#dc2626' : '#d97706';
@@ -1986,7 +2005,7 @@ export default function InteractiveReport() {
   const handleShareReport = async () => {
     try {
       // Generate a public share token
-      const response = await fetch(`/api/inspections/${id}/share`, { method: 'POST' });
+      const response = await fetch(`/api/inspections/${inspection?.id || paramVal}/share`, { method: 'POST' });
       if (!response.ok) throw new Error('Failed to generate share link');
       
       const { token } = await response.json();

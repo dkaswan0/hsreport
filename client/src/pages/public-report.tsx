@@ -769,8 +769,12 @@ const CarAnatomyVisualization = ({ items, onCategoryClick }: { items: Inspection
 };
 
 export default function PublicReport() {
-  const [, params] = useRoute("/view/:token");
-  const token = params?.token;
+  const [matchView, paramsView] = useRoute("/view/:token");
+  const [matchReport, paramsReport] = useRoute("/report/:token");
+  const [matchReports, paramsReports] = useRoute("/reports/:token");
+
+  const pathParts = window.location.pathname.split('/').filter(Boolean);
+  const token = paramsView?.token || paramsReport?.token || paramsReports?.token || pathParts[pathParts.length - 1];
   const [selectedImage, setSelectedImage] = useState<{ url: string; name: string } | null>(null);
   const [highlightedCategory, setHighlightedCategory] = useState<string | null>(null);
   const [showIntro, setShowIntro] = useState(true);
