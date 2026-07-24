@@ -181,32 +181,47 @@ export class ImageAnalysisService {
       });
     }
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "openai/gpt-4o-mini",
-        response_format: { type: "json_object" },
-        messages
-      })
-    });
+    const models = [
+      "qwen/qwen-2.5-vl-72b-instruct",
+      "openai/gpt-4o-mini"
+    ];
 
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`[OpenRouter gpt-4o-mini] HTTP ${response.status}: ${errText.substring(0, 150)}`);
+    let lastError: Error | null = null;
+    for (const model of models) {
+      try {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model,
+            response_format: { type: "json_object" },
+            messages
+          })
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`[OpenRouter ${model}] HTTP ${response.status}: ${errText.substring(0, 150)}`);
+        }
+
+        const result = await response.json();
+        const content = result.choices?.[0]?.message?.content;
+        if (!content) {
+          throw new Error(`[OpenRouter ${model}] Empty response text`);
+        }
+
+        const cleaned = content.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '').trim();
+        return JSON.parse(cleaned);
+      } catch (err: any) {
+        lastError = err;
+        console.warn(`OpenRouter model ${model} failed:`, err.message);
+      }
     }
 
-    const result = await response.json();
-    const content = result.choices?.[0]?.message?.content;
-    if (!content) {
-      throw new Error("[OpenRouter gpt-4o-mini] Empty response text");
-    }
-
-    const cleaned = content.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '').trim();
-    return JSON.parse(cleaned);
+    throw lastError || new Error("All OpenRouter models failed.");
   }
 
   private static async callGroq(
@@ -320,25 +335,35 @@ export class ImageAnalysisService {
   }
 
   public static async analyzePhoto(imageBase64: string): Promise<PhotoAnalysisResult> {
-    const prompt = `حلل هذه الصورة لقطعة سيارة أو عطل سيارة. حدد اسم الجزء المكتشف باللغة الإنجليزية والعربية، وصنف الفئة الخاصة به (مثل: المحرك، الهيكل الخارجي، ناقل الحركة، الهيكل السفلي، الأجزاء الكهربائية، الداخلية والسلامة).
-إذا كان هناك عطل مرئي، اقترح قائمة بالأعطال المحتملة مع وصف دقيق لها.
-اكتب أيضاً ملاحظة فنية احترافية كفاحص سيارات (professionalNotes) يمكن إضافتها لتقرير الفحص باللغة العربية تصف فيها المشكلة فقط.
+    const prompt = `أنت فاحص سيارات محترف وخبير في كبرى مراكز الفحص الفني المعتمدة بالخليج العربي.
+قم بتحليل الصورة المرفقة لقطعة أو عطل السيارة بدقة فائقة.
 
-تنبيه هام للغاية وصارم: يمنع منعاً باتاً استخدام عبارات مثل "يتطلب الاستبدال" أو "مما يستدعي استبداله" أو "مما يكشف أجزاء المحرك الداخلية" أو أي توصيات مشابهة بالإصلاح أو الاستبدال أو الصيانة. المطلوب هو وصف وذكر العطل الملاحظ فقط بشكل مباشر واحترافي دون اقتراح أي نوع من أنواع الإصلاح أو الاستبدال.
+المطلوب:
+1. التعرف على اسم الجزء المصور بالضبط (detectedPart بالإنجليزية و detectedPartArabic بالعربية الفصحى المعتمدة بمراكز الفحص مثل: الدعامية الأمامية، الرفرف الأمامي الأيسر، غطاء المحرك/البونيت، حجرة المحرك والملحقات، غطاء البلوف، الشاصي والهيكل السفلي، الأبواب، المصد الخلفي، الجنط والإطار).
+2. تحديد فئة القطعة (category بالعربية مثل: الهيكل الخارجي، المحرك والملحقات، الهيكل السفلي والتعليق، الكهرباء، الداخلية والسلامة).
+3. استخراج الأعطال المرئية بدقة (suggestedFaults):
+   - faultName: اسم العطل المصطلحي (مثل: "آثار رش تجميلي بالرفرف"، "طعجة خفيفة غير نافذة"، "ترشيح زيت خفيف حول غطاء البلوف"، "حككات سطحية بأسفل المصد"، "تفاوت بسيط بالفواصل"، "نقرة حصى جافة بالزجاج").
+   - severity: مستوى الخطورة الحقيقي ("low", "medium", "high").
+   - description: وصف فني مباشر وواضح للعطل دون تهويل ودون اختلاق.
+4. كتابة ملاحظة فنية احترافية (professionalNotes) تصف العطل والملاحظات الميدانية بأسلوب فاحص السيارات المعتمد.
 
-يجب إرجاع النتيجة بصيغة JSON مطابقة للنموذج التالي:
+تنبيهات حاسمة وصارمة جداً:
+- يُمنع تماماً استخدام أي كلمات توصي بالإصلاح أو الاستبدال أو الصيانة (مثل: "يتطلب الاستبدال"، "يحتاج صيانة"، "يجب تغييره"). المطلوب هو وصف المشكلة والعطل فقط.
+- اجعل النتيجة متسقة ومطابقة تماماً للصورة المرفقة.
+
+إرجاع JSON بالصيغة:
 {
-  "detectedPart": "Part name in English (e.g. Bumper)",
-  "detectedPartArabic": "اسم الجزء بالعربية (مثل الدعامية الأمامية)",
-  "category": "الفئة بالعربية (مثل الهيكل الخارجي)",
+  "detectedPart": "Part Name in English",
+  "detectedPartArabic": "اسم الجزء الملاحظ بالعربية",
+  "category": "فئة الجزء بالعربية",
   "suggestedFaults": [
     {
-      "faultName": "اسم العطل بالعربية (مثل كسر أو خدوش)",
+      "faultName": "اسم العطل المصطلحي بالعربية",
       "severity": "low/medium/high",
-      "description": "وصف العطل بدقة"
+      "description": "وصف فني مباشر للعطل"
     }
   ],
-  "professionalNotes": "ملاحظة فنية واحترافية تصف المشكلة فقط بالعربية دون أي توصيات بالإصلاح أو الاستبدال"
+  "professionalNotes": "ملاحظة فنية واحترافية ملخصة للفحص"
 }`;
 
     const schema = {
