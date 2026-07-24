@@ -6,6 +6,7 @@ import { z } from "zod";
 import { createHash, randomBytes } from "crypto";
 import { openai } from "./replit_integrations/image/client";
 import { ImageAnalysisService } from "./services/image-analysis";
+import { SearchRouterService } from "./services/search-router";
 
 // ── API Key helpers ───────────────────────────────────────────────────────────
 function hashApiKey(raw: string): string {
@@ -446,6 +447,25 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("OBD Extract Error:", error?.message || error);
       res.status(500).json({ error: error?.message || "Failed to extract OBD codes from image" });
+    }
+  });
+
+  // Live Vehicle Recalls & Common Defects Search via SearchRouter
+  app.post("/api/vehicle/search-recalls", async (req, res) => {
+    try {
+      const { make, model, year, query } = req.body;
+      let searchQuery = query;
+      if (!searchQuery) {
+        if (!make || !model) {
+          return res.status(400).json({ error: true, message: "يرجى تحديد الشركة والموديل أو كلمة البحث" });
+        }
+        searchQuery = `أعطال ومشاكل شائعة واستدعاءات سيارة ${make} ${model} ${year || ''}`;
+      }
+      const results = await SearchRouterService.search(searchQuery, 4);
+      res.json({ success: true, query: searchQuery, results });
+    } catch (error: any) {
+      console.error("Vehicle Recalls Search Error:", error?.message || error);
+      res.status(500).json({ error: true, message: "فشل في إجراء البحث الحقيقي للأعطال" });
     }
   });
 
