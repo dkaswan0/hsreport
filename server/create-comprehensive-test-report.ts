@@ -49,7 +49,7 @@ async function createTestReport() {
   const items = [
     {
       inspectionId,
-      category: "المحرك والملحقات",
+      category: "engine",
       faultName: "ترشيح زيت خفيف حول غطاء البلوف",
       status: "warning",
       severity: "medium",
@@ -59,7 +59,7 @@ async function createTestReport() {
     },
     {
       inspectionId,
-      category: "المحرك والملحقات",
+      category: "engine",
       faultName: "فك في براغي غطاء التايمنج الأمامي",
       status: "warning",
       severity: "medium",
@@ -69,7 +69,7 @@ async function createTestReport() {
     },
     {
       inspectionId,
-      category: "ناقل الحركة (القير والدبل)",
+      category: "transmission_auto",
       faultName: "حالة ناقل الحركة والقير ممتازة",
       status: "pass",
       severity: "low",
@@ -79,7 +79,7 @@ async function createTestReport() {
     },
     {
       inspectionId,
-      category: "الهيكل الخارجي والطلاء",
+      category: "fender_front_right",
       faultName: "آثار رش تجميلي بالمدقار الأمامي الأيمن (7.0 mil)",
       status: "warning",
       severity: "medium",
@@ -89,7 +89,7 @@ async function createTestReport() {
     },
     {
       inspectionId,
-      category: "الهيكل الخارجي والطلاء",
+      category: "front_bumper",
       faultName: "حككات سطحية بأسفل المصد الأمامي",
       status: "warning",
       severity: "low",
@@ -99,7 +99,7 @@ async function createTestReport() {
     },
     {
       inspectionId,
-      category: "الشاصي والهيكل السفلي",
+      category: "chassis_frame",
       faultName: "سلامة الشاصي والأجزاء الهيكلية الأساسية 100%",
       status: "pass",
       severity: "low",

@@ -981,7 +981,12 @@ const InspectionResults = ({
       </div>
 
       {INSPECTION_CATEGORIES.map(cat => {
-        const catItems = items.filter((i: any) => i.category === cat.id);
+        const catItems = items.filter((i: any) => 
+          i.category === cat.id || 
+          i.category === cat.label || 
+          (i.category && cat.label && i.category.includes(cat.label)) ||
+          (i.category && cat.id && i.category.toLowerCase().includes(cat.id.toLowerCase()))
+        );
         if (catItems.length === 0) return null;
         
         const isHighlighted = highlightedCategory === cat.id;
@@ -991,15 +996,15 @@ const InspectionResults = ({
             key={cat.id} 
             id={`category-${cat.id}`}
             className={cn(
-              "rounded-3xl overflow-hidden transition-all duration-300",
+              "rounded-3xl overflow-hidden transition-all duration-300 border border-slate-200/80 shadow-sm",
               isHighlighted && "ring-4 ring-primary ring-offset-4"
             )}
           >
             <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
-              <span className="text-xs text-white/50">{catItems.length} ملاحظة</span>
+              <span className="text-xs text-white/70 bg-white/10 px-2.5 py-1 rounded-full font-arabic">{catItems.length} ملاحظة</span>
               <div className="flex items-center gap-3">
-                <span className="font-bold font-arabic">{cat.label}</span>
-                <span className="text-white/50 text-sm">{cat.labelEn}</span>
+                <span className="font-bold font-arabic text-base">{cat.label}</span>
+                <span className="text-white/50 text-xs font-mono">{cat.labelEn}</span>
               </div>
             </div>
             
@@ -1007,26 +1012,42 @@ const InspectionResults = ({
               {catItems.map((item: any) => (
                 <div 
                   key={item.id}
-                  className="flex flex-col md:flex-row-reverse gap-4 p-4 bg-slate-50 rounded-2xl"
+                  className="flex flex-col md:flex-row-reverse gap-4 p-4 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-100 transition-colors"
                 >
                   {item.imageUrl && (
                     <button
                       onClick={() => onImageClick?.(item.imageUrl!, item.faultName.split(' - ')[0])}
-                      className="relative w-full md:w-32 h-32 rounded-xl overflow-hidden shrink-0 group cursor-pointer"
+                      className="relative w-full md:w-36 h-36 rounded-xl overflow-hidden shrink-0 group cursor-pointer border border-slate-200 shadow-sm bg-slate-900"
                     >
                       <img src={item.imageUrl} className="w-full h-full object-cover transition-transform group-hover:scale-105" alt="صورة العطل" />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-                        <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex flex-col items-center justify-center gap-1">
+                        <ZoomIn className="w-6 h-6 text-white drop-shadow-md opacity-90 group-hover:scale-110 transition-transform" />
+                        <span className="text-[10px] text-white font-arabic bg-black/60 px-2 py-0.5 rounded-full backdrop-blur-sm">تكبير الصورة</span>
                       </div>
                     </button>
                   )}
-                  <div className="flex-1 text-right">
-                    <h4 className="font-bold text-slate-900 font-arabic text-lg mb-2">{item.faultName.split(' - ')[0]}</h4>
+                  <div className="flex-1 text-right flex flex-col justify-center">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className={cn(
+                        "text-xs px-2.5 py-0.5 rounded-full font-arabic font-bold",
+                        item.severity === 'high' ? "bg-red-100 text-red-700" :
+                        item.severity === 'medium' ? "bg-amber-100 text-amber-700" :
+                        "bg-blue-100 text-blue-700"
+                      )}>
+                        {item.severity === 'high' ? 'عالية' : item.severity === 'medium' ? 'متوسطة' : 'ملاحظة'}
+                      </span>
+                      <h4 className="font-bold text-slate-900 font-arabic text-lg">{item.faultName.split(' - ')[0]}</h4>
+                    </div>
                     {item.faultName.split(' - ')[1] && (
                       <p className="text-xs text-slate-400 font-mono mb-2">{item.faultName.split(' - ')[1]}</p>
                     )}
                     {item.description && (
-                      <p className="text-sm text-slate-600 font-arabic leading-relaxed">{item.description}</p>
+                      <p className="text-sm text-slate-600 font-arabic leading-relaxed mt-1">{item.description}</p>
+                    )}
+                    {item.notes && (
+                      <div className="mt-2 bg-amber-50/80 border border-amber-200/60 rounded-xl p-2.5 text-xs text-amber-900 font-arabic">
+                        <span className="font-bold ml-1">📝 ملاحظة الفاحص:</span> {item.notes}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -1035,6 +1056,51 @@ const InspectionResults = ({
           </div>
         );
       })}
+
+      {/* Render unclassified items so NO photo is ever missed */}
+      {(() => {
+        const unclassifiedItems = items.filter((i: any) => 
+          !INSPECTION_CATEGORIES.some(cat => 
+            i.category === cat.id || 
+            i.category === cat.label || 
+            (i.category && cat.label && i.category.includes(cat.label)) ||
+            (i.category && cat.id && i.category.toLowerCase().includes(cat.id.toLowerCase()))
+          )
+        );
+        if (unclassifiedItems.length === 0) return null;
+
+        return (
+          <div className="rounded-3xl overflow-hidden border border-slate-200 shadow-sm">
+            <div className="bg-slate-800 text-white px-6 py-4 flex items-center justify-between">
+              <span className="text-xs text-white/70 bg-white/10 px-2.5 py-1 rounded-full font-arabic">{unclassifiedItems.length} ملاحظة</span>
+              <span className="font-bold font-arabic text-base">ملاحظات وأعطال إضافية</span>
+            </div>
+            <div className="bg-white p-4 space-y-3">
+              {unclassifiedItems.map((item: any) => (
+                <div key={item.id} className="flex flex-col md:flex-row-reverse gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  {item.imageUrl && (
+                    <button
+                      onClick={() => onImageClick?.(item.imageUrl!, item.faultName.split(' - ')[0])}
+                      className="relative w-full md:w-36 h-36 rounded-xl overflow-hidden shrink-0 group cursor-pointer border border-slate-200 bg-slate-900"
+                    >
+                      <img src={item.imageUrl} className="w-full h-full object-cover transition-transform group-hover:scale-105" alt="صورة العطل" />
+                      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 flex flex-col items-center justify-center gap-1">
+                        <ZoomIn className="w-6 h-6 text-white drop-shadow-md" />
+                        <span className="text-[10px] text-white font-arabic bg-black/60 px-2 py-0.5 rounded-full">تكبير الصورة</span>
+                      </div>
+                    </button>
+                  )}
+                  <div className="flex-1 text-right flex flex-col justify-center">
+                    <h4 className="font-bold text-slate-900 font-arabic text-lg mb-1">{item.faultName}</h4>
+                    {item.description && <p className="text-sm text-slate-600 font-arabic leading-relaxed">{item.description}</p>}
+                    {item.notes && <div className="mt-2 bg-amber-50 border border-amber-200 rounded-xl p-2.5 text-xs text-amber-900 font-arabic"><span className="font-bold">📝 ملاحظة:</span> {item.notes}</div>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {items.length === 0 && (
         <div className="bg-emerald-50 border border-emerald-200 rounded-3xl p-8 text-center">
