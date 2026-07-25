@@ -65,7 +65,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getInspectionByToken(token: string): Promise<Inspection & { items: InspectionItem[] } | undefined> {
-    const [inspection] = await db.select().from(inspections).where(eq(inspections.shareToken, token));
+    const cleanToken = (token || "").trim();
+    if (!cleanToken) return undefined;
+
+    let inspection: Inspection | undefined = undefined;
+
+    // 1. Check by shareToken first
+    const [byToken] = await db.select().from(inspections).where(eq(inspections.shareToken, cleanToken));
+    inspection = byToken;
+
+    // 2. Fallback: check by numeric ID if parameter is a number
+    if (!inspection) {
+      const numId = Number(cleanToken);
+      if (!isNaN(numId) && numId > 0) {
+        const [byId] = await db.select().from(inspections).where(eq(inspections.id, numId));
+        inspection = byId;
+      }
+    }
+
+    // 3. Fallback: check by VIN
+    if (!inspection) {
+      const [byVin] = await db.select().from(inspections).where(eq(inspections.vin, cleanToken));
+      inspection = byVin;
+    }
+
     if (!inspection) return undefined;
 
     const items = await db.select().from(inspectionItems).where(eq(inspectionItems.inspectionId, inspection.id));
