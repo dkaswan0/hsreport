@@ -2,8 +2,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Lock, User, Eye, EyeOff, Shield } from "lucide-react";
-import logoPath from "@assets/hs-logo.png";
+import { Lock, User, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import hsBannerPath from "@assets/hs-banner.jpeg";
 
 export default function Login({ onLoginSuccess }: { onLoginSuccess: () => void }) {
@@ -50,267 +49,137 @@ export default function Login({ onLoginSuccess }: { onLoginSuccess: () => void }
   };
 
   return (
-    <>
-      <style dangerouslySetInnerHTML={{ __html: `
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=DM+Serif+Display&display=swap');
-        .login-input {
-          width: 100%;
-          background: transparent;
-          border: 0;
-          border-bottom: 1.5px solid rgba(12,26,40,0.2);
-          padding: 10px 0;
-          font-size: 1rem;
-          color: #0C1A28;
-          outline: none;
-          border-radius: 0;
-          transition: border-color 0.2s;
-          font-family: 'DM Sans', sans-serif;
-          direction: rtl;
-        }
-        .login-input::placeholder { color: #aaa; }
-        .login-input:focus { border-bottom-color: #0C1A28; }
-        .login-input-icon-wrapper { position: relative; }
-        .login-input-icon {
-          position: absolute;
-          right: 0;
-          top: 50%;
-          transform: translateY(-50%);
-          color: #C5852C;
-          pointer-events: none;
-        }
-        .login-input-icon-left {
-          position: absolute;
-          left: 0;
-          top: 50%;
-          transform: translateY(-50%);
-          color: rgba(12,26,40,0.35);
-          cursor: pointer;
-          background: none;
-          border: none;
-          padding: 0;
-          display: flex;
-          align-items: center;
-        }
-        .login-input-with-icon { padding-right: 28px; }
-        .login-input-with-icon-both { padding-right: 28px; padding-left: 28px; }
-        .login-label {
-          display: block;
-          font-size: 10px;
-          font-weight: 700;
-          color: #9ca3af;
-          text-transform: uppercase;
-          letter-spacing: 0.15em;
-          margin-bottom: 6px;
-          font-family: 'DM Sans', sans-serif;
-        }
-      `}} />
-
-      <div className="flex min-h-screen w-full overflow-hidden" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-
-        {/* ═══ LEFT PANEL — dark navy ═══ */}
-        <div
-          className="hidden md:flex w-[40%] min-w-[320px] flex-col relative text-white"
-          style={{ background: '#0C1A28' }}
-        >
-          {/* gold decoration line at 40% height */}
-          <div className="absolute left-0 w-full" style={{ top: '40%', height: '1px', background: '#C5852C' }} />
-
-          <div className="flex-1 flex flex-col justify-between p-12 lg:p-14 z-10">
-            {/* top: banner + logo + name */}
-            <div className="flex flex-col items-start pt-8">
-              {/* banner strip */}
-              <div className="w-full rounded-xl overflow-hidden mb-8" style={{ border: '1px solid rgba(197,133,44,0.3)' }}>
-                <img
-                  src={hsBannerPath}
-                  alt="High Safety International Center"
-                  className="w-full object-cover"
-                  style={{ height: '80px', objectPosition: 'center' }}
-                />
-              </div>
-
-              {/* logo */}
-              <div className="relative mb-6">
-                <div
-                  className="absolute -inset-3 rounded-2xl"
-                  style={{ background: 'radial-gradient(circle, rgba(197,133,44,0.25) 0%, transparent 70%)', filter: 'blur(12px)' }}
-                />
-                <img
-                  src={logoPath}
-                  alt="High Safety"
-                  className="relative z-10 rounded-2xl"
-                  style={{
-                    width: '120px',
-                    height: '120px',
-                    objectFit: 'contain',
-                    border: '1.5px solid rgba(197,133,44,0.4)',
-                    boxShadow: '0 0 20px rgba(197,133,44,0.25)',
-                    background: '#0d1e30',
-                  }}
-                />
-              </div>
-
-              {/* names */}
-              <h1
-                className="leading-tight mb-3"
-                style={{ fontFamily: "'DM Serif Display', serif", fontSize: 'clamp(1.6rem, 2.5vw, 2.2rem)' }}
-              >
-                High Safety<br />International Center
-              </h1>
-
-              <p className="text-white/70 text-base mb-1" dir="rtl">
-                مركز الأمان العالي الدولي
-              </p>
-              <p className="text-white/40 text-xs" dir="rtl">
-                للفحص الفني للمركبات والمعدات والآليات
-              </p>
-            </div>
-
-            {/* bottom: cert tag */}
-            <p className="text-white/25 text-[10px] tracking-widest uppercase">
-              ISO-9001 Certified System
-            </p>
-          </div>
+    <div className="min-h-screen bg-[#F1F5F9] flex flex-col justify-between" dir="rtl">
+      {/* ═══ 1. Full-Width Top Header Banner ═══ */}
+      <div className="w-full bg-[#0C1A28] border-b-4 border-[#C5852C] shadow-xl">
+        <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-center">
+          <img
+            src={hsBannerPath}
+            alt="High Safety International Center Banner"
+            className="max-h-[120px] md:max-h-[140px] w-auto object-contain"
+          />
         </div>
-
-        {/* ═══ RIGHT PANEL — white ═══ */}
-        <div className="flex-1 flex flex-col bg-white">
-          {/* top bar */}
-          <div className="flex justify-between items-center px-10 py-6">
-            {/* mobile-only logo placeholder */}
-            <div className="flex md:hidden items-center gap-2">
-              <img src={logoPath} alt="HS" className="w-8 h-8 rounded object-contain" style={{ background: '#0C1A28' }} />
-              <span className="text-xs font-bold text-[#0C1A28] tracking-wide">HIGH SAFETY</span>
-            </div>
-            <div className="hidden md:block" />
-            <span className="text-[10px] tracking-widest text-gray-400 uppercase">System Portal</span>
-          </div>
-
-          {/* center: form */}
-          <div className="flex-1 flex items-center justify-center px-8 py-10">
-            <div className="w-full max-w-sm space-y-10">
-              {/* heading */}
-              <div>
-                <h2
-                  className="mb-1 text-[#0C1A28]"
-                  style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1.9rem' }}
-                >
-                  تسجيل الدخول
-                </h2>
-                <p className="text-gray-400 text-sm" dir="rtl">
-                  أدخل بياناتك للوصول إلى النظام
-                </p>
-              </div>
-
-              {/* form */}
-              <form onSubmit={handleSubmit} className="space-y-8">
-                {/* username */}
-                <div>
-                  <label className="login-label">اسم المستخدم</label>
-                  <div className="login-input-icon-wrapper">
-                    <span className="login-input-icon" style={{ width: 16, height: 16 }}>
-                      <User size={16} />
-                    </span>
-                    <input
-                      type="text"
-                      placeholder="اسم المستخدم"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      className="login-input login-input-with-icon"
-                      data-testid="input-username"
-                      required
-                      autoComplete="username"
-                    />
-                  </div>
-                </div>
-
-                {/* password */}
-                <div>
-                  <label className="login-label">كلمة المرور</label>
-                  <div className="login-input-icon-wrapper">
-                    <span className="login-input-icon" style={{ width: 16, height: 16 }}>
-                      <Lock size={16} />
-                    </span>
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="login-input login-input-with-icon-both"
-                      data-testid="input-password"
-                      required
-                      autoComplete="current-password"
-                    />
-                    <button
-                      type="button"
-                      className="login-input-icon-left"
-                      onClick={() => setShowPassword(!showPassword)}
-                      tabIndex={-1}
-                    >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
-                </div>
-
-                {/* error */}
-                {error && (
-                  <div
-                    className="rounded-xl p-3 text-sm text-center"
-                    dir="rtl"
-                    style={{
-                      background: 'rgba(220,38,38,0.07)',
-                      border: '1px solid rgba(220,38,38,0.2)',
-                      color: '#dc2626',
-                      fontFamily: "'DM Sans', sans-serif",
-                    }}
-                  >
-                    {error}
-                  </div>
-                )}
-
-                {/* submit */}
-                <button
-                  type="submit"
-                  disabled={loginMutation.isPending}
-                  data-testid="button-login"
-                  className="w-full flex flex-col items-center justify-center gap-1 transition-transform hover:scale-[1.01] active:scale-[0.99]"
-                  style={{
-                    background: '#0C1A28',
-                    color: '#fff',
-                    padding: '14px 0',
-                    border: 'none',
-                    cursor: loginMutation.isPending ? 'not-allowed' : 'pointer',
-                    opacity: loginMutation.isPending ? 0.7 : 1,
-                    fontFamily: "'DM Sans', sans-serif",
-                  }}
-                >
-                  {loginMutation.isPending ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span className="text-[11px] text-white/60 tracking-wider mt-1">جارٍ تسجيل الدخول...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="flex items-center gap-2 text-[13px] uppercase tracking-[0.2em] font-medium">
-                        <Shield size={14} />
-                        Authenticate
-                      </span>
-                      <span className="text-[10px] text-white/50 tracking-wider">تسجيل الدخول</span>
-                    </>
-                  )}
-                </button>
-              </form>
-            </div>
-          </div>
-
-          {/* bottom bar */}
-          <div className="flex justify-end px-10 py-6">
-            <p className="text-[10px] text-gray-300 tracking-wide" dir="rtl">
-              نظام محمي · للمستخدمين المصرح لهم فقط
-            </p>
-          </div>
-        </div>
-
       </div>
-    </>
+
+      {/* ═══ 2. Centered Login Card Container ═══ */}
+      <div className="flex-1 flex flex-col items-center justify-center px-4 py-8 md:py-12">
+        <div className="w-full max-w-lg bg-white rounded-3xl border-t-4 border-[#C5852C] border-x border-b border-slate-200 shadow-2xl overflow-hidden p-6 md:p-10 animate-in fade-in zoom-in-95 duration-300">
+          
+          {/* Top Dark Navy Lock Icon Circle */}
+          <div className="w-14 h-14 rounded-full bg-[#0C1A28] border-2 border-[#C5852C]/40 shadow-lg flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-6 h-6 text-white" />
+          </div>
+
+          {/* Subtitle Tag */}
+          <p className="text-center text-[#C5852C] font-bold text-xs uppercase tracking-widest mb-1 font-arabic">
+            HIGH SAFETY · System Portal
+          </p>
+
+          {/* Main Title */}
+          <h1 className="text-center text-2xl md:text-3xl font-extrabold text-[#0C1A28] font-arabic mb-2">
+            تسجيل الدخول الي النظام
+          </h1>
+
+          {/* Description */}
+          <p className="text-center text-slate-500 text-sm font-arabic mb-8">
+            أدخل بياناتك للوصول إلى السيستم كامل
+          </p>
+
+          {/* Login Form */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            
+            {/* Username Input */}
+            <div>
+              <label className="block text-right font-bold text-sm text-[#0C1A28] mb-2 font-arabic">
+                الاسم المصرح به
+              </label>
+              <div className="relative flex items-center bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl px-4 py-3.5 focus-within:border-[#C5852C] focus-within:ring-2 focus-within:ring-[#C5852C]/20 transition-all">
+                <input
+                  type="text"
+                  placeholder="أدخل اسم المستخدم"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full bg-transparent outline-none text-right text-sm font-semibold text-[#0C1A28] placeholder:text-slate-400 font-arabic"
+                  data-testid="input-username"
+                  autoComplete="username"
+                  required
+                />
+                <User className="w-5 h-5 text-slate-400 shrink-0 mr-3" />
+              </div>
+            </div>
+
+            {/* Password Input */}
+            <div>
+              <label className="block text-right font-bold text-sm text-[#0C1A28] mb-2 font-arabic">
+                كلمة المرور الخاصة بالمركز
+              </label>
+              <div className="relative flex items-center bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl px-4 py-3.5 focus-within:border-[#C5852C] focus-within:ring-2 focus-within:ring-[#C5852C]/20 transition-all">
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-slate-400 hover:text-slate-600 transition-colors p-1"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-transparent outline-none text-right text-sm font-semibold text-[#0C1A28] placeholder:text-slate-400 font-arabic mx-2"
+                  data-testid="input-password"
+                  autoComplete="current-password"
+                  required
+                />
+                <Lock className="w-5 h-5 text-slate-400 shrink-0 mr-3" />
+              </div>
+            </div>
+
+            {/* Error Message (if any) */}
+            {error && (
+              <div
+                className="rounded-2xl p-3 text-sm text-center bg-red-50 border border-red-200 text-red-600 font-arabic animate-in fade-in"
+                dir="rtl"
+              >
+                {error}
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loginMutation.isPending}
+              data-testid="button-login"
+              className="w-full py-4 rounded-2xl bg-[#0C1A28] hover:bg-[#07101B] active:scale-[0.99] text-white font-bold text-base transition-all shadow-xl flex items-center justify-center gap-3 border border-[#C5852C]/40 cursor-pointer disabled:opacity-70 font-arabic"
+            >
+              {loginMutation.isPending ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>جارٍ تسجيل الدخول...</span>
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="w-5 h-5 text-[#C5852C]" />
+                  <span>تسجيل الدخول | Authenticate</span>
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Card Inner Footer */}
+          <div className="border-t border-slate-100 pt-5 mt-6 text-center text-xs text-slate-500 font-medium font-arabic flex items-center justify-center gap-1.5">
+            <span>🔒 نظام محمي · للمستخدمين المصرح لهم فقط</span>
+          </div>
+        </div>
+
+        {/* Outer ISO Certification Footer */}
+        <div className="mt-6 text-center">
+          <p className="text-xs font-bold text-slate-700 uppercase tracking-widest">
+            ISO-9001 Certified System
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
