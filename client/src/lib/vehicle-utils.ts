@@ -80,13 +80,51 @@ export function getHealthLabel(percent: number): { ar: string; en: string; color
   return { ar: 'ضعيف', en: 'Poor', color: '#DC2626' };
 }
 
+export const CAR_COLORS = [
+  "أبيض", "أبيض لؤلؤي", "أبيض عاجي", "أبيض كريمي", "أسود", "أسود لؤلؤي", "أسود مطفي", 
+  "فضي", "فضي معدني", "رمادي", "رمادي فاتح", "رمادي غامق", "رمادي فحمي", "رمادي معدني", 
+  "أزرق", "أزرق فاتح", "أزرق غامق", "أزرق سماوي", "أزرق بحري", "أزرق ملكي", "أزرق معدني", 
+  "أحمر", "أحمر غامق", "أحمر كرزي", "أحمر عنابي", "أحمر نبيذي", "أحمر معدني", 
+  "برتقالي", "برتقالي محروق", "أصفر", "أصفر ذهبي", "أصفر ليموني", "ذهبي", "ذهبي شامبانيا", 
+  "ذهبي رملي", "بني", "بني فاتح", "بني غامق", "بني شوكولاتة", "بني نحاسي", "بيج", "بيج رملي", 
+  "كريمي", "عاجي", "أخضر", "أخضر فاتح", "أخضر غامق", "أخضر زيتوني", "أخضر زمردي", 
+  "أخضر ليموني", "تركواز", "فيروزي", "بنفسجي", "بنفسجي غامق", "بنفسجي فاتح", "وردي", 
+  "وردي فاتح", "نحاسي", "برونزي", "خمري", "عنابي", "موف", "زيتي", "كاكي", "فستقي", 
+  "نعناعي", "ليلكي", "شامبانيا", "كستنائي", "مرجاني", "كهرماني", "دخاني", "رصاصي", 
+  "جرافيت", "فحمي", "لؤلؤي", "معدني", "مطفي", "متعدد الألوان", "لونين (ثنائي)"
+];
+
 export const INSPECTION_TYPE_LABELS: Record<string, { ar: string; en: string }> = {
-  comprehensive: { ar: 'فحص شامل', en: 'Comprehensive' },
-  mechanical_computer: { ar: 'فحص ميكانيكي + كمبيوتر', en: 'Mechanical + Computer' },
-  basic_parts: { ar: 'فحص قطع اساسية', en: 'Basic Parts' },
-  custom: { ar: 'فحص مخصص', en: 'Custom' },
+  full: { ar: 'فحص شامل', en: 'Comprehensive Inspection' },
+  comprehensive: { ar: 'فحص شامل', en: 'Comprehensive Inspection' },
+  mechanical: { ar: 'فحص ميكانيكي وإلكتروني', en: 'Mechanical & Computer Inspection' },
+  mechanical_computer: { ar: 'فحص ميكانيكي وإلكتروني', en: 'Mechanical & Computer Inspection' },
+  basic: { ar: 'الأجزاء الأساسية', en: 'Essential Components Inspection' },
+  basic_parts: { ar: 'الأجزاء الأساسية', en: 'Essential Components Inspection' },
+  custom: { ar: 'فحوصات متنوعة', en: 'Custom Inspection' },
 };
 
 export function getInspectionTypeLabel(type?: string | null): { ar: string; en: string } {
-  return INSPECTION_TYPE_LABELS[type || ''] || INSPECTION_TYPE_LABELS.comprehensive;
+  if (!type) return { ar: 'فحص شامل', en: 'Comprehensive Inspection' };
+  
+  const trimmed = type.trim();
+  if (INSPECTION_TYPE_LABELS[trimmed]) {
+    return INSPECTION_TYPE_LABELS[trimmed];
+  }
+
+  // Handle direct Arabic strings saved in DB
+  if (trimmed.includes('فحص شامل') || trimmed.includes('شامل')) {
+    return { ar: 'فحص شامل', en: 'Comprehensive Inspection' };
+  }
+  if (trimmed.includes('ميكانيكي') || trimmed.includes('كمبيوتر')) {
+    return { ar: 'فحص ميكانيكي وإلكتروني', en: 'Mechanical & Computer Inspection' };
+  }
+  if (trimmed.includes('أساسية') || trimmed.includes('اساسية')) {
+    return { ar: 'الأجزاء الأساسية', en: 'Essential Components Inspection' };
+  }
+  if (trimmed.includes('متنوعة') || trimmed.includes('مخصص')) {
+    return { ar: 'فحوصات متنوعة', en: 'Custom Inspection' };
+  }
+
+  return { ar: trimmed, en: trimmed };
 }

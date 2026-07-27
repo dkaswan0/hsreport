@@ -306,6 +306,58 @@ export default function NewInspection() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
+              {/* 1. رقم الهيكل VIN (أول خانة في الأعلى مع جلب البيانات تلقائياً) */}
+              <div className="col-span-full bg-primary/5 p-4 rounded-2xl border border-primary/20">
+                <label className="block text-sm font-bold text-primary mb-2 font-arabic flex items-center justify-between">
+                  <span>رقم الهيكل (VIN) <span className="text-xs font-normal text-slate-500">(أدخل 17 رقم/حرف لجلب بيانات المركبة تلقائياً)</span></span>
+                </label>
+                <div className="relative">
+                  <input
+                    {...form.register("vin")}
+                    onChange={async (e) => {
+                      const val = e.target.value.toUpperCase()
+                        .replace(/O/g, "0")
+                        .replace(/I/g, "1")
+                        .replace(/Q/g, "0");
+                      form.setValue("vin", val);
+                      if (val.length === 17) {
+                        await decodeVin(val);
+                      }
+                    }}
+                    className="w-full px-4 py-3.5 rounded-xl bg-white border border-slate-300 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all font-mono text-lg tracking-widest uppercase pl-12"
+                    placeholder="WBA3A5C50DF..."
+                    maxLength={17}
+                    data-testid="input-vin"
+                  />
+                  {isScanningVin ? (
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center">
+                      <Loader2 className="w-5 h-5 animate-spin text-[#C5852C]" />
+                    </div>
+                  ) : isDecodingVin ? (
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center">
+                      <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => vinPhotoRef.current?.click()}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center p-2 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-accent transition-colors"
+                      title="مسح رقم الشاصي من ملصق أو باركود بالذكاء الاصطناعي"
+                      data-testid="button-scan-vin"
+                    >
+                      <Sparkles className="w-5 h-5 text-[#C5852C] animate-pulse" />
+                    </button>
+                  )}
+                  <input
+                    ref={vinPhotoRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleVinPhotoChange}
+                  />
+                </div>
+              </div>
+
               {/* الماركة */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2 font-arabic">الماركة <span className="text-red-500">*</span></label>
@@ -342,65 +394,33 @@ export default function NewInspection() {
                 />
               </div>
 
-              {/* اللون */}
+              {/* اللون (قائمة منسدلة قائمة بالألوان + اختيار أو كتابة يدوية) */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2 font-arabic">اللون</label>
+                <label className="block text-sm font-medium text-slate-700 mb-2 font-arabic">لون المركبة (اختر أو اكتب يدويًا)</label>
                 <input
+                  list="car-colors-list"
                   {...form.register("color")}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all"
-                  placeholder="أبيض، أسود، فضي..."
+                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all font-arabic"
+                  placeholder="اختر لوناً أو اكتب لون جديد..."
                   data-testid="input-color"
                 />
-              </div>
-
-              {/* رقم الهيكل VIN */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2 font-arabic">رقم الهيكل (VIN)</label>
-                <div className="relative">
-                  <input
-                    {...form.register("vin")}
-                    onChange={async (e) => {
-                      const val = e.target.value.toUpperCase()
-                        .replace(/O/g, "0")
-                        .replace(/I/g, "1")
-                        .replace(/Q/g, "0");
-                      form.setValue("vin", val);
-                      if (val.length === 17) {
-                        await decodeVin(val);
-                      }
-                    }}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all font-mono tracking-widest uppercase pl-10"
-                    placeholder="WBA3A5C50DF..."
-                    maxLength={17}
-                    data-testid="input-vin"
-                  />
-                  {isScanningVin ? (
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center">
-                      <Loader2 className="w-5 h-5 animate-spin text-[#C5852C]" />
-                    </div>
-                  ) : isDecodingVin ? (
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center">
-                      <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => vinPhotoRef.current?.click()}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center justify-center p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-accent transition-colors"
-                      title="مسح رقم الشاصي من ملصق أو باركود"
-                      data-testid="button-scan-vin"
-                    >
-                      <Sparkles className="w-4 h-4 text-[#C5852C] animate-pulse" />
-                    </button>
-                  )}
-                  <input
-                    ref={vinPhotoRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleVinPhotoChange}
-                  />
-                </div>
+                <datalist id="car-colors-list">
+                  {[
+                    "أبيض", "أبيض لؤلؤي", "أبيض عاجي", "أبيض كريمي", "أسود", "أسود لؤلؤي", "أسود مطفي", 
+                    "فضي", "فضي معدني", "رمادي", "رمادي فاتح", "رمادي غامق", "رمادي فحمي", "رمادي معدني", 
+                    "أزرق", "أزرق فاتح", "أزرق غامق", "أزرق سماوي", "أزرق بحري", "أزرق ملكي", "أزرق معدني", 
+                    "أحمر", "أحمر غامق", "أحمر كرزي", "أحمر عنابي", "أحمر نبيذي", "أحمر معدني", 
+                    "برتقالي", "برتقالي محروق", "أصفر", "أصفر ذهبي", "أصفر ليموني", "ذهبي", "ذهبي شامبانيا", 
+                    "ذهبي رملي", "بني", "بني فاتح", "بني غامق", "بني شوكولاتة", "بني نحاسي", "بيج", "بيج رملي", 
+                    "كريمي", "عاجي", "أخضر", "أخضر فاتح", "أخضر غامق", "أخضر زيتوني", "أخضر زمردي", 
+                    "أخضر ليموني", "تركواز", "فيروزي", "بنفسجي", "بنفسجي غامق", "بنفسجي فاتح", "وردي", 
+                    "وردي فاتح", "نحاسي", "برونزي", "خمري", "عنابي", "موف", "زيتي", "كاكي", "فستقي", 
+                    "نعناعي", "ليلكي", "شامبانيا", "كستنائي", "مرجاني", "كهرماني", "دخاني", "رصاصي", 
+                    "جرافيت", "فحمي", "لؤلؤي", "معدني", "مطفي", "متعدد الألوان", "لونين (ثنائي)"
+                  ].map((color) => (
+                    <option key={color} value={color} />
+                  ))}
+                </datalist>
               </div>
 
               {/* العداد */}
@@ -418,7 +438,7 @@ export default function NewInspection() {
               <div className="col-span-full">
                 <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2 font-arabic">
                   <Camera className="w-4 h-4 text-primary" />
-                  صورة العداد
+                  صورة العداد (تصوير كاميرا مباشر أو رفع من الجهاز)
                 </label>
                 {odometerPhotoPreview ? (
                   <div className="relative inline-block">
@@ -458,7 +478,7 @@ export default function NewInspection() {
           <div>
             <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-primary border-b pb-2 font-arabic">
               <span className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center text-sm">2</span>
-              بيانات العميل
+              بيانات العميل (خاصة بالفاحص الداخلي فقط - لا تظهر بالتقرير العام أو PDF)
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -496,9 +516,9 @@ export default function NewInspection() {
             <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-primary border-b pb-2 font-arabic">
               <span className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center text-sm">3</span>
               <Camera className="w-5 h-5" />
-              صور المركبة
+              صور المركبة (يدعم تصوير كاميرا الجوال مباشر أو الرفع من الجهاز)
             </h3>
-            <p className="text-sm text-slate-500 mb-4 font-arabic">تظهر في التقرير التفاعلي وملف PDF</p>
+            <p className="text-sm text-slate-500 mb-4 font-arabic">تظهر بالتقرير فقط الصور المرفقة دون ترك خانات فارغة للمركبات ذات البابين</p>
 
             {/* الصورة الرئيسية */}
             <div className="mb-6">
@@ -514,22 +534,28 @@ export default function NewInspection() {
                   </button>
                 </div>
               ) : (
-                <label className="flex flex-col items-center justify-center h-48 max-w-lg border-2 border-dashed border-primary/50 rounded-xl cursor-pointer bg-primary/5 hover:bg-primary/10 transition-colors">
-                  <Car className="w-10 h-10 text-primary mb-3" />
-                  <p className="text-sm text-primary font-arabic font-bold">ارفع الصورة الرئيسية للمركبة</p>
-                  <p className="text-xs text-slate-400 font-arabic mt-1">تظهر في تقرير PDF</p>
-                  <input type="file" accept="image/*" className="hidden" onChange={handleMainCarPhotoChange} data-testid="input-main-car-photo" />
-                </label>
+                <div className="flex gap-3 max-w-lg">
+                  <label className="flex-1 flex flex-col items-center justify-center h-44 border-2 border-dashed border-primary/50 rounded-xl cursor-pointer bg-primary/5 hover:bg-primary/10 transition-colors">
+                    <Camera className="w-8 h-8 text-primary mb-2" />
+                    <p className="text-xs text-primary font-arabic font-bold">التقاط كاميرا الجوال</p>
+                    <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleMainCarPhotoChange} data-testid="input-main-car-camera" />
+                  </label>
+                  <label className="flex-1 flex flex-col items-center justify-center h-44 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors">
+                    <Upload className="w-8 h-8 text-slate-400 mb-2" />
+                    <p className="text-xs text-slate-600 font-arabic">رفع من الجهاز</p>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleMainCarPhotoChange} data-testid="input-main-car-photo" />
+                  </label>
+                </div>
               )}
             </div>
 
             {/* أقسام السيارة */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {[
-                { key: 'rearLeftDoor', label: 'الباب الخلفي يسار' },
-                { key: 'rearRightDoor', label: 'الباب الخلفي يمين' },
                 { key: 'frontLeftDoor', label: 'الباب الأمامي يسار' },
                 { key: 'frontRightDoor', label: 'الباب الأمامي يمين' },
+                { key: 'rearLeftDoor', label: 'الباب الخلفي يسار (اختياري للبابين)' },
+                { key: 'rearRightDoor', label: 'الباب الخلفي يمين (اختياري للبابين)' },
                 { key: 'hood', label: 'غطاء المحرك' },
                 { key: 'trunk', label: 'صندوق الأمتعة' },
               ].map((section) => {
@@ -545,11 +571,18 @@ export default function NewInspection() {
                         </button>
                       </div>
                     ) : (
-                      <label className="flex flex-col items-center justify-center h-28 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer bg-white hover:bg-slate-50 transition-colors">
-                        <Image className="w-5 h-5 text-slate-400 mb-1" />
-                        <p className="text-xs text-slate-400 font-arabic">رفع صورة</p>
-                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handleCarSectionPhotoChange(section.key as keyof typeof carSectionPhotos, e)} data-testid={`input-${section.key}`} />
-                      </label>
+                      <div className="flex gap-2">
+                        <label className="flex-1 flex flex-col items-center justify-center h-28 border border-dashed border-primary/40 rounded-lg cursor-pointer bg-primary/5 hover:bg-primary/10 transition-colors p-1 text-center">
+                          <Camera className="w-4 h-4 text-primary mb-1" />
+                          <span className="text-[10px] font-bold text-primary font-arabic">كاميرا</span>
+                          <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleCarSectionPhotoChange(section.key as keyof typeof carSectionPhotos, e)} data-testid={`input-camera-${section.key}`} />
+                        </label>
+                        <label className="flex-1 flex flex-col items-center justify-center h-28 border border-dashed border-slate-300 rounded-lg cursor-pointer bg-white hover:bg-slate-50 transition-colors p-1 text-center">
+                          <Upload className="w-4 h-4 text-slate-400 mb-1" />
+                          <span className="text-[10px] text-slate-500 font-arabic">معرض</span>
+                          <input type="file" accept="image/*" className="hidden" onChange={(e) => handleCarSectionPhotoChange(section.key as keyof typeof carSectionPhotos, e)} data-testid={`input-${section.key}`} />
+                        </label>
+                      </div>
                     )}
                   </div>
                 );

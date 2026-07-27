@@ -303,8 +303,8 @@ export const PdfCoverPage = forwardRef<HTMLDivElement, PdfReportTemplateProps>(
             <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{f(`${(inspection.odometer || inspection.mileage || 0).toLocaleString()} km`)}</span>
           </div>
           <div>
-            <span style={{ fontSize: '9px', color: '#94A3B8', display: 'block', marginBottom: '2px' }}>{f(isAr ? 'اسم العميل' : 'CUSTOMER NAME')}</span>
-            <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{f(inspection.customerName || '-')}</span>
+            <span style={{ fontSize: '9px', color: '#94A3B8', display: 'block', marginBottom: '2px' }}>{f(isAr ? 'نوع الفحص' : 'INSPECTION TYPE')}</span>
+            <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{f(isAr ? typeLabel.ar : typeLabel.en)}</span>
           </div>
           <div>
             <span style={{ fontSize: '9px', color: '#94A3B8', display: 'block', marginBottom: '2px' }}>{f(isAr ? 'اللون الخارجي' : 'COLOR')}</span>
@@ -559,12 +559,12 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
       { key: 'trunk', ar: 'صندوق الأمتعة الخلفي', en: 'Trunk', exteriorPhoto: inspection.trunkPhoto, interiorPhoto: null },
     ];
 
-    const hasAnyPhoto = sections.some(s => s.exteriorPhoto || s.interiorPhoto);
+    const availableSections = sections.filter(s => !!s.exteriorPhoto);
     const formattedDate = inspection.createdAt 
       ? new Date(inspection.createdAt).toLocaleDateString(isAr ? 'ar-SA' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })
       : '';
 
-    if (!hasAnyPhoto) return null;
+    if (availableSections.length === 0) return null;
 
     return (
       <div
@@ -602,34 +602,26 @@ export const PdfCarPhotosPage = forwardRef<HTMLDivElement, PdfReportTemplateProp
             {f(isAr ? 'صور أجزاء هيكل السيارة الفعلي' : 'Vehicle Body Section Photos')}
           </h2>
           <p style={{ fontSize: '10px', color: BRAND.textMuted, margin: '2px 0 0 0' }}>
-            {f(isAr ? 'توثيق فوتوغرافي عالي الدقة لأقسام السيارة المختلفة أثناء عملية الفحص' : 'High-resolution photographic records of various sections during the inspection.')}
+            {f(isAr ? 'توثيق فوتوغرافي عالي الدقة لأقسام السيارة المرفقة' : 'High-resolution photographic records of attached vehicle sections.')}
           </p>
         </div>
 
         <div style={{
           flex: 1,
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gridTemplateRows: 'repeat(3, 1fr)',
-          gap: '8px',
-          overflow: 'hidden',
+          gridTemplateColumns: availableSections.length === 1 ? '1fr' : '1fr 1fr',
+          gap: '12px',
+          alignContent: 'start',
           margin: '5px 0',
         }}>
-          {sections.map((section) => {
-            const hasExterior = !!section.exteriorPhoto;
+          {availableSections.map((section) => {
             return (
-              <div key={section.key} style={{ border: `1px solid ${BRAND.border}`, borderRadius: '6px', overflow: 'hidden', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff' }}>
-                <div style={{ background: BRAND.primary, padding: '4px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-                  <span style={{ color: '#ffffff', fontSize: '9px', fontWeight: 'bold' }}>{f(isAr ? section.ar : section.en)}</span>
+              <div key={section.key} style={{ border: `1px solid ${BRAND.border}`, borderRadius: '8px', overflow: 'hidden', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff', minHeight: availableSections.length <= 2 ? '300px' : '200px' }}>
+                <div style={{ background: BRAND.primary, padding: '6px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+                  <span style={{ color: '#ffffff', fontSize: '10px', fontWeight: 'bold' }}>{f(isAr ? section.ar : section.en)}</span>
                 </div>
-                <div style={{ flex: 1, display: 'flex', padding: '2px', minHeight: 0 }}>
-                  {hasExterior ? (
-                    <img src={section.exteriorPhoto || undefined} alt={`${section.en}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: '3px' }} />
-                  ) : (
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: BRAND.light, borderRadius: '3px', border: `1px dashed ${BRAND.border}` }}>
-                      <span style={{ color: BRAND.textMuted, fontSize: '9px' }}>{f(isAr ? 'لا توجد صور متوفرة' : 'No Photos')}</span>
-                    </div>
-                  )}
+                <div style={{ flex: 1, display: 'flex', padding: '4px', minHeight: 0 }}>
+                  <img src={section.exteriorPhoto!} alt={`${section.en}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: '4px' }} />
                 </div>
               </div>
             );

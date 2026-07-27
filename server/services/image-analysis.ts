@@ -389,7 +389,7 @@ export class ImageAnalysisService {
         }
       }
 
-      return combined.slice(0, 4); // Max 4 relevant suggestions
+      return combined.slice(0, 5); // Max 5 relevant dynamic suggestions
     } catch (err) {
       console.warn("Could not query fault_library table:", err);
       return aiFaults;
@@ -403,15 +403,15 @@ export class ImageAnalysisService {
 المطلوب:
 1. التعرف على اسم الجزء المصور بالضبط (detectedPart بالإنجليزية و detectedPartArabic بالعربية الفصحى المعتمدة بمراكز الفحص مثل: الدعامية الأمامية، الرفرف الأمامي الأيسر، غطاء المحرك/البونيت، حجرة المحرك والملحقات، غطاء البلوف، الشاصي والهيكل السفلي، الأبواب، المصد الخلفي، الجنط والإطار).
 2. تحديد فئة القطعة (category بالعربية مثل: الهيكل الخارجي، المحرك والملحقات، الهيكل السفلي والتعليق، الكهرباء، الداخلية والسلامة).
-3. استخراج الأعطال المرئية بدقة (suggestedFaults):
-   - faultName: اسم العطل المصطلحي (مثل: "آثار رش تجميلي بالرفرف"، "طعجة خفيفة غير نافذة"، "ترشيح زيت خفيف حول غطاء البلوف"، "حككات سطحية بأسفل المصد"، "تفاوت بسيط بالفواصل"، "نقرة حصى جافة بالزجاج").
+3. استخراج من 3 إلى 5 خيارات أعطال مرئية ومحتملة ومختلفة ديناميكياً (suggestedFaults) تعتمد كلياً على نوع القطعة المحللة بالصورة (بين 3 و 5 خيارات متنوعة ومختلفة بدون أي تكرار أو بنود ثابتة):
+   - faultName: اسم العطل المصطلحي (مثل: "آثار رش تجميلي بالرفرف"، "طعجة خفيفة غير نافذة"، "ترشيح زيت خفيف حول غطاء البلوف"، "حككات سطحية بأسفل المصد"، "تفاوت بسيط بالفواصل"، "نقرة حصى جافة بالزجاج"، "تآكل بنقشة الإطار"، "اصفرار طفيف بالعدسة").
    - severity: مستوى الخطورة الحقيقي ("low", "medium", "high").
    - description: وصف فني مباشر وواضح للعطل دون تهويل ودون اختلاق.
 4. كتابة ملاحظة فنية احترافية (professionalNotes) تصف العطل والملاحظات الميدانية بأسلوب فاحص السيارات المعتمد.
 
 تنبيهات حاسمة وصارمة جداً:
 - يُمنع تماماً استخدام أي كلمات توصي بالإصلاح أو الاستبدال أو الصيانة (مثل: "يتطلب الاستبدال"، "يحتاج صيانة"، "يجب تغييره"). المطلوب هو وصف المشكلة والعطل فقط.
-- اجعل النتيجة متسقة ومطابقة تماماً للصورة المرفقة.
+- اجعل النتيجة متسقة ومطابقة تماماً للصورة المرفقة ولنوع القطعة، مع توليد بين 3 و 5 خيارات ديناميكية متنوعة كلياً.
 
 إرجاع JSON بالصيغة:
 {
@@ -475,7 +475,9 @@ export class ImageAnalysisService {
           suggestedFaults: [
             { faultName: "ترشيح زيت بسيط حول غطاء البلوف", severity: "medium", description: "ملاحظة آثار ترشيح زيت خفيف بالقرب من غطاء البلوف" },
             { faultName: "اتساخ سطح المحرك والأنابيب", severity: "low", description: "وجود غبار وأتربة متراكمة على السطح الخارجي للمحرك" },
-            { faultName: "آثار قدم طبيعي على الخراطيم", severity: "low", description: "ملاحظة تشققات سطحية خفيفة نتيجة الحرارة والقدم" }
+            { faultName: "آثار قدم طبيعي على الخراطيم المطاطية", severity: "low", description: "ملاحظة تشققات سطحية خفيفة نتيجة الحرارة والقدم" },
+            { faultName: "ترشيح خفيف بأنابيب التبريد", severity: "medium", description: "رطوبة زيتية جافة حول توصيلات التبريد" },
+            { faultName: "صوت صفير طفيف بسير المحرك", severity: "low", description: "ارتخاء بسيط بسير الملحقات الخارجية" }
           ],
           professionalNotes: "تم فحص حجرة المحرك ظاهرياً وملاحظة ترشيح زيت خفيف دون وجود تهريب نشط."
         },
@@ -486,7 +488,9 @@ export class ImageAnalysisService {
           suggestedFaults: [
             { faultName: "حككات متفرقة أسفل المصد", severity: "low", description: "وجود حككات سطحية على الجزء السفلي للمصد الأمامي" },
             { faultName: "تفاوت بسيط في الفواصل", severity: "low", description: "ملاحظة عدم انتظام بسيط في الفواصل مع الرفرف" },
-            { faultName: "ترميل طفيف بالطلاء الأمامي", severity: "low", description: "وجود آثار ترميل خفيف نتيجة العوامل الجوية" }
+            { faultName: "ترميل طفيف بالطلاء الأمامي", severity: "low", description: "وجود آثار ترميل خفيف نتيجة العوامل الجوية" },
+            { faultName: "نقرة حصى بالطلاء السفلي", severity: "low", description: "آثار تطاير حصى صغيرة بالطلاء" },
+            { faultName: "كسر طفيف بكليبث تثبيت المصد", severity: "medium", description: "ارتخاء بسيط في طرف المصد الأيمن" }
           ],
           professionalNotes: "تم فحص الواجهة الأمامية والمصد وملاحظة حككات سطحية بسيطة دون تأثير على هيكل السيارة."
         },
@@ -497,7 +501,9 @@ export class ImageAnalysisService {
           suggestedFaults: [
             { faultName: "حككات ببطانة الحماية السفلية", severity: "low", description: "وجود آثار احتكاك على الصفيحة البلاستيكية السفلية" },
             { faultName: "تنديك خفيف على جلد المساعدات", severity: "medium", description: "ملاحظة رطوبة زيتية خفيفة على جلد المساعد" },
-            { faultName: "آثار سطحيّة على المقصات", severity: "low", description: "خدوش خارجية بسيطة على الذراع السفلي" }
+            { faultName: "آثار سطحيّة على المقصات", severity: "low", description: "خدوش خارجية بسيطة على الذراع السفلي" },
+            { faultName: "تآكل بسيط بجلد العكوس", severity: "medium", description: "تشقق جاف بجلد العكس الخارجي" },
+            { faultName: "سطح صدأ طبيعي بصاج الحماية", severity: "low", description: "تأكسد سطحي خفيف بالهيكل السفلي" }
           ],
           professionalNotes: "تم فحص أسفل المركبة ونظام التعليق وملاحظة احتكاك بطانة الحماية دون وجود صدمة بالهيكل."
         },
@@ -508,7 +514,9 @@ export class ImageAnalysisService {
           suggestedFaults: [
             { faultName: "آثار رش تجميلي بالرفرف", severity: "medium", description: "تفاوت بسيط في درجة اللمعة مقارنة بالقائم" },
             { faultName: "طعجة خفيفة غير نافذة", severity: "low", description: "وجود انبعاج سطحي صغير بدون كسر بالطلاء" },
-            { faultName: "خدش طولي بالطبقة الشفافة", severity: "low", description: "خدش خارجي بالطلاء الشفاف" }
+            { faultName: "خدش طولي بالطبقة الشفافة", severity: "low", description: "خدش خارجي بالطلاء الشفاف" },
+            { faultName: "تعديل سطحي بالبارد", severity: "low", description: "آثار تعديل بدون معجون أو بويات" },
+            { faultName: "تآكل خفيف بربلة الباب الخارجية", severity: "low", description: "جفاف بسيط بإطار الربل العازل" }
           ],
           professionalNotes: "تم فحص الجانب الخارجي وملاحظة وجود آثار تعديل تجميلي سطحي."
         },
@@ -518,7 +526,9 @@ export class ImageAnalysisService {
           category: "الأجزاء الكهربائية والخارجية",
           suggestedFaults: [
             { faultName: "اصفرار طفيف بعدسة النور", severity: "low", description: "ملاحظة ضبابية خفيفة على البلاستيك الخارجي للمصباح" },
-            { faultName: "خدوش سطحية بالشبك الأمامي", severity: "low", description: "وجود آثار احتكاك بسيط بالطلاء الكرومي" }
+            { faultName: "خدوش سطحية بالشبك الأمامي", severity: "low", description: "وجود آثار احتكاك بسيط بالطلاء الكرومي" },
+            { faultName: "تغبيش رطوبة خفيف داخل الفانوس", severity: "medium", description: "تكثيف بخار ماء بسيط أسفل العدسة" },
+            { faultName: "تشتت طفيف بإنارة الكشاف", severity: "low", description: "تبهيت زجاجي بالشمعة" }
           ],
           professionalNotes: "تم فحص مجموعة الأنوار والمقدمة وملاحظة كفاءة الإضاءة مع وجود تبهيت سطحي بسيط."
         },
@@ -528,7 +538,9 @@ export class ImageAnalysisService {
           category: "الهيكل السفلي والتعليق",
           suggestedFaults: [
             { faultName: "حكّة رصيف بالحافة الخارجية للجنط", severity: "low", description: "ملاحظة احتكاك بسيط بالجنط المعدني" },
-            { faultName: "تآكل متدرج بنقشة الإطار", severity: "medium", description: "ملاحظة تآكل في النقشة الخارجية للإطار" }
+            { faultName: "تآكل متدرج بنقشة الإطار", severity: "medium", description: "ملاحظة تآكل في النقشة الخارجية للإطار" },
+            { faultName: "تاريخ صنع قديم للإطار", severity: "medium", description: "تجاوز عمر الإطار سنتين من تاريخ الإنتاج" },
+            { faultName: "تسطيح طفيف بجدار الإطار الجانبي", severity: "low", description: "آثار احتكاك سطحي دون تشقق" }
           ],
           professionalNotes: "تم فحص سلامة الجنوط والإطارات وملاحظة احتكاك سطحي دون تأثير على الاستقامة."
         },
@@ -538,7 +550,8 @@ export class ImageAnalysisService {
           category: "الهيكل الخارجي والسلامة",
           suggestedFaults: [
             { faultName: "نُقرة حصى صغيرة بالزجاج", severity: "medium", description: "ملاحظة آثار ضربة حصاة صغيرة دون امتداد للشعر" },
-            { faultName: "خدوش مساحات سطحية", severity: "low", description: "وجود خطوط احتكاك بسيطة من الجلدة" }
+            { faultName: "خدوش مساحات سطحية", severity: "low", description: "وجود خطوط احتكاك بسيطة من الجلدة" },
+            { faultName: "تأثر بسيط بعازل التظليل", severity: "low", description: "فقاعات هواية خفيفة على الفلم العازل" }
           ],
           professionalNotes: "تم فحص زجاج السيارة وملاحظة سلامة الرؤية مع وجود نقرة حصى جافة غير ممتدة."
         },
@@ -548,7 +561,8 @@ export class ImageAnalysisService {
           category: "الهيكل الخارجي",
           suggestedFaults: [
             { faultName: "حككات تحميل على غطاء المصد", severity: "low", description: "خدوش سطحية بالقرب من فتحة الشنطة" },
-            { faultName: "تعديل بسيط بحافة الشنطة", severity: "medium", description: "ملاحظة استعدال سابق بسيط بدون معجون" }
+            { faultName: "تعديل بسيط بحافة الشنطة", severity: "medium", description: "ملاحظة استعدال سابق بسيط بدون معجون" },
+            { faultName: "تفاوت بسيط بفتحة الشنطة", severity: "low", description: "عدم تطابق مليلي في الفواصل" }
           ],
           professionalNotes: "تم فحص الجزء الخلفي والمصد والشنطة وملاحظة سلامة الهيكل مع وجود خدوش تحميل."
         },
