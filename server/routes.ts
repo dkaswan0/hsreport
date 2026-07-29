@@ -456,6 +456,93 @@ export async function registerRoutes(
     }
   });
 
+  // 4. Export Customers Directory for Financial / ERP / CRM Desktop Software
+  app.get("/api/v1/customers", async (req, res) => {
+    try {
+      const list = await storage.getInspections(undefined, undefined);
+      
+      const customerMap = new Map<string, {
+        customerName: string;
+        customerPhone: string;
+        totalInspections: number;
+        latestInspectionDate: any;
+        inspections: any[];
+      }>();
+
+      for (const item of list) {
+        const phone = (item.customerPhone || "").trim() || "غير مسجل";
+        const name = (item.customerName || "").trim() || "غير مسجل";
+        
+        const key = phone !== "غير مسجل" ? phone : `${name}_${item.id}`;
+        
+        if (!customerMap.has(key)) {
+          customerMap.set(key, {
+            customerName: name,
+            customerPhone: phone,
+            totalInspections: 0,
+            latestInspectionDate: item.createdAt,
+            inspections: []
+          });
+        }
+
+        const entry = customerMap.get(key)!;
+        entry.totalInspections += 1;
+        entry.inspections.push({
+          id: item.id,
+          vin: item.vin,
+          make: item.make || "",
+          model: item.model || "",
+          year: item.year || null,
+          color: item.color || "",
+          inspectionType: item.inspectionType || "فحص شامل",
+          createdAt: item.createdAt
+        });
+      }
+
+      const customersList = Array.from(customerMap.values());
+
+      res.json({
+        success: true,
+        count: customersList.length,
+        customers: customersList
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, message: err?.message || "Internal Server Error" });
+    }
+  });
+
+  // 5. Financial & Operations Summary for Accounting & ERP Software
+  app.get("/api/v1/financial-summary", async (req, res) => {
+    try {
+      const list = await storage.getInspections(undefined, undefined);
+      
+      const totalInspections = list.length;
+      const completedInspections = list.filter(i => i.status === "completed").length;
+      const draftInspections = list.filter(i => i.status === "draft").length;
+
+      const dateBreakdown: Record<string, number> = {};
+      list.forEach(i => {
+        if (i.createdAt) {
+          const dateStr = new Date(i.createdAt).toISOString().split('T')[0];
+          dateBreakdown[dateStr] = (dateBreakdown[dateStr] || 0) + 1;
+        }
+      });
+
+      res.json({
+        success: true,
+        summary: {
+          totalInspections,
+          completedInspections,
+          draftInspections,
+          totalCustomersCount: new Set(list.map(i => i.customerPhone).filter(Boolean)).size,
+          dailyBreakdown: dateBreakdown
+        }
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, message: err?.message || "Internal Server Error" });
+    }
+  });
+
   // === Inspection Items ===
   app.post(api.inspectionItems.create.path, async (req, res) => {
     try {
