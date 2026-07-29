@@ -182,7 +182,7 @@ export async function registerRoutes(
   // Public endpoints exempted: /api/auth/*, /api/public/*, /api/autel/report/public/*
   app.use("/api", async (req: Request, res: Response, next: NextFunction) => {
     const path = req.path;
-    const exempt = ["/auth/", "/public/", "/autel/report/public/", "/vin/", "/fault-library", "/inspections", "/analyze-photo", "/obd"];
+    const exempt = ["/auth/", "/public/", "/autel/report/public/", "/vin/", "/fault-library", "/inspections", "/analyze-photo", "/obd", "/v1/"];
     if (exempt.some(e => path.startsWith(e))) return next();
     if (req.session?.isAuthenticated) return next();
 
@@ -314,6 +314,146 @@ export async function registerRoutes(
       return res.status(404).json({ message: "Report not found" });
     }
     res.json(inspection);
+  });
+
+  // === External Integration API Suite (For Desktop / PC Applications) ===
+
+  const formatDesktopInspectionDto = (req: Request, inspection: any) => {
+    const host = req.get("host") || "hsreport.onrender.com";
+    const protocol = req.protocol || "https";
+    const baseUrl = `${protocol}://${host}`;
+
+    return {
+      id: inspection.id,
+      vin: inspection.vin,
+      vehicle: {
+        make: inspection.make || "",
+        model: inspection.model || "",
+        year: inspection.year || null,
+        color: inspection.color || "",
+        odometer: inspection.odometer || 0,
+        inspectionType: inspection.inspectionType || "فحص شامل",
+        status: inspection.status || "draft",
+        createdAt: inspection.createdAt,
+        updatedAt: inspection.updatedAt,
+      },
+      customer: {
+        name: inspection.customerName || "غير محدد",
+        phone: inspection.customerPhone || "غير محدد",
+        notes: inspection.notes || ""
+      },
+      reports: {
+        shareToken: inspection.shareToken || null,
+        interactiveUrl: `${baseUrl}/reports/${inspection.id}`,
+        publicShareUrl: inspection.shareToken ? `${baseUrl}/report/${inspection.shareToken}` : `${baseUrl}/reports/${inspection.id}`,
+        pdfDownloadUrl: `${baseUrl}/api/inspections/${inspection.id}/pdf`
+      },
+      photos: {
+        mainCarPhoto: inspection.mainCarPhoto || null,
+        odometerPhoto: inspection.odometerPhoto || null,
+        vinPhoto: inspection.vinPhoto || null,
+        exterior: {
+          frontLeftDoor: inspection.frontLeftDoorPhoto || null,
+          frontRightDoor: inspection.frontRightDoorPhoto || null,
+          rearLeftDoor: inspection.rearLeftDoorPhoto || null,
+          rearRightDoor: inspection.rearRightDoorPhoto || null,
+          hood: inspection.hoodPhoto || null,
+          trunk: inspection.trunkPhoto || null,
+        }
+      },
+      obdFaultCodes: inspection.obdCodes || [],
+      mojazRecord: inspection.mojazRecord || null,
+      inspectionItems: (inspection.items || []).map((item: any) => ({
+        id: item.id,
+        category: item.category,
+        faultName: item.faultName,
+        status: item.status,
+        severity: item.severity || "medium",
+        notes: item.notes || "",
+        imageUrl: item.imageUrl || null
+      }))
+    };
+  };
+
+  // 1. Get Latest Inspection for Desktop App
+  app.get("/api/v1/inspections/latest", async (req, res) => {
+    try {
+      const list = await storage.getInspections(undefined, undefined);
+      if (!list || list.length === 0) {
+        return res.status(404).json({ success: false, message: "لا توجد فحوصات مسجلة بالنظام" });
+      }
+      const latestHeader = list[0];
+      const fullInspection = await storage.getInspectionWithItems(latestHeader.id);
+      if (!fullInspection) {
+        return res.status(404).json({ success: false, message: "فشل جلب تفاصيل الفحص الأخير" });
+      }
+      res.json({
+        success: true,
+        data: formatDesktopInspectionDto(req, fullInspection)
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, message: err?.message || "Internal Server Error" });
+    }
+  });
+
+  // 2. Search / List Inspections for Desktop App
+  app.get("/api/v1/inspections", async (req, res) => {
+    try {
+      const search = (req.query.search || req.query.vin || req.query.phone || req.query.name) as string | undefined;
+      const status = req.query.status as string | undefined;
+      
+      const list = await storage.getInspections(search, status);
+      const limit = Math.min(Number(req.query.limit) || 20, 50);
+      const sliced = list.slice(0, limit);
+      
+      const fullList = await Promise.all(
+        sliced.map(async (header) => {
+          const full = await storage.getInspectionWithItems(header.id);
+          return full ? formatDesktopInspectionDto(req, full) : header;
+        })
+      );
+
+      res.json({
+        success: true,
+        count: fullList.length,
+        total: list.length,
+        data: fullList
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, message: err?.message || "Internal Server Error" });
+    }
+  });
+
+  // 3. Get Inspection by ID, VIN, or Share Token for Desktop App
+  app.get("/api/v1/inspections/:query", async (req, res) => {
+    try {
+      const rawQuery = req.params.query?.trim();
+      if (!rawQuery) {
+        return res.status(400).json({ success: false, message: "Query parameter required" });
+      }
+
+      let inspection = await storage.getInspectionByToken(rawQuery);
+      if (!inspection) {
+        const numId = Number(rawQuery);
+        if (!isNaN(numId) && numId > 0) {
+          inspection = await storage.getInspectionWithItems(numId);
+        }
+      }
+
+      if (!inspection) {
+        return res.status(404).json({ 
+          success: false, 
+          message: `لم يتم العثور على فحص برقم الشاصي أو المعرف: ${rawQuery}` 
+        });
+      }
+
+      res.json({
+        success: true,
+        data: formatDesktopInspectionDto(req, inspection)
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, message: err?.message || "Internal Server Error" });
+    }
   });
 
   // === Inspection Items ===
