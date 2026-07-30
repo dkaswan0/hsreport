@@ -182,7 +182,7 @@ export async function registerRoutes(
   // Public endpoints exempted: /api/auth/*, /api/public/*, /api/autel/report/public/*
   app.use("/api", async (req: Request, res: Response, next: NextFunction) => {
     const path = req.path;
-    const exempt = ["/auth/", "/public/", "/autel/report/public/", "/vin/", "/fault-library", "/inspections", "/analyze-photo", "/obd", "/v1/"];
+    const exempt = ["/auth/", "/public/", "/autel/report/public/", "/vin/", "/fault-library", "/inspections", "/analyze-photo", "/obd", "/v1/", "/reports/"];
     if (exempt.some(e => path.startsWith(e))) return next();
     if (req.session?.isAuthenticated) return next();
 
@@ -261,6 +261,12 @@ export async function registerRoutes(
     try {
       const input = api.inspections.create.input.parse(req.body);
       const inspection = await storage.createInspection(input);
+      try {
+        const shareToken = await storage.generateShareToken(inspection.id);
+        inspection.shareToken = shareToken;
+      } catch (tokenErr) {
+        console.warn("Auto share token generation warning:", tokenErr);
+      }
       res.status(201).json(inspection);
     } catch (err: any) {
       if (err instanceof z.ZodError) {
@@ -318,36 +324,46 @@ export async function registerRoutes(
 
   // === External Integration API Suite (For Desktop / PC Applications) ===
 
-  const formatDesktopInspectionDto = (req: Request, inspection: any) => {
+  const formatDesktopInspectionDto = async (req: Request, inspection: any) => {
     const host = req.get("host") || "hsreport.onrender.com";
     const protocol = req.protocol || "https";
     const baseUrl = `${protocol}://${host}`;
 
+    // Auto-generate share token if missing (for old reports or direct queries)
+    let shareToken = inspection.shareToken;
+    if (!shareToken && inspection.id) {
+      try {
+        shareToken = await storage.generateShareToken(inspection.id);
+        inspection.shareToken = shareToken;
+      } catch (e) {
+        console.warn("Share token auto-generation warning:", e);
+      }
+    }
+
+    const clientShareUrl = shareToken
+      ? `${baseUrl}/view/${shareToken}`
+      : `${baseUrl}/view/${inspection.id}`;
+
     return {
-      id: inspection.id,
-      vin: inspection.vin,
+      success: true,
+      report_id: inspection.id,
+      vin: inspection.vin || "",
+      customer_name: inspection.customerName || "غير محدد",
+      customer_phone: inspection.customerPhone || "غير محدد",
       vehicle: {
         make: inspection.make || "",
         model: inspection.model || "",
         year: inspection.year || null,
         color: inspection.color || "",
         odometer: inspection.odometer || 0,
-        inspectionType: inspection.inspectionType || "فحص شامل",
-        status: inspection.status || "draft",
-        createdAt: inspection.createdAt,
-        updatedAt: inspection.updatedAt,
+        inspection_type: inspection.inspectionType || "فحص شامل",
+        status: inspection.status || "completed",
+        created_at: inspection.createdAt,
+        updated_at: inspection.updatedAt,
       },
-      customer: {
-        name: inspection.customerName || "غير محدد",
-        phone: inspection.customerPhone || "غير محدد",
-        notes: inspection.notes || ""
-      },
-      reports: {
-        shareToken: inspection.shareToken || null,
-        interactiveUrl: `${baseUrl}/reports/${inspection.id}`,
-        publicShareUrl: inspection.shareToken ? `${baseUrl}/report/${inspection.shareToken}` : `${baseUrl}/reports/${inspection.id}`,
-        pdfDownloadUrl: `${baseUrl}/api/inspections/${inspection.id}/pdf`
-      },
+      interactive_url: clientShareUrl,
+      pdf_ar: `${baseUrl}/api/reports/${inspection.id}/pdf/ar`,
+      pdf_en: `${baseUrl}/api/reports/${inspection.id}/pdf/en`,
       photos: {
         mainCarPhoto: inspection.mainCarPhoto || null,
         odometerPhoto: inspection.odometerPhoto || null,
@@ -375,7 +391,91 @@ export async function registerRoutes(
     };
   };
 
-  // 1. Get Latest Inspection for Desktop App
+  // Direct Report Info API for Desktop Apps (/api/reports/:query)
+  app.get("/api/reports/latest", async (req, res) => {
+    try {
+      const list = await storage.getInspections(undefined, undefined);
+      if (!list || list.length === 0) {
+        return res.status(404).json({ success: false, message: "لا توجد فحوصات مسجلة بالنظام" });
+      }
+      const latestHeader = list[0];
+      const fullInspection = await storage.getInspectionWithItems(latestHeader.id);
+      if (!fullInspection) {
+        return res.status(404).json({ success: false, message: "فشل جلب تفاصيل الفحص الأخير" });
+      }
+      const dto = await formatDesktopInspectionDto(req, fullInspection);
+      res.json(dto);
+    } catch (err: any) {
+      res.status(500).json({ success: false, message: err?.message || "Internal Server Error" });
+    }
+  });
+
+  app.get("/api/reports/:query", async (req, res) => {
+    try {
+      const rawQuery = req.params.query?.trim();
+      if (!rawQuery) {
+        return res.status(400).json({ success: false, message: "Query parameter required" });
+      }
+
+      let inspection = await storage.getInspectionByToken(rawQuery);
+      if (!inspection) {
+        const numId = Number(rawQuery);
+        if (!isNaN(numId) && numId > 0) {
+          inspection = await storage.getInspectionWithItems(numId);
+        }
+      }
+
+      if (!inspection) {
+        return res.status(404).json({ 
+          success: false, 
+          message: `لم يتم العثور على فحص برقم الشاصي أو المعرف: ${rawQuery}` 
+        });
+      }
+
+      const dto = await formatDesktopInspectionDto(req, inspection);
+      res.json(dto);
+    } catch (err: any) {
+      res.status(500).json({ success: false, message: err?.message || "Internal Server Error" });
+    }
+  });
+
+  // Arabic PDF Download/View endpoint for Desktop App
+  app.get("/api/reports/:id/pdf/ar", async (req, res) => {
+    try {
+      const rawId = req.params.id;
+      let numId = Number(rawId);
+      if (isNaN(numId)) {
+        const insp = await storage.getInspectionByToken(rawId);
+        if (insp) numId = insp.id;
+      }
+      const host = req.get("host") || "hsreport.onrender.com";
+      const protocol = req.protocol || "https";
+      const baseUrl = `${protocol}://${host}`;
+      return res.redirect(`${baseUrl}/reports/${numId || rawId}?lang=ar&pdf=true`);
+    } catch (err: any) {
+      res.status(500).json({ message: "Failed to open Arabic PDF report" });
+    }
+  });
+
+  // English PDF Download/View endpoint for Desktop App
+  app.get("/api/reports/:id/pdf/en", async (req, res) => {
+    try {
+      const rawId = req.params.id;
+      let numId = Number(rawId);
+      if (isNaN(numId)) {
+        const insp = await storage.getInspectionByToken(rawId);
+        if (insp) numId = insp.id;
+      }
+      const host = req.get("host") || "hsreport.onrender.com";
+      const protocol = req.protocol || "https";
+      const baseUrl = `${protocol}://${host}`;
+      return res.redirect(`${baseUrl}/reports/${numId || rawId}?lang=en&pdf=true`);
+    } catch (err: any) {
+      res.status(500).json({ message: "Failed to open English PDF report" });
+    }
+  });
+
+  // 1. Get Latest Inspection for Desktop App (/api/v1/inspections/latest)
   app.get("/api/v1/inspections/latest", async (req, res) => {
     try {
       const list = await storage.getInspections(undefined, undefined);
@@ -387,16 +487,17 @@ export async function registerRoutes(
       if (!fullInspection) {
         return res.status(404).json({ success: false, message: "فشل جلب تفاصيل الفحص الأخير" });
       }
+      const dto = await formatDesktopInspectionDto(req, fullInspection);
       res.json({
         success: true,
-        data: formatDesktopInspectionDto(req, fullInspection)
+        data: dto
       });
     } catch (err: any) {
       res.status(500).json({ success: false, message: err?.message || "Internal Server Error" });
     }
   });
 
-  // 2. Search / List Inspections for Desktop App
+  // 2. Search / List Inspections for Desktop App (/api/v1/inspections)
   app.get("/api/v1/inspections", async (req, res) => {
     try {
       const search = (req.query.search || req.query.vin || req.query.phone || req.query.name) as string | undefined;
@@ -409,7 +510,7 @@ export async function registerRoutes(
       const fullList = await Promise.all(
         sliced.map(async (header) => {
           const full = await storage.getInspectionWithItems(header.id);
-          return full ? formatDesktopInspectionDto(req, full) : header;
+          return full ? await formatDesktopInspectionDto(req, full) : header;
         })
       );
 
@@ -424,7 +525,7 @@ export async function registerRoutes(
     }
   });
 
-  // 3. Get Inspection by ID, VIN, or Share Token for Desktop App
+  // 3. Get Inspection by ID, VIN, or Share Token for Desktop App (/api/v1/inspections/:query)
   app.get("/api/v1/inspections/:query", async (req, res) => {
     try {
       const rawQuery = req.params.query?.trim();
@@ -447,9 +548,10 @@ export async function registerRoutes(
         });
       }
 
+      const dto = await formatDesktopInspectionDto(req, inspection);
       res.json({
         success: true,
-        data: formatDesktopInspectionDto(req, inspection)
+        data: dto
       });
     } catch (err: any) {
       res.status(500).json({ success: false, message: err?.message || "Internal Server Error" });
