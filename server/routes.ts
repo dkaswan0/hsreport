@@ -1107,7 +1107,7 @@ export async function registerRoutes(
     }
   });
 
-  // VIN Decoder using the free, open NHTSA API
+  // VIN Decoder using primary NHTSA API with CarAPI backup fallback
   app.get("/api/vin/:vin", async (req, res) => {
     const { vin } = req.params;
     if (!vin || vin.length !== 17) {
@@ -1120,43 +1120,51 @@ export async function registerRoutes(
       .replace(/I/g, "1")
       .replace(/Q/g, "0");
 
+    // 1. Try Primary NHTSA API
     try {
       const response = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/decodevinvaluesextended/${normalizedVin}?format=json`);
-      if (!response.ok) {
-        throw new Error(`NHTSA API returned status ${response.status}`);
-      }
-      const data: any = await response.json();
-      if (data.Results && data.Results[0]) {
-        const result = data.Results[0];
-        
-        const make = result.Make || "";
-        const model = result.Model || "";
-        const year = result.ModelYear || "";
+      if (response.ok) {
+        const data: any = await response.json();
+        if (data.Results && data.Results[0]) {
+          const result = data.Results[0];
+          const make = result.Make || "";
+          const model = result.Model || "";
+          const year = result.ModelYear || "";
 
-        // If we got a Make, treat it as success even if there are check digit or registration warnings
-        if (make) {
-          return res.json({
-            success: true,
-            make,
-            model,
-            year: year ? parseInt(year, 10) : null
-          });
+          if (make) {
+            return res.json({
+              success: true,
+              provider: "nhtsa",
+              make,
+              model,
+              year: year ? parseInt(year, 10) : null
+            });
+          }
         }
-
-        // If no Make was decoded, check if there's a specific error message
-        const errorCode = result.ErrorCode || "";
-        if (errorCode !== "0" && errorCode !== "empty" && result.ErrorText) {
-          return res.status(404).json({ error: true, message: result.ErrorText });
-        }
-
-        return res.status(404).json({ error: true, message: "لم يتم العثور على بيانات لهذه المركبة" });
-      } else {
-        return res.status(404).json({ error: true, message: "لم يتم العثور على بيانات لهذا الرقم" });
       }
-    } catch (error: any) {
-      console.error("VIN decoding failed:", error);
-      return res.status(500).json({ error: true, message: "فشل الاتصال بخدمة فك ترميز رقم الهيكل" });
+    } catch (nhtsaError) {
+      console.warn("NHTSA VIN decode failed, switching to CarAPI backup:", nhtsaError);
     }
+
+    // 2. Try Secondary CarAPI Backup Provider (carapi.app)
+    try {
+      const { CarApiService } = await import("./services/car-api");
+      const carApiResult = await CarApiService.decodeVin(normalizedVin);
+      if (carApiResult.success && carApiResult.make) {
+        return res.json({
+          success: true,
+          provider: "carapi",
+          make: carApiResult.make,
+          model: carApiResult.model || "",
+          year: carApiResult.year || null,
+          trim: carApiResult.trim || ""
+        });
+      }
+    } catch (carApiErr) {
+      console.warn("CarAPI VIN decode error:", carApiErr);
+    }
+
+    return res.status(404).json({ error: true, message: "لم يتم العثور على بيانات لهذه المركبة عبر خدمات فك ترميز رقم الهيكل" });
   });
 
 
