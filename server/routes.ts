@@ -880,7 +880,7 @@ export async function registerRoutes(
     }
   });
 
-  // === Autel Report Import from Gmail ===
+  // === Autel Report Import with AI Smart Vehicle Matching ===
   app.post("/api/autel/import/:inspectionId", requireAuth, async (req, res) => {
     try {
       const inspectionId = Number(req.params.inspectionId);
@@ -896,8 +896,17 @@ export async function registerRoutes(
       const emailUser = process.env.EMAIL_USER || "autelhighsafety@gmail.com";
       const emailPass = process.env.EMAIL_PASS || "azpbijvfdfpjntnr";
 
+      const targetVin = existingInspection.vin?.toUpperCase().trim() || "";
+      const targetMake = existingInspection.make?.trim() || "";
+      const targetModel = existingInspection.model?.trim() || "";
+      const targetYear = existingInspection.year ? String(existingInspection.year) : "";
+      const targetCustomer = existingInspection.customerName?.trim() || "";
+
+      console.log(`[AI Autel Import] Searching inbox for inspection #${inspectionId} (${targetMake} ${targetModel} ${targetYear}, VIN: "${targetVin}")`);
+
       const { ImapFlow } = await import("imapflow");
       const { simpleParser } = await import("mailparser");
+      const { ImageAnalysisService } = await import("./services/image-analysis");
 
       const client = new ImapFlow({
         host: "imap.gmail.com",
@@ -912,78 +921,152 @@ export async function registerRoutes(
       const lock = await client.getMailboxLock("INBOX");
       
       try {
-        // Search returns sequence numbers (not UIDs)
-        const seqList = await client.search({ from: "autelhighsafety@gmail.com" });
+        // Fetch all recent messages from inbox (up to last 20)
+        const seqList = await client.search({ all: true });
         const list = Array.isArray(seqList) ? seqList : [];
-        console.log(`Autel: found ${list.length} messages from autelhighsafety@gmail.com`);
+        console.log(`Autel AI: Total inbox messages found: ${list.length}`);
 
         if (list.length === 0) {
           await lock.release();
           await client.logout();
-          return res.status(404).json({ error: "لا توجد رسائل من جهاز Autel في البريد الوارد" });
+          return res.status(404).json({ error: "لا توجد رسائل بريد في المجلد الوارد" });
         }
 
-        // Use the latest message (last in the array)
-        const lastSeq = list[list.length - 1];
-        console.log(`Autel: fetching message seq=${lastSeq}`);
-
-        // Fetch full message source (most reliable method)
-        const msg = await client.fetchOne(String(lastSeq), { source: true });
-
-        if (!msg || !msg.source) {
-          await lock.release();
-          await client.logout();
-          return res.status(500).json({ error: "فشل تحميل محتوى الرسالة" });
-        }
-
-        const parsed = await simpleParser(msg.source);
-        console.log(`Autel: parsed email subject="${parsed.subject}", attachments=${parsed.attachments?.length || 0}`);
-
-        // Log all attachments for debugging
-        if (parsed.attachments) {
-          for (const att of parsed.attachments) {
-            console.log(`  attachment: filename="${att.filename}" contentType="${att.contentType}" size=${att.size}`);
-          }
-        }
-
-        // Find PDF attachment — check multiple content types
-        let pdfAttachment: { filename: string; content: Buffer } | null = null;
+        // Examine the last 15 messages (most recent first)
+        const recentSeqs = list.slice(-15).reverse();
         const PDF_TYPES = ["application/pdf", "application/x-pdf", "application/octet-stream", "binary/octet-stream"];
-        
-        if (parsed.attachments && parsed.attachments.length > 0) {
-          for (const att of parsed.attachments) {
-            const isPdfByType = PDF_TYPES.includes(att.contentType?.toLowerCase() || "");
-            const isPdfByName = att.filename?.toLowerCase().endsWith(".pdf");
-            if (isPdfByType || isPdfByName) {
-              pdfAttachment = { filename: att.filename || "autel-report.pdf", content: att.content };
-              break;
+
+        interface EmailCandidate {
+          seq: number;
+          subject: string;
+          filename: string;
+          pdfBase64: string;
+          textSnippet: string;
+          score: number;
+          reason: string;
+        }
+
+        const candidates: EmailCandidate[] = [];
+
+        for (const seq of recentSeqs) {
+          try {
+            const msg = await client.fetchOne(String(seq), { source: true });
+            if (!msg || !msg.source) continue;
+
+            const parsed = await simpleParser(msg.source);
+            let pdfAttachment: { filename: string; content: Buffer } | null = null;
+
+            if (parsed.attachments && parsed.attachments.length > 0) {
+              for (const att of parsed.attachments) {
+                const isPdfByType = PDF_TYPES.includes(att.contentType?.toLowerCase() || "");
+                const isPdfByName = att.filename?.toLowerCase().endsWith(".pdf");
+                if (isPdfByType || isPdfByName) {
+                  pdfAttachment = { filename: att.filename || "autel-report.pdf", content: att.content };
+                  break;
+                }
+              }
+              if (!pdfAttachment && parsed.attachments[0]?.content) {
+                const first = parsed.attachments[0];
+                pdfAttachment = { filename: first.filename || "autel-report.pdf", content: first.content };
+              }
             }
-          }
-          // If still not found, take first attachment that has content (fallback)
-          if (!pdfAttachment) {
-            const first = parsed.attachments[0];
-            if (first?.content && first.content.length > 0) {
-              pdfAttachment = { filename: first.filename || "autel-report.pdf", content: first.content };
-              console.log(`Autel: using first attachment as fallback: "${first.filename}"`);
+
+            if (!pdfAttachment) continue;
+
+            const subject = parsed.subject || "";
+            const filename = pdfAttachment.filename;
+            const textSnippet = (parsed.text || parsed.html || "").substring(0, 300);
+            const pdfBase64 = pdfAttachment.content.toString("base64");
+
+            // Calculate match score
+            const combinedText = `${subject} ${filename} ${textSnippet}`.toLowerCase();
+            const combinedUpper = `${subject} ${filename} ${textSnippet}`.toUpperCase();
+
+            let score = 0;
+            let reason = "";
+
+            // 1. Exact VIN match (100 points)
+            if (targetVin && targetVin.length >= 10 && combinedUpper.includes(targetVin)) {
+              score = 100;
+              reason = `مطابقة تامة برقم الهيكل (VIN: ${targetVin})`;
+            } else {
+              // 2. Make match (40 points)
+              if (targetMake && targetMake.length > 1 && combinedText.includes(targetMake.toLowerCase())) {
+                score += 40;
+              }
+              // 3. Model match (40 points)
+              if (targetModel && targetModel.length > 1 && combinedText.includes(targetModel.toLowerCase())) {
+                score += 40;
+              }
+              // 4. Year match (20 points)
+              if (targetYear && combinedText.includes(targetYear)) {
+                score += 20;
+              }
+              // 5. Customer name match (20 points)
+              if (targetCustomer && combinedText.includes(targetCustomer.toLowerCase())) {
+                score += 20;
+              }
+              reason = `مطابقة المواصفات (${targetMake} ${targetModel} ${targetYear})`;
             }
+
+            candidates.push({
+              seq,
+              subject,
+              filename,
+              pdfBase64,
+              textSnippet,
+              score,
+              reason
+            });
+
+            // Short circuit if exact 100% VIN match found!
+            if (score === 100) break;
+          } catch (itemErr) {
+            console.warn(`Autel AI: Error parsing seq ${seq}:`, itemErr);
           }
         }
 
-        if (!pdfAttachment) {
+        // Sort candidates by match score descending
+        candidates.sort((a, b) => b.score - a.score);
+
+        let bestMatch: EmailCandidate | null = candidates.length > 0 ? candidates[0] : null;
+
+        // If score is low (< 30) and candidates exist, run AI reasoning check
+        if ((!bestMatch || bestMatch.score < 30) && candidates.length > 0) {
+          try {
+            const summary = candidates.map((c, i) => `[Index ${i}] Subject: "${c.subject}", Filename: "${c.filename}", Snippet: "${c.textSnippet.substring(0, 80)}"`).join("\n");
+            const aiPrompt = `Target Vehicle: Make="${targetMake}", Model="${targetModel}", Year="${targetYear}", VIN="${targetVin}".
+Received Autel Email Reports:
+${summary}
+
+Identify which index matches the target vehicle best. Return JSON: {"bestIndex": number, "confidence": number_0_to_100, "reason": "..."}`;
+
+            const aiRes = await ImageAnalysisService.callAI(aiPrompt);
+            if (aiRes && typeof aiRes.bestIndex === 'number' && aiRes.bestIndex >= 0 && aiRes.bestIndex < candidates.length && aiRes.confidence >= 40) {
+              bestMatch = candidates[aiRes.bestIndex];
+              bestMatch.score = aiRes.confidence;
+              bestMatch.reason = `مطابقة عبر الذكاء الاصطناعي: ${aiRes.reason || 'تطابق الموديل والتقرير'}`;
+            }
+          } catch (aiErr) {
+            console.warn("AI Email Matching skipped:", aiErr);
+          }
+        }
+
+        // If still no matching candidate or score is too low (< 30)
+        if (!bestMatch || bestMatch.score < 30) {
           await lock.release();
           await client.logout();
-          return res.status(404).json({ 
-            error: `لا يوجد ملف PDF في آخر رسالة من Autel. الموضوع: "${parsed.subject}", المرفقات: ${parsed.attachments?.length || 0}` 
+          return res.status(404).json({
+            error: `لم يتم العثور على تقرير Autel مطابق لهذه السيارة (${targetMake || ''} ${targetModel || ''} ${targetYear || ''} ${targetVin ? 'VIN: ' + targetVin : ''}) في البريد الإلكتروني. يرجى التأكد من إرسال التقرير من جهاز Autel.`
           });
         }
 
-        const pdfBase64 = pdfAttachment.content.toString("base64");
-        const filename = pdfAttachment.filename;
-        console.log(`Autel: saving PDF "${filename}" (${pdfAttachment.content.length} bytes) to inspection ${inspectionId}`);
+        // Save best matching Autel PDF
+        console.log(`Autel AI Match Success! Matched seq=${bestMatch.seq} ("${bestMatch.filename}") with score=${bestMatch.score}% (${bestMatch.reason})`);
 
         await storage.updateInspection(inspectionId, {
-          autelReportPdf: pdfBase64,
-          autelReportName: filename,
+          autelReportPdf: bestMatch.pdfBase64,
+          autelReportName: bestMatch.filename,
         } as any);
 
         await lock.release();
@@ -991,8 +1074,9 @@ export async function registerRoutes(
 
         res.json({ 
           success: true, 
-          filename,
-          message: `تم استيراد تقرير Autel: ${filename}` 
+          filename: bestMatch.filename,
+          score: bestMatch.score,
+          message: `تم مطابقة وسحب تقرير Autel الخاص بالمركبة بنجاح: ${bestMatch.reason}` 
         });
       } catch (innerError) {
         try { await lock.release(); } catch {}
@@ -1000,7 +1084,7 @@ export async function registerRoutes(
         throw innerError;
       }
     } catch (error: any) {
-      console.error("Autel Import Error:", error?.message || error);
+      console.error("Autel AI Import Error:", error?.message || error);
       res.status(500).json({ error: `فشل استيراد تقرير Autel: ${error?.message || "خطأ غير معروف"}` });
     }
   });
