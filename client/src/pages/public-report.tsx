@@ -27,6 +27,7 @@ import {
   Search,
   Info,
 } from "lucide-react";
+import { PhosphorIcon } from "@/components/phosphor-icon";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
 import { getVehicleColor, calculateInspectionStats, getInspectionTypeLabel } from "@/lib/vehicle-utils";

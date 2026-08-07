@@ -30,6 +30,7 @@ import {
   MicOff,
   Volume2,
 } from "lucide-react";
+import { PhosphorIcon } from "@/components/phosphor-icon";
 import { useState, useRef, useEffect, useMemo, useCallback, useDeferredValue } from "react";
 import { cn } from "@/lib/utils";
 import * as Dialog from "@radix-ui/react-dialog";
@@ -660,7 +661,7 @@ export default function InspectionDetails() {
         >
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-sm">
-              <Monitor className="w-5 h-5 text-white" />
+              <PhosphorIcon name="cpu" weight="duotone" size={24} className="text-white" />
             </div>
             <div className="text-right">
               <div className="font-bold text-slate-900 text-sm">فحص كمبيوتر السيارة OBD</div>
@@ -2048,7 +2049,7 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-                <Monitor className="w-5 h-5 text-white" />
+                <PhosphorIcon name="cpu" weight="duotone" size={24} className="text-white" />
               </div>
               <div>
                 <h2 className="text-lg font-black">فحص كمبيوتر السيارة</h2>
@@ -2115,7 +2116,7 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
                 className="h-full px-5 py-3 bg-slate-800 text-white rounded-xl text-sm font-bold hover:bg-slate-900 transition-colors disabled:opacity-50 flex items-center gap-2 whitespace-nowrap active:scale-95"
                 data-testid="btn-obd-scan-image"
               >
-                {isExtracting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5" />}
+                {isExtracting ? <Loader2 className="w-5 h-5 animate-spin" /> : <PhosphorIcon name="camera" weight="duotone" size={20} className="text-white" />}
                 {isExtracting ? 'جارٍ التحليل...' : 'تصوير'}
               </button>
             </div>
@@ -2127,8 +2128,8 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
               className="w-full px-4 py-3 bg-gradient-to-l from-orange-500 to-orange-600 text-white rounded-xl text-xs md:text-sm font-bold hover:from-orange-600 hover:to-orange-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98] shadow-sm font-arabic"
               data-testid="btn-import-autel"
             >
-              {isImportingAutel ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-              {isImportingAutel ? 'جارٍ السحب...' : 'سحب من البريد تلقائياً'}
+              {isImportingAutel ? <Loader2 className="w-4 h-4 animate-spin" /> : <PhosphorIcon name="envelope-open" weight="duotone" size={20} className="text-white" />}
+              {isImportingAutel ? 'جارٍ المطابقة والسحب...' : 'سحب من البريد تلقائياً'}
             </button>
 
             <div>
@@ -2145,14 +2146,14 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
                 className="w-full px-4 py-3 bg-slate-800 text-white rounded-xl text-xs md:text-sm font-bold hover:bg-slate-900 transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98] shadow-sm font-arabic border border-slate-700"
                 data-testid="btn-upload-autel-pdf"
               >
-                <Upload className="w-4 h-4 text-[#C5852C]" />
+                <PhosphorIcon name="file-pdf" weight="duotone" size={20} className="text-[#C5852C]" />
                 رفع تقرير PDF من الجهاز
               </button>
             </div>
           </div>
           {hasAutelReport && (
             <div className="mt-2 flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+              <PhosphorIcon name="check-circle" weight="duotone" size={22} className="text-emerald-600 shrink-0" />
               <span className="text-sm font-bold text-emerald-800 flex-1">{inspection.autelReportName || 'تقرير Autel'}</span>
               <a
                 href={`/api/autel/report/${inspectionId}`}

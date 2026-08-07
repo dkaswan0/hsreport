@@ -5,6 +5,7 @@ import { useCreateInspection } from "@/hooks/use-inspections";
 import { useLocation } from "wouter";
 import { z } from "zod";
 import { Loader2, ArrowLeft, Camera, Car, FileCheck, Upload, X, Sparkles, Globe, ShieldCheck, UserCheck, Wrench, Cpu, CheckCircle2 } from "lucide-react";
+import { PhosphorIcon } from "@/components/phosphor-icon";
 import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -410,7 +411,9 @@ export default function NewInspection() {
               {/* Decoded VIN Summary Badge */}
               {(watchMake || watchModel) && (
                 <div className="mt-3 bg-white p-3 rounded-xl border border-[#C5852C]/30 flex items-center gap-3 shadow-sm font-arabic">
-                  <div className="w-8 h-8 rounded-lg bg-[#C5852C]/20 text-[#0C1A28] flex items-center justify-center font-bold">🚘</div>
+                  <div className="w-9 h-9 rounded-lg bg-[#C5852C]/15 text-[#0C1A28] flex items-center justify-center font-bold shadow-inner">
+                    <PhosphorIcon name="car" weight="duotone" size={22} className="text-[#C5852C]" />
+                  </div>
                   <div className="text-xs text-slate-700">
                     <span className="font-bold text-[#0C1A28]">الماركة:</span> {watchMake || "غير محدد"} | <span className="font-bold text-[#0C1A28]">الموديل:</span> {watchModel || "غير محدد"} | <span className="font-bold text-[#0C1A28]">السنة:</span> {watchYear || "غير محدد"}
                   </div>

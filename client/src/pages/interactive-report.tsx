@@ -28,6 +28,7 @@ import {
   Search,
   X,
 } from "lucide-react";
+import { PhosphorIcon } from "@/components/phosphor-icon";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
