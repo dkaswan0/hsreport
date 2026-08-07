@@ -2246,8 +2246,8 @@ export default function InteractiveReport() {
                               {obd.diagnosis && (
                                 <div className="bg-indigo-50/50 rounded-xl p-4 border border-indigo-100/50">
                                   <div className="flex items-center gap-2 mb-2 text-indigo-700">
-                                    <Stethoscope className="w-5 h-5" />
-                                    <h4 className="font-black font-arabic text-sm">التشخيص الذكي (AI Diagnosis)</h4>
+                                    <PhosphorIcon name="stethoscope" weight="duotone" size={20} className="text-indigo-700" />
+                                    <h4 className="font-black font-arabic text-sm">التشخيص الفني (OBD Diagnosis)</h4>
                                   </div>
                                   <p className="text-slate-700 text-sm font-arabic leading-relaxed">
                                     {obd.diagnosis}

@@ -1033,7 +1033,7 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
           {aiAnalyzing && (
             <div className="flex items-center gap-2 p-3 rounded-xl bg-purple-50 border border-purple-200">
               <Loader2 className="w-4 h-4 animate-spin text-purple-600" />
-              <span className="text-sm text-purple-700">جارٍ تحليل الصورة بالذكاء الاصطناعي...</span>
+              <span className="text-sm text-purple-700">جارٍ تحليل وفحص الصورة...</span>
             </div>
           )}
 
@@ -1047,8 +1047,8 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
           {aiSuggestions.length > 0 && (
             <div className="space-y-2">
               <div className="text-xs font-semibold text-purple-600 flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5" />
-                اقتراحات الذكاء الاصطناعي:
+                <PhosphorIcon name="sparkle" weight="duotone" size={16} className="text-purple-600" />
+                اقتراحات الفحص:
               </div>
               {aiSuggestions.map((suggestion, idx) => (
                 <button
@@ -1241,14 +1241,14 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
         
         toast({
           title: "تم تحليل الصوت بنجاح",
-          description: data.transcript ? `النص: "${data.transcript.substring(0, 50)}..."` : "تم تعبئة التقرير بالذكاء الاصطناعي",
+          description: data.transcript ? `النص: "${data.transcript.substring(0, 50)}..."` : "تم تسجيل الملاحظة الصوتية وتعبئة التقرير",
         });
       };
     } catch (err: any) {
       console.error(err);
       toast({
         title: "تنبيه",
-        description: err.message || "تعذر تحليل الصوت بالذكاء الاصطناعي",
+        description: err.message || "تعذر معالجة الملف الصوتي المرفوع",
         variant: "destructive"
       });
     } finally {
@@ -1310,15 +1310,15 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
             }
             
             toast({
-              title: "تم تحليل الصوت بنجاح",
-              description: data.transcript ? `النص: "${data.transcript.substring(0, 50)}..."` : "تم تعبئة التقرير بالذكاء الاصطناعي",
+              title: "تم تسجيل الصوت بنجاح",
+              description: data.transcript ? `النص: "${data.transcript.substring(0, 50)}..."` : "تم تسجيل الملاحظة وتعبئة التقرير",
             });
           };
         } catch (err: any) {
           console.error(err);
           toast({
             title: "تنبيه",
-            description: err.message || "تعذر تحليل الصوت بالذكاء الاصطناعي",
+            description: err.message || "تعذر معالجة التسجيل الصوتي",
             variant: "destructive"
           });
         } finally {
@@ -1689,16 +1689,16 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
                 >
                   <div className="flex items-center gap-1">
                     <Camera className="w-5 h-5" />
-                    <Sparkles className="w-4 h-4" />
+                    <PhosphorIcon name="sparkle" weight="duotone" size={16} className="text-[#C5852C]" />
                   </div>
-                  <span className="text-xs font-medium">تحليل ذكي</span>
+                  <span className="text-xs font-medium">التعرف التلقائي</span>
                   <span className="text-[10px] text-amber-500">يكتشف العطل</span>
                 </button>
               </div>
 
               {/* Voice Recording Assistant */}
               <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5 font-arabic">الفحص الصوتي الذكي (AI)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5 font-arabic">الفحص والتسجيل الصوتي</label>
                 
                 {/* Hidden input for audio file upload fallback */}
                 <input
@@ -1950,7 +1950,7 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
           toast({ title: "جميع الأكواد المستخرجة موجودة مسبقاً" });
         }
       } else {
-        toast({ title: "لم يتم العثور على أكواد في الصورة", variant: "destructive" });
+        toast({ title: "خطأ", description: "تعذر استخراج الأكواد من الصورة", variant: "destructive" });
       }
     } catch {
       toast({ title: "خطأ", description: "تعذر استخراج الأكواد من الصورة", variant: "destructive" });
@@ -2014,7 +2014,7 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
         });
         const data = await res.json();
         if (res.ok && data.success) {
-          toast({ title: "تم رفع تقرير Autel بنجاح ✨", description: data.filename });
+          toast({ title: "تم رفع تقرير Autel بنجاح", description: data.filename });
           queryClient.invalidateQueries({ queryKey: ['/api/inspections', inspectionId] });
         } else {
           toast({ title: "خطأ في الرفع", description: data.error || "فشل رفع الملف", variant: "destructive" });

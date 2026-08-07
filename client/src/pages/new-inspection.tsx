@@ -115,8 +115,8 @@ export default function NewInspection() {
 
     setIsScanningVin(true);
     toast({
-      title: "جاري تحليل صورة الشاصي",
-      description: "يقوم الذكاء الاصطناعي باستخراج رقم الهيكل (VIN)..."
+      title: "جاري فحص صورة الشاصي",
+      description: "استخراج وقراءة رقم الهيكل (VIN)..."
     });
 
     try {
@@ -141,7 +141,7 @@ export default function NewInspection() {
           if (data.vin) {
             form.setValue("vin", data.vin);
             toast({
-              title: "تم استخراج رقم الشاصي بنجاح ✨",
+              title: "تم استخراج رقم الشاصي بنجاح",
               description: `رقم الشاصي: ${data.vin}`
             });
             await decodeVin(data.vin);
@@ -185,7 +185,7 @@ export default function NewInspection() {
         if (data.year) form.setValue("year", data.year);
 
         toast({
-          title: "تم استخراج بيانات المركبة تلقائياً ✨",
+          title: "تم استخراج بيانات المركبة تلقائياً",
           description: `الماركة: ${data.make} | الموديل: ${data.model} | سنة الصنع: ${data.year}`,
         });
       }
@@ -201,7 +201,7 @@ export default function NewInspection() {
     }
   };
 
-  // Handle Odometer photo + AI OCR Reading
+  // Handle Odometer photo + OCR Reading
   const handleOdometerPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -212,11 +212,11 @@ export default function NewInspection() {
       setOdometerPhoto(compressed);
       setOdometerPhotoPreview(compressed);
 
-      // Auto AI Odometer Reading
+      // Auto Odometer Reading
       setIsAnalyzingOdometer(true);
       toast({
-        title: "جاري تحليل صورة العداد",
-        description: "يقوم الذكاء الاصطناعي بقراءة أرقام العداد..."
+        title: "جاري فحص صورة العداد",
+        description: "قراءة أرقام العداد تلقائياً..."
       });
 
       try {
@@ -230,13 +230,13 @@ export default function NewInspection() {
           if (data.odometer && data.odometer > 0) {
             form.setValue("odometer", data.odometer);
             toast({
-              title: "تمت قراءة العداد بالذكاء الاصطناعي بنجاح ✨",
+              title: "تمت قراءة العداد بنجاح",
               description: `قراءة العداد المقروءة: ${data.odometer.toLocaleString('ar-SA')} كم`
             });
           }
         }
       } catch (err) {
-        console.warn("Odometer AI reading skipped:", err);
+        console.warn("Odometer reading skipped:", err);
       } finally {
         setIsAnalyzingOdometer(false);
       }
@@ -324,7 +324,7 @@ export default function NewInspection() {
               </span>
             </div>
             <h1 className="text-2xl md:text-3xl font-bold font-arabic mt-1">إدخال بيانات المركبة والعميل</h1>
-            <p className="text-slate-300 text-xs md:text-sm font-arabic">منظومة الفحص الميداني الذكية - High Safety Report</p>
+            <p className="text-slate-300 text-xs md:text-sm font-arabic">منظومة الفحص الميداني المتقدمة - High Safety Report</p>
           </div>
         </div>
         <Car className="w-12 h-12 text-[#C5852C] hidden sm:block opacity-90" />
@@ -354,7 +354,7 @@ export default function NewInspection() {
             <div className="bg-gradient-to-br from-[#0C1A28]/5 to-[#C5852C]/10 p-5 rounded-2xl border-2 border-[#C5852C]/40 shadow-sm relative">
               <label className="block text-sm font-bold text-[#0C1A28] mb-2 font-arabic flex items-center justify-between">
                 <span className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#C5852C]" />
+                  <PhosphorIcon name="shield-check" weight="duotone" size={18} className="text-[#C5852C]" />
                   رقم الهيكل (VIN)
                   <span className="text-xs font-normal text-slate-500">(أدخل 17 رقم/حرف لجلب بيانات المركبة تلقائياً)</span>
                 </span>
@@ -389,7 +389,7 @@ export default function NewInspection() {
                         type="button"
                         onClick={() => vinPhotoRef.current?.click()}
                         className="bg-[#0C1A28] hover:bg-[#162A3E] text-[#C5852C] text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 font-bold shadow transition-all font-arabic"
-                        title="مسح رقم الشاصي من ملصق أو باركود بالذكاء الاصطناعي"
+                        title="مسح رقم الشاصي من ملصق أو باركود بالكاميرا"
                         data-testid="button-scan-vin"
                       >
                         <Camera className="w-3.5 h-3.5" />
@@ -494,7 +494,7 @@ export default function NewInspection() {
                   <span>العداد (كم)</span>
                   {isAnalyzingOdometer && (
                     <span className="text-xs text-[#C5852C] font-bold flex items-center gap-1">
-                      <Loader2 className="w-3 h-3 animate-spin" /> قراءة العداد بالذكاء الاصطناعي...
+                      <Loader2 className="w-3 h-3 animate-spin" /> قراءة العداد تلقائياً...
                     </span>
                   )}
                 </label>
@@ -506,14 +506,14 @@ export default function NewInspection() {
                 />
               </div>
 
-              {/* صورة العداد مع الكاميرا والذكاء الاصطناعي */}
+              {/* صورة العداد مع الكاميرا */}
               <div className="col-span-full">
                 <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between font-arabic">
                   <span className="flex items-center gap-2">
                     <Camera className="w-4 h-4 text-[#0C1A28]" />
                     صورة العداد (التقاط كاميرا مباشر أو رفع وقراءة تلقائية)
                   </span>
-                  <span className="text-xs text-[#C5852C] font-bold">✨ OCR الذكاء الاصطناعي لقراءة العداد</span>
+                  <span className="text-xs text-[#C5852C] font-bold">قراءة العداد التلقائية</span>
                 </label>
                 {odometerPhotoPreview ? (
                   <div className="relative inline-block">
@@ -747,7 +747,7 @@ export default function NewInspection() {
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
-                  بدء الفحص التفاعلي 🚀
+                  بدء الفحص الميداني
                 </span>
               )}
             </button>
