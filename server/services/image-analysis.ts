@@ -307,29 +307,31 @@ export class ImageAnalysisService {
     imageBase64?: string,
     responseSchema?: any
   ): Promise<any> {
-    // 1. Try OpenRouter Vision first (gpt-4o-mini)
-    try {
-      return await this.callOpenRouter(prompt, imageBase64);
-    } catch (err: any) {
-      console.warn("OpenRouter AI attempt failed, trying Gemini API:", err?.message || err);
-    }
-
-    // 2. Try Google Gemini API
-    try {
-      return await this.callGemini(prompt, imageBase64, responseSchema);
-    } catch (err: any) {
-      console.warn("Gemini AI attempt failed:", err?.message || err);
-    }
-
-    // 3. Try Groq (for text prompts)
+    // 1. For text prompts (e.g. OBD lookup, fault suggestions), try Groq FIRST (100% Active & Ultra Fast)
     if (!imageBase64) {
       try {
         return await this.callGroq(prompt);
       } catch (err: any) {
-        console.warn("Groq AI attempt failed, trying DeepSeek:", err?.message || err);
+        console.warn("Groq AI attempt failed, trying Gemini API:", err?.message || err);
       }
+    }
 
-      // 4. Try DeepSeek (for text reasoning prompts)
+    // 2. Try Google Gemini API (for vision or text)
+    try {
+      return await this.callGemini(prompt, imageBase64, responseSchema);
+    } catch (err: any) {
+      console.warn("Gemini AI attempt failed, trying OpenRouter API:", err?.message || err);
+    }
+
+    // 3. Try OpenRouter API
+    try {
+      return await this.callOpenRouter(prompt, imageBase64);
+    } catch (err: any) {
+      console.warn("OpenRouter AI attempt failed:", err?.message || err);
+    }
+
+    // 4. Try DeepSeek AI (fallback for text reasoning)
+    if (!imageBase64) {
       try {
         return await this.callDeepSeek(prompt);
       } catch (err: any) {
@@ -337,7 +339,7 @@ export class ImageAnalysisService {
       }
     }
 
-    throw new Error("All AI providers (OpenRouter, Gemini, Groq, DeepSeek) failed.");
+    throw new Error("All AI providers (Groq, Gemini, OpenRouter, DeepSeek) failed.");
   }
 
   private static async enrichFaultsFromDatabase(
