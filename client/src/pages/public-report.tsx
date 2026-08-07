@@ -866,7 +866,7 @@ export default function PublicReport() {
         {/* Vehicle Info Section - Before Car Visualization */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2 font-arabic text-slate-800">
-            <Car className="w-6 h-6 text-primary" />
+            <PhosphorIcon name="car" weight="duotone" size={24} className="text-[#C5852C]" />
             معلومات السيارة
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-4">
@@ -1114,7 +1114,7 @@ export default function PublicReport() {
                   <p className="text-orange-200 text-sm font-mono mt-1" dir="ltr">Autel Computer Diagnostic Report</p>
                 </div>
                 <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
-                  <Monitor className="w-6 h-6 text-white" />
+                  <PhosphorIcon name="cpu" weight="duotone" size={26} className="text-white" />
                 </div>
               </div>
             </div>
@@ -1127,7 +1127,7 @@ export default function PublicReport() {
                 className="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-xl font-bold hover:bg-orange-700 transition-colors shadow-md"
                 data-testid="btn-open-autel-pdf"
               >
-                <ExternalLink className="w-5 h-5" />
+                <PhosphorIcon name="file-pdf" weight="duotone" size={20} className="text-white" />
                 فتح تقرير Autel
               </a>
             </div>

@@ -39,10 +39,10 @@ const compressImage = (dataUrl: string, maxWidth = 1200, quality = 0.7): Promise
 
 // Inspection types
 const INSPECTION_TYPES = [
-  { id: 'full', label: 'فحص شامل', description: 'فحص كامل وشامل لجميع أجزاء المركبة والهيكل والميكانيكا', icon: ShieldCheck, badge: 'الأكثر طلباً' },
-  { id: 'mechanical', label: 'فحص ميكانيكي وإلكتروني', description: 'فحص المحرك والجير والكمبيوتر والأعطال الإلكترونية', icon: Cpu, badge: 'موصى به' },
-  { id: 'basic', label: 'الأجزاء الأساسية', description: 'فحص الهيكل الخارجي والشاصي والمكينة والجير فقط', icon: Wrench, badge: 'سريع' },
-  { id: 'custom', label: 'فحوصات متنوعة', description: 'تحديد نقاط وفحوصات مخصصة بناءً على طلب العميل', icon: CheckCircle2, badge: 'مخصص' }
+  { id: 'full', label: 'فحص شامل', description: 'فحص كامل وشامل لجميع أجزاء المركبة والهيكل والميكانيكا', iconName: 'shield-check', badge: 'الأكثر طلباً' },
+  { id: 'mechanical', label: 'فحص ميكانيكي وإلكتروني', description: 'فحص المحرك والجير والكمبيوتر والأعطال الإلكترونية', iconName: 'cpu', badge: 'موصى به' },
+  { id: 'basic', label: 'الأجزاء الأساسية', description: 'فحص الهيكل الخارجي والشاصي والمكينة والجير فقط', iconName: 'wrench', badge: 'سريع' },
+  { id: 'custom', label: 'فحوصات متنوعة', description: 'تحديد نقاط وفحوصات مخصصة بناءً على طلب العميل', iconName: 'check-circle', badge: 'مخصص' }
 ];
 
 const formSchema = insertInspectionSchema.extend({
@@ -602,7 +602,6 @@ export default function NewInspection() {
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {INSPECTION_TYPES.map((type) => {
-                const IconComponent = type.icon;
                 const isSelected = inspectionType === type.id;
                 return (
                   <button
@@ -619,7 +618,7 @@ export default function NewInspection() {
                   >
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <IconComponent className={cn("w-6 h-6", isSelected ? "text-[#C5852C]" : "text-slate-500")} />
+                        <PhosphorIcon name={type.iconName} weight="duotone" size={26} className={isSelected ? "text-[#C5852C]" : "text-slate-500"} />
                         <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full font-arabic", isSelected ? "bg-[#C5852C] text-[#0C1A28]" : "bg-slate-100 text-slate-600")}>
                           {type.badge}
                         </span>
