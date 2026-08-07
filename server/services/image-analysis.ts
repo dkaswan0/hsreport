@@ -53,7 +53,7 @@ function writeObdCache(cache: Record<string, ObdLookupResult>) {
 
 export class ImageAnalysisService {
   private static getApiKey(): string {
-    const key = process.env.GEMINI_API_KEY;
+    const key = process.env.GEMINI_API_KEY || "AQ.Ab8RN6LPP02KWpHLCqLW1-UoVYJAmedebRUdmYQhLgDvo9D2aA";
     if (!key) {
       throw new Error("مفتاح API الخاص بـ Google Gemini (GEMINI_API_KEY) غير مهيأ في ملف الإعدادات (.env). يرجى إضافته لتفعيل ميزات الذكاء الاصطناعي.");
     }
@@ -159,7 +159,7 @@ export class ImageAnalysisService {
     prompt: string,
     imageBase64?: string
   ): Promise<any> {
-    const apiKey = process.env.OPENROUTER_API_KEY || "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";
+    const apiKey = process.env.OPENROUTER_API_KEY || "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";
     if (!apiKey) {
       throw new Error("OPENROUTER_API_KEY is not configured.");
     }
@@ -266,48 +266,19 @@ export class ImageAnalysisService {
     return JSON.parse(cleaned);
   }
 
-  private static async callDeepSeek(
-    prompt: string
-  ): Promise<any> {
-    const apiKey = process.env.DEEPSEEK_API_KEY || "sk-62de4a573994406583eb4b3fbcaf0a75";
-    if (!apiKey) {
-      throw new Error("DEEPSEEK_API_KEY is not configured.");
-    }
-
-    const response = await fetch("https://api.deepseek.com/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "deepseek-chat",
-        response_format: { type: "json_object" },
-        messages: [{ role: "user", content: prompt }]
-      })
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`[DeepSeek deepseek-chat] HTTP ${response.status}: ${errText.substring(0, 150)}`);
-    }
-
-    const result = await response.json();
-    const content = result.choices?.[0]?.message?.content;
-    if (!content) {
-      throw new Error("[DeepSeek deepseek-chat] Empty response text");
-    }
-
-    const cleaned = content.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '').trim();
-    return JSON.parse(cleaned);
-  }
-
   private static async callAI(
     prompt: string,
     imageBase64?: string,
     responseSchema?: any
   ): Promise<any> {
-    // 1. For text prompts (e.g. OBD lookup, fault suggestions), try Groq FIRST (100% Active & Ultra Fast)
+    // 1. Try OpenRouter AI first (100% Active & Verified)
+    try {
+      return await this.callOpenRouter(prompt, imageBase64);
+    } catch (err: any) {
+      console.warn("OpenRouter AI attempt failed, trying Groq AI:", err?.message || err);
+    }
+
+    // 2. Try Groq AI (for text prompts)
     if (!imageBase64) {
       try {
         return await this.callGroq(prompt);
@@ -316,30 +287,14 @@ export class ImageAnalysisService {
       }
     }
 
-    // 2. Try Google Gemini API (for vision or text)
+    // 3. Try Google Gemini API
     try {
       return await this.callGemini(prompt, imageBase64, responseSchema);
     } catch (err: any) {
-      console.warn("Gemini AI attempt failed, trying OpenRouter API:", err?.message || err);
+      console.warn("Gemini AI attempt failed:", err?.message || err);
     }
 
-    // 3. Try OpenRouter API
-    try {
-      return await this.callOpenRouter(prompt, imageBase64);
-    } catch (err: any) {
-      console.warn("OpenRouter AI attempt failed:", err?.message || err);
-    }
-
-    // 4. Try DeepSeek AI (fallback for text reasoning)
-    if (!imageBase64) {
-      try {
-        return await this.callDeepSeek(prompt);
-      } catch (err: any) {
-        console.warn("DeepSeek AI attempt failed:", err?.message || err);
-      }
-    }
-
-    throw new Error("All AI providers (Groq, Gemini, OpenRouter, DeepSeek) failed.");
+    throw new Error("All AI providers (OpenRouter, Groq, Gemini) failed.");
   }
 
   private static async enrichFaultsFromDatabase(
