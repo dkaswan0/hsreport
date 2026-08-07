@@ -266,7 +266,7 @@ export class ImageAnalysisService {
     return JSON.parse(cleaned);
   }
 
-  private static async callAI(
+  public static async callAI(
     prompt: string,
     imageBase64?: string,
     responseSchema?: any
