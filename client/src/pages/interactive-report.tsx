@@ -1493,6 +1493,55 @@ export default function InteractiveReport() {
           });
         }
       }
+
+      // Add Computer Diagnostics & OBD Codes to PDF
+      const obdList = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string; diagnosis?: string; causes?: string; solutions?: string}> | null) || [];
+      if (obdList.length > 0) {
+        findingsContent.push({
+          table: {
+            widths: ['*'],
+            body: [[{ text: 'تقرير فحص أعطال كمبيوتر السيارة (OBD-II Diagnostic Trouble Codes)', style: 'sectionTitle', alignment: 'center', fillColor: '#0C1A28', color: '#ffffff', margin: [0, 8, 0, 8] }]]
+          },
+          layout: 'noBorders',
+          margin: [0, 15, 0, 6]
+        });
+
+        obdList.forEach((obd: any) => {
+          findingsContent.push({
+            table: {
+              widths: ['22%', '78%'],
+              body: [
+                [
+                  { text: obd.code || 'OBD', style: 'statNumber', color: '#dc2626', alignment: 'center', fillColor: '#fef2f2', margin: [0, 6, 0, 6] },
+                  {
+                    stack: [
+                      { text: obd.nameAr || '', style: 'faultTitle', margin: [0, 0, 0, 2] },
+                      { text: obd.nameEn || '', style: 'faultDesc', margin: [0, 0, 0, 2] },
+                      ...(obd.diagnosis ? [{ text: `التشخيص: ${obd.diagnosis}`, style: 'faultDesc', color: '#4338ca', margin: [0, 2, 0, 0] }] : []),
+                      ...(obd.causes ? [{ text: `الأسباب المحتملة: ${obd.causes}`, style: 'faultDesc', color: '#b45309', margin: [0, 2, 0, 0] }] : []),
+                      ...(obd.solutions ? [{ text: `خطوات الإصلاح: ${obd.solutions}`, style: 'faultDesc', color: '#047857', margin: [0, 2, 0, 0] }] : [])
+                    ],
+                    margin: [6, 6, 6, 6]
+                  }
+                ]
+              ]
+            },
+            layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5, hLineColor: () => '#e2e8f0', vLineColor: () => '#e2e8f0' },
+            margin: [0, 3, 0, 3]
+          });
+        });
+      }
+
+      if (inspection.autelReportPdf) {
+        findingsContent.push({
+          table: {
+            widths: ['*'],
+            body: [[{ text: `مرفق مع التقرير الإلكتروني: تقرير فحص كمبيوتر Autel الشامل (${inspection.autelReportName || 'Autel Report'})`, style: 'sectionTitle', alignment: 'center', fillColor: '#ea580c', color: '#ffffff', margin: [0, 8, 0, 8] }]]
+          },
+          layout: 'noBorders',
+          margin: [0, 15, 0, 6]
+        });
+      }
       
       // Build legacy table for backward compatibility (without images)
       const findingsRows: any[] = [];
@@ -2128,7 +2177,7 @@ export default function InteractiveReport() {
         {/* OBD Codes Section - Professional HS Report */}
         {(() => {
           const obdCodes = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string; diagnosis?: string; causes?: string; solutions?: string}> | null) || [];
-          if (obdCodes.length === 0) return null;
+          if (obdCodes.length === 0 && !inspection.autelReportPdf) return null;
           const getCodeType = (code: string) => {
             const p = code.charAt(0).toUpperCase();
             if (p === 'P') return { color: 'bg-red-600', labelAr: 'المحرك وناقل الحركة' };

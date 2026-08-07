@@ -1044,7 +1044,7 @@ export default function PublicReport() {
         {/* OBD Codes Section - Professional HS Report */}
         {(() => {
           const obdCodes = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string; diagnosis?: string; causes?: string; solutions?: string}> | null) || [];
-          if (obdCodes.length === 0) return null;
+          if (obdCodes.length === 0 && !inspection.autelReportPdf) return null;
           const getCodeType = (code: string) => {
             const p = code.charAt(0).toUpperCase();
             if (p === 'P') return { color: 'bg-red-600', labelAr: 'المحرك وناقل الحركة' };
