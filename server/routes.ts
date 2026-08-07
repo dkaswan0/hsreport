@@ -893,11 +893,8 @@ export async function registerRoutes(
         return res.status(404).json({ error: "الفحص غير موجود" });
       }
 
-      const emailUser = process.env.EMAIL_USER;
-      const emailPass = process.env.EMAIL_PASS;
-      if (!emailUser || !emailPass) {
-        return res.status(500).json({ error: "لم يتم تهيئة بيانات البريد الإلكتروني" });
-      }
+      const emailUser = process.env.EMAIL_USER || "autelhighsafety@gmail.com";
+      const emailPass = process.env.EMAIL_PASS || "azpbijvfdfpjntnr";
 
       const { ImapFlow } = await import("imapflow");
       const { simpleParser } = await import("mailparser");
