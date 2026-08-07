@@ -1,7 +1,7 @@
 import { ImapFlow } from "imapflow";
 
 (async () => {
-  console.log("Testing Gmail IMAP login for autelhighsafety@gmail.com...");
+  console.log("Testing Gmail IMAP with App Password...");
   const client = new ImapFlow({
     host: "imap.gmail.com",
     port: 993,
@@ -9,14 +9,14 @@ import { ImapFlow } from "imapflow";
     tls: { rejectUnauthorized: false },
     auth: {
       user: "autelhighsafety@gmail.com",
-      pass: "Mhmed1@#$"
+      pass: "azpbijvfdfpjntnr"
     },
     logger: false,
   });
 
   try {
     await client.connect();
-    console.log("[PASS] Gmail IMAP connected successfully!");
+    console.log("[PASS] Gmail IMAP connected successfully with App Password!");
     const lock = await client.getMailboxLock("INBOX");
     try {
       const seqList = await client.search({ all: true });

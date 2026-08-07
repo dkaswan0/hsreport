@@ -906,6 +906,7 @@ export async function registerRoutes(
         host: "imap.gmail.com",
         port: 993,
         secure: true,
+        tls: { rejectUnauthorized: false },
         auth: { user: emailUser, pass: emailPass },
         logger: false,
       });
