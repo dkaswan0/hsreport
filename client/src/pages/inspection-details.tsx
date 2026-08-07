@@ -183,117 +183,95 @@ export default function InspectionDetails() {
   return (
     <div className="min-h-[calc(100vh-100px)] flex flex-col gap-4 animate-in fade-in duration-500 pb-20 md:pb-0">
       
-      {/* Mobile Horizontal Sections - Scrollable */}
-      <div className="md:hidden bg-white rounded-xl border border-stone-100 overflow-hidden">
-        <div className="px-4 py-2 border-b border-stone-100">
-          <span className="text-[10px] font-black uppercase tracking-widest text-stone-400">الأقسام</span>
-        </div>
-        <div className="overflow-x-auto overscroll-x-contain">
-          <div className="flex gap-2 p-3 min-w-max">
-            {MAIN_SECTIONS.map(section => (
-              <button
-                key={section.id}
-                onClick={() => toggleSection(section.id)}
-                className={cn(
-                  "px-3 py-2 rounded-lg transition-colors whitespace-nowrap text-xs font-semibold flex items-center gap-1",
-                  activeSection === section.id
-                    ? "text-white"
-                    : "bg-stone-100 text-stone-600 active:bg-stone-200"
-                )}
-                style={activeSection === section.id ? { background: '#0C1A28' } : {}}
-                data-testid={`section-mobile-${section.id}`}
-              >
-                {section.label}
-                <ChevronDown className={cn("w-3 h-3 transition-transform opacity-60", expandedSections[section.id] && "rotate-180")} />
-              </button>
-            ))}
+      {/* ── Top Clean Tabs Navigation Bar (Modern & Non-Cluttered) ── */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-4">
+        
+        {/* Main Sections Horizontal Tabs */}
+        <div>
+          <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 font-arabic flex items-center justify-between">
+            <span>الأقسام الرئيسية للفحص</span>
+            <span className="text-slate-400 font-normal">اختر القسـم للتنقّـل السـريع</span>
           </div>
-        </div>
-        {activeSection && expandedSections[activeSection] && (
-          <div className="border-t border-stone-100 bg-stone-50/50">
-            <div className="overflow-x-auto overscroll-x-contain">
-              <div className="flex gap-2 p-3 min-w-max">
-                {getCategoriesForSection(activeSection).map(cat => cat && (
-                  <button
-                    key={cat.id}
-                    onClick={() => setActiveCategory(cat.id)}
-                    className={cn(
-                      "px-3 py-1.5 rounded-md transition-colors whitespace-nowrap text-xs font-medium",
-                      activeCategory === cat.id
-                        ? "text-white"
-                        : "bg-white text-stone-600 border border-stone-200 active:bg-stone-100"
-                    )}
-                    style={activeCategory === cat.id ? { background: '#C5852C' } : {}}
-                    data-testid={`category-mobile-${cat.id}`}
-                  >
-                    {cat.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="flex flex-col md:flex-row gap-4 flex-1">
-        {/* Desktop Sidebar - Main Sections with Subcategories */}
-        <div className="hidden md:flex w-64 flex-shrink-0 bg-white rounded-xl border border-stone-100 overflow-hidden flex-col">
-          <div className="px-4 py-3 border-b border-stone-100">
-            <span className="text-[10px] font-black uppercase tracking-widest text-stone-400">الأقسام</span>
-          </div>
-          <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
-            {MAIN_SECTIONS.map(section => {
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+            {MAIN_SECTIONS.map((section) => {
+              const isActive = (activeSection || "mechanic") === section.id;
               const sectionCategories = getCategoriesForSection(section.id);
-              const isExpanded = expandedSections[section.id];
-              const isActive = activeSection === section.id;
-              
+              const itemCount = inspection?.items?.filter(item => 
+                sectionCategories.some(c => c?.id === item.category)
+              ).length || 0;
+
               return (
-                <div key={section.id} className="space-y-0.5">
-                  <button
-                    onClick={() => toggleSection(section.id)}
-                    className={cn(
-                      "w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-right",
-                      isActive
-                        ? "text-[#C5852C] bg-[#C5852C]/8 font-semibold"
-                        : "text-stone-600 hover:bg-stone-50 hover:text-stone-800"
-                    )}
-                    data-testid={`section-desktop-${section.id}`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <ChevronDown className={cn("w-3.5 h-3.5 transition-transform opacity-50", isExpanded && "rotate-180")} />
-                      <span className="text-sm">{section.label}</span>
-                    </div>
-                    <span className="text-[10px] text-stone-400 tabular-nums">{sectionCategories.length}</span>
-                  </button>
-                  
-                  {isExpanded && (
-                    <div className="me-3 space-y-0.5 border-e-2 border-stone-100 pe-2">
-                      {sectionCategories.map(cat => cat && (
-                        <button
-                          key={cat.id}
-                          onClick={() => setActiveCategory(cat.id)}
-                          className={cn(
-                            "w-full flex items-center justify-between px-3 py-1.5 rounded-md transition-colors text-right text-xs",
-                            activeCategory === cat.id
-                              ? "text-white font-semibold"
-                              : "text-stone-500 hover:bg-stone-50 hover:text-stone-800"
-                          )}
-                          style={activeCategory === cat.id ? { background: '#0C1A28' } : {}}
-                          data-testid={`category-desktop-${cat.id}`}
-                        >
-                          <span>{cat.label}</span>
-                          <ChevronRight className={cn("w-3 h-3 rtl:rotate-180", activeCategory === cat.id ? "text-white/50" : "text-stone-300")} />
-                        </button>
-                      ))}
-                    </div>
+                <button
+                  key={section.id}
+                  onClick={() => {
+                    setActiveSection(section.id);
+                    const cats = getCategoriesForSection(section.id);
+                    if (cats.length > 0 && cats[0]) {
+                      setActiveCategory(cats[0].id);
+                    }
+                  }}
+                  className={cn(
+                    "px-4 py-2.5 rounded-xl font-arabic text-xs md:text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 border shadow-sm",
+                    isActive
+                      ? "bg-[#0C1A28] text-white border-[#0C1A28] shadow-md ring-2 ring-[#C5852C]/30"
+                      : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:text-slate-900"
                   )}
-                </div>
+                  data-testid={`section-tab-${section.id}`}
+                >
+                  <span>{section.label}</span>
+                  {itemCount > 0 && (
+                    <span className={cn(
+                      "px-2 py-0.5 rounded-full text-[10px] font-bold",
+                      isActive ? "bg-[#C5852C] text-[#0C1A28]" : "bg-slate-200 text-slate-700"
+                    )}>
+                      {itemCount}
+                    </span>
+                  )}
+                </button>
               );
             })}
           </div>
         </div>
 
-      {/* Main Content Area */}
+        {/* Subcategories Horizontal Pills Bar */}
+        <div className="pt-2 border-t border-slate-100">
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none items-center">
+            <span className="text-xs font-bold text-slate-400 font-arabic whitespace-nowrap me-1">الفئات:</span>
+            {getCategoriesForSection(activeSection || "mechanic").map((cat) => {
+              if (!cat) return null;
+              const isCatActive = activeCategory === cat.id;
+              const catItemCount = inspection?.items?.filter(item => item.category === cat.id).length || 0;
+
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={cn(
+                    "px-3.5 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 font-arabic border",
+                    isCatActive
+                      ? "bg-[#C5852C] text-[#0C1A28] border-[#C5852C] shadow-sm font-extrabold"
+                      : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900"
+                  )}
+                  data-testid={`category-pill-${cat.id}`}
+                >
+                  <span>{cat.label}</span>
+                  {catItemCount > 0 && (
+                    <span className={cn(
+                      "w-4 h-4 rounded-full text-[10px] flex items-center justify-center font-bold",
+                      isCatActive ? "bg-[#0C1A28] text-white" : "bg-slate-100 text-slate-600"
+                    )}>
+                      {catItemCount}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-4 flex-1">
+        {/* Main Content Area */}
       <div className="flex-1 flex flex-col gap-4 min-w-0">
         
         {/* Top Vehicle Info Card */}
