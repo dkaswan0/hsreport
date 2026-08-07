@@ -921,7 +921,7 @@ export async function registerRoutes(
       const lock = await client.getMailboxLock("INBOX");
       
       try {
-        // Fetch all recent messages from inbox (up to last 20)
+        // Fetch all recent messages from inbox
         const seqList = await client.search({ all: true });
         const list = Array.isArray(seqList) ? seqList : [];
         console.log(`Autel AI: Total inbox messages found: ${list.length}`);
@@ -932,8 +932,21 @@ export async function registerRoutes(
           return res.status(404).json({ error: "لا توجد رسائل بريد في المجلد الوارد" });
         }
 
-        // Examine the last 15 messages (most recent first)
-        const recentSeqs = list.slice(-15).reverse();
+        // Fast bulk fetch headers for last 150 messages
+        const recentSeqs = list.slice(-150).reverse();
+        const headerMessages: any[] = [];
+        for await (const m of client.fetch(recentSeqs.join(","), { envelope: true, bodyStructure: true })) {
+          headerMessages.push(m);
+        }
+
+        // Filter messages that have attachments/PDFs
+        const pdfMessages = headerMessages.filter(m => {
+          const bs = JSON.stringify(m.bodyStructure || {}).toLowerCase();
+          return bs.includes("pdf") || bs.includes("attachment");
+        });
+
+        console.log(`Autel AI: Found ${pdfMessages.length} candidate emails with PDF attachments out of last ${recentSeqs.length} emails.`);
+
         const PDF_TYPES = ["application/pdf", "application/x-pdf", "application/octet-stream", "binary/octet-stream"];
 
         interface EmailCandidate {
@@ -941,16 +954,16 @@ export async function registerRoutes(
           subject: string;
           filename: string;
           pdfBase64: string;
-          textSnippet: string;
           score: number;
           reason: string;
         }
 
         const candidates: EmailCandidate[] = [];
 
-        for (const seq of recentSeqs) {
+        // Scan candidate PDF emails for vehicle match
+        for (const meta of pdfMessages) {
           try {
-            const msg = await client.fetchOne(String(seq), { source: true });
+            const msg = await client.fetchOne(String(meta.seq), { source: true });
             if (!msg || !msg.source) continue;
 
             const parsed = await simpleParser(msg.source);
@@ -975,12 +988,11 @@ export async function registerRoutes(
 
             const subject = parsed.subject || "";
             const filename = pdfAttachment.filename;
-            const textSnippet = (parsed.text || parsed.html || "").substring(0, 300);
             const pdfBase64 = pdfAttachment.content.toString("base64");
+            const rawContent = pdfAttachment.content.toString("latin1");
 
-            // Calculate match score
-            const combinedText = `${subject} ${filename} ${textSnippet}`.toLowerCase();
-            const combinedUpper = `${subject} ${filename} ${textSnippet}`.toUpperCase();
+            const combinedText = `${subject} ${filename} ${rawContent}`.toLowerCase();
+            const combinedUpper = `${subject} ${filename} ${rawContent}`.toUpperCase();
 
             let score = 0;
             let reason = "";
@@ -1006,23 +1018,16 @@ export async function registerRoutes(
               if (targetCustomer && combinedText.includes(targetCustomer.toLowerCase())) {
                 score += 20;
               }
-              reason = `مطابقة المواصفات (${targetMake} ${targetModel} ${targetYear})`;
+              reason = `مطابقة مواصفات المركبة (${targetMake} ${targetModel} ${targetYear})`;
             }
 
-            candidates.push({
-              seq,
-              subject,
-              filename,
-              pdfBase64,
-              textSnippet,
-              score,
-              reason
-            });
-
-            // Short circuit if exact 100% VIN match found!
-            if (score === 100) break;
+            if (score >= 40 || score === 100) {
+              candidates.push({ seq: meta.seq, subject, filename, pdfBase64, score, reason });
+              console.log(`Autel AI Candidate: seq=${meta.seq} ("${filename}") -> Score=${score}% (${reason})`);
+              if (score === 100) break;
+            }
           } catch (itemErr) {
-            console.warn(`Autel AI: Error parsing seq ${seq}:`, itemErr);
+            console.warn(`Autel AI: Error parsing candidate seq ${meta.seq}:`, itemErr);
           }
         }
 
@@ -1031,29 +1036,8 @@ export async function registerRoutes(
 
         let bestMatch: EmailCandidate | null = candidates.length > 0 ? candidates[0] : null;
 
-        // If score is low (< 30) and candidates exist, run AI reasoning check
-        if ((!bestMatch || bestMatch.score < 30) && candidates.length > 0) {
-          try {
-            const summary = candidates.map((c, i) => `[Index ${i}] Subject: "${c.subject}", Filename: "${c.filename}", Snippet: "${c.textSnippet.substring(0, 80)}"`).join("\n");
-            const aiPrompt = `Target Vehicle: Make="${targetMake}", Model="${targetModel}", Year="${targetYear}", VIN="${targetVin}".
-Received Autel Email Reports:
-${summary}
-
-Identify which index matches the target vehicle best. Return JSON: {"bestIndex": number, "confidence": number_0_to_100, "reason": "..."}`;
-
-            const aiRes = await ImageAnalysisService.callAI(aiPrompt);
-            if (aiRes && typeof aiRes.bestIndex === 'number' && aiRes.bestIndex >= 0 && aiRes.bestIndex < candidates.length && aiRes.confidence >= 40) {
-              bestMatch = candidates[aiRes.bestIndex];
-              bestMatch.score = aiRes.confidence;
-              bestMatch.reason = `مطابقة عبر الذكاء الاصطناعي: ${aiRes.reason || 'تطابق الموديل والتقرير'}`;
-            }
-          } catch (aiErr) {
-            console.warn("AI Email Matching skipped:", aiErr);
-          }
-        }
-
-        // If still no matching candidate or score is too low (< 30)
-        if (!bestMatch || bestMatch.score < 30) {
+        // If score is low (< 40) or no candidates matched vehicle criteria
+        if (!bestMatch || bestMatch.score < 40) {
           await lock.release();
           await client.logout();
           return res.status(404).json({

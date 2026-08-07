@@ -2,7 +2,7 @@ import { ImapFlow } from "imapflow";
 import { simpleParser } from "mailparser";
 
 (async () => {
-  console.log("Testing AI Autel Matching over last 150 emails...");
+  console.log("Testing fast bulk IMAP Autel matching...");
   const client = new ImapFlow({
     host: "imap.gmail.com",
     port: 993,
@@ -15,9 +15,9 @@ import { simpleParser } from "mailparser";
     logger: false,
   });
 
-  const targetMake = "Nissan";
-  const targetModel = "Patrol";
-  const targetYear = "2020";
+  const targetMake = "Toyota";
+  const targetModel = "";
+  const targetYear = "";
   const targetVin = "";
 
   try {
@@ -27,16 +27,31 @@ import { simpleParser } from "mailparser";
       const seqList = await client.search({ all: true });
       const list = Array.isArray(seqList) ? seqList : [];
       console.log(`Total messages in INBOX: ${list.length}`);
-      const recent = list.slice(-150).reverse();
+      const recentSeqs = list.slice(-200).reverse();
 
-      const candidates = [];
+      console.time("BulkFetchHeader");
+      const headers = [];
+      for await (const msg of client.fetch(recentSeqs.join(","), { envelope: true, bodyStructure: true })) {
+        headers.push(msg);
+      }
+      console.timeEnd("BulkFetchHeader");
+
+      // Filter messages with PDF attachments
+      const pdfMsgs = headers.filter(m => {
+        const bs = JSON.stringify(m.bodyStructure || {}).toLowerCase();
+        return bs.includes("pdf") || bs.includes("attachment");
+      });
+
+      console.log(`Found ${pdfMsgs.length} emails with attachments out of 200 recent emails.`);
+
       const PDF_TYPES = ["application/pdf", "application/x-pdf", "application/octet-stream", "binary/octet-stream"];
+      const candidates = [];
 
-      for (const seq of recent) {
-        const msg = await client.fetchOne(String(seq), { source: true });
+      for (const meta of pdfMsgs) {
+        const msg = await client.fetchOne(String(meta.seq), { source: true });
         if (!msg || !msg.source) continue;
         const parsed = await simpleParser(msg.source);
-        if (!parsed.attachments || parsed.attachments.length === 0) continue;
+        if (!parsed.attachments) continue;
 
         let pdfAttachment = null;
         for (const att of parsed.attachments) {
@@ -47,6 +62,7 @@ import { simpleParser } from "mailparser";
             break;
           }
         }
+
         if (!pdfAttachment) continue;
 
         const filename = pdfAttachment.filename || "autel-report.pdf";
@@ -68,13 +84,13 @@ import { simpleParser } from "mailparser";
         }
 
         if (score >= 40) {
-          candidates.push({ seq, filename, score, reason, date: parsed.date });
-          console.log(`[MATCH FOUND] Seq ${seq} ("${filename}") Date: ${parsed.date} -> Score: ${score}%`);
+          candidates.push({ seq: meta.seq, filename, score, reason, date: parsed.date });
+          console.log(`[MATCH FOUND] Seq ${meta.seq} ("${filename}") Date: ${parsed.date} -> Score: ${score}%`);
           if (score === 100) break;
         }
       }
 
-      console.log(`Total matching candidates found: ${candidates.length}`);
+      console.log(`Total matching candidate reports: ${candidates.length}`);
     } finally {
       await lock.release();
       await client.logout();
