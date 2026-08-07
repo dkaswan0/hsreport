@@ -1007,6 +1007,42 @@ export async function registerRoutes(
     }
   });
 
+  // === Upload Autel Report PDF directly ===
+  app.post("/api/autel/upload/:inspectionId", requireAuth, async (req, res) => {
+    try {
+      const inspectionId = Number(req.params.inspectionId);
+      if (isNaN(inspectionId)) {
+        return res.status(400).json({ error: "رقم الفحص غير صالح" });
+      }
+
+      const existingInspection = await storage.getInspection(inspectionId);
+      if (!existingInspection) {
+        return res.status(404).json({ error: "الفحص غير موجود" });
+      }
+
+      const { pdfBase64, filename } = req.body;
+      if (!pdfBase64) {
+        return res.status(400).json({ error: "لم يتم تزويد ملف الـ PDF" });
+      }
+
+      const cleanBase64 = pdfBase64.replace(/^data:application\/pdf;base64,/, "");
+
+      await storage.updateInspection(inspectionId, {
+        autelReportPdf: cleanBase64,
+        autelReportName: filename || "autel-report.pdf",
+      } as any);
+
+      res.json({
+        success: true,
+        filename: filename || "autel-report.pdf",
+        message: "تم رفع تقرير Autel بنجاح"
+      });
+    } catch (error: any) {
+      console.error("Autel Upload Error:", error?.message || error);
+      res.status(500).json({ error: `فشل رفع تقرير Autel: ${error?.message || "خطأ غير معروف"}` });
+    }
+  });
+
   // Serve Autel Report PDF (authenticated)
   app.get("/api/autel/report/:inspectionId", requireAuth, async (req, res) => {
     try {

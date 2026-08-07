@@ -1962,6 +1962,8 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
     saveObdCodes(filtered);
   };
 
+  const autelPdfInputRef = useRef<HTMLInputElement>(null);
+
   const handleAutelImport = async () => {
     setIsImportingAutel(true);
     try {
@@ -1974,12 +1976,55 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
         toast({ title: "تم استيراد تقرير Autel", description: data.filename });
         queryClient.invalidateQueries({ queryKey: ['/api/inspections', inspectionId] });
       } else {
-        toast({ title: "خطأ", description: data.error || "فشل الاستيراد", variant: "destructive" });
+        toast({ 
+          title: "خطأ في استيراد البريد", 
+          description: data.error || "يرجى التأكد من تهيئة EMAIL_USER و EMAIL_PASS في ملف .env", 
+          variant: "destructive" 
+        });
       }
     } catch {
       toast({ title: "خطأ", description: "فشل الاتصال بالسيرفر", variant: "destructive" });
     }
     setIsImportingAutel(false);
+  };
+
+  const handleAutelPdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      toast({ title: "خطأ", description: "يرجى اختيار ملف PDF فقط من جهاز Autel", variant: "destructive" });
+      return;
+    }
+
+    setIsImportingAutel(true);
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64 = reader.result as string;
+        const res = await fetch(`/api/autel/upload/${inspectionId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            pdfBase64: base64,
+            filename: file.name
+          })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          toast({ title: "تم رفع تقرير Autel بنجاح ✨", description: data.filename });
+          queryClient.invalidateQueries({ queryKey: ['/api/inspections', inspectionId] });
+        } else {
+          toast({ title: "خطأ في الرفع", description: data.error || "فشل رفع الملف", variant: "destructive" });
+        }
+        setIsImportingAutel(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (err: any) {
+      toast({ title: "خطأ", description: "فشل قراءة الملف", variant: "destructive" });
+      setIsImportingAutel(false);
+    }
   };
 
   const hasAutelReport = !!(inspection.autelReportPdf);
@@ -2075,15 +2120,36 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
               </button>
             </div>
           </div>
-          <button
-            onClick={handleAutelImport}
-            disabled={isImportingAutel}
-            className="w-full mt-2 px-4 py-3 bg-gradient-to-l from-orange-500 to-orange-600 text-white rounded-xl text-sm font-bold hover:from-orange-600 hover:to-orange-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98] shadow-sm"
-            data-testid="btn-import-autel"
-          >
-            {isImportingAutel ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
-            {isImportingAutel ? 'جارٍ الاستيراد من البريد...' : 'استيراد تقرير Autel من البريد'}
-          </button>
+          <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <button
+              onClick={handleAutelImport}
+              disabled={isImportingAutel}
+              className="w-full px-4 py-3 bg-gradient-to-l from-orange-500 to-orange-600 text-white rounded-xl text-xs md:text-sm font-bold hover:from-orange-600 hover:to-orange-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98] shadow-sm font-arabic"
+              data-testid="btn-import-autel"
+            >
+              {isImportingAutel ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              {isImportingAutel ? 'جارٍ السحب...' : 'سحب من البريد تلقائياً'}
+            </button>
+
+            <div>
+              <input
+                ref={autelPdfInputRef}
+                type="file"
+                accept="application/pdf,.pdf"
+                className="hidden"
+                onChange={handleAutelPdfUpload}
+              />
+              <button
+                onClick={() => autelPdfInputRef.current?.click()}
+                disabled={isImportingAutel}
+                className="w-full px-4 py-3 bg-slate-800 text-white rounded-xl text-xs md:text-sm font-bold hover:bg-slate-900 transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98] shadow-sm font-arabic border border-slate-700"
+                data-testid="btn-upload-autel-pdf"
+              >
+                <Upload className="w-4 h-4 text-[#C5852C]" />
+                رفع تقرير PDF من الجهاز
+              </button>
+            </div>
+          </div>
           {hasAutelReport && (
             <div className="mt-2 flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5">
               <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
