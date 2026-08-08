@@ -1233,7 +1233,7 @@ export default function InteractiveReport() {
       }
       
       const canvasOpts = {
-        scale: 2.5,
+        scale: 3,
         useCORS: true,
         allowTaint: true,
         logging: false,

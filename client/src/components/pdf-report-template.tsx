@@ -14,7 +14,7 @@ const fixArabic = (text: any): string => {
 
   const arabicRegex = /[\u0600-\u06FF]/;
   if (!arabicRegex.test(str)) {
-    return str; // Return unchanged if there's no Arabic characters
+    return str; // Return unchanged if there are no Arabic characters
   }
 
   const convertArabic = (reshaper as any).convertArabic || 
@@ -78,6 +78,7 @@ export interface Inspection {
   trunkInteriorPhoto?: string | null;
   obdCodes?: any;
   autelReportPdf?: string | null;
+  autelReportName?: string | null;
 }
 
 export const BRAND = {
@@ -116,7 +117,7 @@ export const PdfHeaderBanner = ({
   inspection: Inspection; 
   pageNum: number; 
   totalPages: number; 
-  formattedDate: string;
+  formattedDate: string; 
 }) => (
   <div style={{
     backgroundColor: BRAND.navy,
@@ -133,13 +134,13 @@ export const PdfHeaderBanner = ({
   }}>
     {/* Left: English Branding */}
     <div style={{ textAlign: 'left', minWidth: '220px' }} dir="ltr">
-      <h3 style={{ margin: 0, fontSize: '13px', fontWeight: 'bold', color: BRAND.goldLight, letterSpacing: '0.5px' }}>
+      <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: BRAND.goldLight, letterSpacing: '0.5px' }}>
         HIGH SAFETY
       </h3>
-      <h4 style={{ margin: '1px 0 0 0', fontSize: '9.5px', fontWeight: 'bold', color: '#ffffff', letterSpacing: '0.3px' }}>
+      <h4 style={{ margin: '1px 0 0 0', fontSize: '10px', fontWeight: 'bold', color: '#ffffff', letterSpacing: '0.3px' }}>
         INTERNATIONAL CENTER L.L.C.
       </h4>
-      <p style={{ margin: '2px 0 0 0', fontSize: '7px', color: '#94A3B8', maxWidth: '210px', lineHeight: '1.2' }}>
+      <p style={{ margin: '2px 0 0 0', fontSize: '8px', color: '#94A3B8', maxWidth: '220px', lineHeight: '1.25' }}>
         FOR THE TECHNICAL INSPECTION OF VEHICLES, EQUIPMENT AND MACHINERY
       </p>
     </div>
@@ -150,8 +151,8 @@ export const PdfHeaderBanner = ({
         src={logoPath} 
         alt="Logo" 
         style={{ 
-          width: '54px', 
-          height: '54px', 
+          width: '56px', 
+          height: '56px', 
           borderRadius: '50%', 
           objectFit: 'cover', 
           border: `2px solid ${BRAND.gold}`,
@@ -162,13 +163,13 @@ export const PdfHeaderBanner = ({
 
     {/* Right: Arabic Branding (Identical to Master Reference) */}
     <div style={{ textAlign: 'right', minWidth: '220px' }}>
-      <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: BRAND.goldLight }}>
+      <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 'bold', color: BRAND.goldLight }}>
         {f('مركز الأمان العالي الدولي')}
       </h3>
-      <h4 style={{ margin: '1px 0 0 0', fontSize: '10px', fontWeight: 'bold', color: BRAND.goldLight }}>
+      <h4 style={{ margin: '1px 0 0 0', fontSize: '11px', fontWeight: 'bold', color: BRAND.goldLight }}>
         {f('ش.ذ.م.م')}
       </h4>
-      <p style={{ margin: '2px 0 0 0', fontSize: '7.5px', color: '#94A3B8' }}>
+      <p style={{ margin: '2px 0 0 0', fontSize: '8.5px', color: '#94A3B8' }}>
         {f('للفحص الفني للمركبات والمعدات والآليات')}
       </p>
     </div>
@@ -182,11 +183,11 @@ export const PdfVehicleInfoSection = ({ inspection }: { inspection: Inspection }
   return (
     <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '10px', overflow: 'hidden', backgroundColor: '#ffffff', marginTop: '8px', flexShrink: 0 }}>
       {/* Dark Navy Section Header */}
-      <div style={{ backgroundColor: BRAND.navy, color: '#ffffff', padding: '6px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ backgroundColor: BRAND.navy, color: '#ffffff', padding: '7px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <PhosphorIcon name="car-profile" weight="duotone" size={16} className="text-[#C5852C]" />
-          <span style={{ fontWeight: 'bold', fontSize: '11px' }}>
-            <span style={{ color: BRAND.goldLight, marginRight: '4px' }}>1 |</span> {f('معلومات السيارة')} <span style={{ fontSize: '8px', color: '#94A3B8', fontFamily: 'monospace' }}>| Vehicle Information</span>
+          <PhosphorIcon name="car-profile" weight="duotone" size={18} className="text-[#C5852C]" />
+          <span style={{ fontWeight: 'bold', fontSize: '12px' }}>
+            <span style={{ color: BRAND.goldLight, marginRight: '4px' }}>1 |</span> {f('معلومات السيارة')} <span style={{ fontSize: '9px', color: '#94A3B8', fontFamily: 'monospace' }}>| Vehicle Information</span>
           </span>
         </div>
       </div>
@@ -194,31 +195,31 @@ export const PdfVehicleInfoSection = ({ inspection }: { inspection: Inspection }
       <div style={{ padding: '10px 12px', display: 'grid', gridTemplateColumns: '5fr 7fr', gap: '12px' }}>
         {/* Left 5 Cols: 2-Column Key-Value Specs */}
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: `1px solid ${BRAND.border}`, borderRadius: '8px', padding: '6px 10px', backgroundColor: BRAND.bgLight }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0', borderBottom: '1px solid #e2e8f0', fontSize: '9px' }}>
-            <span style={{ fontWeight: 'bold' }}>{f(inspection.make || '-')}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3.5px 0', borderBottom: '1px solid #e2e8f0', fontSize: '10px' }}>
+            <span style={{ fontWeight: 'bold', color: BRAND.navy }}>{f(inspection.make || '-')}</span>
             <span style={{ color: BRAND.textMuted }}>{f('الشركة المصنعة | Manufacturer')}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0', borderBottom: '1px solid #e2e8f0', fontSize: '9px' }}>
-            <span style={{ fontWeight: 'bold' }}>{f(inspection.model || '-')}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3.5px 0', borderBottom: '1px solid #e2e8f0', fontSize: '10px' }}>
+            <span style={{ fontWeight: 'bold', color: BRAND.navy }}>{f(inspection.model || '-')}</span>
             <span style={{ color: BRAND.textMuted }}>{f('الموديل | Model')}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0', borderBottom: '1px solid #e2e8f0', fontSize: '9px' }}>
-            <span style={{ fontWeight: 'bold', fontFamily: 'monospace' }}>{inspection.year || '-'}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3.5px 0', borderBottom: '1px solid #e2e8f0', fontSize: '10px' }}>
+            <span style={{ fontWeight: 'bold', fontFamily: 'monospace', color: BRAND.navy }}>{inspection.year || '-'}</span>
             <span style={{ color: BRAND.textMuted }}>{f('سنة الصنع | Year')}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0', borderBottom: '1px solid #e2e8f0', fontSize: '9px' }}>
-            <span style={{ fontWeight: 'bold' }}>{f(inspection.color || '-')}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3.5px 0', borderBottom: '1px solid #e2e8f0', fontSize: '10px' }}>
+            <span style={{ fontWeight: 'bold', color: BRAND.navy }}>{f(inspection.color || '-')}</span>
             <span style={{ color: BRAND.textMuted }}>{f('اللون | Color')}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0', borderBottom: '1px solid #e2e8f0', fontSize: '9px' }}>
-            <span style={{ fontWeight: 'bold', fontFamily: 'monospace' }} dir="ltr">{inspection.vin || '-'}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3.5px 0', borderBottom: '1px solid #e2e8f0', fontSize: '10px' }}>
+            <span style={{ fontWeight: 'bold', fontFamily: 'monospace', color: BRAND.navy }} dir="ltr">{inspection.vin || '-'}</span>
             <span style={{ color: BRAND.textMuted }}>{f('(VIN) رقم الهيكل | (VIN)')}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0', borderBottom: '1px solid #e2e8f0', fontSize: '9px' }}>
-            <span style={{ fontWeight: 'bold', fontFamily: 'monospace' }}>{(inspection.odometer || 0).toLocaleString()} KM</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3.5px 0', borderBottom: '1px solid #e2e8f0', fontSize: '10px' }}>
+            <span style={{ fontWeight: 'bold', fontFamily: 'monospace', color: BRAND.navy }}>{(inspection.odometer || 0).toLocaleString()} KM</span>
             <span style={{ color: BRAND.textMuted }}>{f('قراءة العداد | Odometer')}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0', fontSize: '9px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3.5px 0', fontSize: '10px' }}>
             <span style={{ fontWeight: 'bold', color: '#059669' }}>{f('فحص شامل | Full')}</span>
             <span style={{ color: BRAND.textMuted }}>{f('نوع الفحص | Type')}</span>
           </div>
@@ -260,31 +261,31 @@ export const PdfVehicleInfoSection = ({ inspection }: { inspection: Inspection }
                   width: 'auto', 
                   height: 'auto', 
                   objectFit: 'contain', 
-                  opacity: 0.15 
+                  opacity: 0.25 
                 }} 
               />
             )}
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-            <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '6px', padding: '4px', textAlign: 'center', backgroundColor: BRAND.bgLight }}>
-              <div style={{ fontSize: '7.5px', fontWeight: 'bold', marginBottom: '3px' }}>{f('VIN | رقم الهيكل (VIN)')}</div>
-              <div style={{ height: '46px', borderRadius: '4px', overflow: 'hidden', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0', padding: '2px' }}>
+            <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '6px', padding: '5px', textAlign: 'center', backgroundColor: BRAND.bgLight }}>
+              <div style={{ fontSize: '8.5px', fontWeight: 'bold', marginBottom: '3px', color: BRAND.navy }}>{f('VIN | رقم الهيكل (VIN)')}</div>
+              <div style={{ height: '48px', borderRadius: '4px', overflow: 'hidden', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0', padding: '2px' }}>
                 {inspection.vinPhoto ? (
                   <img src={inspection.vinPhoto} alt="VIN" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
                 ) : (
-                  <span style={{ fontSize: '8.5px', fontFamily: 'monospace', fontWeight: 'bold' }}>{inspection.vin}</span>
+                  <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 'bold', color: BRAND.navy }}>{inspection.vin}</span>
                 )}
               </div>
             </div>
 
-            <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '6px', padding: '4px', textAlign: 'center', backgroundColor: BRAND.bgLight }}>
-              <div style={{ fontSize: '7.5px', fontWeight: 'bold', marginBottom: '3px' }}>{f('قراءة العداد | Odometer')}</div>
-              <div style={{ height: '46px', borderRadius: '4px', overflow: 'hidden', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0', padding: '2px' }}>
+            <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '6px', padding: '5px', textAlign: 'center', backgroundColor: BRAND.bgLight }}>
+              <div style={{ fontSize: '8.5px', fontWeight: 'bold', marginBottom: '3px', color: BRAND.navy }}>{f('قراءة العداد | Odometer')}</div>
+              <div style={{ height: '48px', borderRadius: '4px', overflow: 'hidden', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0', padding: '2px' }}>
                 {inspection.odometerPhoto ? (
                   <img src={inspection.odometerPhoto} alt="Odometer" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
                 ) : (
-                  <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 'bold', color: BRAND.navy }}>{(inspection.odometer || 85230).toLocaleString()} KM</span>
+                  <span style={{ fontSize: '11px', fontFamily: 'monospace', fontWeight: 'bold', color: BRAND.navy }}>{(inspection.odometer || 85230).toLocaleString()} KM</span>
                 )}
               </div>
             </div>
@@ -316,11 +317,11 @@ export const PdfVehicleSectionsPhotosRow = ({ inspection }: { inspection: Inspec
 
   return (
     <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '10px', overflow: 'hidden', backgroundColor: '#ffffff', marginTop: '8px', flexShrink: 0 }}>
-      <div style={{ backgroundColor: BRAND.navy, color: '#ffffff', padding: '6px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ backgroundColor: BRAND.navy, color: '#ffffff', padding: '7px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <PhosphorIcon name="camera" weight="duotone" size={16} className="text-[#C5852C]" />
-          <span style={{ fontWeight: 'bold', fontSize: '11px' }}>
-            <span style={{ color: BRAND.goldLight, marginRight: '4px' }}>2 |</span> {f('صور أقسام السيارة')} <span style={{ fontSize: '8px', color: '#94A3B8', fontFamily: 'monospace' }}>| Vehicle Sections Photos ({photoSections.length})</span>
+          <PhosphorIcon name="camera" weight="duotone" size={18} className="text-[#C5852C]" />
+          <span style={{ fontWeight: 'bold', fontSize: '12px' }}>
+            <span style={{ color: BRAND.goldLight, marginRight: '4px' }}>2 |</span> {f('صور أقسام السيارة')} <span style={{ fontSize: '9px', color: '#94A3B8', fontFamily: 'monospace' }}>| Vehicle Sections Photos ({photoSections.length})</span>
           </span>
         </div>
       </div>
@@ -333,16 +334,16 @@ export const PdfVehicleSectionsPhotosRow = ({ inspection }: { inspection: Inspec
       }}>
         {photoSections.map((sec, idx) => (
           <div key={idx} style={{ border: `1px solid ${BRAND.border}`, borderRadius: '6px', overflow: 'hidden', textAlign: 'center', backgroundColor: BRAND.bgLight }}>
-            <div style={{ height: '54px', backgroundColor: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            <div style={{ height: '58px', backgroundColor: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
               {sec.photo ? (
                 <img src={sec.photo} alt={sec.labelEn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
-                <PhosphorIcon name="camera" weight="duotone" size={18} className="text-slate-400" />
+                <PhosphorIcon name="camera" weight="duotone" size={20} className="text-slate-400" />
               )}
             </div>
             <div style={{ padding: '3px 2px', backgroundColor: '#ffffff', borderTop: '1px solid #e2e8f0' }}>
-              <div style={{ fontSize: '7.5px', fontWeight: 'bold', color: BRAND.navy, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f(sec.labelAr)}</div>
-              <div style={{ fontSize: '6.5px', color: '#94a3b8', fontFamily: 'monospace' }} dir="ltr">{sec.labelEn}</div>
+              <div style={{ fontSize: '8.5px', fontWeight: 'bold', color: BRAND.navy, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f(sec.labelAr)}</div>
+              <div style={{ fontSize: '7px', color: '#94a3b8', fontFamily: 'monospace' }} dir="ltr">{sec.labelEn}</div>
             </div>
           </div>
         ))}
@@ -361,17 +362,17 @@ export const PdfFindingCard = ({ item }: { item: InspectionItem }) => {
     <div style={{
       border: `1px solid ${BRAND.border}`,
       borderRadius: '8px',
-      padding: '8px',
+      padding: '8px 10px',
       display: 'flex',
       alignItems: 'center',
-      gap: '10px',
+      gap: '12px',
       backgroundColor: '#ffffff',
       boxSizing: 'border-box',
     }}>
       {/* Left: Defect Photo with Natural Aspect Ratio */}
       <div style={{ 
-        width: '105px', 
-        height: '76px', 
+        width: '115px', 
+        height: '82px', 
         borderRadius: '6px', 
         overflow: 'hidden', 
         backgroundColor: '#f1f5f9', 
@@ -394,23 +395,23 @@ export const PdfFindingCard = ({ item }: { item: InspectionItem }) => {
           />
         ) : (
           <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <PhosphorIcon name="camera" weight="duotone" size={22} className="text-slate-400" />
+            <PhosphorIcon name="camera" weight="duotone" size={24} className="text-slate-400" />
           </div>
         )}
       </div>
 
       {/* Middle: Details & Descriptions */}
       <div style={{ flex: 1, minWidth: 0, textAlign: 'right' }}>
-        <div style={{ fontSize: '8.5px', fontWeight: 'bold', color: BRAND.gold }}>{f(item.category || 'فحص عام')}</div>
-        <h4 style={{ fontSize: '10.5px', fontWeight: 'bold', color: BRAND.navy, margin: '2px 0' }}>{f(titleAr)}</h4>
-        <p style={{ fontSize: '8.5px', color: '#334155', margin: '2px 0', lineHeight: '1.3' }}>{f(item.description || item.notes || 'ملاحظة مسجلة أثناء الفحص الفني.')}</p>
+        <div style={{ fontSize: '9.5px', fontWeight: 'bold', color: BRAND.gold }}>{f(item.category || 'فحص عام')}</div>
+        <h4 style={{ fontSize: '12px', fontWeight: 'bold', color: BRAND.navy, margin: '2px 0' }}>{f(titleAr)}</h4>
+        <p style={{ fontSize: '9.5px', color: '#334155', margin: '2px 0', lineHeight: '1.35' }}>{f(item.description || item.notes || 'ملاحظة مسجلة أثناء الفحص الفني.')}</p>
         {item.descriptionEn && (
-          <p style={{ fontSize: '7.5px', color: '#94A3B8', margin: 0, fontFamily: 'monospace' }} dir="ltr">{item.descriptionEn}</p>
+          <p style={{ fontSize: '8px', color: '#94A3B8', margin: 0, fontFamily: 'monospace' }} dir="ltr">{item.descriptionEn}</p>
         )}
       </div>
 
       {/* Right: Top-Down Car Blueprint SVG Silhouette with Glowing Pinpoint Dot */}
-      <div style={{ width: '68px', height: '78px', borderRadius: '6px', backgroundColor: BRAND.bgLight, border: `1px solid ${BRAND.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: '2px' }}>
+      <div style={{ width: '72px', height: '82px', borderRadius: '6px', backgroundColor: BRAND.bgLight, border: `1px solid ${BRAND.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: '2px' }}>
         <CarBlueprintPinpoint category={item.category || ''} dotColor={BRAND.red} className="w-full h-full" />
       </div>
     </div>
@@ -418,79 +419,117 @@ export const PdfFindingCard = ({ item }: { item: InspectionItem }) => {
 };
 
 // ----------------------------------------------------
-// 5. SECTIONS 4, 5, 7: OBD & TERMS BLOCK (3 COLUMNS)
+// 5. SECTIONS 4, 5, 6, 7: OBD, AUTEL & TERMS BLOCK
 // ----------------------------------------------------
 export const PdfObdAndTermsBlock = ({ inspection }: { inspection: Inspection }) => {
   const obdCodes = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string; status?: string}> | null) || [];
   const currentCodes = obdCodes.filter(c => c.status !== 'history');
   const historyCodes = obdCodes.filter(c => c.status === 'history');
+  const hasAutel = !!inspection.autelReportPdf;
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginTop: '8px', flexShrink: 0 }}>
-      {/* Col 1: Section 4 - Current Trouble Codes */}
-      <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '8px', overflow: 'hidden', backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ backgroundColor: BRAND.navy, color: '#ffffff', padding: '5px 8px', fontSize: '9px', fontWeight: 'bold' }}>
-          <span style={{ color: BRAND.goldLight, marginRight: '3px' }}>4 |</span> {f('الأعطال الحالية | Current')}
-          <div style={{ fontSize: '7px', color: '#94a3b8' }}>OBD-II Active Trouble Codes</div>
-        </div>
-        <div style={{ padding: '6px', flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', backgroundColor: BRAND.bgLight }}>
-          {currentCodes.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '12px 4px', color: BRAND.textMuted, fontSize: '8px' }}>
-              {f('لا توجد أعطال حالية مسجلة')}
-            </div>
-          ) : (
-            currentCodes.slice(0, 3).map((c, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '3px 6px', backgroundColor: '#ffffff', borderRadius: '4px', border: '1px solid #e2e8f0', fontSize: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 'bold', color: BRAND.navy, fontSize: '9.5px' }}>{c.code}</span>
-                  <span style={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100px' }}>{f(c.nameAr)}</span>
-                </div>
-                <span style={{ color: BRAND.red, fontSize: '7.5px', fontWeight: 'bold' }}>{f('نشط')}</span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px', flexShrink: 0 }}>
+      {/* 3-Column Block: Section 4 Current, Section 5 History, Section 7 Terms */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+        {/* Col 1: Section 4 - Current Trouble Codes */}
+        <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '8px', overflow: 'hidden', backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ backgroundColor: BRAND.navy, color: '#ffffff', padding: '6px 8px', fontSize: '10px', fontWeight: 'bold' }}>
+            <span style={{ color: BRAND.goldLight, marginRight: '3px' }}>4 |</span> {f('الأعطال الحالية | Current')}
+            <div style={{ fontSize: '7.5px', color: '#94a3b8' }}>OBD-II Active Trouble Codes</div>
+          </div>
+          <div style={{ padding: '6px', flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', backgroundColor: BRAND.bgLight }}>
+            {currentCodes.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '12px 4px', color: BRAND.textMuted, fontSize: '9px' }}>
+                {f('لا توجد أعطال حالية مسجلة')}
               </div>
-            ))
-          )}
+            ) : (
+              currentCodes.slice(0, 3).map((c, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 6px', backgroundColor: '#ffffff', borderRadius: '4px', border: '1px solid #e2e8f0', fontSize: '8.5px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <span style={{ fontFamily: 'monospace', fontWeight: 'bold', color: BRAND.navy, fontSize: '10px' }}>{c.code}</span>
+                    <span style={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '105px' }}>{f(c.nameAr)}</span>
+                  </div>
+                  <span style={{ color: BRAND.red, fontSize: '8px', fontWeight: 'bold' }}>{f('نشط')}</span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Col 2: Section 5 - History Trouble Codes */}
+        <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '8px', overflow: 'hidden', backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ backgroundColor: BRAND.navy, color: '#ffffff', padding: '6px 8px', fontSize: '10px', fontWeight: 'bold' }}>
+            <span style={{ color: BRAND.goldLight, marginRight: '3px' }}>5 |</span> {f('الأعطال السابقة | History')}
+            <div style={{ fontSize: '7.5px', color: '#94a3b8' }}>OBD-II Stored Trouble Codes</div>
+          </div>
+          <div style={{ padding: '6px', flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', backgroundColor: BRAND.bgLight }}>
+            {historyCodes.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '12px 4px', color: BRAND.textMuted, fontSize: '9px' }}>
+                {f('لا توجد أعطال سابقة')}
+              </div>
+            ) : (
+              historyCodes.slice(0, 3).map((c, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 6px', backgroundColor: '#ffffff', borderRadius: '4px', border: '1px solid #e2e8f0', fontSize: '8.5px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <span style={{ fontFamily: 'monospace', fontWeight: 'bold', color: BRAND.navy, fontSize: '10px' }}>{c.code}</span>
+                    <span style={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '105px' }}>{f(c.nameAr)}</span>
+                  </div>
+                  <span style={{ color: BRAND.yellow, fontSize: '8px', fontWeight: 'bold' }}>{f('سابق')}</span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Col 3: Section 7 - Terms & Conditions */}
+        <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '8px', overflow: 'hidden', backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ backgroundColor: BRAND.navy, color: '#ffffff', padding: '6px 8px', fontSize: '10px', fontWeight: 'bold' }}>
+            <span style={{ color: BRAND.goldLight, marginRight: '3px' }}>7 |</span> {f('الأحكام والشروط')}
+            <div style={{ fontSize: '7.5px', color: '#94a3b8' }}>Terms & Conditions</div>
+          </div>
+          <div style={{ padding: '6px 8px', fontSize: '8px', lineHeight: '1.3', backgroundColor: '#ffffff', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div><p style={{ margin: '1px 0', fontWeight: 'bold' }}>{f('1. المركز غير مسئول عن أي أعطال بعد الفحص.')}</p></div>
+            <div><p style={{ margin: '1px 0', fontWeight: 'bold' }}>{f('2. مسؤول عن نتيجة الفحص وقت الفحص فقط.')}</p></div>
+            <div><p style={{ margin: '1px 0', fontWeight: 'bold' }}>{f('3. الفحص غير معتمد لدى إدارة التراخيص.')}</p></div>
+            <div><p style={{ margin: '1px 0', fontWeight: 'bold' }}>{f('4. غير مسئول عن أي أغراض شخصية داخل السيارة.')}</p></div>
+            <div><p style={{ margin: '1px 0', fontWeight: 'bold' }}>{f('5. التقرير حسب قراءة الأجهزة وقت الفحص.')}</p></div>
+          </div>
         </div>
       </div>
 
-      {/* Col 2: Section 5 - History Trouble Codes */}
-      <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '8px', overflow: 'hidden', backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ backgroundColor: BRAND.navy, color: '#ffffff', padding: '5px 8px', fontSize: '9px', fontWeight: 'bold' }}>
-          <span style={{ color: BRAND.goldLight, marginRight: '3px' }}>5 |</span> {f('الأعطال السابقة | History')}
-          <div style={{ fontSize: '7px', color: '#94a3b8' }}>OBD-II Stored Trouble Codes</div>
-        </div>
-        <div style={{ padding: '6px', flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', backgroundColor: BRAND.bgLight }}>
-          {historyCodes.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '12px 4px', color: BRAND.textMuted, fontSize: '8px' }}>
-              {f('لا توجد أعطال سابقة')}
+      {/* Section 6: Autel Computer Diagnostic Report Row (If available) */}
+      {hasAutel && (
+        <div style={{ 
+          border: `1px solid ${BRAND.border}`, 
+          borderRadius: '8px', 
+          overflow: 'hidden', 
+          backgroundColor: '#ffffff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '6px 14px',
+          background: 'linear-gradient(to left, #f8fafc, #ffffff)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ width: '28px', height: '28px', borderRadius: '6px', backgroundColor: BRAND.navy, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <PhosphorIcon name="cpu" weight="duotone" size={16} className="text-[#C5852C]" />
             </div>
-          ) : (
-            historyCodes.slice(0, 3).map((c, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '3px 6px', backgroundColor: '#ffffff', borderRadius: '4px', border: '1px solid #e2e8f0', fontSize: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 'bold', color: BRAND.navy, fontSize: '9.5px' }}>{c.code}</span>
-                  <span style={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100px' }}>{f(c.nameAr)}</span>
-                </div>
-                <span style={{ color: BRAND.yellow, fontSize: '7.5px', fontWeight: 'bold' }}>{f('سابق')}</span>
+            <div>
+              <div style={{ fontSize: '10.5px', fontWeight: 'bold', color: BRAND.navy }}>
+                <span style={{ color: BRAND.gold, marginRight: '4px' }}>6 |</span>
+                {f('تقرير فحص الكمبيوتر الشامل من جهاز Autel MaxiSys')}
               </div>
-            ))
-          )}
+              <div style={{ fontSize: '8px', color: '#64748B', fontFamily: 'monospace' }} dir="ltr">
+                Autel MaxiSys Diagnostic Report Attached Seamlessly in PDF
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#fef3c7', border: '1px solid #fde68a', padding: '3px 8px', borderRadius: '6px' }}>
+            <PhosphorIcon name="file-pdf" weight="duotone" size={14} className="text-red-500" />
+            <span style={{ fontSize: '8.5px', fontWeight: 'bold', color: '#92400e' }}>{f('مرفق بالتقرير')}</span>
+          </div>
         </div>
-      </div>
-
-      {/* Col 3: Section 7 - Terms & Conditions */}
-      <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '8px', overflow: 'hidden', backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ backgroundColor: BRAND.navy, color: '#ffffff', padding: '5px 8px', fontSize: '9px', fontWeight: 'bold' }}>
-          <span style={{ color: BRAND.goldLight, marginRight: '3px' }}>7 |</span> {f('الأحكام والشروط')}
-          <div style={{ fontSize: '7px', color: '#94a3b8' }}>Terms & Conditions</div>
-        </div>
-        <div style={{ padding: '6px 8px', fontSize: '7.5px', lineHeight: '1.25', backgroundColor: '#ffffff', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <div><p style={{ margin: '1px 0', fontWeight: 'bold' }}>{f('1. المركز غير مسئول عن أي أعطال بعد الفحص.')}</p></div>
-          <div><p style={{ margin: '1px 0', fontWeight: 'bold' }}>{f('2. مسؤول عن نتيجة الفحص وقت الفحص فقط.')}</p></div>
-          <div><p style={{ margin: '1px 0', fontWeight: 'bold' }}>{f('3. الفحص غير معتمد لدى إدارة التراخيص.')}</p></div>
-          <div><p style={{ margin: '1px 0', fontWeight: 'bold' }}>{f('4. غير مسئول عن أي أغراض شخصية داخل السيارة.')}</p></div>
-          <div><p style={{ margin: '1px 0', fontWeight: 'bold' }}>{f('5. التقرير حسب قراءة الأجهزة وقت الفحص.')}</p></div>
-        </div>
-      </div>
+      )}
     </div>
   );
 };
@@ -502,23 +541,23 @@ export const PdfFooterBar = ({ pageNum, totalPages }: { pageNum: number; totalPa
   <div style={{
     backgroundColor: BRAND.navy,
     borderRadius: '8px',
-    padding: '7px 14px',
+    padding: '8px 16px',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTop: `2px solid ${BRAND.gold}`,
     color: '#ffffff',
-    fontSize: '7.5px',
+    fontSize: '8.5px',
     marginTop: '8px',
     flexShrink: 0,
   }}>
-    <div style={{ display: 'flex', gap: '14px', color: '#cbd5e1' }}>
+    <div style={{ display: 'flex', gap: '16px', color: '#cbd5e1' }}>
       <span>📞 0542206000</span>
       <span>✉️ highsafety2021@gmail.com</span>
       <span>🌐 www.highsafetyint.com</span>
       <span>📍 {f('سيتي بلازا الدراري - الشارقة')}</span>
     </div>
-    <span style={{ color: BRAND.goldLight, fontWeight: 'bold' }}>{f(`الصفحة ${pageNum} من ${totalPages}`)}</span>
+    <span style={{ color: BRAND.goldLight, fontWeight: 'bold', fontSize: '9px' }}>{f(`الصفحة ${pageNum} من ${totalPages}`)}</span>
   </div>
 );
 
@@ -620,11 +659,11 @@ export const PdfMultiPageDocument = forwardRef<HTMLDivElement, { inspection: Ins
                 flexDirection: 'column',
                 minHeight: 0,
               }}>
-                <div style={{ backgroundColor: BRAND.navy, color: '#ffffff', padding: '6px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+                <div style={{ backgroundColor: BRAND.navy, color: '#ffffff', padding: '7px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <PhosphorIcon name="clipboard-text" weight="duotone" size={16} className="text-[#C5852C]" />
-                    <span style={{ fontWeight: 'bold', fontSize: '11px' }}>
-                      <span style={{ color: BRAND.goldLight, marginRight: '4px' }}>3 |</span> {f('نتائج الفحص')} <span style={{ fontSize: '8px', color: '#94A3B8', fontFamily: 'monospace' }}>| Inspection Results</span>
+                    <PhosphorIcon name="clipboard-text" weight="duotone" size={18} className="text-[#C5852C]" />
+                    <span style={{ fontWeight: 'bold', fontSize: '12px' }}>
+                      <span style={{ color: BRAND.goldLight, marginRight: '4px' }}>3 |</span> {f('نتائج الفحص')} <span style={{ fontSize: '9px', color: '#94A3B8', fontFamily: 'monospace' }}>| Inspection Results</span>
                     </span>
                   </div>
                 </div>
@@ -642,9 +681,9 @@ export const PdfMultiPageDocument = forwardRef<HTMLDivElement, { inspection: Ins
                 }}>
                   {chunk.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '24px', width: '100%' }}>
-                      <PhosphorIcon name="check-circle" weight="duotone" size={36} className="text-emerald-600 mx-auto" />
-                      <h4 style={{ fontSize: '12px', fontWeight: 'bold', color: BRAND.navy, margin: '6px 0 2px 0' }}>{f('المركبة بحالة ممتازة')}</h4>
-                      <p style={{ fontSize: '8.5px', color: BRAND.textMuted, margin: 0 }}>{f('لم يتم تسجيل أي ملاحظات أو عيوب فنية على المركبة')}</p>
+                      <PhosphorIcon name="check-circle" weight="duotone" size={40} className="text-emerald-600 mx-auto" />
+                      <h4 style={{ fontSize: '14px', fontWeight: 'bold', color: BRAND.navy, margin: '6px 0 2px 0' }}>{f('المركبة بحالة ممتازة')}</h4>
+                      <p style={{ fontSize: '10px', color: BRAND.textMuted, margin: 0 }}>{f('لم يتم تسجيل أي ملاحظات أو عيوب فنية على المركبة')}</p>
                     </div>
                   ) : chunk.length === 1 ? (
                     <div style={{ width: '92%', margin: '0 auto' }}>
