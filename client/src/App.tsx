@@ -25,7 +25,10 @@ function ProtectedRoutes({ onLogout }: { onLogout: () => void }) {
         <Route path="/" component={Dashboard} />
         <Route path="/inspections" component={Dashboard} />
         <Route path="/inspections/new" component={NewInspection} />
+        <Route path="/new-inspection" component={NewInspection} />
+        <Route path="/inspection/new" component={NewInspection} />
         <Route path="/inspections/:id" component={InspectionDetails} />
+        <Route path="/inspection/:id" component={InspectionDetails} />
         <Route path="/fault-library" component={FaultLibrary} />
         <Route path="/vehicle-data" component={VehicleData} />
         <Route path="/settings" component={Settings} />
