@@ -817,7 +817,7 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
   );
 };
 
-// Car Section Photos Component - Exact 7 Photos Grid
+// Car Section Photos Component - Dynamic Photos Grid
 const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
   const [selectedPhoto, setSelectedPhoto] = useState<{ url: string; labelAr: string; labelEn: string } | null>(null);
 
@@ -829,6 +829,17 @@ const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
     { key: 'engineBay', labelAr: 'حجرة المحرك', labelEn: 'Engine Bay', photo: inspection.hoodPhoto },
     { key: 'interior', labelAr: 'المقصورة الداخلية', labelEn: 'Interior', photo: inspection.interiorPhoto || inspection.frontLeftDoorInteriorPhoto },
     { key: 'trunk', labelAr: 'صندوق الأمتعة', labelEn: 'Trunk', photo: inspection.trunkPhoto },
+  ].filter(s => s.photo);
+
+  // Fallback to standard sections if no specific photos are assigned
+  const displaySections = sections.length > 0 ? sections : [
+    { key: 'frontSide', labelAr: 'الواجهة الأمامية', labelEn: 'Front Side', photo: null },
+    { key: 'rearSide', labelAr: 'الواجهة الخلفية', labelEn: 'Rear Side', photo: null },
+    { key: 'leftSide', labelAr: 'الجانب الأيسر', labelEn: 'Left Side', photo: null },
+    { key: 'rightSide', labelAr: 'الجانب الأيمن', labelEn: 'Right Side', photo: null },
+    { key: 'engineBay', labelAr: 'حجرة المحرك', labelEn: 'Engine Bay', photo: null },
+    { key: 'interior', labelAr: 'المقصورة الداخلية', labelEn: 'Interior', photo: null },
+    { key: 'trunk', labelAr: 'صندوق الأمتعة', labelEn: 'Trunk', photo: null },
   ];
 
   return (
@@ -844,18 +855,18 @@ const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
               <h3 className="font-bold text-lg font-arabic flex items-center gap-2">
                 <span className="font-mono text-[#C5852C]">2 |</span>
                 <span>صور أقسام السيارة</span>
-                <span className="text-white/50 text-xs font-mono font-normal">| Vehicle Sections Photos</span>
+                <span className="text-white/50 text-xs font-mono font-normal">| Vehicle Sections Photos ({displaySections.length})</span>
               </h3>
             </div>
           </div>
         </div>
 
-        {/* 7 Horizontal Cards Grid */}
+        {/* Dynamic Horizontal Cards Grid */}
         <div className="p-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3">
-            {sections.map((sec) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
+            {displaySections.map((sec, idx) => (
               <button
-                key={sec.key}
+                key={sec.key || idx}
                 type="button"
                 onClick={() => sec.photo && setSelectedPhoto({ url: sec.photo, labelAr: sec.labelAr, labelEn: sec.labelEn })}
                 disabled={!sec.photo}
@@ -880,7 +891,7 @@ const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
 
       {/* Full Photo Modal */}
       {selectedPhoto && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedPhoto(null)}>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[999999] flex items-center justify-center p-4" onClick={() => setSelectedPhoto(null)}>
           <div className="relative max-w-3xl w-full bg-white rounded-2xl overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="bg-[#0C1A28] text-white px-6 py-4 flex items-center justify-between">
               <div>
@@ -950,7 +961,7 @@ const CustomerInfoCard = ({ inspection }: { inspection: any }) => (
   </div>
 );
 
-// Inspection Results Section - Exact High Safety Reference Layout
+// Inspection Results Section - Dynamic Layout
 const InspectionResults = ({ 
   inspection, 
   highlightedCategory, 
@@ -961,20 +972,6 @@ const InspectionResults = ({
   onImageClick?: (url: string, name: string) => void; 
 }) => {
   const items = inspection.items || [];
-
-  const getSeverityBadge = (severity?: string) => {
-    switch (severity) {
-      case 'high':
-        return { bg: 'bg-red-500 text-white shadow-sm', labelAr: 'عالي', labelEn: 'High', hex: '#dc2626' };
-      case 'medium':
-        return { bg: 'bg-orange-500 text-white shadow-sm', labelAr: 'متوسط', labelEn: 'Medium', hex: '#ea580c' };
-      case 'low':
-        return { bg: 'bg-amber-400 text-slate-950 font-bold shadow-sm', labelAr: 'منخفض', labelEn: 'Low', hex: '#ca8a04' };
-      case 'note':
-      default:
-        return { bg: 'bg-blue-600 text-white shadow-sm', labelAr: 'ملاحظة', labelEn: 'Note', hex: '#2563eb' };
-    }
-  };
 
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden" data-testid="inspection-results-section">
@@ -988,33 +985,13 @@ const InspectionResults = ({
             <h3 className="font-bold text-lg font-arabic flex items-center gap-2">
               <span className="font-mono text-[#C5852C]">3 |</span>
               <span>نتائج الفحص</span>
-              <span className="text-white/50 text-xs font-mono font-normal">| Inspection Results</span>
+              <span className="text-white/50 text-xs font-mono font-normal">| Inspection Results ({items.length})</span>
             </h3>
-          </div>
-        </div>
-
-        {/* Severity Legend Pills */}
-        <div className="flex items-center gap-2 flex-wrap text-xs font-arabic">
-          <div className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-full text-white">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-600 shadow-sm" />
-            <span>عالي</span>
-          </div>
-          <div className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-full text-white">
-            <span className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-sm" />
-            <span>متوسط</span>
-          </div>
-          <div className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-full text-white">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-sm" />
-            <span>منخفض</span>
-          </div>
-          <div className="flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-full text-white">
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm" />
-            <span>ملاحظة</span>
           </div>
         </div>
       </div>
 
-      <div className="p-6 space-y-4">
+      <div className="p-6">
         {items.length === 0 ? (
           <div className="p-12 text-center bg-slate-50 rounded-2xl border border-slate-100">
             <PhosphorIcon name="check-circle" weight="duotone" size={48} className="text-emerald-500 mx-auto mb-3" />
@@ -1022,74 +999,69 @@ const InspectionResults = ({
             <p className="text-slate-500 text-sm font-arabic">لم يتم تسجيل أي ملاحظات أو عيوب فنية على المركبة</p>
           </div>
         ) : (
-          items.map((item: any, idx: number) => {
-            const cat = INSPECTION_CATEGORIES.find(c => c.id === item.category) || { label: item.category || 'فحص عام', labelEn: 'General' };
-            const badge = getSeverityBadge(item.severity);
-            const titleAr = item.faultName?.split(' - ')[0] || item.faultName || 'ملاحظة فنية';
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {items.map((item: any, idx: number) => {
+              const cat = INSPECTION_CATEGORIES.find(c => c.id === item.category) || { label: item.category || 'فحص عام', labelEn: 'General' };
+              const titleAr = item.faultName?.split(' - ')[0] || item.faultName || 'ملاحظة فنية';
 
-            return (
-              <div
-                key={item.id || idx}
-                className="bg-white rounded-2xl border-2 border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-all p-4 flex flex-col md:flex-row items-center gap-4"
-              >
-                {/* Left: Defect Photo */}
-                <div className="shrink-0 w-full md:w-48 h-36 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 relative group">
-                  {item.imageUrl ? (
-                    <button
-                      type="button"
-                      onClick={() => onImageClick?.(item.imageUrl!, titleAr)}
-                      className="w-full h-full block cursor-pointer"
-                    >
-                      <img src={item.imageUrl} alt={titleAr} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                        <PhosphorIcon name="magnifying-glass-plus" weight="duotone" size={24} className="text-white" />
+              return (
+                <div
+                  key={item.id || idx}
+                  className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-all p-4 flex items-center gap-4 text-right"
+                >
+                  {/* Left: Defect Photo */}
+                  <div className="shrink-0 w-32 h-28 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 relative group">
+                    {item.imageUrl ? (
+                      <button
+                        type="button"
+                        onClick={() => onImageClick?.(item.imageUrl!, titleAr)}
+                        className="w-full h-full block cursor-pointer"
+                      >
+                        <img src={item.imageUrl} alt={titleAr} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                          <PhosphorIcon name="magnifying-glass-plus" weight="duotone" size={22} className="text-white" />
+                        </div>
+                      </button>
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-1 bg-slate-50">
+                        <PhosphorIcon name="camera-slash" weight="duotone" size={24} />
+                        <span className="text-[9px] font-arabic">لا توجد صورة</span>
                       </div>
-                    </button>
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-1 bg-slate-50">
-                      <PhosphorIcon name="camera-slash" weight="duotone" size={28} />
-                      <span className="text-[10px] font-arabic">لا توجد صورة</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Center: Details & Descriptions */}
-                <div className="flex-1 min-w-0 text-right space-y-2">
-                  <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <div className="flex items-center gap-2">
-                      <span className="font-black text-slate-900 font-arabic text-base">{cat.label}</span>
-                      <span className="text-xs text-slate-400 font-mono" dir="ltr">| {cat.labelEn}</span>
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold font-arabic ${badge.bg}`}>
-                      {badge.labelAr}
-                    </span>
+                    )}
                   </div>
 
-                  <h4 className="font-black text-slate-900 font-arabic text-lg leading-snug">
-                    {titleAr}
-                  </h4>
-
-                  {item.description && (
-                    <p className="text-sm text-slate-700 font-arabic leading-relaxed">
-                      {item.description}
-                    </p>
-                  )}
-
-                  {item.notes && (
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-2 text-xs text-amber-900 font-arabic flex items-center gap-2">
-                      <PhosphorIcon name="note" weight="duotone" size={16} className="text-amber-700 shrink-0" />
-                      <span>{item.notes}</span>
+                  {/* Center: Details & Descriptions */}
+                  <div className="flex-1 min-w-0 space-y-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-bold text-[#C5852C] font-arabic">{cat.label}</span>
+                      <span className="text-[10px] text-slate-400 font-mono" dir="ltr">{cat.labelEn}</span>
                     </div>
-                  )}
-                </div>
 
-                {/* Right: Top-down Car Blueprint SVG Pinpoint */}
-                <div className="shrink-0 w-24 h-36 bg-slate-50/80 rounded-xl border border-slate-100 p-1 flex items-center justify-center">
-                  <CarBlueprintPinpoint category={item.category || ''} dotColor={badge.hex} className="w-full h-full" />
+                    <h4 className="font-bold text-slate-900 font-arabic text-sm leading-snug">
+                      {titleAr}
+                    </h4>
+
+                    {item.description && (
+                      <p className="text-xs text-slate-700 font-arabic leading-relaxed line-clamp-2">
+                        {item.description}
+                      </p>
+                    )}
+
+                    {item.descriptionEn && (
+                      <p className="text-[10px] text-slate-400 font-mono truncate" dir="ltr">
+                        {item.descriptionEn}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Right: Top-down Car Blueprint SVG Pinpoint */}
+                  <div className="shrink-0 w-20 h-24 bg-slate-50/80 rounded-xl border border-slate-100 p-1 flex items-center justify-center">
+                    <CarBlueprintPinpoint category={item.category || ''} dotColor="#dc2626" className="w-full h-full" />
+                  </div>
                 </div>
-              </div>
-            );
-          })
+              );
+            })}
+          </div>
         )}
       </div>
     </div>
