@@ -105,7 +105,7 @@ const textStyle: React.CSSProperties = {
 };
 
 // ----------------------------------------------------
-// 1. TOP HEADER BANNER (EXACT HIGH SAFETY DESIGN)
+// 1. TOP HEADER BANNER (EXACT HIGH SAFETY MASTER REFERENCE)
 // ----------------------------------------------------
 export const PdfHeaderBanner = ({ 
   inspection, 
@@ -121,59 +121,91 @@ export const PdfHeaderBanner = ({
   <div style={{
     backgroundColor: BRAND.navy,
     borderRadius: '10px',
-    padding: '12px 18px',
+    padding: '10px 16px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderBottom: `3px solid ${BRAND.gold}`,
+    borderTop: `3px solid ${BRAND.gold}`,
     color: '#ffffff',
     flexShrink: 0,
+    boxSizing: 'border-box',
+    width: '100%',
   }}>
     {/* Left: English Branding */}
-    <div style={{ textAlign: 'left', minWidth: '170px' }} dir="ltr">
-      <h3 style={{ margin: 0, fontSize: '11px', fontWeight: 'bold', color: BRAND.goldLight, letterSpacing: '0.5px' }}>
-        HIGH SAFETY INTERNATIONAL CENTER L.L.C.
+    <div style={{ textAlign: 'left', minWidth: '180px' }} dir="ltr">
+      <h3 style={{ margin: 0, fontSize: '12px', fontWeight: 'bold', color: BRAND.goldLight, letterSpacing: '0.5px' }}>
+        HIGH SAFETY
       </h3>
-      <p style={{ margin: '2px 0 0 0', fontSize: '7.5px', color: '#94A3B8' }}>
+      <h4 style={{ margin: '1px 0 0 0', fontSize: '9px', fontWeight: 'bold', color: '#ffffff', letterSpacing: '0.3px' }}>
+        INTERNATIONAL CENTER L.L.C.
+      </h4>
+      <p style={{ margin: '2px 0 0 0', fontSize: '6.5px', color: '#94A3B8', maxWidth: '190px', lineHeight: '1.2' }}>
         FOR THE TECHNICAL INSPECTION OF VEHICLES, EQUIPMENT AND MACHINERY
       </p>
     </div>
 
-    {/* Center: High Safety Gold Emblem */}
+    {/* Center: High Safety Gold Emblem with Wings */}
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '0 10px' }}>
-      <img src={logoPath} alt="Logo" style={{ width: '46px', height: '46px', borderRadius: '50%', objectFit: 'cover', border: `2px solid ${BRAND.gold}` }} />
+      <img 
+        src={logoPath} 
+        alt="Logo" 
+        style={{ 
+          width: '50px', 
+          height: '50px', 
+          borderRadius: '50%', 
+          objectFit: 'cover', 
+          border: `2px solid ${BRAND.gold}`,
+          backgroundColor: '#000000',
+        }} 
+      />
     </div>
 
     {/* Right: Arabic Branding & Meta Box */}
     <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
       <div style={{ textAlign: 'right' }}>
-        <h3 style={{ margin: 0, fontSize: '12px', fontWeight: 'bold', color: BRAND.goldLight }}>
-          {f('مركز الأمان العالي الدولي ش.ذ.م.م')}
+        <h3 style={{ margin: 0, fontSize: '13px', fontWeight: 'bold', color: BRAND.goldLight }}>
+          {f('مركز الأمان العالي الدولي')}
         </h3>
-        <p style={{ margin: '2px 0 0 0', fontSize: '7.5px', color: '#94A3B8' }}>
+        <h4 style={{ margin: '1px 0 0 0', fontSize: '9px', fontWeight: 'bold', color: BRAND.goldLight }}>
+          {f('ش.ذ.م.م')}
+        </h4>
+        <p style={{ margin: '2px 0 0 0', fontSize: '7px', color: '#94A3B8' }}>
           {f('للفحص الفني للمركبات والمعدات والآليات')}
         </p>
       </div>
 
+      {/* Meta Box (High Contrast on White Card) */}
       <div style={{
-        backgroundColor: 'rgba(255,255,255,0.08)',
-        border: '1px solid rgba(197,133,44,0.4)',
+        backgroundColor: '#ffffff',
+        border: '1px solid #CBD5E1',
         borderRadius: '8px',
-        padding: '5px 8px',
+        padding: '5px 10px',
         textAlign: 'right',
         fontSize: '7.5px',
         lineHeight: '1.4',
+        color: BRAND.navy,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        minWidth: '135px',
       }}>
-        <div><span style={{ color: BRAND.goldLight }}>{f('رقم التقرير | Report No.: ')}</span><span style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>HS-{inspection.id || '2024-001'}</span></div>
-        <div><span style={{ color: '#94A3B8' }}>{f('تاريخ الفحص | Date: ')}</span><span>{f(formattedDate)}</span></div>
-        <div><span style={{ color: '#94A3B8' }}>{f('عدد الصفحات | Pages: ')}</span><span>{f(`${pageNum} من ${totalPages}`)}</span></div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '2px' }}>
+          <span style={{ color: BRAND.navy, fontWeight: 'bold', fontFamily: 'monospace' }}>HS-{inspection.id || '2024-001'}</span>
+          <span style={{ color: BRAND.textMuted }}>{f('رقم التقرير | Report No.')}</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', padding: '2px 0' }}>
+          <span style={{ color: BRAND.navy, fontWeight: 'bold' }}>{f(formattedDate)}</span>
+          <span style={{ color: BRAND.textMuted }}>{f('تاريخ الفحص | Date')}</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '2px' }}>
+          <span style={{ color: BRAND.navy, fontWeight: 'bold', fontFamily: 'monospace' }}>{f(`${pageNum} من ${totalPages}`)}</span>
+          <span style={{ color: BRAND.textMuted }}>{f('عدد الصفحات | Pages')}</span>
+        </div>
       </div>
     </div>
   </div>
 );
 
 // ----------------------------------------------------
-// 2. SECTION 1: VEHICLE INFORMATION
+// 2. SECTION 1: VEHICLE INFORMATION (NATURAL ASPECT RATIO)
 // ----------------------------------------------------
 export const PdfVehicleInfoSection = ({ inspection }: { inspection: Inspection }) => {
   return (
@@ -221,22 +253,54 @@ export const PdfVehicleInfoSection = ({ inspection }: { inspection: Inspection }
           </div>
         </div>
 
-        {/* Right 7 Cols: 3D Car Photo + VIN Card & Odometer Card */}
+        {/* Right 7 Cols: 3D Car Photo + VIN Card & Odometer Card (NO SQUASHING) */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ height: '115px', borderRadius: '8px', border: `1px solid ${BRAND.border}`, overflow: 'hidden', backgroundColor: BRAND.bgLight, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ 
+            height: '115px', 
+            borderRadius: '8px', 
+            border: `1px solid ${BRAND.border}`, 
+            overflow: 'hidden', 
+            backgroundColor: BRAND.bgLight, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            padding: '4px',
+            boxSizing: 'border-box'
+          }}>
             {inspection.mainCarPhoto ? (
-              <img src={inspection.mainCarPhoto} alt="Vehicle Main" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              <img 
+                src={inspection.mainCarPhoto} 
+                alt="Vehicle Main" 
+                style={{ 
+                  maxWidth: '100%', 
+                  maxHeight: '100%', 
+                  width: 'auto', 
+                  height: 'auto', 
+                  objectFit: 'contain' 
+                }} 
+              />
             ) : (
-              <img src={hsCarBranding} alt="High Safety Branding" style={{ width: '70%', height: '70%', objectFit: 'contain', opacity: 0.15 }} />
+              <img 
+                src={hsCarBranding} 
+                alt="High Safety Branding" 
+                style={{ 
+                  maxWidth: '85%', 
+                  maxHeight: '85%', 
+                  width: 'auto', 
+                  height: 'auto', 
+                  objectFit: 'contain', 
+                  opacity: 0.15 
+                }} 
+              />
             )}
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
             <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '6px', padding: '4px', textAlign: 'center', backgroundColor: BRAND.bgLight }}>
               <div style={{ fontSize: '7.5px', fontWeight: 'bold', marginBottom: '3px' }}>{f('VIN | رقم الهيكل (VIN)')}</div>
-              <div style={{ height: '48px', borderRadius: '4px', overflow: 'hidden', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0' }}>
+              <div style={{ height: '46px', borderRadius: '4px', overflow: 'hidden', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0', padding: '2px' }}>
                 {inspection.vinPhoto ? (
-                  <img src={inspection.vinPhoto} alt="VIN" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={inspection.vinPhoto} alt="VIN" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
                 ) : (
                   <span style={{ fontSize: '8.5px', fontFamily: 'monospace', fontWeight: 'bold' }}>{inspection.vin}</span>
                 )}
@@ -245,9 +309,9 @@ export const PdfVehicleInfoSection = ({ inspection }: { inspection: Inspection }
 
             <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '6px', padding: '4px', textAlign: 'center', backgroundColor: BRAND.bgLight }}>
               <div style={{ fontSize: '7.5px', fontWeight: 'bold', marginBottom: '3px' }}>{f('قراءة العداد | Odometer')}</div>
-              <div style={{ height: '48px', borderRadius: '4px', overflow: 'hidden', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0' }}>
+              <div style={{ height: '46px', borderRadius: '4px', overflow: 'hidden', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0', padding: '2px' }}>
                 {inspection.odometerPhoto ? (
-                  <img src={inspection.odometerPhoto} alt="Odometer" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={inspection.odometerPhoto} alt="Odometer" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
                 ) : (
                   <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 'bold', color: BRAND.navy }}>{(inspection.odometer || 85230).toLocaleString()} KM</span>
                 )}
@@ -261,10 +325,10 @@ export const PdfVehicleInfoSection = ({ inspection }: { inspection: Inspection }
 };
 
 // ----------------------------------------------------
-// 3. SECTION 2: VEHICLE SECTION PHOTOS (7 THUMBNAILS)
+// 3. SECTION 2: DYNAMIC VEHICLE SECTION PHOTOS ROW
 // ----------------------------------------------------
 export const PdfVehicleSectionsPhotosRow = ({ inspection }: { inspection: Inspection }) => {
-  const photoSections = [
+  const allSections = [
     { labelAr: 'الواجهة الأمامية', labelEn: 'Front Side', photo: inspection.frontSidePhoto || inspection.frontLeftDoorPhoto },
     { labelAr: 'الواجهة الخلفية', labelEn: 'Rear Side', photo: inspection.rearSidePhoto || inspection.trunkPhoto },
     { labelAr: 'الجانب الأيسر', labelEn: 'Left Side', photo: inspection.rearLeftDoorPhoto || inspection.frontLeftDoorPhoto },
@@ -274,18 +338,28 @@ export const PdfVehicleSectionsPhotosRow = ({ inspection }: { inspection: Inspec
     { labelAr: 'صندوق الأمتعة', labelEn: 'Trunk', photo: inspection.trunkPhoto },
   ];
 
+  // Dynamic filter: only show non-empty or standard full list
+  const activePhotos = allSections.filter(s => s.photo);
+  const photoSections = activePhotos.length > 0 ? activePhotos : allSections;
+  const colCount = Math.min(Math.max(photoSections.length, 1), 7);
+
   return (
     <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '10px', overflow: 'hidden', backgroundColor: '#ffffff', marginTop: '8px', flexShrink: 0 }}>
       <div style={{ backgroundColor: BRAND.navy, color: '#ffffff', padding: '6px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <PhosphorIcon name="camera" weight="duotone" size={16} className="text-[#C5852C]" />
           <span style={{ fontWeight: 'bold', fontSize: '11px' }}>
-            <span style={{ color: BRAND.goldLight, marginRight: '4px' }}>2 |</span> {f('صور أقسام السيارة')} <span style={{ fontSize: '8px', color: '#94A3B8', fontFamily: 'monospace' }}>| Vehicle Sections Photos</span>
+            <span style={{ color: BRAND.goldLight, marginRight: '4px' }}>2 |</span> {f('صور أقسام السيارة')} <span style={{ fontSize: '8px', color: '#94A3B8', fontFamily: 'monospace' }}>| Vehicle Sections Photos ({photoSections.length})</span>
           </span>
         </div>
       </div>
 
-      <div style={{ padding: '8px 10px', display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px' }}>
+      <div style={{ 
+        padding: '8px 10px', 
+        display: 'grid', 
+        gridTemplateColumns: `repeat(${colCount}, 1fr)`, 
+        gap: '6px' 
+      }}>
         {photoSections.map((sec, idx) => (
           <div key={idx} style={{ border: `1px solid ${BRAND.border}`, borderRadius: '6px', overflow: 'hidden', textAlign: 'center', backgroundColor: BRAND.bgLight }}>
             <div style={{ height: '54px', backgroundColor: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
@@ -323,10 +397,30 @@ export const PdfFindingCard = ({ item }: { item: InspectionItem }) => {
       backgroundColor: '#ffffff',
       boxSizing: 'border-box',
     }}>
-      {/* Left: Defect Photo */}
-      <div style={{ width: '100px', height: '76px', borderRadius: '6px', overflow: 'hidden', backgroundColor: '#e2e8f0', flexShrink: 0, border: '1px solid #cbd5e1' }}>
+      {/* Left: Defect Photo with Natural Aspect Ratio */}
+      <div style={{ 
+        width: '105px', 
+        height: '76px', 
+        borderRadius: '6px', 
+        overflow: 'hidden', 
+        backgroundColor: '#f1f5f9', 
+        flexShrink: 0, 
+        border: '1px solid #cbd5e1',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
         {item.imageUrl ? (
-          <img src={item.imageUrl} alt="Defect" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img 
+            src={item.imageUrl} 
+            alt="Defect" 
+            style={{ 
+              width: '100%', 
+              height: '100%', 
+              objectFit: 'cover', 
+              objectPosition: 'center' 
+            }} 
+          />
         ) : (
           <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <PhosphorIcon name="camera" weight="duotone" size={22} className="text-slate-400" />

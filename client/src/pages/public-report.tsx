@@ -311,7 +311,17 @@ const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
         </div>
 
         <div className="p-6">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
+          <div className={`grid gap-3 ${
+            displaySections.length <= 3 
+              ? 'grid-cols-1 sm:grid-cols-3' 
+              : displaySections.length === 4 
+                ? 'grid-cols-2 sm:grid-cols-4' 
+                : displaySections.length === 5 
+                  ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-5' 
+                  : displaySections.length === 6 
+                    ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-6' 
+                    : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7'
+          }`}>
             {displaySections.map((sec, idx) => (
               <button
                 key={sec.key || idx}
@@ -320,11 +330,16 @@ const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
                 disabled={!sec.photo}
                 className="group flex flex-col rounded-xl border border-slate-200 overflow-hidden bg-slate-50 hover:shadow-md transition-all text-center cursor-pointer disabled:cursor-default"
               >
-                <div className="w-full h-24 bg-slate-100 flex items-center justify-center relative overflow-hidden">
+                <div className="w-full aspect-[4/3] bg-slate-100 flex items-center justify-center relative overflow-hidden">
                   {sec.photo ? (
                     <img src={sec.photo} alt={sec.labelAr} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                   ) : (
                     <PhosphorIcon name="camera" weight="duotone" size={24} className="text-slate-300" />
+                  )}
+                  {sec.photo && (
+                    <div className="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                      <PhosphorIcon name="magnifying-glass-plus" weight="duotone" size={20} className="text-white" />
+                    </div>
                   )}
                 </div>
                 <div className="p-2 border-t border-slate-100 bg-white">
