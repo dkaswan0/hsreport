@@ -105,7 +105,7 @@ const textStyle: React.CSSProperties = {
 };
 
 // ----------------------------------------------------
-// 1. TOP HEADER BANNER (EXACT HIGH SAFETY MASTER REFERENCE)
+// 1. TOP HEADER BANNER (EXACT MASTER REFERENCE)
 // ----------------------------------------------------
 export const PdfHeaderBanner = ({ 
   inspection, 
@@ -115,13 +115,13 @@ export const PdfHeaderBanner = ({
 }: { 
   inspection: Inspection; 
   pageNum: number; 
-  totalPages: number;
+  totalPages: number; 
   formattedDate: string;
 }) => (
   <div style={{
     backgroundColor: BRAND.navy,
     borderRadius: '10px',
-    padding: '10px 16px',
+    padding: '12px 20px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -132,26 +132,26 @@ export const PdfHeaderBanner = ({
     width: '100%',
   }}>
     {/* Left: English Branding */}
-    <div style={{ textAlign: 'left', minWidth: '180px' }} dir="ltr">
-      <h3 style={{ margin: 0, fontSize: '12px', fontWeight: 'bold', color: BRAND.goldLight, letterSpacing: '0.5px' }}>
+    <div style={{ textAlign: 'left', minWidth: '220px' }} dir="ltr">
+      <h3 style={{ margin: 0, fontSize: '13px', fontWeight: 'bold', color: BRAND.goldLight, letterSpacing: '0.5px' }}>
         HIGH SAFETY
       </h3>
-      <h4 style={{ margin: '1px 0 0 0', fontSize: '9px', fontWeight: 'bold', color: '#ffffff', letterSpacing: '0.3px' }}>
+      <h4 style={{ margin: '1px 0 0 0', fontSize: '9.5px', fontWeight: 'bold', color: '#ffffff', letterSpacing: '0.3px' }}>
         INTERNATIONAL CENTER L.L.C.
       </h4>
-      <p style={{ margin: '2px 0 0 0', fontSize: '6.5px', color: '#94A3B8', maxWidth: '190px', lineHeight: '1.2' }}>
+      <p style={{ margin: '2px 0 0 0', fontSize: '7px', color: '#94A3B8', maxWidth: '210px', lineHeight: '1.2' }}>
         FOR THE TECHNICAL INSPECTION OF VEHICLES, EQUIPMENT AND MACHINERY
       </p>
     </div>
 
     {/* Center: High Safety Gold Emblem with Wings */}
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '0 10px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '0 14px' }}>
       <img 
         src={logoPath} 
         alt="Logo" 
         style={{ 
-          width: '50px', 
-          height: '50px', 
+          width: '54px', 
+          height: '54px', 
           borderRadius: '50%', 
           objectFit: 'cover', 
           border: `2px solid ${BRAND.gold}`,
@@ -160,46 +160,17 @@ export const PdfHeaderBanner = ({
       />
     </div>
 
-    {/* Right: Arabic Branding & Meta Box */}
-    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-      <div style={{ textAlign: 'right' }}>
-        <h3 style={{ margin: 0, fontSize: '13px', fontWeight: 'bold', color: BRAND.goldLight }}>
-          {f('مركز الأمان العالي الدولي')}
-        </h3>
-        <h4 style={{ margin: '1px 0 0 0', fontSize: '9px', fontWeight: 'bold', color: BRAND.goldLight }}>
-          {f('ش.ذ.م.م')}
-        </h4>
-        <p style={{ margin: '2px 0 0 0', fontSize: '7px', color: '#94A3B8' }}>
-          {f('للفحص الفني للمركبات والمعدات والآليات')}
-        </p>
-      </div>
-
-      {/* Meta Box (High Contrast on White Card) */}
-      <div style={{
-        backgroundColor: '#ffffff',
-        border: '1px solid #CBD5E1',
-        borderRadius: '8px',
-        padding: '5px 10px',
-        textAlign: 'right',
-        fontSize: '7.5px',
-        lineHeight: '1.4',
-        color: BRAND.navy,
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        minWidth: '135px',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '2px' }}>
-          <span style={{ color: BRAND.navy, fontWeight: 'bold', fontFamily: 'monospace' }}>HS-{inspection.id || '2024-001'}</span>
-          <span style={{ color: BRAND.textMuted }}>{f('رقم التقرير | Report No.')}</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', padding: '2px 0' }}>
-          <span style={{ color: BRAND.navy, fontWeight: 'bold' }}>{f(formattedDate)}</span>
-          <span style={{ color: BRAND.textMuted }}>{f('تاريخ الفحص | Date')}</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '2px' }}>
-          <span style={{ color: BRAND.navy, fontWeight: 'bold', fontFamily: 'monospace' }}>{f(`${pageNum} من ${totalPages}`)}</span>
-          <span style={{ color: BRAND.textMuted }}>{f('عدد الصفحات | Pages')}</span>
-        </div>
-      </div>
+    {/* Right: Arabic Branding (Identical to Master Reference) */}
+    <div style={{ textAlign: 'right', minWidth: '220px' }}>
+      <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: BRAND.goldLight }}>
+        {f('مركز الأمان العالي الدولي')}
+      </h3>
+      <h4 style={{ margin: '1px 0 0 0', fontSize: '10px', fontWeight: 'bold', color: BRAND.goldLight }}>
+        {f('ش.ذ.م.م')}
+      </h4>
+      <p style={{ margin: '2px 0 0 0', fontSize: '7.5px', color: '#94A3B8' }}>
+        {f('للفحص الفني للمركبات والمعدات والآليات')}
+      </p>
     </div>
   </div>
 );
