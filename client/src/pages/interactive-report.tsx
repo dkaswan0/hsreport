@@ -694,10 +694,10 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
             <PhosphorIcon name="car-profile" weight="duotone" size={22} className="text-[#C5852C]" />
           </div>
           <div>
-            <h3 className="font-bold text-lg font-arabic flex items-center gap-2">
-              <span className="font-mono text-[#C5852C]">1 |</span>
-              <span>معلومات السيارة</span>
-              <span className="text-white/50 text-xs font-mono font-normal">| Vehicle Information</span>
+            <h3 className="font-bold text-lg md:text-xl font-arabic flex items-center gap-2 text-white">
+              <span className="font-mono text-[#C5852C] font-black">1 |</span>
+              <span className="text-white font-black">معلومات السيارة</span>
+              <span className="text-slate-300 text-xs md:text-sm font-mono font-semibold">| Vehicle Information</span>
             </h3>
           </div>
         </div>
@@ -735,7 +735,7 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
 
           <div className="py-2.5 px-3 flex items-center justify-between text-right">
             <div className="flex items-center gap-2">
-              <span className="w-4 h-4 rounded-full border border-slate-300" style={{ backgroundColor: vehicleColor.hex }} />
+              <span className="w-4 h-4 rounded-full border border-slate-300 shadow-sm" style={{ backgroundColor: vehicleColor.hex }} />
               <span className="font-bold text-slate-900 text-sm font-arabic">{vehicleColor.ar}</span>
             </div>
             <div className="flex items-center gap-2 text-slate-500">
@@ -773,39 +773,47 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
           </div>
         </div>
 
-        {/* Right Side (7 Cols): Car 3D Photo + VIN Card & Odometer Card */}
+        {/* Right Side (7 Cols): Car 3D Photo + VIN Card & Odometer Card (Crisp & Unsquashed) */}
         <div className="lg:col-span-7 flex flex-col justify-between gap-4">
           {/* Main Car Photo */}
-          <div className="w-full h-52 rounded-2xl overflow-hidden bg-slate-50 border border-slate-200 flex items-center justify-center p-2">
+          <div className="w-full h-56 md:h-64 rounded-2xl overflow-hidden bg-slate-900/5 border border-slate-200 flex items-center justify-center p-3">
             {inspection.mainCarPhoto ? (
-              <img src={inspection.mainCarPhoto} alt="Vehicle Main" className="w-full h-full object-contain" />
+              <img 
+                src={inspection.mainCarPhoto} 
+                alt="Vehicle Main" 
+                className="w-full h-full max-h-full max-w-full object-contain drop-shadow-md" 
+              />
             ) : (
-              <img src={hsCarBranding} alt="High Safety Vehicle" className="w-full h-full object-contain" />
+              <img 
+                src={hsCarBranding} 
+                alt="High Safety Vehicle" 
+                className="w-full h-full max-h-full max-w-full object-contain opacity-70" 
+              />
             )}
           </div>
 
           {/* Bottom 2 Sub-Cards: VIN Photo & Odometer Reading */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 text-center flex flex-col justify-between">
-              <div className="text-xs font-bold text-slate-700 font-arabic mb-1">رقم الهيكل (VIN)</div>
-              <div className="h-20 rounded-lg overflow-hidden bg-white border border-slate-200 flex items-center justify-center">
+            <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-2.5 text-center flex flex-col justify-between">
+              <div className="text-xs font-bold text-slate-800 font-arabic mb-1">رقم الهيكل (VIN)</div>
+              <div className="h-24 md:h-28 rounded-xl overflow-hidden bg-white border border-slate-200 flex items-center justify-center p-1.5 shadow-inner">
                 {inspection.vinPhoto ? (
-                  <img src={inspection.vinPhoto} alt="VIN Plate" className="w-full h-full object-cover" />
+                  <img src={inspection.vinPhoto} alt="VIN Plate" className="max-h-full max-w-full object-contain rounded-lg" />
                 ) : (
                   <div className="font-mono font-bold text-xs text-slate-800 tracking-wider" dir="ltr">{inspection.vin}</div>
                 )}
               </div>
             </div>
 
-            <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 text-center flex flex-col justify-between">
-              <div className="text-xs font-bold text-slate-700 font-arabic mb-1">قراءة العداد (Odometer)</div>
-              <div className="h-20 rounded-lg overflow-hidden bg-white border border-slate-200 flex flex-col items-center justify-center p-1">
+            <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-2.5 text-center flex flex-col justify-between">
+              <div className="text-xs font-bold text-slate-800 font-arabic mb-1">قراءة العداد (Odometer)</div>
+              <div className="h-24 md:h-28 rounded-xl overflow-hidden bg-white border border-slate-200 flex flex-col items-center justify-center p-1.5 shadow-inner">
                 {inspection.odometerPhoto ? (
-                  <img src={inspection.odometerPhoto} alt="Odometer Photo" className="w-full h-full object-cover" />
+                  <img src={inspection.odometerPhoto} alt="Odometer Photo" className="max-h-full max-w-full object-contain rounded-lg" />
                 ) : (
                   <>
-                    <PhosphorIcon name="gauge" weight="duotone" size={24} className="text-[#C5852C] mb-1" />
-                    <div className="font-mono font-black text-slate-900 text-sm">{inspection.odometer?.toLocaleString() || '85,230'} KM</div>
+                    <PhosphorIcon name="gauge" weight="duotone" size={28} className="text-[#C5852C] mb-1" />
+                    <div className="font-mono font-black text-slate-900 text-sm md:text-base">{inspection.odometer?.toLocaleString() || '85,230'} KM</div>
                   </>
                 )}
               </div>
@@ -852,10 +860,10 @@ const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
               <PhosphorIcon name="camera" weight="duotone" size={22} className="text-[#C5852C]" />
             </div>
             <div>
-              <h3 className="font-bold text-lg font-arabic flex items-center gap-2">
-                <span className="font-mono text-[#C5852C]">2 |</span>
-                <span>صور أقسام السيارة</span>
-                <span className="text-white/50 text-xs font-mono font-normal">| Vehicle Sections Photos ({displaySections.length})</span>
+              <h3 className="font-bold text-lg md:text-xl font-arabic flex items-center gap-2 text-white">
+                <span className="font-mono text-[#C5852C] font-black">2 |</span>
+                <span className="text-white font-black">صور أقسام السيارة</span>
+                <span className="text-slate-300 text-xs md:text-sm font-mono font-semibold">| Vehicle Sections Photos ({displaySections.length})</span>
               </h3>
             </div>
           </div>
@@ -997,10 +1005,10 @@ const InspectionResults = ({
             <PhosphorIcon name="clipboard-text" weight="duotone" size={22} className="text-[#C5852C]" />
           </div>
           <div>
-            <h3 className="font-bold text-lg font-arabic flex items-center gap-2">
-              <span className="font-mono text-[#C5852C]">3 |</span>
-              <span>نتائج الفحص</span>
-              <span className="text-white/50 text-xs font-mono font-normal">| Inspection Results ({items.length})</span>
+            <h3 className="font-bold text-lg md:text-xl font-arabic flex items-center gap-2 text-white">
+              <span className="font-mono text-[#C5852C] font-black">3 |</span>
+              <span className="text-white font-black">نتائج الفحص</span>
+              <span className="text-slate-300 text-xs md:text-sm font-mono font-semibold">| Inspection Results ({items.length})</span>
             </h3>
           </div>
         </div>
@@ -2320,10 +2328,10 @@ export default function InteractiveReport() {
                   <PhosphorIcon name="cpu" weight="duotone" size={22} className="text-[#C5852C]" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-lg font-arabic flex items-center gap-2">
-                    <span className="font-mono text-[#C5852C]">6 |</span>
-                    <span>تقرير فحص الكمبيوتر</span>
-                    <span className="text-white/50 text-xs font-mono font-normal">| Autel Computer Diagnostic Report</span>
+                  <h3 className="font-bold text-lg md:text-xl font-arabic flex items-center gap-2 text-white">
+                    <span className="font-mono text-[#C5852C] font-black">6 |</span>
+                    <span className="text-white font-black">تقرير فحص الكمبيوتر</span>
+                    <span className="text-slate-300 text-xs md:text-sm font-mono font-semibold">| Autel Computer Diagnostic Report</span>
                   </h3>
                 </div>
               </div>
@@ -2360,10 +2368,10 @@ export default function InteractiveReport() {
                 <PhosphorIcon name="scales" weight="duotone" size={22} className="text-[#C5852C]" />
               </div>
               <div>
-                <h3 className="font-bold text-lg font-arabic flex items-center gap-2">
-                  <span className="font-mono text-[#C5852C]">7 |</span>
-                  <span>الأحكام والشروط</span>
-                  <span className="text-white/50 text-xs font-mono font-normal">| Terms & Conditions</span>
+                <h3 className="font-bold text-lg md:text-xl font-arabic flex items-center gap-2 text-white">
+                  <span className="font-mono text-[#C5852C] font-black">7 |</span>
+                  <span className="text-white font-black">الأحكام والشروط</span>
+                  <span className="text-slate-300 text-xs md:text-sm font-mono font-semibold">| Terms & Conditions</span>
                 </h3>
               </div>
             </div>
