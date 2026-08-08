@@ -276,7 +276,7 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
   );
 };
 
-// Section 2: Car Section Photos Component - Dynamic Grid (Auto-Fit Responsive)
+// Section 2: Car Section Photos Component - Intelligent Visual Layout
 const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
   const [selectedPhoto, setSelectedPhoto] = useState<{ url: string; labelAr: string; labelEn: string } | null>(null);
 
@@ -300,6 +300,8 @@ const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
     { key: 'trunk', labelAr: 'صندوق الأمتعة', labelEn: 'Trunk', photo: null },
   ];
 
+  const count = displaySections.length;
+
   return (
     <>
       {/* Section 2: Car Section Photos Gallery */}
@@ -313,50 +315,70 @@ const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
               <h3 className="font-bold text-lg md:text-xl font-arabic flex items-center gap-2 text-white">
                 <span className="font-mono text-[#C5852C] font-black">2 |</span>
                 <span className="text-white font-black">صور أقسام السيارة</span>
-                <span className="text-slate-300 text-xs md:text-sm font-mono font-semibold">| Vehicle Sections Photos ({displaySections.length})</span>
+                <span className="text-slate-300 text-xs md:text-sm font-mono font-semibold">| Vehicle Sections Photos ({count})</span>
               </h3>
             </div>
           </div>
         </div>
 
-        {/* Dynamic Auto-Fit Grid: Automatically adapts to 1, 2, 3, 4, 5, 6, 7, 8, 10, 20+ photos */}
+        {/* Intelligent Visual Grid Layout based on actual photo count */}
         <div className="p-6">
-          <div 
-            className="grid gap-4"
-            style={{
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))'
-            }}
-          >
-            {displaySections.map((sec, idx) => (
-              <button
-                key={sec.key || idx}
-                type="button"
-                onClick={() => sec.photo && setSelectedPhoto({ url: sec.photo, labelAr: sec.labelAr, labelEn: sec.labelEn })}
-                disabled={!sec.photo}
-                className="group flex flex-col rounded-2xl border border-slate-200 overflow-hidden bg-white hover:shadow-lg transition-all text-center cursor-pointer disabled:cursor-default"
-              >
-                <div className="w-full h-44 sm:h-52 bg-slate-900/5 flex items-center justify-center p-2 relative overflow-hidden">
-                  {sec.photo ? (
-                    <img 
-                      src={sec.photo} 
-                      alt={sec.labelAr} 
-                      className="max-w-full max-h-full w-auto h-auto object-contain group-hover:scale-105 transition-transform duration-300" 
-                    />
-                  ) : (
-                    <PhosphorIcon name="camera" weight="duotone" size={28} className="text-slate-300" />
-                  )}
-                  {sec.photo && (
-                    <div className="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                      <PhosphorIcon name="magnifying-glass-plus" weight="duotone" size={24} className="text-white drop-shadow-md" />
-                    </div>
-                  )}
-                </div>
-                <div className="p-3 border-t border-slate-100 bg-white flex items-center justify-between">
-                  <div className="text-xs md:text-sm font-bold text-slate-900 font-arabic truncate">{sec.labelAr}</div>
-                  <div className="text-[11px] text-slate-400 font-mono truncate" dir="ltr">{sec.labelEn}</div>
-                </div>
-              </button>
-            ))}
+          <div className={
+            count === 1 
+              ? "max-w-xl mx-auto" 
+              : count === 2 
+                ? "grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-4xl mx-auto" 
+                : count === 3 
+                  ? "grid grid-cols-1 sm:grid-cols-3 gap-4" 
+                  : count === 4 
+                    ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4" 
+                    : count === 5 
+                      ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-4" 
+                      : count === 6 
+                        ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" 
+                        : count === 7 
+                          ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-4" 
+                          : "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4"
+          }>
+            {displaySections.map((sec, idx) => {
+              const spanClass = 
+                count === 5 
+                  ? (idx < 3 ? "md:col-span-2" : "md:col-span-3") 
+                  : count === 7 
+                    ? (idx < 4 ? "md:col-span-3" : "md:col-span-4") 
+                    : "";
+
+              return (
+                <button
+                  key={sec.key || idx}
+                  type="button"
+                  onClick={() => sec.photo && setSelectedPhoto({ url: sec.photo, labelAr: sec.labelAr, labelEn: sec.labelEn })}
+                  disabled={!sec.photo}
+                  className={`group flex flex-col rounded-2xl border border-slate-200 overflow-hidden bg-white hover:shadow-lg transition-all text-center cursor-pointer disabled:cursor-default ${spanClass}`}
+                >
+                  <div className="w-full aspect-[16/11] bg-slate-900/5 flex items-center justify-center p-2 relative overflow-hidden">
+                    {sec.photo ? (
+                      <img 
+                        src={sec.photo} 
+                        alt={sec.labelAr} 
+                        className="max-w-full max-h-full w-auto h-auto object-contain group-hover:scale-105 transition-transform duration-300" 
+                      />
+                    ) : (
+                      <PhosphorIcon name="camera" weight="duotone" size={28} className="text-slate-300" />
+                    )}
+                    {sec.photo && (
+                      <div className="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                        <PhosphorIcon name="magnifying-glass-plus" weight="duotone" size={24} className="text-white drop-shadow-md" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3 border-t border-slate-100 bg-white flex items-center justify-between">
+                    <div className="text-xs md:text-sm font-bold text-slate-900 font-arabic truncate">{sec.labelAr}</div>
+                    <div className="text-[11px] text-slate-400 font-mono truncate" dir="ltr">{sec.labelEn}</div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
