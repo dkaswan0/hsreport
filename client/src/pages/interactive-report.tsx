@@ -1495,17 +1495,22 @@ export default function InteractiveReport() {
         }
       }
 
+      const cleanArabicFaultName = (text: string) => {
+        if (!text) return '';
+        return text.replace(/\s*\([A-Z0-9_-]+\)\s*/gi, ' ').trim();
+      };
+
       // Add Dynamic Computer Diagnostics & OBD Codes to PDF (Current & History)
       const obdList = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string; diagnosis?: string; causes?: string; solutions?: string; status?: 'current' | 'history'}> | null) || [];
       const currentCodes = obdList.filter((c: any) => c.status !== 'history');
       const historyCodes = obdList.filter((c: any) => c.status === 'history');
 
-      // 🔴 Current Faults Section - Only shown if currentCodes exist
+      // Current Faults Section - Only shown if currentCodes exist
       if (currentCodes.length > 0) {
         findingsContent.push({
           table: {
             widths: ['*'],
-            body: [[{ text: '🔴 الأعطال الحالية — Current (Current Faults Report)', style: 'sectionTitle', alignment: 'right', fillColor: '#991b1b', color: '#ffffff', margin: [6, 6, 6, 6] }]]
+            body: [[{ text: 'الأعطال الحالية — Current (Current Active Faults Report)', style: 'sectionTitle', alignment: 'right', fillColor: '#0C1A28', color: '#ffffff', margin: [8, 6, 8, 6] }]]
           },
           layout: 'noBorders',
           margin: [0, 14, 0, 5]
@@ -1514,13 +1519,13 @@ export default function InteractiveReport() {
         currentCodes.forEach((obd: any) => {
           findingsContent.push({
             table: {
-              widths: ['22%', '78%'],
+              widths: ['20%', '80%'],
               body: [
                 [
-                  { text: obd.code || 'OBD', style: 'statNumber', color: '#dc2626', alignment: 'center', fillColor: '#fef2f2', margin: [0, 6, 0, 6] },
+                  { text: obd.code || 'DTC', bold: true, fontSize: 13, color: '#0C1A28', alignment: 'center', margin: [0, 6, 0, 6] },
                   {
                     stack: [
-                      { text: obd.nameAr || '', style: 'faultTitle', margin: [0, 0, 0, 2] },
+                      { text: cleanArabicFaultName(obd.nameAr) || '', style: 'faultTitle', margin: [0, 0, 0, 2] },
                       { text: obd.nameEn || '', style: 'faultDesc', margin: [0, 0, 0, 2] },
                       ...(obd.diagnosis ? [{ text: `التشخيص: ${obd.diagnosis}`, style: 'faultDesc', color: '#4338ca', margin: [0, 2, 0, 0] }] : []),
                       ...(obd.causes ? [{ text: `الأسباب المحتملة: ${obd.causes}`, style: 'faultDesc', color: '#b45309', margin: [0, 2, 0, 0] }] : []),
@@ -1531,18 +1536,18 @@ export default function InteractiveReport() {
                 ]
               ]
             },
-            layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5, hLineColor: () => '#e2e8f0', vLineColor: () => '#e2e8f0' },
-            margin: [0, 3, 0, 3]
+            layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5, hLineColor: () => '#cbd5e1', vLineColor: () => '#cbd5e1' },
+            margin: [0, 2, 0, 2]
           });
         });
       }
 
-      // 🟡 History Faults Section - Only shown if historyCodes exist
+      // History Faults Section - Only shown if historyCodes exist
       if (historyCodes.length > 0) {
         findingsContent.push({
           table: {
             widths: ['*'],
-            body: [[{ text: '🟡 الأعطال السابقة — History (History / Stored Faults)', style: 'sectionTitle', alignment: 'right', fillColor: '#b45309', color: '#ffffff', margin: [6, 6, 6, 6] }]]
+            body: [[{ text: 'الأعطال السابقة — History (History / Stored Faults)', style: 'sectionTitle', alignment: 'right', fillColor: '#b45309', color: '#ffffff', margin: [8, 6, 8, 6] }]]
           },
           layout: 'noBorders',
           margin: [0, 14, 0, 5]
@@ -1551,13 +1556,13 @@ export default function InteractiveReport() {
         historyCodes.forEach((obd: any) => {
           findingsContent.push({
             table: {
-              widths: ['22%', '78%'],
+              widths: ['20%', '80%'],
               body: [
                 [
-                  { text: obd.code || 'OBD', style: 'statNumber', color: '#b45309', alignment: 'center', fillColor: '#fffbeb', margin: [0, 6, 0, 6] },
+                  { text: obd.code || 'DTC', bold: true, fontSize: 13, color: '#b45309', alignment: 'center', margin: [0, 6, 0, 6] },
                   {
                     stack: [
-                      { text: obd.nameAr || '', style: 'faultTitle', margin: [0, 0, 0, 2] },
+                      { text: cleanArabicFaultName(obd.nameAr) || '', style: 'faultTitle', margin: [0, 0, 0, 2] },
                       { text: obd.nameEn || '', style: 'faultDesc', margin: [0, 0, 0, 2] },
                       ...(obd.diagnosis ? [{ text: `التشخيص: ${obd.diagnosis}`, style: 'faultDesc', color: '#4338ca', margin: [0, 2, 0, 0] }] : []),
                       ...(obd.causes ? [{ text: `الأسباب المحتملة: ${obd.causes}`, style: 'faultDesc', color: '#b45309', margin: [0, 2, 0, 0] }] : []),
@@ -1568,8 +1573,8 @@ export default function InteractiveReport() {
                 ]
               ]
             },
-            layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5, hLineColor: () => '#e2e8f0', vLineColor: () => '#e2e8f0' },
-            margin: [0, 3, 0, 3]
+            layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5, hLineColor: () => '#cbd5e1', vLineColor: () => '#cbd5e1' },
+            margin: [0, 2, 0, 2]
           });
         });
       }
@@ -1578,10 +1583,31 @@ export default function InteractiveReport() {
         findingsContent.push({
           table: {
             widths: ['*'],
-            body: [[{ text: `مرفق مع التقرير الإلكتروني: تقرير فحص كمبيوتر Autel الشامل (${inspection.autelReportName || 'Autel Report'})`, style: 'sectionTitle', alignment: 'center', fillColor: '#ea580c', color: '#ffffff', margin: [0, 8, 0, 8] }]]
+            body: [[{ text: 'تقرير فحص كمبيوتر Autel الشامل (Autel MaxiSys Diagnostic Report)', style: 'sectionTitle', alignment: 'center', fillColor: '#ea580c', color: '#ffffff', margin: [0, 8, 0, 8] }]]
           },
           layout: 'noBorders',
-          margin: [0, 15, 0, 6]
+          margin: [0, 16, 0, 5]
+        });
+
+        findingsContent.push({
+          table: {
+            widths: ['100%'],
+            body: [
+              [
+                {
+                  stack: [
+                    { text: `تم سحب وتوثيق تقرير فحص كمبيوتر المركبة الكامل من جهاز Autel MaxiSys بنجاح.`, style: 'faultTitle', margin: [0, 0, 0, 4] },
+                    { text: `اسم ملف التقرير: ${inspection.autelReportName || 'Autel-Diagnostic-Report.pdf'}`, style: 'faultDesc', color: '#64748b', margin: [0, 0, 0, 4] },
+                    { text: `التقرير الإلكتروني الكامل مرفق ومتاح مع هذا الفحص الفني.`, style: 'faultDesc', color: '#ea580c', margin: [0, 0, 0, 2] }
+                  ],
+                  fillColor: '#fff7ed',
+                  margin: [8, 8, 8, 8]
+                }
+              ]
+            ]
+          },
+          layout: { hLineWidth: () => 1, vLineWidth: () => 1, hLineColor: () => '#fed7aa', vLineColor: () => '#fed7aa' },
+          margin: [0, 2, 0, 8]
         });
       }
       

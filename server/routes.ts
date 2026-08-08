@@ -932,8 +932,8 @@ export async function registerRoutes(
           return res.status(404).json({ error: "لا توجد رسائل بريد في المجلد الوارد" });
         }
 
-        // Fast bulk fetch headers for last 150 messages
-        const recentSeqs = list.slice(-150).reverse();
+        // Fast fetch headers for last 25 messages
+        const recentSeqs = list.slice(-25).reverse();
         const headerMessages: any[] = [];
         for await (const m of client.fetch(recentSeqs.join(","), { envelope: true, bodyStructure: true })) {
           headerMessages.push(m);
@@ -942,8 +942,9 @@ export async function registerRoutes(
         // Filter messages that have attachments/PDFs
         const pdfMessages = headerMessages.filter(m => {
           const bs = JSON.stringify(m.bodyStructure || {}).toLowerCase();
-          return bs.includes("pdf") || bs.includes("attachment");
-        });
+          const subj = (m.envelope?.subject || "").toLowerCase();
+          return bs.includes("pdf") || bs.includes("attachment") || subj.includes("autel") || subj.includes("report") || subj.includes("maxisys");
+        }).slice(0, 10); // Check top 10 most recent candidate emails
 
         console.log(`Autel AI: Found ${pdfMessages.length} candidate emails with PDF attachments out of last ${recentSeqs.length} emails.`);
 
@@ -998,7 +999,7 @@ export async function registerRoutes(
             let reason = "";
 
             // 1. Exact VIN match (100 points)
-            if (targetVin && targetVin.length >= 10 && combinedUpper.includes(targetVin)) {
+            if (targetVin && targetVin.length >= 8 && combinedUpper.includes(targetVin)) {
               score = 100;
               reason = `مطابقة تامة برقم الهيكل (VIN: ${targetVin})`;
             } else {
