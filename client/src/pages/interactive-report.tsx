@@ -50,6 +50,7 @@ import { getVehicleColor, calculateInspectionStats } from "@/lib/vehicle-utils";
 import { VinPlate } from "@/components/vin-plate";
 import hsCarBranding from "@assets/hs_car_branding.png";
 import { CarBlueprintPinpoint } from "@/components/car-blueprint-pinpoint";
+import { MobileReportView } from "@/components/mobile-report-view";
 
 // Car views configuration
 type ViewAngle = 'front' | 'right' | 'rear' | 'left';
@@ -2158,9 +2159,21 @@ export default function InteractiveReport() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50" dir="rtl">
-      {/* Report Content */}
-      <div id="report-content" className="max-w-6xl mx-auto py-4 px-4 space-y-6 print:py-0">
+    <div className="min-h-screen bg-slate-50 overflow-x-hidden" dir="rtl">
+      {/* Mobile-Specific Layout (matching الهاتف.png on < 768px: 320px – 767px) */}
+      <div className="block md:hidden max-w-lg mx-auto p-3 sm:p-4">
+        <MobileReportView
+          inspection={inspection}
+          onDownloadPdf={handleNewPdfDownload}
+          onShare={handleShareReport}
+          onPrint={() => window.print()}
+          onImageClick={(url, name) => setSelectedImage({ url, name })}
+          isPublicView={false}
+        />
+      </div>
+
+      {/* Tablet & Desktop Layout (768px+) */}
+      <div id="report-content" className="hidden md:block max-w-6xl mx-auto py-4 px-4 space-y-6 print:py-0">
         {/* Company Header */}
         <CompanyHeader 
           onShare={handleShareReport}

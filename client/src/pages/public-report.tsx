@@ -30,6 +30,7 @@ import { CarBlueprintPinpoint } from "@/components/car-blueprint-pinpoint";
 import type { Inspection, InspectionItem } from "@shared/schema";
 import { INSPECTION_CATEGORIES } from "@shared/categories";
 import { IntroAnimation } from "@/components/intro-animation";
+import { MobileReportView } from "@/components/mobile-report-view";
 
 type InspectionWithItems = Inspection & { items: InspectionItem[] };
 
@@ -568,8 +569,18 @@ export default function PublicReport() {
         />
       )}
 
-      {/* Report Content */}
-      <div id="report-content" className="max-w-7xl mx-auto py-3 sm:py-6 px-3 sm:px-4 md:px-6 space-y-4 sm:space-y-6 print:py-0">
+      {/* Mobile-Specific Layout (matching الهاتف.png on < 768px: 320px – 767px) */}
+      <div className="block md:hidden max-w-lg mx-auto p-3 sm:p-4">
+        <MobileReportView
+          inspection={inspection}
+          onImageClick={(url, name) => setSelectedImage({ url, name })}
+          isPublicView={true}
+          token={token}
+        />
+      </div>
+
+      {/* Tablet & Desktop Layout (768px+) */}
+      <div id="report-content" className="hidden md:block max-w-7xl mx-auto py-3 sm:py-6 px-3 sm:px-4 md:px-6 space-y-4 sm:space-y-6 print:py-0">
         {/* Company Header */}
         <CompanyHeader />
 
