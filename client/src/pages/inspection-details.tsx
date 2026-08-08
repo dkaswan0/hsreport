@@ -656,12 +656,12 @@ export default function InspectionDetails() {
         {/* OBD Button */}
         <button
           onClick={() => setIsObdOpen(true)}
-          className="w-full flex items-center justify-between p-4 md:p-5 bg-white rounded-2xl shadow-sm border border-slate-100 hover:border-emerald-300 hover:shadow-md transition-all group mt-2"
+          className="w-full flex items-center justify-between p-4 md:p-5 bg-white rounded-2xl shadow-sm border border-slate-200 hover:border-[#C5852C] hover:shadow-md transition-all group mt-2"
           data-testid="btn-open-obd-section"
         >
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-sm">
-              <PhosphorIcon name="cpu" weight="duotone" size={24} className="text-white" />
+            <div className="w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center shadow-inner group-hover:bg-[#C5852C]/10 transition-colors">
+              <PhosphorIcon name="cpu" weight="duotone" size={28} className="text-[#0C1A28] group-hover:text-[#C5852C] transition-colors" />
             </div>
             <div className="text-right">
               <div className="font-bold text-slate-900 text-sm">فحص كمبيوتر السيارة OBD</div>
@@ -673,7 +673,7 @@ export default function InspectionDetails() {
               </div>
             </div>
           </div>
-          <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-emerald-500 transition-colors" />
+          <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-[#C5852C] transition-colors" />
         </button>
       </div>
       </div>
@@ -2045,18 +2045,18 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
     <div className="fixed inset-0 z-[60] bg-white md:bg-slate-900/60 md:backdrop-blur-sm md:flex md:items-center md:justify-center" dir="rtl">
       <div className="w-full h-full md:h-auto md:max-w-2xl md:max-h-[90vh] bg-white md:rounded-2xl md:shadow-2xl flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-l from-emerald-600 via-emerald-700 to-emerald-800 text-white px-5 py-4 shrink-0">
+        <div className="bg-[#0C1A28] text-white px-5 py-4 shrink-0 border-b border-[#C5852C]/30">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-                <PhosphorIcon name="cpu" weight="duotone" size={24} className="text-white" />
+              <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
+                <PhosphorIcon name="cpu" weight="duotone" size={24} className="text-[#C5852C]" />
               </div>
               <div>
-                <h2 className="text-lg font-black">فحص كمبيوتر السيارة</h2>
-                <p className="text-emerald-200 text-xs font-mono" dir="ltr">OBD-II Diagnostic Scanner</p>
+                <h2 className="text-lg font-black font-arabic">فحص كمبيوتر السيارة</h2>
+                <p className="text-[#C5852C] text-xs font-mono" dir="ltr">OBD-II Diagnostic Scanner</p>
               </div>
             </div>
-            <button onClick={onClose} className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center hover:bg-white/30 transition-colors" data-testid="btn-close-obd">
+            <button onClick={onClose} className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center hover:bg-white/20 transition-colors" data-testid="btn-close-obd">
               <X className="w-5 h-5" />
             </button>
           </div>

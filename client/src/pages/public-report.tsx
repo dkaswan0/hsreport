@@ -1059,8 +1059,8 @@ export default function PublicReport() {
               <div className="bg-gradient-to-l from-slate-800 via-slate-900 to-black text-white p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
-                      <span className="text-white font-black text-sm">HS</span>
+                    <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center shadow-lg">
+                      <PhosphorIcon name="cpu" weight="duotone" size={28} className="text-[#C5852C]" />
                     </div>
                     <div>
                       <div className="text-xs text-slate-300 font-mono font-bold tracking-wider" dir="ltr">HIGH SAFETY</div>
@@ -1069,7 +1069,7 @@ export default function PublicReport() {
                   </div>
                   <div className="text-left bg-white/10 rounded-xl px-4 py-2" dir="ltr">
                     <div className="text-xs text-slate-400 font-mono">CODES FOUND</div>
-                    <div className="text-3xl font-black text-emerald-400">{obdCodes.length}</div>
+                    <div className="text-3xl font-black text-[#C5852C]">{obdCodes.length}</div>
                   </div>
                 </div>
                 <div className="text-center border-t border-white/10 pt-4">

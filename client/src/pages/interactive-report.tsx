@@ -2123,24 +2123,22 @@ export default function InteractiveReport() {
               <p className="text-xs text-slate-400 font-mono">{inspection.vin}</p>
             </div>
           </div>
-          <div className="flex gap-1.5 sm:gap-2">
-            <Button variant="ghost" size="sm" onClick={handleShareReport} className="font-arabic text-xs px-2 sm:px-3 h-8 sm:h-9">
-              <PhosphorIcon name="share-network" weight="duotone" size={16} className="sm:ml-1 text-[#C5852C]" />
+          <div className="flex gap-1.5 sm:gap-2 items-center">
+            <Button variant="outline" size="sm" onClick={handleShareReport} className="font-arabic text-xs px-2.5 sm:px-3 h-8 sm:h-9 bg-white hover:bg-slate-100 border-slate-300 text-slate-700 shadow-sm flex items-center gap-1">
+              <PhosphorIcon name="share-network" weight="duotone" size={16} className="text-[#C5852C]" />
               <span className="hidden sm:inline">مشاركة</span>
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => window.print()} className="font-arabic text-xs px-2 sm:px-3 h-8 sm:h-9">
-              <PhosphorIcon name="printer" weight="duotone" size={16} className="sm:ml-1 text-slate-700" />
+            <Button variant="outline" size="sm" onClick={() => window.print()} className="font-arabic text-xs px-2.5 sm:px-3 h-8 sm:h-9 bg-white hover:bg-slate-100 border-slate-300 text-slate-700 shadow-sm flex items-center gap-1">
+              <PhosphorIcon name="printer" weight="duotone" size={16} className="text-slate-700" />
               <span className="hidden sm:inline">طباعة</span>
             </Button>
-            <Button variant="default" size="sm" onClick={() => handleNewPdfDownload('ar')} className="font-arabic text-xs px-2.5 sm:px-4 h-8 sm:h-9" data-testid="button-download-pdf-ar">
-              <PhosphorIcon name="file-pdf" weight="duotone" size={16} className="sm:ml-1 text-white" />
-              <span className="hidden sm:inline">PDF عربي</span>
-              <span className="inline sm:hidden">عربي</span>
+            <Button size="sm" onClick={() => handleNewPdfDownload('ar')} className="font-arabic text-xs px-3 sm:px-4 h-8 sm:h-9 bg-[#C5852C] hover:bg-[#af7323] text-white font-bold shadow-sm border-0 flex items-center gap-1.5" data-testid="button-download-pdf-ar">
+              <PhosphorIcon name="file-pdf" weight="duotone" size={16} className="text-white" />
+              <span>PDF عربي</span>
             </Button>
-            <Button variant="default" size="sm" onClick={() => handleNewPdfDownload('en')} className="text-xs px-2.5 sm:px-4 h-8 sm:h-9" data-testid="button-download-pdf-en">
-              <PhosphorIcon name="file-pdf" weight="duotone" size={16} className="sm:ml-1 text-white" />
-              <span className="hidden sm:inline">English PDF</span>
-              <span className="inline sm:hidden">EN</span>
+            <Button size="sm" onClick={() => handleNewPdfDownload('en')} className="text-xs px-3 sm:px-4 h-8 sm:h-9 bg-[#0C1A28] hover:bg-[#182b3d] text-white font-bold shadow-sm border-0 flex items-center gap-1.5" data-testid="button-download-pdf-en">
+              <PhosphorIcon name="file-pdf" weight="duotone" size={16} className="text-white" />
+              <span>English PDF</span>
             </Button>
           </div>
         </div>
@@ -2192,8 +2190,8 @@ export default function InteractiveReport() {
               <div className="bg-gradient-to-l from-slate-800 via-slate-900 to-black text-white p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
-                      <span className="text-white font-black text-sm">HS</span>
+                    <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center shadow-lg">
+                      <PhosphorIcon name="cpu" weight="duotone" size={28} className="text-[#C5852C]" />
                     </div>
                     <div>
                       <div className="text-xs text-slate-300 font-mono font-bold tracking-wider" dir="ltr">HIGH SAFETY</div>
@@ -2202,7 +2200,7 @@ export default function InteractiveReport() {
                   </div>
                   <div className="text-left bg-white/10 rounded-xl px-4 py-2" dir="ltr">
                     <div className="text-xs text-slate-400 font-mono">CODES FOUND</div>
-                    <div className="text-3xl font-black text-emerald-400">{obdCodes.length}</div>
+                    <div className="text-3xl font-black text-[#C5852C]">{obdCodes.length}</div>
                   </div>
                 </div>
                 <div className="text-center border-t border-white/10 pt-4">

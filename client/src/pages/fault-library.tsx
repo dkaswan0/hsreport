@@ -15,6 +15,7 @@ import {
   Trash2,
   Globe
 } from "lucide-react";
+import { PhosphorIcon } from "@/components/phosphor-icon";
 import { SearchRouterModal } from "@/components/search-router-modal";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -352,12 +353,25 @@ export default function FaultLibrary() {
     );
   }
 
+  const getSectionIconName = (sectionId: string) => {
+    switch (sectionId) {
+      case 'mechanic': return 'engine';
+      case 'transmission': return 'gauge';
+      case 'body': return 'car';
+      case 'electric': return 'cpu';
+      default: return 'wrench';
+    }
+  };
+
   return (
     <div className="space-y-6 p-4 md:p-6" dir="rtl">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold font-arabic">الأعطال</h1>
-          <p className="text-muted-foreground font-arabic">كل أعطال السيارات في مكان واحد</p>
+        <div className="flex items-center gap-3">
+          <PhosphorIcon name="wrench" weight="duotone" size={32} className="text-[#C5852C]" />
+          <div>
+            <h1 className="text-2xl font-bold font-arabic">الأعطال</h1>
+            <p className="text-muted-foreground font-arabic">كل أعطال السيارات في مكان واحد</p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {stats.total < 1000 && (
@@ -463,7 +477,7 @@ export default function FaultLibrary() {
             </div>
           </div>
           
-          <div className="flex gap-2 mt-3">
+          <div className="flex gap-2 mt-3 flex-wrap">
             <Button
               variant={selectedSeverity === null ? "secondary" : "ghost"}
               size="sm"
@@ -471,7 +485,7 @@ export default function FaultLibrary() {
               className="font-arabic"
               data-testid="button-filter-all-severity"
             >
-              <Filter className="w-3 h-3 ml-1" />
+              <PhosphorIcon name="funnel" weight="duotone" size={14} className="ml-1" />
               الكل
             </Button>
             <Button
@@ -481,7 +495,7 @@ export default function FaultLibrary() {
               className="font-arabic"
               data-testid="button-filter-severity-critical"
             >
-              <XCircle className="w-3 h-3 ml-1" />
+              <PhosphorIcon name="warning-octagon" weight="duotone" size={14} className="ml-1 text-red-500" />
               حرج
             </Button>
             <Button
@@ -491,7 +505,7 @@ export default function FaultLibrary() {
               className="font-arabic"
               data-testid="button-filter-severity-high"
             >
-              <XCircle className="w-3 h-3 ml-1" />
+              <PhosphorIcon name="warning-circle" weight="duotone" size={14} className="ml-1 text-red-500" />
               خطير
             </Button>
             <Button
@@ -501,7 +515,7 @@ export default function FaultLibrary() {
               className="font-arabic"
               data-testid="button-filter-severity-medium"
             >
-              <AlertCircle className="w-3 h-3 ml-1" />
+              <PhosphorIcon name="warning" weight="duotone" size={14} className="ml-1 text-amber-500" />
               متوسط
             </Button>
             <Button
@@ -511,7 +525,7 @@ export default function FaultLibrary() {
               className="font-arabic"
               data-testid="button-filter-severity-low"
             >
-              <CheckCircle2 className="w-3 h-3 ml-1" />
+              <PhosphorIcon name="check-circle" weight="duotone" size={14} className="ml-1 text-emerald-500" />
               بسيط
             </Button>
           </div>
@@ -543,6 +557,7 @@ export default function FaultLibrary() {
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-3">
+                        <PhosphorIcon name={getSectionIconName(section.id)} weight="duotone" size={24} className="text-[#C5852C]" />
                         {isExpanded ? (
                           <ChevronUp className="w-5 h-5 text-muted-foreground" />
                         ) : (
