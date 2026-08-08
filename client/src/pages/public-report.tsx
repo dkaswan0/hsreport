@@ -33,36 +33,75 @@ import { IntroAnimation } from "@/components/intro-animation";
 
 type InspectionWithItems = Inspection & { items: InspectionItem[] };
 
-// Image Modal for High-Resolution Zoom
-const ImageModal = ({ imageUrl, faultName, onClose }: { imageUrl: string; faultName: string; onClose: () => void }) => (
-  <div 
-    className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
-    onClick={onClose}
-  >
-    <div className="relative max-w-4xl max-h-[90vh] w-full" onClick={(e) => e.stopPropagation()}>
-      <button 
-        onClick={onClose}
-        className="absolute -top-12 right-0 text-white hover:text-primary transition-colors cursor-pointer"
-        data-testid="button-close-image-modal"
+// Image Modal for High-Resolution Zoom with ESC key and high z-index
+const ImageModal = ({ imageUrl, faultName, onClose }: { imageUrl: string; faultName: string; onClose: () => void }) => {
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onClose]);
+
+  return (
+    <div 
+      className="fixed inset-0 bg-black/95 z-[999999] flex flex-col items-center justify-center p-2 sm:p-4 select-none animate-in fade-in duration-200"
+      onClick={onClose}
+      data-testid="image-lightbox-overlay"
+      dir="rtl"
+    >
+      {/* Top Floating Bar with Title & Prominent Close Button */}
+      <div 
+        className="fixed top-0 left-0 right-0 z-[1000000] px-4 py-3 bg-gradient-to-b from-black/90 via-black/60 to-transparent flex items-center justify-between pointer-events-auto"
+        onClick={(e) => e.stopPropagation()}
       >
-        <XCircle className="w-8 h-8" />
-      </button>
-      <div className="bg-white rounded-2xl overflow-hidden shadow-2xl">
-        <div className="bg-[#0C1A28] text-white px-4 py-3 flex items-center justify-between">
-          <p className="font-bold font-arabic text-base">{faultName}</p>
-          <span className="text-xs text-slate-400 font-arabic">صورة الفحص الأصلية</span>
+        <div className="flex items-center gap-3 text-right max-w-[75%]">
+          <div className="w-8 h-8 rounded-full bg-[#C5852C]/20 border border-[#C5852C]/40 flex items-center justify-center shrink-0">
+            <PhosphorIcon name="camera" weight="duotone" size={18} className="text-[#C5852C]" />
+          </div>
+          <div className="min-w-0">
+            <h3 className="text-white font-bold font-arabic text-sm sm:text-base truncate">{faultName}</h3>
+            <p className="text-slate-400 text-xs font-arabic hidden sm:block">معاينة الصورة بالحجم الكامل - اضغط ESC أو في أي مكان للإغلاق</p>
+          </div>
         </div>
-        <div className="p-2 bg-slate-900 flex items-center justify-center max-h-[75vh]">
-          <img 
-            src={imageUrl} 
-            alt={faultName} 
-            className="max-w-full max-h-[70vh] object-contain rounded-lg"
-          />
-        </div>
+
+        <button 
+          onClick={onClose}
+          className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/10 hover:bg-red-600 active:scale-95 text-white flex items-center justify-center border border-white/20 transition-all cursor-pointer shadow-xl"
+          title="إغلاق (ESC)"
+          data-testid="btn-close-lightbox"
+        >
+          <PhosphorIcon name="x" weight="bold" size={22} />
+        </button>
+      </div>
+
+      {/* Main Image Container */}
+      <div 
+        className="relative max-w-full max-h-[85vh] flex items-center justify-center my-auto p-2" 
+        onClick={(e) => e.stopPropagation()}
+      >
+        <img 
+          src={imageUrl} 
+          alt={faultName} 
+          className="max-w-[95vw] max-h-[82vh] object-contain rounded-xl shadow-2xl border border-white/10"
+        />
+      </div>
+
+      {/* Bottom Hint */}
+      <div className="fixed bottom-4 left-0 right-0 text-center pointer-events-none">
+        <span className="bg-black/70 text-slate-300 text-xs px-4 py-1.5 rounded-full font-arabic backdrop-blur-sm border border-white/10">
+          اضغط في أي مكان خارج الصورة أو على زر (X) للإغلاق
+        </span>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Company Header Component - Exact High Safety Reference
 const CompanyHeader = () => (
@@ -477,32 +516,8 @@ export default function PublicReport() {
         />
       )}
 
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3">
-        <div className="max-w-6xl mx-auto flex justify-between items-center gap-4">
-          <div className="flex items-center gap-3">
-            <img src={logoPath} alt="Logo" className="w-10 h-10 object-contain" style={{ filter: 'drop-shadow(0 0 6px rgba(197,133,44,0.7))' }} />
-            <div className="text-right">
-              <h1 className="text-lg font-black text-slate-900 font-arabic">تقرير الفحص التفاعلي</h1>
-              <p className="text-xs text-slate-400 font-mono">{inspection.vin}</p>
-            </div>
-          </div>
-          <div className="flex gap-2 items-center">
-            <a 
-              href={`/api/autel/report/public/${token}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs px-3 sm:px-4 h-9 bg-[#0C1A28] hover:bg-[#182b3d] text-white font-bold rounded-md shadow-sm flex items-center gap-1.5 transition-all"
-            >
-              <PhosphorIcon name="file-pdf" weight="duotone" size={16} className="text-white" />
-              <span>تقرير Autel</span>
-            </a>
-          </div>
-        </div>
-      </div>
-
       {/* Report Content */}
-      <div id="report-content" className="max-w-6xl mx-auto py-6 px-4 space-y-6 print:py-0">
+      <div id="report-content" className="max-w-6xl mx-auto py-4 px-4 space-y-6 print:py-0">
         {/* Company Header */}
         <CompanyHeader />
 

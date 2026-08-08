@@ -249,43 +249,65 @@ const CATEGORY_POSITIONS: Record<string, { top: string; left: string; transform?
 const ImageModal = ({ imageUrl, faultName, onClose }: { imageUrl: string; faultName: string; onClose: () => void }) => {
   useEffect(() => {
     document.body.style.overflow = 'hidden';
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
     return () => {
       document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
+  }, [onClose]);
 
   return (
     <div 
-      className="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-[100] flex items-center justify-center p-4 transition-all duration-300 animate-in fade-in"
+      className="fixed inset-0 bg-black/95 z-[999999] flex flex-col items-center justify-center p-2 sm:p-4 select-none animate-in fade-in duration-200"
       onClick={onClose}
       data-testid="image-lightbox-overlay"
       dir="rtl"
     >
-      {/* Top Bar with Title and Close Button */}
-      <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-50 bg-gradient-to-b from-black/60 to-transparent">
-        <h3 className="text-white font-bold font-arabic text-base md:text-lg truncate max-w-[70%] text-right">{faultName}</h3>
+      {/* Top Floating Bar with Title & Prominent Close Button */}
+      <div 
+        className="fixed top-0 left-0 right-0 z-[1000000] px-4 py-3 bg-gradient-to-b from-black/90 via-black/60 to-transparent flex items-center justify-between pointer-events-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center gap-3 text-right max-w-[75%]">
+          <div className="w-8 h-8 rounded-full bg-[#C5852C]/20 border border-[#C5852C]/40 flex items-center justify-center shrink-0">
+            <PhosphorIcon name="camera" weight="duotone" size={18} className="text-[#C5852C]" />
+          </div>
+          <div className="min-w-0">
+            <h3 className="text-white font-bold font-arabic text-sm sm:text-base truncate">{faultName}</h3>
+            <p className="text-slate-400 text-xs font-arabic hidden sm:block">معاينة الصورة بالحجم الكامل - اضغط ESC أو في أي مكان للإغلاق</p>
+          </div>
+        </div>
+
         <button 
-          onClick={(e) => { e.stopPropagation(); onClose(); }}
-          className="w-11 h-11 bg-white/10 hover:bg-white/20 active:scale-95 text-white rounded-full flex items-center justify-center border border-white/20 transition-all cursor-pointer shadow-lg"
-          title="إغلاق"
+          onClick={onClose}
+          className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/10 hover:bg-red-600 active:scale-95 text-white flex items-center justify-center border border-white/20 transition-all cursor-pointer shadow-xl"
+          title="إغلاق (ESC)"
           data-testid="btn-close-lightbox"
         >
-          <X className="w-6 h-6" />
+          <PhosphorIcon name="x" weight="bold" size={22} />
         </button>
       </div>
 
       {/* Main Image Container */}
-      <div className="relative max-w-5xl max-h-[80vh] w-full flex items-center justify-center animate-in scale-in duration-300" onClick={e => e.stopPropagation()}>
+      <div 
+        className="relative max-w-full max-h-[85vh] flex items-center justify-center my-auto p-2" 
+        onClick={(e) => e.stopPropagation()}
+      >
         <img 
           src={imageUrl} 
           alt={faultName} 
-          className="max-w-full max-h-[80vh] object-contain rounded-2xl border border-white/10 shadow-2xl"
+          className="max-w-[95vw] max-h-[82vh] object-contain rounded-xl shadow-2xl border border-white/10"
         />
       </div>
 
-      {/* Dismiss Hint at the bottom */}
-      <div className="absolute bottom-6 left-0 right-0 text-center">
-        <span className="bg-black/60 text-slate-300 text-xs px-4 py-2 rounded-full font-arabic backdrop-blur-sm border border-white/5">
+      {/* Bottom Hint */}
+      <div className="fixed bottom-4 left-0 right-0 text-center pointer-events-none">
+        <span className="bg-black/70 text-slate-300 text-xs px-4 py-1.5 rounded-full font-arabic backdrop-blur-sm border border-white/10">
           اضغط في أي مكان خارج الصورة أو على زر (X) للإغلاق
         </span>
       </div>
@@ -590,8 +612,18 @@ const Car360Visualization = ({ items, onCategoryClick }: { items: any[], onCateg
   );
 };
 
-// Company Header Component
-const CompanyHeader = () => (
+// Company Header Component with Action Buttons
+const CompanyHeader = ({ 
+  onShare, 
+  onPrint, 
+  onDownloadAr, 
+  onDownloadEn 
+}: { 
+  onShare?: () => void; 
+  onPrint?: () => void; 
+  onDownloadAr?: () => void; 
+  onDownloadEn?: () => void; 
+}) => (
   <div className="rounded-3xl overflow-hidden shadow-2xl border border-[#C5852C]/30">
     {/* Professional Banner Image */}
     <div className="bg-[#0C1A28] relative">
@@ -602,22 +634,49 @@ const CompanyHeader = () => (
         style={{ maxHeight: '130px', objectPosition: 'center' }}
       />
     </div>
-    {/* Contact Info Bar */}
+    {/* Contact Info & Actions Bar */}
     <div className="bg-gradient-to-l from-[#0C1A28] to-[#0f2035] text-white px-6 py-3 flex flex-wrap justify-center md:justify-between items-center gap-3 border-t border-[#C5852C]/40">
-      <div className="flex flex-wrap justify-center gap-4 text-sm">
-        <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
+      <div className="flex flex-wrap justify-center gap-3 text-sm">
+        <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3.5 py-1.5 rounded-xl">
           <Phone className="w-4 h-4 text-[#C5852C]" />
           <span className="font-mono font-bold">0542206000</span>
         </div>
-        <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
+        <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3.5 py-1.5 rounded-xl">
           <Mail className="w-4 h-4" />
           <span className="text-xs">highsafety2021@gmail.com</span>
         </div>
-        <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
+        <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3.5 py-1.5 rounded-xl">
           <MapPin className="w-4 h-4" />
           <span>سيتي بلازا الدراري - الشارقة</span>
         </div>
       </div>
+
+      {onDownloadAr && (
+        <div className="flex items-center gap-2">
+          {onShare && (
+            <Button variant="outline" size="sm" onClick={onShare} className="font-arabic text-xs px-2.5 h-8 bg-white/10 hover:bg-white/20 border-white/20 text-white shadow-sm flex items-center gap-1">
+              <PhosphorIcon name="share-network" weight="duotone" size={15} className="text-[#C5852C]" />
+              <span className="hidden sm:inline">مشاركة</span>
+            </Button>
+          )}
+          {onPrint && (
+            <Button variant="outline" size="sm" onClick={onPrint} className="font-arabic text-xs px-2.5 h-8 bg-white/10 hover:bg-white/20 border-white/20 text-white shadow-sm flex items-center gap-1">
+              <PhosphorIcon name="printer" weight="duotone" size={15} className="text-white" />
+              <span className="hidden sm:inline">طباعة</span>
+            </Button>
+          )}
+          <Button size="sm" onClick={onDownloadAr} className="font-arabic text-xs px-3 h-8 bg-[#C5852C] hover:bg-[#af7323] text-white font-bold shadow-sm border-0 flex items-center gap-1.5" data-testid="button-download-pdf-ar">
+            <PhosphorIcon name="file-pdf" weight="duotone" size={15} className="text-white" />
+            <span>PDF عربي</span>
+          </Button>
+          {onDownloadEn && (
+            <Button size="sm" onClick={onDownloadEn} className="text-xs px-3 h-8 bg-white/10 hover:bg-white/20 text-white font-bold shadow-sm border border-white/20 flex items-center gap-1.5" data-testid="button-download-pdf-en">
+              <PhosphorIcon name="file-pdf" weight="duotone" size={15} className="text-white" />
+              <span>English PDF</span>
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   </div>
 );
@@ -2116,41 +2175,15 @@ export default function InteractiveReport() {
 
   return (
     <div className="min-h-screen bg-slate-50" dir="rtl">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3">
-        <div className="max-w-6xl mx-auto flex justify-between items-center gap-4">
-          <div className="flex items-center gap-3">
-            <img src={logoPath} alt="Logo" className="w-10 h-10 object-contain" style={{ filter: 'drop-shadow(0 0 6px rgba(197,133,44,0.7))' }} />
-            <div className="text-right">
-              <h1 className="text-lg font-black text-slate-900 font-arabic">تقرير الفحص التفاعلي</h1>
-              <p className="text-xs text-slate-400 font-mono">{inspection.vin}</p>
-            </div>
-          </div>
-          <div className="flex gap-1.5 sm:gap-2 items-center">
-            <Button variant="outline" size="sm" onClick={handleShareReport} className="font-arabic text-xs px-2.5 sm:px-3 h-8 sm:h-9 bg-white hover:bg-slate-100 border-slate-300 text-slate-700 shadow-sm flex items-center gap-1">
-              <PhosphorIcon name="share-network" weight="duotone" size={16} className="text-[#C5852C]" />
-              <span className="hidden sm:inline">مشاركة</span>
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => window.print()} className="font-arabic text-xs px-2.5 sm:px-3 h-8 sm:h-9 bg-white hover:bg-slate-100 border-slate-300 text-slate-700 shadow-sm flex items-center gap-1">
-              <PhosphorIcon name="printer" weight="duotone" size={16} className="text-slate-700" />
-              <span className="hidden sm:inline">طباعة</span>
-            </Button>
-            <Button size="sm" onClick={() => handleNewPdfDownload('ar')} className="font-arabic text-xs px-3 sm:px-4 h-8 sm:h-9 bg-[#C5852C] hover:bg-[#af7323] text-white font-bold shadow-sm border-0 flex items-center gap-1.5" data-testid="button-download-pdf-ar">
-              <PhosphorIcon name="file-pdf" weight="duotone" size={16} className="text-white" />
-              <span>PDF عربي</span>
-            </Button>
-            <Button size="sm" onClick={() => handleNewPdfDownload('en')} className="text-xs px-3 sm:px-4 h-8 sm:h-9 bg-[#0C1A28] hover:bg-[#182b3d] text-white font-bold shadow-sm border-0 flex items-center gap-1.5" data-testid="button-download-pdf-en">
-              <PhosphorIcon name="file-pdf" weight="duotone" size={16} className="text-white" />
-              <span>English PDF</span>
-            </Button>
-          </div>
-        </div>
-      </div>
-
       {/* Report Content */}
-      <div id="report-content" className="max-w-6xl mx-auto py-6 px-4 space-y-6 print:py-0">
+      <div id="report-content" className="max-w-6xl mx-auto py-4 px-4 space-y-6 print:py-0">
         {/* Company Header */}
-        <CompanyHeader />
+        <CompanyHeader 
+          onShare={handleShareReport}
+          onPrint={() => window.print()}
+          onDownloadAr={() => handleNewPdfDownload('ar')}
+          onDownloadEn={() => handleNewPdfDownload('en')}
+        />
 
         {/* 360 Car Visualization */}
         <Car360Visualization 
