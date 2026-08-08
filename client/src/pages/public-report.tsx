@@ -1079,7 +1079,7 @@ export default function PublicReport() {
                 </div>
                 <div className="text-center border-t border-white/10 pt-4">
                   <h3 className="text-xl font-black font-arabic flex items-center justify-center gap-2">
-                    <span>{isHistory ? "🟡" : "🔴"}</span>
+                    <PhosphorIcon name={isHistory ? "clock-counter-clockwise" : "warning-circle"} weight="duotone" size={24} className={isHistory ? "text-amber-400" : "text-red-400"} />
                     <span>{isHistory ? "الأعطال السابقة — History" : "الأعطال الحالية — Current"}</span>
                   </h3>
                   <p className="text-slate-300 text-xs font-mono mt-1" dir="ltr">

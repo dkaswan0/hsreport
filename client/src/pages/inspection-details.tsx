@@ -2084,11 +2084,13 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
               </div>
               <div className="h-8 w-px bg-white/20"></div>
               <div className="flex items-center gap-2 flex-wrap">
-                <div className="px-2.5 py-1 rounded-lg bg-red-600 text-white text-xs font-bold font-arabic shadow-sm">
-                  🔴 الحالي: {obdCodes.filter(c => c.status !== 'history').length}
+                <div className="px-2.5 py-1 rounded-lg bg-red-600 text-white text-xs font-bold font-arabic shadow-sm flex items-center gap-1">
+                  <PhosphorIcon name="warning-circle" weight="duotone" size={14} className="text-white" />
+                  <span>الحالي: {obdCodes.filter(c => c.status !== 'history').length}</span>
                 </div>
-                <div className="px-2.5 py-1 rounded-lg bg-amber-500 text-white text-xs font-bold font-arabic shadow-sm">
-                  🟡 السابق: {obdCodes.filter(c => c.status === 'history').length}
+                <div className="px-2.5 py-1 rounded-lg bg-amber-500 text-white text-xs font-bold font-arabic shadow-sm flex items-center gap-1">
+                  <PhosphorIcon name="clock-counter-clockwise" weight="duotone" size={14} className="text-white" />
+                  <span>السابق: {obdCodes.filter(c => c.status === 'history').length}</span>
                 </div>
               </div>
             </div>
@@ -2146,7 +2148,7 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
                     : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
                 }`}
               >
-                <span>🔴</span>
+                <PhosphorIcon name="warning-circle" weight="duotone" size={14} className={addStatus === 'current' ? 'text-white' : 'text-red-500'} />
                 <span>حالي (Current)</span>
               </button>
               <button
@@ -2158,7 +2160,7 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
                     : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
                 }`}
               >
-                <span>🟡</span>
+                <PhosphorIcon name="clock-counter-clockwise" weight="duotone" size={14} className={addStatus === 'history' ? 'text-white' : 'text-amber-600'} />
                 <span>سابق (History)</span>
               </button>
             </div>
@@ -2242,14 +2244,15 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
                         <button
                           type="button"
                           onClick={() => handleToggleStatus(obd.code)}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-bold font-arabic transition-all flex items-center gap-1 cursor-pointer shadow-sm ${
+                          className={`px-2.5 py-1 rounded-lg text-xs font-bold font-arabic transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${
                             isHistory
-                              ? 'bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200'
-                              : 'bg-red-100 text-red-800 border border-red-300 hover:bg-red-200'
+                              ? 'bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200'
+                              : 'bg-red-100 text-red-900 border border-red-300 hover:bg-red-200'
                           }`}
                           title="اضغط للتبديل بين عطل حالي أو سابق"
                         >
-                          <span>{isHistory ? '🟡 سابق' : '🔴 حالي'}</span>
+                          <PhosphorIcon name={isHistory ? "clock-counter-clockwise" : "warning-circle"} weight="duotone" size={14} className={isHistory ? "text-amber-600" : "text-red-600"} />
+                          <span>{isHistory ? 'سابق (History)' : 'حالي (Current)'}</span>
                         </button>
 
                         {obd.diagnosis && (
