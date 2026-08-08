@@ -39,7 +39,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import logoPath from "@assets/hs-logo.png";
 import hsBannerPath from "@assets/hs-banner.jpeg";
-import { PdfCoverPage, PdfReportTemplate, PdfCarPhotosPage, PdfSignaturesPage } from "@/components/pdf-report-template";
+import { PdfMultiPageDocument } from "@/components/pdf-report-template";
 import carVisualizationPath from "@assets/generated_images/professional_car_anatomy_diagram.png";
 import carFrontView from "@assets/generated_images/car_front_view_diagram.png";
 import carRightView from "@assets/generated_images/car_right_side_view.png";
@@ -1122,14 +1122,8 @@ export default function InteractiveReport() {
   const { toast } = useToast();
   const [highlightedCategory, setHighlightedCategory] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<{ url: string; name: string } | null>(null);
-  const pdfTemplateRef = useRef<HTMLDivElement>(null);
-  const pdfPhotosPageRef = useRef<HTMLDivElement>(null);
-  const pdfTemplateEnRef = useRef<HTMLDivElement>(null);
-  const pdfPhotosPageEnRef = useRef<HTMLDivElement>(null);
-  const pdfCoverRef = useRef<HTMLDivElement>(null);
-  const pdfCoverEnRef = useRef<HTMLDivElement>(null);
-  const pdfSignaturesRef = useRef<HTMLDivElement>(null);
-  const pdfSignaturesEnRef = useRef<HTMLDivElement>(null);
+  const pdfContainerRef = useRef<HTMLDivElement>(null);
+  const pdfContainerEnRef = useRef<HTMLDivElement>(null);
 
   const handleCategoryClick = (catId: string) => {
     setHighlightedCategory(catId);
@@ -1212,16 +1206,13 @@ export default function InteractiveReport() {
     if (!inspection) return;
     
     const isAr = pdfLang === 'ar';
-    const coverRef = isAr ? pdfCoverRef : pdfCoverEnRef;
-    const reportRef = isAr ? pdfTemplateRef : pdfTemplateEnRef;
-    const photosRef = isAr ? pdfPhotosPageRef : pdfPhotosPageEnRef;
-    const signaturesRef = isAr ? pdfSignaturesRef : pdfSignaturesEnRef;
+    const containerRef = isAr ? pdfContainerRef : pdfContainerEnRef;
     
-    if (!reportRef.current) return;
+    if (!containerRef.current) return;
     
     toast({ 
       title: isAr ? "جارٍ التحضير" : "Preparing",
-      description: isAr ? "جارٍ إنشاء تقرير PDF احترافي..." : "Creating professional PDF report..."
+      description: isAr ? "جارٍ إنشاء تقرير PDF فخم ومطابق للمرجع..." : "Creating professional PDF report..."
     });
     
     try {
@@ -1233,7 +1224,7 @@ export default function InteractiveReport() {
       }
       
       const canvasOpts = {
-        scale: 3,
+        scale: 2.5,
         useCORS: true,
         allowTaint: true,
         logging: false,
@@ -1254,38 +1245,22 @@ export default function InteractiveReport() {
       const { PDFDocument } = await import('pdf-lib');
       const pdfDoc = await PDFDocument.create();
 
-      const addPageFromRef = async (pageRef: React.RefObject<HTMLDivElement>, description: string) => {
-        if (!pageRef.current) return;
+      const pageElements = containerRef.current.querySelectorAll<HTMLElement>('.pdf-page-render');
+      for (let i = 0; i < pageElements.length; i++) {
+        const pageEl = pageElements[i];
         toast({
           title: isAr ? "معالجة الصفحات" : "Processing pages",
-          description: isAr ? `جارٍ إضافة ${description}...` : `Adding ${description}...`
+          description: isAr ? `جارٍ معالجة الصفحة ${i + 1} من ${pageElements.length}...` : `Processing page ${i + 1} of ${pageElements.length}...`
         });
-        await waitForImages(pageRef.current);
-        await new Promise(resolve => setTimeout(resolve, 500));
-        const canvas = await html2canvas(pageRef.current, canvasOpts);
+        await waitForImages(pageEl);
+        await new Promise(resolve => setTimeout(resolve, 300));
+        const canvas = await html2canvas(pageEl, canvasOpts);
         const imgData = canvas.toDataURL('image/jpeg', 0.95);
         const imgBytes = dataUrlToArrayBuffer(imgData);
         const pdfImg = await pdfDoc.embedJpg(imgBytes);
         const page = pdfDoc.addPage([595.27, 841.89]);
         page.drawImage(pdfImg, { x: 0, y: 0, width: 595.27, height: 841.89 });
-      };
-
-      // 1. Cover Page
-      await addPageFromRef(coverRef, isAr ? "صفحة الغلاف" : "Cover Page");
-
-      // 2. Main Report Page
-      await addPageFromRef(reportRef, isAr ? "صفحة الملاحظات والعيوب" : "Inspection Report Page");
-
-      // 3. Section Photos Page (If has photos)
-      const hasAnyPhotos = inspection.rearLeftDoorPhoto || inspection.rearRightDoorPhoto || 
-        inspection.frontLeftDoorPhoto || inspection.frontRightDoorPhoto || 
-        inspection.hoodPhoto || inspection.trunkPhoto;
-      if (hasAnyPhotos) {
-        await addPageFromRef(photosRef, isAr ? "صفحة صور الأقسام" : "Section Photos Page");
       }
-
-      // 4. Signatures & OBD Page
-      await addPageFromRef(signaturesRef, isAr ? "صفحة فحص الكمبيوتر والتواقيع" : "OBD Diagnostics & Signatures Page");
 
       // 5. Autel Multi-page PDF Append (Seamlessly append full original Autel pages)
       if (inspection.autelReportPdf) {
@@ -2496,17 +2471,10 @@ export default function InteractiveReport() {
         />
       )}
 
-      {/* Hidden PDF Templates */}
+      {/* Hidden Dynamic Multi-Page PDF Document */}
       <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', opacity: 0, pointerEvents: 'none' }}>
-        <PdfCoverPage ref={pdfCoverRef} inspection={inspection} lang="ar" />
-        <PdfReportTemplate ref={pdfTemplateRef} inspection={inspection} lang="ar" pageNum={2} totalPages={4} />
-        <PdfCarPhotosPage ref={pdfPhotosPageRef} inspection={inspection} lang="ar" pageNum={3} totalPages={4} />
-        <PdfSignaturesPage ref={pdfSignaturesRef} inspection={inspection} lang="ar" pageNum={4} totalPages={4} />
-        
-        <PdfCoverPage ref={pdfCoverEnRef} inspection={inspection} lang="en" />
-        <PdfReportTemplate ref={pdfTemplateEnRef} inspection={inspection} lang="en" pageNum={2} totalPages={4} />
-        <PdfCarPhotosPage ref={pdfPhotosPageEnRef} inspection={inspection} lang="en" pageNum={3} totalPages={4} />
-        <PdfSignaturesPage ref={pdfSignaturesEnRef} inspection={inspection} lang="en" pageNum={4} totalPages={4} />
+        <PdfMultiPageDocument ref={pdfContainerRef} inspection={inspection} lang="ar" />
+        <PdfMultiPageDocument ref={pdfContainerEnRef} inspection={inspection} lang="en" />
       </div>
     </div>
   );
