@@ -681,92 +681,89 @@ const CompanyHeader = ({
   </div>
 );
 
-// Vehicle Info Card - Exact High Safety Reference Layout
 const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
   const vehicleColor = useMemo(() => getVehicleColor(inspection.color), [inspection.color]);
 
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden" data-testid="vehicle-info-card">
       {/* Section Header */}
-      <div className="bg-[#0C1A28] text-white px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shadow-md">
-            <PhosphorIcon name="car-profile" weight="duotone" size={22} className="text-[#C5852C]" />
+      <div className="bg-[#0C1A28] text-white px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0 shadow-md">
+            <PhosphorIcon name="car-profile" weight="duotone" size={18} className="text-[#C5852C] sm:text-[22px]" />
           </div>
-          <div>
-            <h3 className="font-bold text-lg md:text-xl font-arabic flex items-center gap-2 text-white">
-              <span className="font-mono text-[#C5852C] font-black">1 |</span>
-              <span className="text-white font-black">معلومات السيارة</span>
-              <span className="text-slate-300 text-xs md:text-sm font-mono font-semibold">| Vehicle Information</span>
-            </h3>
+          <div className="flex flex-wrap items-baseline gap-1.5 sm:gap-2">
+            <span className="font-mono text-[#C5852C] font-black text-base sm:text-lg md:text-xl">1 |</span>
+            <span className="text-white font-black text-sm sm:text-base md:text-xl font-arabic">معلومات السيارة</span>
+            <span className="text-slate-300 text-[11px] sm:text-xs md:text-sm font-mono font-semibold">| Vehicle Information</span>
           </div>
         </div>
       </div>
 
-      <div className="p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="p-3 sm:p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
         {/* Left Side (5 Cols): 2-Column Key-Value Specs Table */}
         <div className="lg:col-span-5 flex flex-col justify-between divide-y divide-slate-100 border border-slate-200 rounded-2xl p-2 bg-slate-50/50">
-          <div className="py-2.5 px-3 flex items-center justify-between text-right">
-            <span className="font-bold text-slate-900 text-sm font-arabic">{inspection.make || '-'}</span>
-            <div className="flex items-center gap-2 text-slate-500">
-              <span className="text-xs text-slate-400 font-mono">Manufacturer</span>
+          <div className="py-2 sm:py-2.5 px-2.5 sm:px-3 flex items-center justify-between text-right gap-2">
+            <span className="font-bold text-slate-900 text-xs sm:text-sm font-arabic truncate max-w-[50%]">{inspection.make || '-'}</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 shrink-0">
+              <span className="text-[10px] sm:text-xs text-slate-400 font-mono hidden sm:inline">Manufacturer</span>
               <span className="text-xs font-bold text-slate-700 font-arabic">الشركة المصنعة</span>
               <PhosphorIcon name="buildings" weight="duotone" size={16} className="text-[#C5852C]" />
             </div>
           </div>
 
-          <div className="py-2.5 px-3 flex items-center justify-between text-right">
-            <span className="font-bold text-slate-900 text-sm font-arabic">{inspection.model || '-'}</span>
-            <div className="flex items-center gap-2 text-slate-500">
-              <span className="text-xs text-slate-400 font-mono">Model</span>
+          <div className="py-2 sm:py-2.5 px-2.5 sm:px-3 flex items-center justify-between text-right gap-2">
+            <span className="font-bold text-slate-900 text-xs sm:text-sm font-arabic truncate max-w-[50%]">{inspection.model || '-'}</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 shrink-0">
+              <span className="text-[10px] sm:text-xs text-slate-400 font-mono hidden sm:inline">Model</span>
               <span className="text-xs font-bold text-slate-700 font-arabic">الموديل</span>
               <PhosphorIcon name="car" weight="duotone" size={16} className="text-[#C5852C]" />
             </div>
           </div>
 
-          <div className="py-2.5 px-3 flex items-center justify-between text-right">
-            <span className="font-bold text-slate-900 text-sm font-mono">{inspection.year || '-'}</span>
-            <div className="flex items-center gap-2 text-slate-500">
-              <span className="text-xs text-slate-400 font-mono">Year</span>
+          <div className="py-2 sm:py-2.5 px-2.5 sm:px-3 flex items-center justify-between text-right gap-2">
+            <span className="font-bold text-slate-900 text-xs sm:text-sm font-mono truncate max-w-[50%]">{inspection.year || '-'}</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 shrink-0">
+              <span className="text-[10px] sm:text-xs text-slate-400 font-mono hidden sm:inline">Year</span>
               <span className="text-xs font-bold text-slate-700 font-arabic">سنة الصنع</span>
               <PhosphorIcon name="calendar-blank" weight="duotone" size={16} className="text-[#C5852C]" />
             </div>
           </div>
 
-          <div className="py-2.5 px-3 flex items-center justify-between text-right">
-            <div className="flex items-center gap-2">
-              <span className="w-4 h-4 rounded-full border border-slate-300 shadow-sm" style={{ backgroundColor: vehicleColor.hex }} />
-              <span className="font-bold text-slate-900 text-sm font-arabic">{vehicleColor.ar}</span>
+          <div className="py-2 sm:py-2.5 px-2.5 sm:px-3 flex items-center justify-between text-right gap-2">
+            <div className="flex items-center gap-2 truncate max-w-[50%]">
+              <span className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border border-slate-300 shadow-sm shrink-0" style={{ backgroundColor: vehicleColor.hex }} />
+              <span className="font-bold text-slate-900 text-xs sm:text-sm font-arabic truncate">{vehicleColor.ar}</span>
             </div>
-            <div className="flex items-center gap-2 text-slate-500">
-              <span className="text-xs text-slate-400 font-mono">Color</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 shrink-0">
+              <span className="text-[10px] sm:text-xs text-slate-400 font-mono hidden sm:inline">Color</span>
               <span className="text-xs font-bold text-slate-700 font-arabic">اللون</span>
               <PhosphorIcon name="paint-brush" weight="duotone" size={16} className="text-[#C5852C]" />
             </div>
           </div>
 
-          <div className="py-2.5 px-3 flex items-center justify-between text-right">
-            <span className="font-mono font-bold text-slate-900 text-xs tracking-wider" dir="ltr">{inspection.vin || '-'}</span>
-            <div className="flex items-center gap-2 text-slate-500">
-              <span className="text-xs text-slate-400 font-mono">VIN</span>
-              <span className="text-xs font-bold text-slate-700 font-arabic">رقم الهيكل (VIN)</span>
+          <div className="py-2 sm:py-2.5 px-2.5 sm:px-3 flex items-center justify-between text-right gap-2">
+            <span className="font-mono font-bold text-slate-900 text-xs tracking-wider truncate max-w-[50%]" dir="ltr">{inspection.vin || '-'}</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 shrink-0">
+              <span className="text-[10px] sm:text-xs text-slate-400 font-mono hidden sm:inline">VIN</span>
+              <span className="text-xs font-bold text-slate-700 font-arabic">رقم الهيكل</span>
               <PhosphorIcon name="barcode" weight="duotone" size={16} className="text-[#C5852C]" />
             </div>
           </div>
 
-          <div className="py-2.5 px-3 flex items-center justify-between text-right">
-            <span className="font-mono font-bold text-slate-900 text-sm">{inspection.odometer?.toLocaleString() || '0'} كم</span>
-            <div className="flex items-center gap-2 text-slate-500">
-              <span className="text-xs text-slate-400 font-mono">Odometer Reading</span>
+          <div className="py-2 sm:py-2.5 px-2.5 sm:px-3 flex items-center justify-between text-right gap-2">
+            <span className="font-mono font-bold text-slate-900 text-xs sm:text-sm truncate max-w-[50%]">{inspection.odometer?.toLocaleString() || '0'} كم</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 shrink-0">
+              <span className="text-[10px] sm:text-xs text-slate-400 font-mono hidden sm:inline">Odometer</span>
               <span className="text-xs font-bold text-slate-700 font-arabic">قراءة العداد</span>
               <PhosphorIcon name="gauge" weight="duotone" size={16} className="text-[#C5852C]" />
             </div>
           </div>
 
-          <div className="py-2.5 px-3 flex items-center justify-between text-right">
-            <span className="font-bold text-emerald-700 text-sm font-arabic">فحص شامل / Full</span>
-            <div className="flex items-center gap-2 text-slate-500">
-              <span className="text-xs text-slate-400 font-mono">Inspection Type</span>
+          <div className="py-2 sm:py-2.5 px-2.5 sm:px-3 flex items-center justify-between text-right gap-2">
+            <span className="font-bold text-emerald-700 text-xs sm:text-sm font-arabic truncate max-w-[50%]">فحص شامل / Full</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 text-slate-500 shrink-0">
+              <span className="text-[10px] sm:text-xs text-slate-400 font-mono hidden sm:inline">Type</span>
               <span className="text-xs font-bold text-slate-700 font-arabic">نوع الفحص</span>
               <PhosphorIcon name="shield-check" weight="duotone" size={16} className="text-[#C5852C]" />
             </div>
@@ -774,9 +771,9 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
         </div>
 
         {/* Right Side (7 Cols): Car 3D Photo + VIN Card & Odometer Card (Large & Heroic) */}
-        <div className="lg:col-span-7 flex flex-col justify-between gap-4">
+        <div className="lg:col-span-7 flex flex-col justify-between gap-3 sm:gap-4">
           {/* Main Car Photo */}
-          <div className="w-full h-80 sm:h-96 md:h-[400px] rounded-2xl overflow-hidden bg-slate-900/5 border border-slate-200 flex items-center justify-center p-4 relative group shadow-sm">
+          <div className="w-full h-52 sm:h-64 md:h-80 lg:h-[400px] rounded-2xl overflow-hidden bg-slate-900/5 border border-slate-200 flex items-center justify-center p-3 sm:p-4 relative group shadow-sm">
             {inspection.mainCarPhoto ? (
               <img 
                 src={inspection.mainCarPhoto} 
@@ -793,27 +790,27 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
           </div>
 
           {/* Bottom 2 Sub-Cards: VIN Photo & Odometer Reading */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 text-center flex flex-col justify-between">
-              <div className="text-xs font-bold text-slate-800 font-arabic mb-1.5">رقم الهيكل (VIN)</div>
-              <div className="h-32 md:h-36 rounded-xl overflow-hidden bg-white border border-slate-200 flex items-center justify-center p-2 shadow-inner">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-2.5 sm:p-3 text-center flex flex-col justify-between">
+              <div className="text-xs font-bold text-slate-800 font-arabic mb-1">رقم الهيكل (VIN)</div>
+              <div className="h-24 sm:h-32 md:h-36 rounded-xl overflow-hidden bg-white border border-slate-200 flex items-center justify-center p-2 shadow-inner">
                 {inspection.vinPhoto ? (
                   <img src={inspection.vinPhoto} alt="VIN Plate" className="max-h-full max-w-full object-contain rounded-lg" />
                 ) : (
-                  <div className="font-mono font-black text-sm md:text-base text-slate-800 tracking-wider" dir="ltr">{inspection.vin}</div>
+                  <div className="font-mono font-black text-xs sm:text-sm md:text-base text-slate-800 tracking-wider break-all" dir="ltr">{inspection.vin}</div>
                 )}
               </div>
             </div>
 
-            <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 text-center flex flex-col justify-between">
-              <div className="text-xs font-bold text-slate-800 font-arabic mb-1.5">قراءة العداد (Odometer)</div>
-              <div className="h-32 md:h-36 rounded-xl overflow-hidden bg-white border border-slate-200 flex flex-col items-center justify-center p-2 shadow-inner">
+            <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-2.5 sm:p-3 text-center flex flex-col justify-between">
+              <div className="text-xs font-bold text-slate-800 font-arabic mb-1">قراءة العداد (Odometer)</div>
+              <div className="h-24 sm:h-32 md:h-36 rounded-xl overflow-hidden bg-white border border-slate-200 flex flex-col items-center justify-center p-2 shadow-inner">
                 {inspection.odometerPhoto ? (
                   <img src={inspection.odometerPhoto} alt="Odometer Photo" className="max-h-full max-w-full object-contain rounded-lg" />
                 ) : (
                   <>
-                    <PhosphorIcon name="gauge" weight="duotone" size={36} className="text-[#C5852C] mb-1" />
-                    <div className="font-mono font-black text-slate-900 text-lg md:text-xl">{inspection.odometer?.toLocaleString() || '85,230'} KM</div>
+                    <PhosphorIcon name="gauge" weight="duotone" size={32} className="text-[#C5852C] mb-1" />
+                    <div className="font-mono font-black text-slate-900 text-base md:text-xl">{inspection.odometer?.toLocaleString() || '85,230'} KM</div>
                   </>
                 )}
               </div>
@@ -855,42 +852,40 @@ const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
     <>
       <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden" data-testid="car-section-photos-gallery">
         {/* Section Header */}
-        <div className="bg-[#0C1A28] text-white px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shadow-md">
-              <PhosphorIcon name="camera" weight="duotone" size={22} className="text-[#C5852C]" />
+        <div className="bg-[#0C1A28] text-white px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0 shadow-md">
+              <PhosphorIcon name="camera" weight="duotone" size={18} className="text-[#C5852C] sm:text-[22px]" />
             </div>
-            <div>
-              <h3 className="font-bold text-lg md:text-xl font-arabic flex items-center gap-2 text-white">
-                <span className="font-mono text-[#C5852C] font-black">2 |</span>
-                <span className="text-white font-black">صور أقسام السيارة</span>
-                <span className="text-slate-300 text-xs md:text-sm font-mono font-semibold">| Vehicle Sections Photos ({count})</span>
-              </h3>
+            <div className="flex flex-wrap items-baseline gap-1.5 sm:gap-2">
+              <span className="font-mono text-[#C5852C] font-black text-base sm:text-lg md:text-xl">2 |</span>
+              <span className="text-white font-black text-sm sm:text-base md:text-xl font-arabic">صور أقسام السيارة</span>
+              <span className="text-slate-300 text-[11px] sm:text-xs md:text-sm font-mono font-semibold">| Vehicle Sections Photos ({count})</span>
             </div>
           </div>
         </div>
 
         {/* Intelligent Visual Grid Layout based on actual photo count */}
-        <div className="p-6">
+        <div className="p-3 sm:p-4 md:p-6">
           <div className={
             count === 1 
               ? "max-w-xl mx-auto" 
               : count === 2 
-                ? "grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-4xl mx-auto" 
+                ? "grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-4xl mx-auto" 
                 : count === 3 
-                  ? "grid grid-cols-1 sm:grid-cols-3 gap-4" 
+                  ? "grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4" 
                   : count === 4 
-                    ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4" 
+                    ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4" 
                     : count === 5 
-                      ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-4" 
+                      ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 sm:gap-4" 
                       : count === 6 
-                        ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" 
+                        ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4" 
                         : count === 7 
-                          ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-4" 
-                          : "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4"
+                          ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3 sm:gap-4" 
+                          : "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4"
           }>
             {displaySections.map((sec, idx) => {
-              // Custom span calculation for 5 photos (3 in row 1, 2 in row 2) and 7 photos (4 in row 1, 3 in row 2)
+              // Custom span calculation for 5 photos (3 in row 1, 2 in row 2) and 7 photos (4 in row 1, 3 in row 2) on md+
               const spanClass = 
                 count === 5 
                   ? (idx < 3 ? "md:col-span-2" : "md:col-span-3") 
@@ -922,7 +917,7 @@ const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
                       </div>
                     )}
                   </div>
-                  <div className="p-3 border-t border-slate-100 bg-white flex items-center justify-between">
+                  <div className="p-2.5 sm:p-3 border-t border-slate-100 bg-white flex items-center justify-between gap-2">
                     <div className="text-xs md:text-sm font-bold text-slate-900 font-arabic truncate">{sec.labelAr}</div>
                     <div className="text-[11px] text-slate-400 font-mono truncate" dir="ltr">{sec.labelEn}</div>
                   </div>
@@ -935,18 +930,18 @@ const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
 
       {/* Full Photo Modal */}
       {selectedPhoto && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[999999] flex items-center justify-center p-4" onClick={() => setSelectedPhoto(null)}>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[999999] flex items-center justify-center p-3 sm:p-4" onClick={() => setSelectedPhoto(null)}>
           <div className="relative max-w-3xl w-full bg-white rounded-2xl overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="bg-[#0C1A28] text-white px-6 py-4 flex items-center justify-between">
+            <div className="bg-[#0C1A28] text-white px-4 py-3 sm:px-6 sm:py-4 flex items-center justify-between">
               <div>
-                <h4 className="font-bold text-base font-arabic">{selectedPhoto.labelAr}</h4>
+                <h4 className="font-bold text-sm sm:text-base font-arabic">{selectedPhoto.labelAr}</h4>
                 <p className="text-xs text-slate-400 font-mono" dir="ltr">{selectedPhoto.labelEn}</p>
               </div>
               <button onClick={() => setSelectedPhoto(null)} className="text-white hover:text-red-400 p-1">
                 <PhosphorIcon name="x" weight="bold" size={22} />
               </button>
             </div>
-            <div className="p-4 bg-slate-900 flex items-center justify-center max-h-[75vh]">
+            <div className="p-3 sm:p-4 bg-slate-900 flex items-center justify-center max-h-[75vh]">
               <img src={selectedPhoto.url} alt={selectedPhoto.labelAr} className="max-w-full max-h-[70vh] object-contain rounded-lg" />
             </div>
           </div>
@@ -965,33 +960,33 @@ const formatWhatsAppLink = (phone: string) => {
 
 // Customer Info Card
 const CustomerInfoCard = ({ inspection }: { inspection: any }) => (
-  <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
-    <div className="flex items-center gap-4 justify-end">
-      <div className="text-right flex-1">
+  <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-4 sm:p-6">
+    <div className="flex items-center gap-3 sm:gap-4 justify-end">
+      <div className="text-right flex-1 min-w-0">
         <div className="text-xs text-slate-400 font-arabic mb-1">معلومات العميل</div>
-        <div className="font-bold text-lg text-slate-900 font-arabic">{inspection.customerName || 'عميل زائر'}</div>
+        <div className="font-bold text-base sm:text-lg text-slate-900 font-arabic truncate">{inspection.customerName || 'عميل زائر'}</div>
         {inspection.customerPhone && (
           <a 
             href={formatWhatsAppLink(inspection.customerPhone)}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm text-emerald-600 hover:text-emerald-700 font-mono mt-1 transition-colors"
+            className="inline-flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-emerald-600 hover:text-emerald-700 font-mono mt-1 transition-colors"
             data-testid="link-whatsapp-customer"
           >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
               <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
             </svg>
-            {inspection.customerPhone}
+            <span>{inspection.customerPhone}</span>
           </a>
         )}
       </div>
-      <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-        <User className="w-7 h-7 text-primary" />
+      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+        <User className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
       </div>
     </div>
-    <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-sm">
-      <div className="flex items-center gap-2 text-slate-400">
-        <Calendar className="w-4 h-4" />
+    <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-slate-100 flex items-center justify-between text-xs sm:text-sm">
+      <div className="flex items-center gap-1.5 text-slate-400">
+        <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         <span className="font-arabic">تاريخ الفحص</span>
       </div>
       <div className="font-bold text-slate-700">
@@ -1020,30 +1015,28 @@ const InspectionResults = ({
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden" data-testid="inspection-results-section">
       {/* Dark Navy Section Header with Phosphor Icon */}
-      <div className="bg-[#0C1A28] text-white px-6 py-4 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shadow-md">
-            <PhosphorIcon name="clipboard-text" weight="duotone" size={22} className="text-[#C5852C]" />
+      <div className="bg-[#0C1A28] text-white px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0 shadow-md">
+            <PhosphorIcon name="clipboard-text" weight="duotone" size={18} className="text-[#C5852C] sm:text-[22px]" />
           </div>
-          <div>
-            <h3 className="font-bold text-lg md:text-xl font-arabic flex items-center gap-2 text-white">
-              <span className="font-mono text-[#C5852C] font-black">3 |</span>
-              <span className="text-white font-black">نتائج الفحص</span>
-              <span className="text-slate-300 text-xs md:text-sm font-mono font-semibold">| Inspection Results ({items.length})</span>
-            </h3>
+          <div className="flex flex-wrap items-baseline gap-1.5 sm:gap-2">
+            <span className="font-mono text-[#C5852C] font-black text-base sm:text-lg md:text-xl">3 |</span>
+            <span className="text-white font-black text-sm sm:text-base md:text-xl font-arabic">نتائج الفحص</span>
+            <span className="text-slate-300 text-[11px] sm:text-xs md:text-sm font-mono font-semibold">| Inspection Results ({items.length})</span>
           </div>
         </div>
       </div>
 
-      <div className="p-6">
+      <div className="p-3 sm:p-4 md:p-6">
         {items.length === 0 ? (
-          <div className="p-12 text-center bg-slate-50 rounded-2xl border border-slate-100">
+          <div className="p-8 sm:p-12 text-center bg-slate-50 rounded-2xl border border-slate-100">
             <PhosphorIcon name="check-circle" weight="duotone" size={48} className="text-emerald-500 mx-auto mb-3" />
-            <h4 className="text-xl font-bold text-slate-800 font-arabic mb-1">المركبة بحالة ممتازة</h4>
-            <p className="text-slate-500 text-sm font-arabic">لم يتم تسجيل أي ملاحظات أو عيوب فنية على المركبة</p>
+            <h4 className="text-lg sm:text-xl font-bold text-slate-800 font-arabic mb-1">المركبة بحالة ممتازة</h4>
+            <p className="text-slate-500 text-xs sm:text-sm font-arabic">لم يتم تسجيل أي ملاحظات أو عيوب فنية على المركبة</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
             {items.map((item: any, idx: number) => {
               const cat = INSPECTION_CATEGORIES.find(c => c.id === item.category) || { label: item.category || 'فحص عام', labelEn: 'General' };
               const titleAr = item.faultName?.split(' - ')[0] || item.faultName || 'ملاحظة فنية';
@@ -1051,10 +1044,10 @@ const InspectionResults = ({
               return (
                 <div
                   key={item.id || idx}
-                  className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-all p-4 flex items-center gap-4 text-right"
+                  className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-all p-3 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 text-right"
                 >
                   {/* Left: Defect Photo */}
-                  <div className="shrink-0 w-32 h-28 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 relative group">
+                  <div className="w-full sm:w-32 h-44 sm:h-28 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 relative group shrink-0">
                     {item.imageUrl ? (
                       <button
                         type="button"
@@ -1081,12 +1074,12 @@ const InspectionResults = ({
                       <span className="text-[10px] text-slate-400 font-mono" dir="ltr">{cat.labelEn}</span>
                     </div>
 
-                    <h4 className="font-bold text-slate-900 font-arabic text-sm leading-snug">
+                    <h4 className="font-bold text-slate-900 font-arabic text-sm leading-snug break-words">
                       {titleAr}
                     </h4>
 
                     {item.description && (
-                      <p className="text-xs text-slate-700 font-arabic leading-relaxed line-clamp-2">
+                      <p className="text-xs text-slate-700 font-arabic leading-relaxed line-clamp-2 break-words">
                         {item.description}
                       </p>
                     )}
@@ -1099,7 +1092,7 @@ const InspectionResults = ({
                   </div>
 
                   {/* Right: Top-down Car Blueprint SVG Pinpoint */}
-                  <div className="shrink-0 w-20 h-24 bg-slate-50/80 rounded-xl border border-slate-100 p-1 flex items-center justify-center">
+                  <div className="w-full sm:w-20 h-20 sm:h-24 bg-slate-50/80 rounded-xl border border-slate-100 p-1 flex items-center justify-center shrink-0">
                     <CarBlueprintPinpoint category={item.category || ''} dotColor="#dc2626" className="w-full h-full" />
                   </div>
                 </div>
@@ -2219,28 +2212,28 @@ export default function InteractiveReport() {
 
           const renderCodeList = (codes: typeof obdCodes, isHistory: boolean) => (
             <div className="bg-white rounded-3xl overflow-hidden shadow-xl border-2 border-slate-200" data-testid={isHistory ? "obd-history-section" : "obd-current-section"}>
-              <div className={`p-6 text-white ${isHistory ? 'bg-gradient-to-l from-amber-700 via-amber-800 to-amber-950' : 'bg-gradient-to-l from-slate-900 via-red-950 to-black'}`}>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center shadow-lg">
-                      <PhosphorIcon name="cpu" weight="duotone" size={28} className={isHistory ? "text-amber-400" : "text-red-400"} />
+              <div className={`p-4 sm:p-6 text-white ${isHistory ? 'bg-gradient-to-l from-amber-700 via-amber-800 to-amber-950' : 'bg-gradient-to-l from-slate-900 via-red-950 to-black'}`}>
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                  <div className="flex items-center gap-2.5 sm:gap-3">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/10 rounded-xl flex items-center justify-center shrink-0 shadow-lg">
+                      <PhosphorIcon name="cpu" weight="duotone" size={24} className={isHistory ? "text-amber-400" : "text-red-400"} />
                     </div>
                     <div>
                       <div className="text-xs text-slate-300 font-mono font-bold tracking-wider" dir="ltr">HIGH SAFETY</div>
-                      <div className="text-xs text-slate-400 font-mono tracking-wider" dir="ltr">{isHistory ? "HISTORY FAULTS" : "CURRENT FAULTS"}</div>
+                      <div className="text-[11px] text-slate-400 font-mono tracking-wider" dir="ltr">{isHistory ? "HISTORY FAULTS" : "CURRENT FAULTS"}</div>
                     </div>
                   </div>
-                  <div className="text-left bg-white/10 rounded-xl px-4 py-2" dir="ltr">
-                    <div className="text-xs text-slate-300 font-mono">{isHistory ? "STORED CODES" : "ACTIVE CODES"}</div>
-                    <div className={`text-3xl font-black ${isHistory ? "text-amber-400" : "text-red-400"}`}>{codes.length}</div>
+                  <div className="text-left bg-white/10 rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 shrink-0" dir="ltr">
+                    <div className="text-[10px] sm:text-xs text-slate-300 font-mono">{isHistory ? "STORED CODES" : "ACTIVE CODES"}</div>
+                    <div className={`text-2xl sm:text-3xl font-black ${isHistory ? "text-amber-400" : "text-red-400"}`}>{codes.length}</div>
                   </div>
                 </div>
-                <div className="text-center border-t border-white/10 pt-4">
-                  <h3 className="text-xl font-black font-arabic flex items-center justify-center gap-2">
-                    <PhosphorIcon name={isHistory ? "clock-counter-clockwise" : "warning-circle"} weight="duotone" size={24} className={isHistory ? "text-amber-400" : "text-red-400"} />
+                <div className="text-center border-t border-white/10 pt-3 sm:pt-4">
+                  <h3 className="text-lg sm:text-xl font-black font-arabic flex items-center justify-center gap-2">
+                    <PhosphorIcon name={isHistory ? "clock-counter-clockwise" : "warning-circle"} weight="duotone" size={22} className={isHistory ? "text-amber-400" : "text-red-400"} />
                     <span>{isHistory ? "الأعطال السابقة — History" : "الأعطال الحالية — Current"}</span>
                   </h3>
-                  <p className="text-slate-300 text-xs font-mono mt-1" dir="ltr">
+                  <p className="text-slate-300 text-[11px] sm:text-xs font-mono mt-1" dir="ltr">
                     {isHistory ? "OBD-II Stored & History Diagnostic Trouble Codes" : "OBD-II Active & Current Diagnostic Trouble Codes"}
                   </p>
                 </div>
@@ -2254,48 +2247,48 @@ export default function InteractiveReport() {
                     
                     return (
                       <AccordionItem value={`item-${isHistory ? 'hist' : 'curr'}-${idx}`} key={idx} className="border-b-0 mb-2 bg-slate-50/50 rounded-2xl overflow-hidden data-[state=open]:bg-white data-[state=open]:shadow-md data-[state=open]:ring-1 data-[state=open]:ring-slate-200 transition-all">
-                        <AccordionTrigger className="px-4 py-4 hover:no-underline [&[data-state=open]>div>div>div.ai-badge]:opacity-0 [&[data-state=open]>div>div>div.ai-badge]:scale-95">
-                          <div className="flex items-center gap-4 w-full text-right">
-                            <div className="shrink-0">
-                              <div className={`font-mono font-black text-white text-lg px-4 py-2 rounded-xl ${type.color} shadow-md min-w-[85px] text-center`}>{obd.code}</div>
-                              <div className="text-[10px] text-center text-slate-500 mt-1.5 font-arabic font-medium">{type.labelAr}</div>
+                        <AccordionTrigger className="p-3 sm:p-4 hover:no-underline [&[data-state=open]>div>div>div.ai-badge]:opacity-0 [&[data-state=open]>div>div>div.ai-badge]:scale-95">
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full text-right">
+                            <div className="shrink-0 flex sm:flex-col items-center justify-between sm:justify-center gap-2">
+                              <div className={`font-mono font-black text-white text-base sm:text-lg px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl ${type.color} shadow-md min-w-[80px] sm:min-w-[85px] text-center`}>{obd.code}</div>
+                              <div className="text-[10px] text-center text-slate-500 font-arabic font-medium">{type.labelAr}</div>
                             </div>
-                            <div className="flex-1 min-w-0 flex justify-between items-center pr-2">
-                              <div>
-                                <div className="text-base font-bold text-slate-900 font-arabic leading-snug text-right">{obd.nameAr}</div>
-                                <div className="text-sm text-slate-500 font-mono mt-1 text-right" dir="ltr">{obd.nameEn}</div>
+                            <div className="flex-1 min-w-0 flex flex-wrap justify-between items-center gap-2 pr-1 sm:pr-2">
+                              <div className="flex-1 min-w-[160px]">
+                                <div className="text-sm sm:text-base font-bold text-slate-900 font-arabic leading-snug text-right break-words">{obd.nameAr}</div>
+                                <div className="text-xs text-slate-500 font-mono mt-0.5 text-right break-words" dir="ltr">{obd.nameEn}</div>
                               </div>
                               {hasAiDetails && (
-                                <div className={`ai-badge shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all duration-300 ${isHistory ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-indigo-50 text-indigo-600 border-indigo-100'}`}>
+                                <div className={`ai-badge shrink-0 flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border transition-all duration-300 ${isHistory ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-indigo-50 text-indigo-600 border-indigo-100'}`}>
                                   <PhosphorIcon name="file-text" weight="duotone" size={14} />
-                                  <span className="text-xs font-bold font-arabic">شرح العطل</span>
+                                  <span className="text-[11px] sm:text-xs font-bold font-arabic">شرح العطل</span>
                                 </div>
                               )}
                             </div>
                           </div>
                         </AccordionTrigger>
                         {hasAiDetails && (
-                          <AccordionContent className="px-4 pb-4 text-right" dir="rtl">
-                            <div className="pt-2 border-t border-slate-100 space-y-4">
+                          <AccordionContent className="px-3 sm:px-4 pb-3 sm:pb-4 text-right" dir="rtl">
+                            <div className="pt-2 border-t border-slate-100 space-y-3 sm:space-y-4">
                               {obd.diagnosis && (
-                                <div className="bg-indigo-50/50 rounded-xl p-4 border border-indigo-100/50">
-                                  <div className="flex items-center gap-2 mb-2 text-indigo-700">
-                                    <PhosphorIcon name="stethoscope" weight="duotone" size={20} className="text-indigo-700" />
-                                    <h4 className="font-black font-arabic text-sm">التشخيص الفني (OBD Diagnosis)</h4>
+                                <div className="bg-indigo-50/50 rounded-xl p-3 sm:p-4 border border-indigo-100/50">
+                                  <div className="flex items-center gap-2 mb-1.5 text-indigo-700">
+                                    <PhosphorIcon name="stethoscope" weight="duotone" size={18} className="text-indigo-700" />
+                                    <h4 className="font-black font-arabic text-xs sm:text-sm">التشخيص الفني (OBD Diagnosis)</h4>
                                   </div>
-                                  <p className="text-slate-700 text-sm font-arabic leading-relaxed">
+                                  <p className="text-slate-700 text-xs sm:text-sm font-arabic leading-relaxed break-words">
                                     {obd.diagnosis}
                                   </p>
                                 </div>
                               )}
 
                               {obd.causes && (
-                                <div className="bg-amber-50/50 rounded-xl p-4 border border-amber-100/50">
-                                  <div className="flex items-center gap-2 mb-2 text-amber-700">
-                                    <PhosphorIcon name="magnifying-glass" weight="duotone" size={20} className="text-amber-700" />
-                                    <h4 className="font-black font-arabic text-sm">الأسباب المحتملة (Possible Causes)</h4>
+                                <div className="bg-amber-50/50 rounded-xl p-3 sm:p-4 border border-amber-100/50">
+                                  <div className="flex items-center gap-2 mb-1.5 text-amber-700">
+                                    <PhosphorIcon name="magnifying-glass" weight="duotone" size={18} className="text-amber-700" />
+                                    <h4 className="font-black font-arabic text-xs sm:text-sm">الأسباب المحتملة (Possible Causes)</h4>
                                   </div>
-                                  <ul className="list-disc list-inside text-slate-700 text-sm font-arabic leading-relaxed space-y-1 pr-1">
+                                  <ul className="list-disc list-inside text-slate-700 text-xs sm:text-sm font-arabic leading-relaxed space-y-1 pr-1">
                                     {obd.causes.split(',').map((cause, i) => (
                                       <li key={i}>{cause.trim()}</li>
                                     ))}
@@ -2304,12 +2297,12 @@ export default function InteractiveReport() {
                               )}
 
                               {obd.solutions && (
-                                <div className="bg-emerald-50/50 rounded-xl p-4 border border-emerald-100/50">
-                                  <div className="flex items-center gap-2 mb-2 text-emerald-700">
-                                    <PhosphorIcon name="wrench" weight="duotone" size={20} className="text-emerald-700" />
-                                    <h4 className="font-black font-arabic text-sm">خطوات الإصلاح (Solutions)</h4>
+                                <div className="bg-emerald-50/50 rounded-xl p-3 sm:p-4 border border-emerald-100/50">
+                                  <div className="flex items-center gap-2 mb-1.5 text-emerald-700">
+                                    <PhosphorIcon name="wrench" weight="duotone" size={18} className="text-emerald-700" />
+                                    <h4 className="font-black font-arabic text-xs sm:text-sm">خطوات الإصلاح (Solutions)</h4>
                                   </div>
-                                  <ul className="list-disc list-inside text-slate-700 text-sm font-arabic leading-relaxed space-y-1 pr-1">
+                                  <ul className="list-disc list-inside text-slate-700 text-xs sm:text-sm font-arabic leading-relaxed space-y-1 pr-1">
                                     {obd.solutions.split(',').map((solution, i) => (
                                       <li key={i}>{solution.trim()}</li>
                                     ))}
@@ -2325,7 +2318,7 @@ export default function InteractiveReport() {
                 </Accordion>
               </div>
 
-              <div className="bg-slate-100 border-t-2 border-slate-200 px-5 py-3 flex items-center justify-between">
+              <div className="bg-slate-100 border-t-2 border-slate-200 px-4 py-2.5 sm:px-5 sm:py-3 flex flex-wrap items-center justify-between gap-2">
                 <span className="text-xs text-slate-500 font-mono font-bold" dir="ltr">HIGH SAFETY INSPECTION CENTER</span>
                 <span className="text-xs text-slate-400 font-mono" dir="ltr">HS-OBD-{isHistory ? 'HIST' : 'CURR'}-{String(inspection.id).padStart(4, '0')}</span>
               </div>
@@ -2333,7 +2326,7 @@ export default function InteractiveReport() {
           );
 
           return (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {currentCodes.length > 0 && renderCodeList(currentCodes, false)}
               {historyCodes.length > 0 && renderCodeList(historyCodes, true)}
             </div>
@@ -2343,27 +2336,25 @@ export default function InteractiveReport() {
         {/* Section 6: Autel Computer Report Section */}
         {inspection.autelReportPdf && (
           <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200" data-testid="autel-report-section">
-            <div className="bg-[#0C1A28] text-white px-6 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shadow-md">
-                  <PhosphorIcon name="cpu" weight="duotone" size={22} className="text-[#C5852C]" />
+            <div className="bg-[#0C1A28] text-white px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0 shadow-md">
+                  <PhosphorIcon name="cpu" weight="duotone" size={18} className="text-[#C5852C] sm:text-[22px]" />
                 </div>
-                <div>
-                  <h3 className="font-bold text-lg md:text-xl font-arabic flex items-center gap-2 text-white">
-                    <span className="font-mono text-[#C5852C] font-black">6 |</span>
-                    <span className="text-white font-black">تقرير فحص الكمبيوتر</span>
-                    <span className="text-slate-300 text-xs md:text-sm font-mono font-semibold">| Autel Computer Diagnostic Report</span>
-                  </h3>
+                <div className="flex flex-wrap items-baseline gap-1.5 sm:gap-2">
+                  <span className="font-mono text-[#C5852C] font-black text-base sm:text-lg md:text-xl">6 |</span>
+                  <span className="text-white font-black text-sm sm:text-base md:text-xl font-arabic">تقرير فحص الكمبيوتر</span>
+                  <span className="text-slate-300 text-[11px] sm:text-xs md:text-sm font-mono font-semibold">| Autel Computer Diagnostic Report</span>
                 </div>
               </div>
             </div>
-            <div className="p-6 flex flex-col md:flex-row items-center justify-between gap-6 bg-slate-50/50">
-              <div className="flex items-center gap-4 text-right">
-                <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">
-                  <PhosphorIcon name="file-pdf" weight="duotone" size={36} className="text-red-500" />
+            <div className="p-4 sm:p-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 sm:gap-6 bg-slate-50/50">
+              <div className="flex items-center gap-3 sm:gap-4 text-right">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-sm shrink-0">
+                  <PhosphorIcon name="file-pdf" weight="duotone" size={30} className="text-red-500 sm:text-[36px]" />
                 </div>
                 <div>
-                  <h4 className="font-black text-slate-900 font-arabic text-base">تقرير فحص الكمبيوتر الشامل من جهاز Autel</h4>
+                  <h4 className="font-black text-slate-900 font-arabic text-sm sm:text-base">تقرير فحص الكمبيوتر الشامل من جهاز Autel</h4>
                   <p className="text-xs text-slate-500 font-mono mt-0.5" dir="ltr">Autel MaxiSys Diagnostic Report — Attached in PDF</p>
                 </div>
               </div>
@@ -2371,7 +2362,7 @@ export default function InteractiveReport() {
                 href={`/api/autel/report/${inspection.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-[#0C1A28] hover:bg-[#1a334d] text-white rounded-xl font-bold font-arabic transition-all shadow-md hover:shadow-lg"
+                className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-3 bg-[#0C1A28] hover:bg-[#1a334d] text-white rounded-xl font-bold font-arabic transition-all shadow-md hover:shadow-lg min-h-[44px]"
                 data-testid="btn-open-autel-pdf"
               >
                 <PhosphorIcon name="arrow-square-out" weight="duotone" size={20} className="text-[#C5852C]" />
@@ -2383,96 +2374,94 @@ export default function InteractiveReport() {
 
         {/* Section 7: Terms and Conditions */}
         <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200" data-testid="terms-section">
-          <div className="bg-[#0C1A28] text-white px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shadow-md">
-                <PhosphorIcon name="scales" weight="duotone" size={22} className="text-[#C5852C]" />
+          <div className="bg-[#0C1A28] text-white px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0 shadow-md">
+                <PhosphorIcon name="scales" weight="duotone" size={18} className="text-[#C5852C] sm:text-[22px]" />
               </div>
-              <div>
-                <h3 className="font-bold text-lg md:text-xl font-arabic flex items-center gap-2 text-white">
-                  <span className="font-mono text-[#C5852C] font-black">7 |</span>
-                  <span className="text-white font-black">الأحكام والشروط</span>
-                  <span className="text-slate-300 text-xs md:text-sm font-mono font-semibold">| Terms & Conditions</span>
-                </h3>
+              <div className="flex flex-wrap items-baseline gap-1.5 sm:gap-2">
+                <span className="font-mono text-[#C5852C] font-black text-base sm:text-lg md:text-xl">7 |</span>
+                <span className="text-white font-black text-sm sm:text-base md:text-xl font-arabic">الأحكام والشروط</span>
+                <span className="text-slate-300 text-[11px] sm:text-xs md:text-sm font-mono font-semibold">| Terms & Conditions</span>
               </div>
             </div>
           </div>
 
-          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-start gap-3 text-right">
-              <div className="flex-1">
-                <p className="font-bold text-slate-900 font-arabic text-sm">1. المركز غير مسئول عن أي أعطال تحدث أثناء الفحص أو بعده.</p>
-                <p className="text-xs text-slate-500 font-mono mt-1" dir="ltr">The center is not responsible for any malfunctions occurring during or after inspection.</p>
+          <div className="p-3 sm:p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+            <div className="bg-slate-50 rounded-2xl p-3 sm:p-4 border border-slate-100 flex items-start gap-3 text-right">
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-slate-900 font-arabic text-xs sm:text-sm">1. المركز غير مسئول عن أي أعطال تحدث أثناء الفحص أو بعده.</p>
+                <p className="text-[11px] sm:text-xs text-slate-500 font-mono mt-1" dir="ltr">The center is not responsible for any malfunctions occurring during or after inspection.</p>
               </div>
-              <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
-                <PhosphorIcon name="shield-warning" weight="duotone" size={20} className="text-[#C5852C]" />
-              </div>
-            </div>
-
-            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-start gap-3 text-right">
-              <div className="flex-1">
-                <p className="font-bold text-slate-900 font-arabic text-sm">2. المركز مسئول عن نتيجة الفحص وقت الفحص فقط وغير مسئول بعد خروج المركبة من الفحص.</p>
-                <p className="text-xs text-slate-500 font-mono mt-1" dir="ltr">The center is only responsible for inspection results at the time of inspection.</p>
-              </div>
-              <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
-                <PhosphorIcon name="clock" weight="duotone" size={20} className="text-[#C5852C]" />
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
+                <PhosphorIcon name="shield-warning" weight="duotone" size={18} className="text-[#C5852C]" />
               </div>
             </div>
 
-            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-start gap-3 text-right">
-              <div className="flex-1">
-                <p className="font-bold text-slate-900 font-arabic text-sm">3. هذا الفحص غير معتمد لدى إدارة التراخيص.</p>
-                <p className="text-xs text-slate-500 font-mono mt-1" dir="ltr">This inspection is not approved by the Licensing Authority.</p>
+            <div className="bg-slate-50 rounded-2xl p-3 sm:p-4 border border-slate-100 flex items-start gap-3 text-right">
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-slate-900 font-arabic text-xs sm:text-sm">2. المركز مسئول عن نتيجة الفحص وقت الفحص فقط وغير مسئول بعد خروج المركبة من الفحص.</p>
+                <p className="text-[11px] sm:text-xs text-slate-500 font-mono mt-1" dir="ltr">The center is only responsible for inspection results at the time of inspection.</p>
               </div>
-              <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
-                <PhosphorIcon name="file-text" weight="duotone" size={20} className="text-[#C5852C]" />
-              </div>
-            </div>
-
-            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-start gap-3 text-right">
-              <div className="flex-1">
-                <p className="font-bold text-slate-900 font-arabic text-sm">4. المركز غير مسئول عن أي أغراض شخصية داخل السيارة أثناء الفحص.</p>
-                <p className="text-xs text-slate-500 font-mono mt-1" dir="ltr">The center is not responsible for any personal belongings inside the vehicle.</p>
-              </div>
-              <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
-                <PhosphorIcon name="backpack" weight="duotone" size={20} className="text-[#C5852C]" />
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
+                <PhosphorIcon name="clock" weight="duotone" size={18} className="text-[#C5852C]" />
               </div>
             </div>
 
-            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-start gap-3 text-right md:col-span-2">
-              <div className="flex-1">
-                <p className="font-bold text-slate-900 font-arabic text-sm">5. يعتبر هذا التقرير لحالة المركبة حسب قراءة الأجهزة في وقت الفحص.</p>
-                <p className="text-xs text-slate-500 font-mono mt-1" dir="ltr">This report reflects the vehicle condition based on device readings at the time of inspection.</p>
+            <div className="bg-slate-50 rounded-2xl p-3 sm:p-4 border border-slate-100 flex items-start gap-3 text-right">
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-slate-900 font-arabic text-xs sm:text-sm">3. هذا الفحص غير معتمد لدى إدارة التراخيص.</p>
+                <p className="text-[11px] sm:text-xs text-slate-500 font-mono mt-1" dir="ltr">This inspection is not approved by the Licensing Authority.</p>
               </div>
-              <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
-                <PhosphorIcon name="clipboard-check" weight="duotone" size={20} className="text-[#C5852C]" />
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
+                <PhosphorIcon name="file-text" weight="duotone" size={18} className="text-[#C5852C]" />
+              </div>
+            </div>
+
+            <div className="bg-slate-50 rounded-2xl p-3 sm:p-4 border border-slate-100 flex items-start gap-3 text-right">
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-slate-900 font-arabic text-xs sm:text-sm">4. المركز غير مسئول عن أي أغراض شخصية داخل السيارة أثناء الفحص.</p>
+                <p className="text-[11px] sm:text-xs text-slate-500 font-mono mt-1" dir="ltr">The center is not responsible for any personal belongings inside the vehicle.</p>
+              </div>
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
+                <PhosphorIcon name="backpack" weight="duotone" size={18} className="text-[#C5852C]" />
+              </div>
+            </div>
+
+            <div className="bg-slate-50 rounded-2xl p-3 sm:p-4 border border-slate-100 flex items-start gap-3 text-right md:col-span-2">
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-slate-900 font-arabic text-xs sm:text-sm">5. يعتبر هذا التقرير لحالة المركبة حسب قراءة الأجهزة في وقت الفحص.</p>
+                <p className="text-[11px] sm:text-xs text-slate-500 font-mono mt-1" dir="ltr">This report reflects the vehicle condition based on device readings at the time of inspection.</p>
+              </div>
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
+                <PhosphorIcon name="clipboard-check" weight="duotone" size={18} className="text-[#C5852C]" />
               </div>
             </div>
           </div>
         </div>
 
         {/* Footer Banner */}
-        <div className="bg-[#0C1A28] text-white rounded-3xl p-6 border-t-2 border-[#C5852C] shadow-2xl text-center space-y-4">
-          <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-white/80 font-arabic">
-            <div className="flex items-center gap-2">
+        <div className="bg-[#0C1A28] text-white rounded-3xl p-4 sm:p-6 border-t-2 border-[#C5852C] shadow-2xl text-center space-y-3 sm:space-y-4">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs text-white/80 font-arabic">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <PhosphorIcon name="phone" weight="duotone" size={16} className="text-[#C5852C]" />
               <span className="font-mono font-bold">0542206000</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <PhosphorIcon name="envelope" weight="duotone" size={16} className="text-[#C5852C]" />
               <span className="font-mono">highsafety2021@gmail.com</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <PhosphorIcon name="globe" weight="duotone" size={16} className="text-[#C5852C]" />
               <span className="font-mono">www.highsafetyint.com</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <PhosphorIcon name="map-pin" weight="duotone" size={16} className="text-[#C5852C]" />
               <span>سيتي بلازا الدراري - الشارقة - الإمارات العربية المتحدة</span>
             </div>
           </div>
 
-          <div className="border-t border-white/10 pt-4 flex flex-col md:flex-row items-center justify-between text-xs text-white/50 gap-2">
+          <div className="border-t border-white/10 pt-3 sm:pt-4 flex flex-col md:flex-row items-center justify-between text-xs text-white/50 gap-2">
             <p className="font-arabic">جميع الحقوق محفوظة © {new Date().getFullYear()} مركز الأمان العالي الدولي للفحص الفني</p>
             <p className="font-mono" dir="ltr">HIGH SAFETY INTERNATIONAL CENTER L.L.C.</p>
           </div>
