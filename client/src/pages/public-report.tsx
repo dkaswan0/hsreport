@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute } from "wouter";
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { 
   Car,
   Phone,
@@ -10,799 +10,440 @@ import {
   ShieldCheck,
   Gauge,
   CheckCircle2,
-  AlertCircle,
   XCircle,
-  Loader2,
   Mail,
   MapPin,
   X,
   ZoomIn,
-  RotateCcw,
   Palette,
-  Monitor,
   ExternalLink,
-  Stethoscope,
-  Wrench,
-  Sparkles,
-  Search,
-  Info,
+  Fuel,
 } from "lucide-react";
 import { PhosphorIcon } from "@/components/phosphor-icon";
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
 import { getVehicleColor, calculateInspectionStats, getInspectionTypeLabel } from "@/lib/vehicle-utils";
 import logoPath from "@assets/hs-logo.png";
 import hsBannerPath from "@assets/hs-banner.jpeg";
+import hsCarBranding from "@assets/hs_car_branding.png";
 import { VinPlate } from "@/components/vin-plate";
-import carCutawayFrontLeft from "@assets/generated_images/car_cutaway_front-left_view.png";
-import carCutawayRightSide from "@assets/generated_images/car_cutaway_right_side_view.png";
-import carCutawayRearRight from "@assets/generated_images/car_cutaway_rear-right_view.png";
-import carCutawayLeftSide from "@assets/generated_images/car_cutaway_left_side_view.png";
+import { CarBlueprintPinpoint } from "@/components/car-blueprint-pinpoint";
 import type { Inspection, InspectionItem } from "@shared/schema";
-import { INSPECTION_CATEGORIES, CATEGORY_GROUPS } from "@shared/categories";
-import { LuxuryOdometer } from "@/components/luxury-odometer";
+import { INSPECTION_CATEGORIES } from "@shared/categories";
 import { IntroAnimation } from "@/components/intro-animation";
 
 type InspectionWithItems = Inspection & { items: InspectionItem[] };
 
-// 360 degree car views configuration
-type ViewAngle = 'front_left' | 'right_side' | 'rear_right' | 'left_side';
-const CAR_CUTAWAY_VIEWS: { angle: ViewAngle; image: string; label: string }[] = [
-  { angle: 'front_left', image: carCutawayFrontLeft, label: 'الأمام' },
-  { angle: 'right_side', image: carCutawayRightSide, label: 'اليمين' },
-  { angle: 'rear_right', image: carCutawayRearRight, label: 'الخلف' },
-  { angle: 'left_side', image: carCutawayLeftSide, label: 'اليسار' },
-];
+// Image Modal for High-Resolution Zoom
+const ImageModal = ({ imageUrl, faultName, onClose }: { imageUrl: string; faultName: string; onClose: () => void }) => (
+  <div 
+    className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+    onClick={onClose}
+  >
+    <div className="relative max-w-4xl max-h-[90vh] w-full" onClick={(e) => e.stopPropagation()}>
+      <button 
+        onClick={onClose}
+        className="absolute -top-12 right-0 text-white hover:text-primary transition-colors cursor-pointer"
+        data-testid="button-close-image-modal"
+      >
+        <XCircle className="w-8 h-8" />
+      </button>
+      <div className="bg-white rounded-2xl overflow-hidden shadow-2xl">
+        <div className="bg-[#0C1A28] text-white px-4 py-3 flex items-center justify-between">
+          <p className="font-bold font-arabic text-base">{faultName}</p>
+          <span className="text-xs text-slate-400 font-arabic">صورة الفحص الأصلية</span>
+        </div>
+        <div className="p-2 bg-slate-900 flex items-center justify-center max-h-[75vh]">
+          <img 
+            src={imageUrl} 
+            alt={faultName} 
+            className="max-w-full max-h-[70vh] object-contain rounded-lg"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
-// Anatomy positions per view angle for accurate fault placement on all 4 views
-const ANATOMY_POSITIONS_BY_VIEW: Record<ViewAngle, Record<string, { top: string; left: string; label: string }>> = {
-  // Front-Left view: Shows engine bay, front-left wheel, hood, front bumper, steering
-  front_left: {
-    // Mechanical
-    engine: { top: "42%", left: "40%", label: "المحرك" },
-    transmission_system: { top: "52%", left: "50%", label: "ناقل الحركة" },
-    steering_system: { top: "48%", left: "32%", label: "التوجيه" },
-    suspension_system: { top: "62%", left: "28%", label: "التعليق" },
-    brake_system: { top: "68%", left: "22%", label: "الفرامل" },
-    ac_cooling: { top: "38%", left: "35%", label: "التكييف" },
-    fuel_exhaust: { top: "58%", left: "60%", label: "العادم" },
-    misc_mechanical: { top: "45%", left: "55%", label: "أجزاء ميكانيكية" },
-    // Body
-    hood: { top: "30%", left: "42%", label: "غطاء المحرك" },
-    front_bumper: { top: "58%", left: "15%", label: "الصدام الأمامي" },
-    bumper_frame_front: { top: "62%", left: "18%", label: "جسر الصدام" },
-    fender_front_left: { top: "48%", left: "20%", label: "الرفرف" },
-    front_chest: { top: "55%", left: "35%", label: "صدر السيارة" },
-    roof: { top: "22%", left: "58%", label: "السقف" },
-    pillars: { top: "28%", left: "52%", label: "القوائم" },
-    // Electric
-    battery: { top: "35%", left: "30%", label: "البطارية" },
-    electrical_system: { top: "40%", left: "48%", label: "الكهرباء" },
-    exterior_lighting: { top: "52%", left: "12%", label: "الإضاءة" },
-    wire_harness: { top: "44%", left: "45%", label: "الأسلاك" },
-    // Other
-    tires_rims: { top: "72%", left: "25%", label: "الإطارات" },
-    windows: { top: "25%", left: "62%", label: "الزجاج" },
-    glass_mirrors: { top: "32%", left: "18%", label: "المرايا" },
-    interior: { top: "35%", left: "55%", label: "الداخلية" },
-    safety_systems: { top: "38%", left: "58%", label: "السلامة" },
-    chassis_frame: { top: "65%", left: "45%", label: "الهيكل" },
-  },
-  
-  // Right side view: Shows right doors, right fenders, right wheels, side profile
-  right_side: {
-    // Mechanical
-    engine: { top: "40%", left: "15%", label: "المحرك" },
-    transmission_system: { top: "50%", left: "40%", label: "ناقل الحركة" },
-    fuel_exhaust: { top: "60%", left: "72%", label: "العادم" },
-    suspension_system: { top: "65%", left: "20%", label: "التعليق الأمامي" },
-    brake_system: { top: "68%", left: "25%", label: "الفرامل" },
-    steering_system: { top: "55%", left: "18%", label: "التوجيه" },
-    ac_cooling: { top: "38%", left: "20%", label: "التكييف" },
-    misc_mechanical: { top: "55%", left: "50%", label: "أجزاء ميكانيكية" },
-    // Body - Right side
-    door_front_right: { top: "38%", left: "32%", label: "الباب الأمامي يمين" },
-    door_rear_right: { top: "38%", left: "55%", label: "الباب الخلفي يمين" },
-    fender_front_right: { top: "50%", left: "18%", label: "الرفرف الأمامي" },
-    fender_rear_right: { top: "50%", left: "78%", label: "الرفرف الخلفي" },
-    hood: { top: "32%", left: "12%", label: "غطاء المحرك" },
-    trunk: { top: "35%", left: "88%", label: "صندوق الأمتعة" },
-    roof: { top: "20%", left: "45%", label: "السقف" },
-    pillars: { top: "25%", left: "40%", label: "القوائم" },
-    quarter_panel: { top: "42%", left: "75%", label: "اللوح الجانبي" },
-    front_bumper: { top: "55%", left: "8%", label: "الصدام الأمامي" },
-    rear_bumper: { top: "55%", left: "92%", label: "الصدام الخلفي" },
-    // Electric
-    exterior_lighting: { top: "48%", left: "10%", label: "الإضاءة الأمامية" },
-    lights_rear: { top: "45%", left: "90%", label: "الإضاءة الخلفية" },
-    electrical_system: { top: "42%", left: "45%", label: "الكهرباء" },
-    mirror_controls: { top: "30%", left: "28%", label: "المرايا" },
-    // Other
-    tires_rims: { top: "72%", left: "22%", label: "الإطار الأمامي" },
-    windows: { top: "28%", left: "42%", label: "الزجاج" },
-    glass_mirrors: { top: "32%", left: "25%", label: "المرايا" },
-    interior: { top: "35%", left: "45%", label: "الداخلية" },
-    chassis_frame: { top: "62%", left: "50%", label: "الهيكل" },
-  },
-  
-  // Rear-Right view: Shows trunk, rear bumper, exhaust, rear lights
-  rear_right: {
-    // Mechanical
-    fuel_exhaust: { top: "62%", left: "42%", label: "العادم" },
-    suspension_system: { top: "65%", left: "72%", label: "التعليق" },
-    brake_system: { top: "70%", left: "75%", label: "الفرامل" },
-    transmission_system: { top: "55%", left: "48%", label: "ناقل الحركة" },
-    misc_mechanical: { top: "58%", left: "55%", label: "أجزاء ميكانيكية" },
-    // Body - Rear
-    trunk: { top: "32%", left: "50%", label: "صندوق الأمتعة" },
-    rear_bumper: { top: "58%", left: "52%", label: "الصدام الخلفي" },
-    bumper_frame_rear: { top: "62%", left: "50%", label: "جسر الصدام" },
-    rear_chest: { top: "45%", left: "48%", label: "صدر السيارة الخلفي" },
-    quarter_panel: { top: "40%", left: "70%", label: "اللوح الجانبي" },
-    fender_rear_right: { top: "48%", left: "75%", label: "الرفرف الخلفي" },
-    roof: { top: "22%", left: "50%", label: "السقف" },
-    pillars: { top: "28%", left: "62%", label: "القوائم" },
-    door_rear_right: { top: "38%", left: "78%", label: "الباب الخلفي يمين" },
-    // Electric
-    lights_rear: { top: "42%", left: "65%", label: "الإضاءة الخلفية" },
-    exterior_lighting: { top: "45%", left: "58%", label: "الإضاءة" },
-    electrical_system: { top: "50%", left: "55%", label: "الكهرباء" },
-    // Other
-    tires_rims: { top: "72%", left: "78%", label: "الإطارات" },
-    windows: { top: "28%", left: "55%", label: "الزجاج الخلفي" },
-    interior: { top: "35%", left: "52%", label: "الداخلية" },
-    safety_systems: { top: "38%", left: "45%", label: "السلامة" },
-    chassis_frame: { top: "65%", left: "55%", label: "الهيكل" },
-  },
-  
-  // Left side view: Shows left doors, left fenders, left wheels (mirror of right)
-  left_side: {
-    // Mechanical
-    engine: { top: "40%", left: "85%", label: "المحرك" },
-    transmission_system: { top: "50%", left: "60%", label: "ناقل الحركة" },
-    fuel_exhaust: { top: "60%", left: "28%", label: "العادم" },
-    suspension_system: { top: "65%", left: "80%", label: "التعليق الأمامي" },
-    brake_system: { top: "68%", left: "75%", label: "الفرامل" },
-    steering_system: { top: "55%", left: "82%", label: "التوجيه" },
-    ac_cooling: { top: "38%", left: "80%", label: "التكييف" },
-    misc_mechanical: { top: "55%", left: "50%", label: "أجزاء ميكانيكية" },
-    // Body - Left side
-    door_front_left: { top: "38%", left: "68%", label: "الباب الأمامي يسار" },
-    door_rear_left: { top: "38%", left: "45%", label: "الباب الخلفي يسار" },
-    fender_front_left: { top: "50%", left: "82%", label: "الرفرف الأمامي" },
-    fender_rear_left: { top: "50%", left: "22%", label: "الرفرف الخلفي" },
-    hood: { top: "32%", left: "88%", label: "غطاء المحرك" },
-    trunk: { top: "35%", left: "12%", label: "صندوق الأمتعة" },
-    roof: { top: "20%", left: "55%", label: "السقف" },
-    pillars: { top: "25%", left: "60%", label: "القوائم" },
-    quarter_panel: { top: "42%", left: "25%", label: "اللوح الجانبي" },
-    front_bumper: { top: "55%", left: "92%", label: "الصدام الأمامي" },
-    rear_bumper: { top: "55%", left: "8%", label: "الصدام الخلفي" },
-    // Electric
-    exterior_lighting: { top: "48%", left: "90%", label: "الإضاءة الأمامية" },
-    lights_rear: { top: "45%", left: "10%", label: "الإضاءة الخلفية" },
-    electrical_system: { top: "42%", left: "55%", label: "الكهرباء" },
-    mirror_controls: { top: "30%", left: "72%", label: "المرايا" },
-    battery: { top: "35%", left: "78%", label: "البطارية" },
-    // Other
-    tires_rims: { top: "72%", left: "78%", label: "الإطار الأمامي" },
-    windows: { top: "28%", left: "58%", label: "الزجاج" },
-    glass_mirrors: { top: "32%", left: "75%", label: "المرايا" },
-    interior: { top: "35%", left: "55%", label: "الداخلية" },
-    chassis_frame: { top: "62%", left: "50%", label: "الهيكل" },
-  },
-};
+// Company Header Component - Exact High Safety Reference
+const CompanyHeader = () => (
+  <div className="rounded-3xl overflow-hidden shadow-2xl border border-[#C5852C]/30">
+    <div className="bg-[#0C1A28] relative">
+      <img 
+        src={hsBannerPath} 
+        alt="High Safety International Center" 
+        className="w-full object-cover"
+        style={{ maxHeight: '130px', objectPosition: 'center' }}
+      />
+    </div>
+    <div className="bg-gradient-to-l from-[#0C1A28] to-[#0f2035] text-white px-6 py-3 flex flex-wrap justify-center md:justify-between items-center gap-3 border-t border-[#C5852C]/40">
+      <div className="flex flex-wrap justify-center gap-4 text-sm">
+        <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
+          <PhosphorIcon name="phone" weight="duotone" size={16} className="text-[#C5852C]" />
+          <span className="font-mono font-bold">0542206000</span>
+        </div>
+        <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
+          <PhosphorIcon name="envelope" weight="duotone" size={16} className="text-[#C5852C]" />
+          <span className="text-xs font-mono">highsafety2021@gmail.com</span>
+        </div>
+        <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
+          <PhosphorIcon name="map-pin" weight="duotone" size={16} className="text-[#C5852C]" />
+          <span className="font-arabic">سيتي بلازا الدراري - الشارقة</span>
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
-// Mobile-friendly swipeable photo modal for section photos
-const SectionPhotoModal = ({ 
-  selectedSection, 
-  onClose 
-}: { 
-  selectedSection: { label: string; labelEn: string; exteriorPhoto: string | null; interiorPhoto: string | null; };
-  onClose: () => void;
-}) => {
-  const [activeTab, setActiveTab] = useState<'exterior' | 'interior'>('exterior');
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  
-  const minSwipeDistance = 50;
-  
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-  
-  const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-  
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-    
-    if (isLeftSwipe && activeTab === 'exterior' && selectedSection.interiorPhoto) {
-      setActiveTab('interior');
-    } else if (isRightSwipe && activeTab === 'interior' && selectedSection.exteriorPhoto) {
-      setActiveTab('exterior');
-    }
-  };
-
-  const hasExterior = !!selectedSection.exteriorPhoto;
-  const hasInterior = !!selectedSection.interiorPhoto;
-  const hasBoth = hasExterior && hasInterior;
+// Section 1: Vehicle Info Card - Exact 2-Column Specs + Car 3D + VIN Card & Odometer Card
+const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
+  const vehicleColor = useMemo(() => getVehicleColor(inspection.color), [inspection.color]);
 
   return (
-    <div 
-      className="fixed inset-0 bg-black/95 z-50 flex flex-col"
-      onClick={onClose}
-    >
-      {/* Header with close button */}
-      <div className="flex items-center justify-between p-4 bg-black/50" onClick={(e) => e.stopPropagation()}>
-        <div className="text-white text-right flex-1">
-          <p className="font-bold font-arabic text-lg">{selectedSection.label}</p>
-          <p className="text-white/60 text-sm">{selectedSection.labelEn}</p>
-        </div>
-        <button
-          onClick={onClose}
-          className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors touch-manipulation"
-          data-testid="button-close-photo-modal"
-          style={{ WebkitTapHighlightColor: 'transparent' }}
-        >
-          <X className="w-7 h-7 text-white" />
-        </button>
-      </div>
-
-      {/* Photo tabs */}
-      {hasBoth && (
-        <div className="flex gap-2 justify-center p-3 bg-black/30" onClick={(e) => e.stopPropagation()}>
-          <button
-            onClick={() => setActiveTab('exterior')}
-            className={cn(
-              "px-6 py-2 rounded-full font-arabic text-sm transition-all touch-manipulation",
-              activeTab === 'exterior' 
-                ? "bg-blue-500 text-white shadow-lg" 
-                : "bg-white/10 text-white/70"
-            )}
-          >
-            <span className="inline-block w-2 h-2 rounded-full bg-blue-300 ml-2"></span>
-            خارجية
-          </button>
-          <button
-            onClick={() => setActiveTab('interior')}
-            className={cn(
-              "px-6 py-2 rounded-full font-arabic text-sm transition-all touch-manipulation",
-              activeTab === 'interior' 
-                ? "bg-green-500 text-white shadow-lg" 
-                : "bg-white/10 text-white/70"
-            )}
-          >
-            <span className="inline-block w-2 h-2 rounded-full bg-green-300 ml-2"></span>
-            داخلية
-          </button>
-        </div>
-      )}
-
-      {/* Photo display area */}
-      <div 
-        className="flex-1 flex items-center justify-center p-4 overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-      >
-        {activeTab === 'exterior' && hasExterior && (
-          <img 
-            src={selectedSection.exteriorPhoto!}
-            alt={`${selectedSection.label} - خارجية`}
-            className="max-w-full max-h-full object-contain rounded-xl"
-          />
-        )}
-        {activeTab === 'interior' && hasInterior && (
-          <img 
-            src={selectedSection.interiorPhoto!}
-            alt={`${selectedSection.label} - داخلية`}
-            className="max-w-full max-h-full object-contain rounded-xl"
-          />
-        )}
-        {activeTab === 'exterior' && !hasExterior && hasInterior && (
-          <img 
-            src={selectedSection.interiorPhoto!}
-            alt={`${selectedSection.label} - داخلية`}
-            className="max-w-full max-h-full object-contain rounded-xl"
-          />
-        )}
-        {activeTab === 'interior' && !hasInterior && hasExterior && (
-          <img 
-            src={selectedSection.exteriorPhoto!}
-            alt={`${selectedSection.label} - خارجية`}
-            className="max-w-full max-h-full object-contain rounded-xl"
-          />
-        )}
-      </div>
-
-      {/* Swipe indicator for mobile */}
-      {hasBoth && (
-        <div className="p-4 text-center bg-black/30" onClick={(e) => e.stopPropagation()}>
-          <div className="flex justify-center gap-2 mb-2">
-            <div className={cn(
-              "w-2 h-2 rounded-full transition-all",
-              activeTab === 'exterior' ? "bg-blue-500 w-4" : "bg-white/30"
-            )}></div>
-            <div className={cn(
-              "w-2 h-2 rounded-full transition-all",
-              activeTab === 'interior' ? "bg-green-500 w-4" : "bg-white/30"
-            )}></div>
+    <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden" data-testid="vehicle-info-card">
+      <div className="bg-[#0C1A28] text-white px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shadow-md">
+            <PhosphorIcon name="car-profile" weight="duotone" size={22} className="text-[#C5852C]" />
           </div>
-          <p className="text-white/50 text-xs font-arabic">اسحب يميناً أو يساراً للتبديل</p>
+          <div>
+            <h3 className="font-bold text-lg font-arabic flex items-center gap-2">
+              <span className="font-mono text-[#C5852C]">1 |</span>
+              <span>معلومات السيارة</span>
+              <span className="text-white/50 text-xs font-mono font-normal">| Vehicle Information</span>
+            </h3>
+          </div>
         </div>
-      )}
+      </div>
 
-      {/* Close button at bottom for easy mobile access */}
-      <div className="p-4 pb-8 flex justify-center" onClick={(e) => e.stopPropagation()}>
-        <button
-          onClick={onClose}
-          className="px-8 py-3 bg-white text-slate-800 rounded-full font-bold font-arabic shadow-lg hover:shadow-xl transition-all touch-manipulation"
-          data-testid="button-close-modal-bottom"
-          style={{ WebkitTapHighlightColor: 'transparent' }}
-        >
-          إغلاق ومتابعة القراءة
-        </button>
+      <div className="p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left Side (5 Cols): 2-Column Key-Value Specs Table */}
+        <div className="lg:col-span-5 flex flex-col justify-between divide-y divide-slate-100 border border-slate-200 rounded-2xl p-2 bg-slate-50/50">
+          <div className="py-2.5 px-3 flex items-center justify-between text-right">
+            <span className="font-bold text-slate-900 text-sm font-arabic">{inspection.make || '-'}</span>
+            <div className="flex items-center gap-2 text-slate-500">
+              <span className="text-xs text-slate-400 font-mono">Manufacturer</span>
+              <span className="text-xs font-bold text-slate-700 font-arabic">الشركة المصنعة</span>
+              <PhosphorIcon name="buildings" weight="duotone" size={16} className="text-[#C5852C]" />
+            </div>
+          </div>
+
+          <div className="py-2.5 px-3 flex items-center justify-between text-right">
+            <span className="font-bold text-slate-900 text-sm font-arabic">{inspection.model || '-'}</span>
+            <div className="flex items-center gap-2 text-slate-500">
+              <span className="text-xs text-slate-400 font-mono">Model</span>
+              <span className="text-xs font-bold text-slate-700 font-arabic">الموديل</span>
+              <PhosphorIcon name="car" weight="duotone" size={16} className="text-[#C5852C]" />
+            </div>
+          </div>
+
+          <div className="py-2.5 px-3 flex items-center justify-between text-right">
+            <span className="font-bold text-slate-900 text-sm font-mono">{inspection.year || '-'}</span>
+            <div className="flex items-center gap-2 text-slate-500">
+              <span className="text-xs text-slate-400 font-mono">Year</span>
+              <span className="text-xs font-bold text-slate-700 font-arabic">سنة الصنع</span>
+              <PhosphorIcon name="calendar-blank" weight="duotone" size={16} className="text-[#C5852C]" />
+            </div>
+          </div>
+
+          <div className="py-2.5 px-3 flex items-center justify-between text-right">
+            <div className="flex items-center gap-2">
+              <span className="w-4 h-4 rounded-full border border-slate-300" style={{ backgroundColor: vehicleColor.hex }} />
+              <span className="font-bold text-slate-900 text-sm font-arabic">{vehicleColor.ar}</span>
+            </div>
+            <div className="flex items-center gap-2 text-slate-500">
+              <span className="text-xs text-slate-400 font-mono">Color</span>
+              <span className="text-xs font-bold text-slate-700 font-arabic">اللون</span>
+              <PhosphorIcon name="paint-brush" weight="duotone" size={16} className="text-[#C5852C]" />
+            </div>
+          </div>
+
+          <div className="py-2.5 px-3 flex items-center justify-between text-right">
+            <span className="font-mono font-bold text-slate-900 text-xs tracking-wider" dir="ltr">{inspection.vin || '-'}</span>
+            <div className="flex items-center gap-2 text-slate-500">
+              <span className="text-xs text-slate-400 font-mono">VIN</span>
+              <span className="text-xs font-bold text-slate-700 font-arabic">رقم الهيكل (VIN)</span>
+              <PhosphorIcon name="barcode" weight="duotone" size={16} className="text-[#C5852C]" />
+            </div>
+          </div>
+
+          <div className="py-2.5 px-3 flex items-center justify-between text-right">
+            <span className="font-mono font-bold text-slate-900 text-sm">{inspection.odometer?.toLocaleString() || '0'} كم</span>
+            <div className="flex items-center gap-2 text-slate-500">
+              <span className="text-xs text-slate-400 font-mono">Odometer Reading</span>
+              <span className="text-xs font-bold text-slate-700 font-arabic">قراءة العداد</span>
+              <PhosphorIcon name="gauge" weight="duotone" size={16} className="text-[#C5852C]" />
+            </div>
+          </div>
+
+          <div className="py-2.5 px-3 flex items-center justify-between text-right">
+            <span className="font-bold text-emerald-700 text-sm font-arabic">فحص شامل / Full</span>
+            <div className="flex items-center gap-2 text-slate-500">
+              <span className="text-xs text-slate-400 font-mono">Inspection Type</span>
+              <span className="text-xs font-bold text-slate-700 font-arabic">نوع الفحص</span>
+              <PhosphorIcon name="shield-check" weight="duotone" size={16} className="text-[#C5852C]" />
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side (7 Cols): Car 3D Photo + VIN Card & Odometer Card */}
+        <div className="lg:col-span-7 flex flex-col justify-between gap-4">
+          {/* Main Car Photo */}
+          <div className="w-full h-52 rounded-2xl overflow-hidden bg-slate-50 border border-slate-200 flex items-center justify-center p-2">
+            {inspection.mainCarPhoto ? (
+              <img src={inspection.mainCarPhoto} alt="Vehicle Main" className="w-full h-full object-contain" />
+            ) : (
+              <img src={hsCarBranding} alt="High Safety Vehicle" className="w-full h-full object-contain" />
+            )}
+          </div>
+
+          {/* Bottom 2 Sub-Cards: VIN Photo & Odometer Reading */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 text-center flex flex-col justify-between">
+              <div className="text-xs font-bold text-slate-700 font-arabic mb-1">رقم الهيكل (VIN)</div>
+              <div className="h-20 rounded-lg overflow-hidden bg-white border border-slate-200 flex items-center justify-center">
+                {inspection.vinPhoto ? (
+                  <img src={inspection.vinPhoto} alt="VIN Plate" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="font-mono font-bold text-xs text-slate-800 tracking-wider" dir="ltr">{inspection.vin}</div>
+                )}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 text-center flex flex-col justify-between">
+              <div className="text-xs font-bold text-slate-700 font-arabic mb-1">قراءة العداد (Odometer)</div>
+              <div className="h-20 rounded-lg overflow-hidden bg-white border border-slate-200 flex flex-col items-center justify-center p-1">
+                {inspection.odometerPhoto ? (
+                  <img src={inspection.odometerPhoto} alt="Odometer Photo" className="w-full h-full object-cover" />
+                ) : (
+                  <>
+                    <PhosphorIcon name="gauge" weight="duotone" size={24} className="text-[#C5852C] mb-1" />
+                    <div className="font-mono font-black text-slate-900 text-sm">{inspection.odometer?.toLocaleString() || '85,230'} KM</div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
-// Car Section Photos Gallery Component - For displaying exterior/interior photos in public reports
+// Section 2: Car Section Photos Component - 7 Horizontal Cards Grid
 const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
-  const [selectedSection, setSelectedSection] = useState<{ 
-    label: string; 
-    labelEn: string;
-    exteriorPhoto: string | null; 
-    interiorPhoto: string | null;
-  } | null>(null);
-  
-  const sections = [
-    { 
-      key: 'rearLeftDoor', 
-      label: 'الباب الخلفي يسار', 
-      labelEn: 'Rear Left Door', 
-      exteriorPhoto: inspection.rearLeftDoorPhoto,
-      interiorPhoto: null
-    },
-    { 
-      key: 'rearRightDoor', 
-      label: 'الباب الخلفي يمين', 
-      labelEn: 'Rear Right Door', 
-      exteriorPhoto: inspection.rearRightDoorPhoto,
-      interiorPhoto: null
-    },
-    { 
-      key: 'frontLeftDoor', 
-      label: 'الباب الأمامي يسار', 
-      labelEn: 'Front Left Door', 
-      exteriorPhoto: inspection.frontLeftDoorPhoto,
-      interiorPhoto: null
-    },
-    { 
-      key: 'frontRightDoor', 
-      label: 'الباب الأمامي يمين', 
-      labelEn: 'Front Right Door', 
-      exteriorPhoto: inspection.frontRightDoorPhoto,
-      interiorPhoto: null
-    },
-    { 
-      key: 'hood', 
-      label: 'غطاء المحرك / حجرة المحرك', 
-      labelEn: 'Hood / Engine Bay', 
-      exteriorPhoto: inspection.hoodPhoto,
-      interiorPhoto: null
-    },
-    { 
-      key: 'trunk', 
-      label: 'صندوق الأمتعة / الهيكل السفلي', 
-      labelEn: 'Trunk / Chassis', 
-      exteriorPhoto: inspection.trunkPhoto,
-      interiorPhoto: null
-    },
-  ];
+  const [selectedPhoto, setSelectedPhoto] = useState<{ url: string; labelAr: string; labelEn: string } | null>(null);
 
-  const hasAnyPhoto = sections.some(s => s.exteriorPhoto || s.interiorPhoto);
-  if (!hasAnyPhoto) return null;
+  const sections = [
+    { key: 'frontSide', labelAr: 'الواجهة الأمامية', labelEn: 'Front Side', photo: inspection.frontSidePhoto || inspection.frontLeftDoorPhoto },
+    { key: 'rearSide', labelAr: 'الواجهة الخلفية', labelEn: 'Rear Side', photo: inspection.rearSidePhoto || inspection.trunkPhoto },
+    { key: 'leftSide', labelAr: 'الجانب الأيسر', labelEn: 'Left Side', photo: inspection.rearLeftDoorPhoto || inspection.frontLeftDoorPhoto },
+    { key: 'rightSide', labelAr: 'الجانب الأيمن', labelEn: 'Right Side', photo: inspection.frontRightDoorPhoto || inspection.rearRightDoorPhoto },
+    { key: 'engineBay', labelAr: 'حجرة المحرك', labelEn: 'Engine Bay', photo: inspection.hoodPhoto },
+    { key: 'interior', labelAr: 'المقصورة الداخلية', labelEn: 'Interior', photo: inspection.interiorPhoto || inspection.frontLeftDoorInteriorPhoto },
+    { key: 'trunk', labelAr: 'صندوق الأمتعة', labelEn: 'Trunk', photo: inspection.trunkPhoto },
+  ];
 
   return (
     <>
-      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="bg-gradient-to-l from-primary to-primary/80 text-white px-6 py-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-            <Car className="w-5 h-5" />
-          </div>
-          <div className="text-right">
-            <h3 className="font-bold text-lg font-arabic">صور أقسام السيارة</h3>
-            <p className="text-white/70 text-xs">Car Section Photos</p>
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden" data-testid="car-section-photos-gallery">
+        <div className="bg-[#0C1A28] text-white px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shadow-md">
+              <PhosphorIcon name="camera" weight="duotone" size={22} className="text-[#C5852C]" />
+            </div>
+            <div>
+              <h3 className="font-bold text-lg font-arabic flex items-center gap-2">
+                <span className="font-mono text-[#C5852C]">2 |</span>
+                <span>صور أقسام السيارة</span>
+                <span className="text-white/50 text-xs font-mono font-normal">| Vehicle Sections Photos</span>
+              </h3>
+            </div>
           </div>
         </div>
-        <div className="p-4">
-          <p className="text-xs text-slate-500 font-arabic mb-3 text-center">
-            <ZoomIn className="w-3 h-3 inline ml-1" />
-            اضغط على أي قسم لعرض الصورة الخارجية والداخلية
-          </p>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {sections.map((section) => {
-              const hasPhotos = section.exteriorPhoto || section.interiorPhoto;
-              const photoCount = (section.exteriorPhoto ? 1 : 0) + (section.interiorPhoto ? 1 : 0);
-              return (
-                <button
-                  key={section.key}
-                  onClick={() => hasPhotos && setSelectedSection({ 
-                    label: section.label, 
-                    labelEn: section.labelEn,
-                    exteriorPhoto: section.exteriorPhoto,
-                    interiorPhoto: section.interiorPhoto
-                  })}
-                  disabled={!hasPhotos}
-                  className={cn(
-                    "relative rounded-2xl overflow-hidden border-2 transition-all",
-                    hasPhotos 
-                      ? "border-primary/30 hover:border-primary hover:shadow-lg cursor-pointer" 
-                      : "border-slate-200 bg-slate-50 cursor-not-allowed opacity-60"
-                  )}
-                  data-testid={`button-view-${section.key}`}
-                >
-                  {section.exteriorPhoto ? (
-                    <img 
-                      src={section.exteriorPhoto} 
-                      alt={`${section.label} - خارجية`}
-                      className="w-full h-28 object-cover"
-                    />
-                  ) : section.interiorPhoto ? (
-                    <img 
-                      src={section.interiorPhoto} 
-                      alt={`${section.label} - داخلية`}
-                      className="w-full h-28 object-cover"
-                    />
+
+        <div className="p-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3">
+            {sections.map((sec) => (
+              <button
+                key={sec.key}
+                type="button"
+                onClick={() => sec.photo && setSelectedPhoto({ url: sec.photo, labelAr: sec.labelAr, labelEn: sec.labelEn })}
+                disabled={!sec.photo}
+                className="group flex flex-col rounded-xl border border-slate-200 overflow-hidden bg-slate-50 hover:shadow-md transition-all text-center cursor-pointer disabled:cursor-default"
+              >
+                <div className="w-full h-24 bg-slate-100 flex items-center justify-center relative overflow-hidden">
+                  {sec.photo ? (
+                    <img src={sec.photo} alt={sec.labelAr} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                   ) : (
-                    <div className="w-full h-28 flex items-center justify-center bg-slate-100">
-                      <Car className="w-8 h-8 text-slate-300" />
-                    </div>
+                    <PhosphorIcon name="camera" weight="duotone" size={24} className="text-slate-300" />
                   )}
-                  {photoCount > 0 && (
-                    <div className="absolute top-2 left-2 flex gap-1">
-                      {section.exteriorPhoto && (
-                        <span className="bg-blue-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">خارجية</span>
-                      )}
-                      {section.interiorPhoto && (
-                        <span className="bg-green-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">داخلية</span>
-                      )}
-                    </div>
-                  )}
-                  <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-2">
-                    <p className="text-white text-xs font-arabic text-center">{section.label}</p>
-                    <p className="text-white/60 text-[10px] text-center">{section.labelEn}</p>
-                  </div>
-                </button>
-              );
-            })}
+                </div>
+                <div className="p-2 border-t border-slate-100 bg-white">
+                  <div className="text-xs font-bold text-slate-900 font-arabic truncate">{sec.labelAr}</div>
+                  <div className="text-[10px] text-slate-400 font-mono truncate" dir="ltr">{sec.labelEn}</div>
+                </div>
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Section Photos Modal - Mobile swipeable gallery */}
-      {selectedSection && (
-        <SectionPhotoModal 
-          selectedSection={selectedSection} 
-          onClose={() => setSelectedSection(null)} 
-        />
+      {/* Full Photo Modal */}
+      {selectedPhoto && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedPhoto(null)}>
+          <div className="relative max-w-3xl w-full bg-white rounded-2xl overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="bg-[#0C1A28] text-white px-6 py-4 flex items-center justify-between">
+              <div>
+                <h4 className="font-bold text-base font-arabic">{selectedPhoto.labelAr}</h4>
+                <p className="text-xs text-slate-400 font-mono" dir="ltr">{selectedPhoto.labelEn}</p>
+              </div>
+              <button onClick={() => setSelectedPhoto(null)} className="text-white hover:text-red-400 p-1">
+                <PhosphorIcon name="x" weight="bold" size={22} />
+              </button>
+            </div>
+            <div className="p-4 bg-slate-900 flex items-center justify-center max-h-[75vh]">
+              <img src={selectedPhoto.url} alt={selectedPhoto.labelAr} className="max-w-full max-h-[70vh] object-contain rounded-lg" />
+            </div>
+          </div>
+        </div>
       )}
     </>
   );
 };
 
-const ImageModal = ({ imageUrl, faultName, onClose }: { imageUrl: string; faultName: string; onClose: () => void }) => {
-  useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, []);
+// Section 3: Inspection Results Section - Detailed Finding Cards + Car Blueprint SVG
+const InspectionResults = ({ 
+  inspection, 
+  onImageClick 
+}: { 
+  inspection: any; 
+  onImageClick?: (url: string, name: string) => void; 
+}) => {
+  const items = inspection.items || [];
 
   return (
-    <div 
-      className="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-[100] flex items-center justify-center p-4 transition-all duration-300 animate-in fade-in"
-      onClick={onClose}
-      data-testid="image-lightbox-overlay"
-      dir="rtl"
-    >
-      {/* Top Bar with Title and Close Button */}
-      <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-50 bg-gradient-to-b from-black/60 to-transparent">
-        <h3 className="text-white font-bold font-arabic text-base md:text-lg truncate max-w-[70%] text-right">{faultName}</h3>
-        <button 
-          onClick={(e) => { e.stopPropagation(); onClose(); }}
-          className="w-11 h-11 bg-white/10 hover:bg-white/20 active:scale-95 text-white rounded-full flex items-center justify-center border border-white/20 transition-all cursor-pointer shadow-lg"
-          title="إغلاق"
-          data-testid="btn-close-lightbox"
-        >
-          <X className="w-6 h-6" />
-        </button>
-      </div>
-
-      {/* Main Image Container */}
-      <div className="relative max-w-5xl max-h-[80vh] w-full flex items-center justify-center animate-in scale-in duration-300" onClick={e => e.stopPropagation()}>
-        <img 
-          src={imageUrl} 
-          alt={faultName} 
-          className="max-w-full max-h-[80vh] object-contain rounded-2xl border border-white/10 shadow-2xl"
-        />
-      </div>
-
-      {/* Dismiss Hint at the bottom */}
-      <div className="absolute bottom-6 left-0 right-0 text-center">
-        <span className="bg-black/60 text-slate-300 text-xs px-4 py-2 rounded-full font-arabic backdrop-blur-sm border border-white/5">
-          اضغط في أي مكان خارج الصورة أو على زر (X) للإغلاق
-        </span>
-      </div>
-    </div>
-  );
-};
-
-const CarAnatomyVisualization = ({ items, onCategoryClick }: { items: InspectionItem[], onCategoryClick: (cat: string) => void }) => {
-  const [currentViewIndex, setCurrentViewIndex] = useState(0);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [dragDistance, setDragDistance] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const currentView = CAR_CUTAWAY_VIEWS[currentViewIndex];
-
-  const getCategoryStatus = (catId: string) => {
-    const catItems = items.filter(i => i.category === catId);
-    if (catItems.length === 0) return 'good';
-    if (catItems.some(i => i.status === 'fail')) return 'fail';
-    if (catItems.some(i => i.status === 'warning')) return 'warning';
-    return 'good';
-  };
-
-  const getCategoryItems = (catId: string) => items.filter(i => i.category === catId);
-
-  const getStatusColor = (status: string) => {
-    return 'bg-[#C5852C] shadow-[#C5852C]/50';
-  };
-
-  const getStatusIcon = (status: string) => {
-    return <Info className="w-3 h-3" />;
-  };
-
-  const handleCategoryPress = (catId: string) => {
-    setSelectedCategory(selectedCategory === catId ? null : catId);
-    onCategoryClick(catId);
-  };
-
-  const stats = useMemo(() => {
-    const warning = items.filter(i => i.status === 'warning').length;
-    const fail = items.filter(i => i.status === 'fail').length;
-    return { warning, fail, total: items.length };
-  }, [items]);
-
-  const getPosition = (catId: string) => {
-    const viewPositions = ANATOMY_POSITIONS_BY_VIEW[currentView.angle];
-    return viewPositions[catId] || { top: "50%", left: "50%", label: catId };
-  };
-
-  const goToView = (direction: 'next' | 'prev') => {
-    setCurrentViewIndex(prev => {
-      if (direction === 'next') return (prev + 1) % CAR_CUTAWAY_VIEWS.length;
-      return prev === 0 ? CAR_CUTAWAY_VIEWS.length - 1 : prev - 1;
-    });
-    setSelectedCategory(null);
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setIsDragging(true);
-    setStartX(e.touches[0].clientX);
-    setDragDistance(0);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) return;
-    setDragDistance(e.touches[0].clientX - startX);
-  };
-
-  const handleTouchEnd = () => {
-    if (isDragging && Math.abs(dragDistance) > 50) {
-      goToView(dragDistance > 0 ? 'prev' : 'next');
-    }
-    setIsDragging(false);
-    setDragDistance(0);
-  };
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setStartX(e.clientX);
-    setDragDistance(0);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    setDragDistance(e.clientX - startX);
-  };
-
-  const handleMouseUp = () => {
-    if (isDragging && Math.abs(dragDistance) > 50) {
-      goToView(dragDistance > 0 ? 'prev' : 'next');
-    }
-    setIsDragging(false);
-    setDragDistance(0);
-  };
-
-  return (
-    <div className="relative w-full bg-gradient-to-b from-[#0C1A28] via-[#0f1f2e] to-[#0C1A28] rounded-3xl overflow-hidden">
-      {/* Header stats */}
-      <div className="absolute top-0 left-0 right-0 p-3 md:p-4 flex justify-between items-center z-20">
-        <div className="bg-[#C5852C]/20 backdrop-blur-sm rounded-xl px-3 py-1.5 text-[#C5852C] text-xs font-arabic font-bold border border-[#C5852C]/30">
-          {currentView.label}
-        </div>
-        <div className="flex gap-2">
-          <div className="flex items-center gap-1.5 bg-[#C5852C]/20 text-[#C5852C] border border-[#C5852C]/30 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm font-arabic">
-            <span>الملاحظات المسجلة: {stats.total}</span>
+    <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden" data-testid="inspection-results-section">
+      <div className="bg-[#0C1A28] text-white px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shadow-md">
+            <PhosphorIcon name="clipboard-text" weight="duotone" size={22} className="text-[#C5852C]" />
+          </div>
+          <div>
+            <h3 className="font-bold text-lg font-arabic flex items-center gap-2">
+              <span className="font-mono text-[#C5852C]">3 |</span>
+              <span>نتائج الفحص</span>
+              <span className="text-white/50 text-xs font-mono font-normal">| Inspection Results</span>
+            </h3>
           </div>
         </div>
       </div>
 
-      {/* 360 Rotation Car Visualization */}
-      <div 
-        ref={containerRef}
-        className="relative w-full aspect-[4/3] md:aspect-[16/9] flex items-center justify-center pt-12 md:pt-14 pb-16 cursor-grab active:cursor-grabbing select-none touch-pan-y"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-      >
-        <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-white/5 to-transparent" />
-        
-        <div className="relative w-full h-full px-2 md:px-8">
-          <img 
-            src={currentView.image} 
-            alt={`عرض تشريحي - ${currentView.label}`} 
-            className="w-full h-full object-contain drop-shadow-2xl transition-transform duration-300"
-            style={{ transform: isDragging ? `translateX(${dragDistance * 0.1}px)` : 'none' }}
-            draggable={false}
-          />
+      <div className="p-6 space-y-4">
+        {items.length === 0 ? (
+          <div className="p-12 text-center bg-slate-50 rounded-2xl border border-slate-100">
+            <PhosphorIcon name="check-circle" weight="duotone" size={48} className="text-emerald-500 mx-auto mb-3" />
+            <h4 className="text-xl font-bold text-slate-800 font-arabic mb-1">المركبة بحالة ممتازة</h4>
+            <p className="text-slate-500 text-sm font-arabic">لم يتم تسجيل أي ملاحظات أو عيوب فنية على المركبة</p>
+          </div>
+        ) : (
+          items.map((item: any, idx: number) => {
+            const cat = INSPECTION_CATEGORIES.find(c => c.id === item.category) || { label: item.category || 'فحص عام', labelEn: 'General' };
+            const titleAr = item.faultName?.split(' - ')[0] || item.faultName || 'ملاحظة فنية';
 
-          {/* Category markers on anatomy diagram */}
-          {INSPECTION_CATEGORIES.map(cat => {
-            const viewPositions = ANATOMY_POSITIONS_BY_VIEW[currentView.angle];
-            if (!viewPositions[cat.id]) return null;
-            
-            const position = getPosition(cat.id);
-            const status = getCategoryStatus(cat.id);
-            const hasIssues = status !== 'good';
-            const catItems = getCategoryItems(cat.id);
-            const isSelected = selectedCategory === cat.id;
-
-            if (!hasIssues) return null;
-            
             return (
-              <div 
-                key={cat.id} 
-                className="absolute z-10 transition-all duration-300 -translate-x-1/2 -translate-y-1/2" 
-                style={{ top: position.top, left: position.left }}
-                onMouseDown={(e) => e.stopPropagation()}
-                onTouchStart={(e) => e.stopPropagation()}
+              <div
+                key={item.id || idx}
+                className="bg-white rounded-2xl border-2 border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-all p-4 flex flex-col md:flex-row items-center gap-4"
               >
-                <button
-                  onClick={() => handleCategoryPress(cat.id)}
-                  className={cn(
-                    "flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold text-white transition-all duration-300 cursor-pointer",
-                    getStatusColor(status),
-                    "shadow-lg hover:scale-110",
-                    isSelected ? "ring-2 ring-white scale-125" : "animate-pulse"
+                {/* Left: Defect Photo */}
+                <div className="shrink-0 w-full md:w-48 h-36 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 relative group">
+                  {item.imageUrl ? (
+                    <button
+                      type="button"
+                      onClick={() => onImageClick?.(item.imageUrl!, titleAr)}
+                      className="w-full h-full block cursor-pointer"
+                    >
+                      <img src={item.imageUrl} alt={titleAr} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                        <PhosphorIcon name="magnifying-glass-plus" weight="duotone" size={24} className="text-white" />
+                      </div>
+                    </button>
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-1 bg-slate-50">
+                      <PhosphorIcon name="camera-slash" weight="duotone" size={28} />
+                      <span className="text-[10px] font-arabic">لا توجد صورة</span>
+                    </div>
                   )}
-                  data-testid={`button-anatomy-${cat.id}`}
-                >
-                  {getStatusIcon(status)}
-                  <span className="font-arabic text-[8px] hidden md:inline">{position.label}</span>
-                </button>
-                
-                {/* Fault details popup */}
-                {isSelected && catItems.length > 0 && (
-                  <div 
-                    className="absolute top-full mt-2 right-0 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-3 min-w-[180px] max-w-[250px] z-50"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-200">
-                      <span className="font-bold text-xs text-slate-800 font-arabic">{cat.label}</span>
-                      <span className="text-[10px] text-slate-500">{catItems.length}</span>
-                    </div>
-                    <div className="space-y-2 max-h-[120px] overflow-y-auto">
-                      {catItems.map((item, idx) => (
-                        <div 
-                          key={idx}
-                          className="p-2 rounded-lg text-xs bg-slate-50 border border-slate-200"
-                        >
-                          <div className="flex items-start gap-2">
-                            <p className="font-bold font-arabic leading-tight text-[11px] text-slate-800">
-                              {item.faultName.split(' - ')[0]}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                </div>
+
+                {/* Center: Details & Descriptions */}
+                <div className="flex-1 min-w-0 text-right space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="font-black text-slate-900 font-arabic text-base">{cat.label}</span>
+                    <span className="text-xs text-slate-400 font-mono" dir="ltr">| {cat.labelEn}</span>
                   </div>
-                )}
+
+                  <h4 className="font-black text-slate-900 font-arabic text-lg leading-snug">
+                    {titleAr}
+                  </h4>
+
+                  {item.description && (
+                    <p className="text-sm text-slate-700 font-arabic leading-relaxed">
+                      {item.description}
+                    </p>
+                  )}
+
+                  {item.notes && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-2 text-xs text-amber-900 font-arabic flex items-center gap-2">
+                      <PhosphorIcon name="note" weight="duotone" size={16} className="text-amber-700 shrink-0" />
+                      <span>{item.notes}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Right: Top-down Car Blueprint SVG Pinpoint */}
+                <div className="shrink-0 w-24 h-36 bg-slate-50/80 rounded-xl border border-slate-100 p-1 flex items-center justify-center">
+                  <CarBlueprintPinpoint category={item.category || ''} dotColor="#dc2626" className="w-full h-full" />
+                </div>
               </div>
             );
-          })}
-        </div>
-      </div>
-
-      {/* View Indicators (dots) */}
-      <div className="absolute bottom-12 left-0 right-0 flex justify-center gap-2">
-        {CAR_CUTAWAY_VIEWS.map((view, idx) => (
-          <button
-            key={view.angle}
-            onClick={() => { setCurrentViewIndex(idx); setSelectedCategory(null); }}
-            className={cn(
-              "h-2 rounded-full transition-all duration-300",
-              idx === currentViewIndex 
-                ? "bg-[#C5852C] w-6" 
-                : "bg-white/30 w-2 hover:bg-white/50"
-            )}
-            data-testid={`button-view-${view.angle}`}
-          />
-        ))}
-      </div>
-
-      {/* Legend & Hint */}
-      <div className="absolute bottom-4 left-0 right-0 space-y-2">
-        <div className="flex justify-center">
-          <div className="bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5 text-[10px] text-white/60 font-arabic">
-            اسحب أو استخدم الأسهم للتدوير 360° - اضغط على النقاط لعرض التفاصيل
-          </div>
-        </div>
+          })
+        )}
       </div>
     </div>
   );
 };
 
 export default function PublicReport() {
-  const [matchView, paramsView] = useRoute("/view/:token");
-  const [matchReport, paramsReport] = useRoute("/report/:token");
-  const [matchReports, paramsReports] = useRoute("/reports/:token");
+  const [, paramsToken] = useRoute("/view/:token");
+  const [, paramsShare] = useRoute("/reports/share/:token");
+  const [, paramsDirect] = useRoute("/report/:id");
+  const token = paramsToken?.token || paramsShare?.token || paramsDirect?.id;
+  const isDirectId = !!paramsDirect?.id && !paramsToken?.token && !paramsShare?.token;
 
-  const pathParts = window.location.pathname.split('/').filter(Boolean);
-  const token = paramsView?.token || paramsReport?.token || paramsReports?.token || pathParts[pathParts.length - 1];
   const [selectedImage, setSelectedImage] = useState<{ url: string; name: string } | null>(null);
-  const [highlightedCategory, setHighlightedCategory] = useState<string | null>(null);
-  const [showIntro, setShowIntro] = useState(true);
-  const [introComplete, setIntroComplete] = useState(false);
+  const [showIntro, setShowIntro] = useState(() => {
+    const hasSeenIntro = sessionStorage.getItem(`hs_intro_${token}`);
+    return !hasSeenIntro;
+  });
+
+  const handleIntroComplete = () => {
+    setShowIntro(false);
+    if (token) {
+      sessionStorage.setItem(`hs_intro_${token}`, 'true');
+    }
+  };
+
   const { data: inspection, isLoading, error } = useQuery<InspectionWithItems>({
-    queryKey: ['/api/public/report', token],
+    queryKey: [isDirectId ? `/api/inspections/${token}` : `/api/public/report/${token}`],
     queryFn: async () => {
-      const res = await fetch(`/api/public/report/${token}`);
+      const endpoint = isDirectId ? `/api/inspections/${token}` : `/api/public/report/${token}`;
+      const res = await fetch(endpoint);
       if (!res.ok) throw new Error('Report not found');
       return res.json();
     },
     enabled: !!token
   });
-
-  const handleIntroComplete = () => {
-    setIntroComplete(true);
-    setTimeout(() => setShowIntro(false), 100);
-  };
-
-  const handleCategoryClick = (catId: string) => {
-    setHighlightedCategory(catId);
-    const element = document.getElementById(`category-${catId}`);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setTimeout(() => setHighlightedCategory(null), 3000);
-    }
-  };
 
   if (isLoading) {
     return (
@@ -814,8 +455,8 @@ export default function PublicReport() {
 
   if (error || !inspection) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-        <div className="text-center bg-white/10 backdrop-blur-lg rounded-3xl p-12">
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+        <div className="text-center bg-white/10 backdrop-blur-lg rounded-3xl p-12 max-w-md">
           <XCircle className="w-20 h-20 text-red-400 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-white mb-2 font-arabic">التقرير غير موجود</h1>
           <p className="text-white/60 font-arabic">الرابط غير صحيح أو انتهت صلاحيته</p>
@@ -824,14 +465,8 @@ export default function PublicReport() {
     );
   }
 
-  const items = inspection.items || [];
-  const issueItems = items.filter(i => i.status === 'fail' || i.status === 'warning');
-  const failCount = items.filter(i => i.status === 'fail').length;
-  const warningCount = items.filter(i => i.status === 'warning').length;
-
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100" dir="rtl">
+    <div className="min-h-screen bg-slate-50" dir="rtl">
       {showIntro && <IntroAnimation onComplete={handleIntroComplete} duration={4500} />}
       
       {selectedImage && (
@@ -841,208 +476,49 @@ export default function PublicReport() {
           onClose={() => setSelectedImage(null)} 
         />
       )}
-      
-      <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-6">
-        
-        {/* Professional Company Header Banner */}
-        <div className="rounded-3xl overflow-hidden shadow-2xl border border-[#C5852C]/40">
-          <div className="bg-[#0C1A28]">
-            <img
-              src={hsBannerPath}
-              alt="High Safety International Center"
-              className="w-full object-cover"
-              style={{ maxHeight: '130px', objectPosition: 'center' }}
-            />
-          </div>
-          <div className="bg-gradient-to-l from-[#0C1A28] to-[#0f2035] text-white px-6 py-3 flex items-center justify-between border-t border-[#C5852C]/40">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 rounded-full bg-[#C5852C]" />
-              <p className="text-[#C5852C] text-sm font-bold tracking-widest font-arabic">تقرير الفحص التفاعلي</p>
-              <div className="w-2 h-2 rounded-full bg-[#C5852C]" />
+
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3">
+        <div className="max-w-6xl mx-auto flex justify-between items-center gap-4">
+          <div className="flex items-center gap-3">
+            <img src={logoPath} alt="Logo" className="w-10 h-10 object-contain" style={{ filter: 'drop-shadow(0 0 6px rgba(197,133,44,0.7))' }} />
+            <div className="text-right">
+              <h1 className="text-lg font-black text-slate-900 font-arabic">تقرير الفحص التفاعلي</h1>
+              <p className="text-xs text-slate-400 font-mono">{inspection.vin}</p>
             </div>
+          </div>
+          <div className="flex gap-2 items-center">
+            <a 
+              href={`/api/autel/report/public/${token}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs px-3 sm:px-4 h-9 bg-[#0C1A28] hover:bg-[#182b3d] text-white font-bold rounded-md shadow-sm flex items-center gap-1.5 transition-all"
+            >
+              <PhosphorIcon name="file-pdf" weight="duotone" size={16} className="text-white" />
+              <span>تقرير Autel</span>
+            </a>
           </div>
         </div>
+      </div>
 
-        {/* Vehicle Info Section - Before Car Visualization */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2 font-arabic text-slate-800">
-            <PhosphorIcon name="car" weight="duotone" size={24} className="text-[#C5852C]" />
-            معلومات السيارة
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-4">
-            <div className="bg-slate-50 rounded-lg md:rounded-xl p-2 md:p-3">
-              <div className="text-xs md:text-sm text-slate-500 font-arabic mb-1">الشركة المصنعة</div>
-              <div className="font-bold text-base md:text-lg text-slate-800 truncate">{inspection.make || '-'}</div>
-            </div>
-            <div className="bg-slate-50 rounded-lg md:rounded-xl p-2 md:p-3">
-              <div className="text-xs md:text-sm text-slate-500 font-arabic mb-1">الموديل</div>
-              <div className="font-bold text-base md:text-lg text-slate-800 truncate">{inspection.model || '-'}</div>
-            </div>
-            <div className="bg-slate-50 rounded-lg md:rounded-xl p-2 md:p-3">
-              <div className="text-xs md:text-sm text-slate-500 font-arabic mb-1">سنة الصنع</div>
-              <div className="font-bold text-base md:text-lg text-slate-800">{inspection.year || '-'}</div>
-            </div>
-            <div className="bg-slate-50 rounded-lg md:rounded-xl p-2 md:p-3">
-              <div className="text-xs md:text-sm text-slate-500 font-arabic mb-1 flex items-center gap-1">
-                <Palette className="w-3 h-3" />
-                اللون
-              </div>
-              <div className="flex items-center gap-2">
-                <span 
-                  className="w-5 h-5 rounded-full border border-slate-200 shrink-0" 
-                  style={{ backgroundColor: getVehicleColor(inspection.color).hex }}
-                />
-                <span className="font-bold text-base md:text-lg text-slate-800 truncate">
-                  {getVehicleColor(inspection.color).ar}
-                </span>
-              </div>
-            </div>
-          </div>
-          
-          {/* VIN Section - Click to reveal photo */}
-          <div className="mb-4 bg-slate-50 rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Car className="w-4 h-4 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-800 font-arabic text-sm">رقم الهيكل (VIN)</h3>
-                {inspection.vinPhoto && (
-                  <p className="text-xs text-primary font-arabic flex items-center gap-1">
-                    <ZoomIn className="w-3 h-3" />
-                    اضغط على اللوحة لعرض الصورة الأصلية
-                  </p>
-                )}
-              </div>
-            </div>
-            <VinPlate 
-              vin={inspection.vin}
-              make={inspection.make}
-              model={inspection.model}
-              year={inspection.year}
-              vinPhoto={inspection.vinPhoto}
-              className="max-w-md mx-auto"
-            />
-          </div>
-          
-          {/* Odometer Section - Click to reveal photo */}
-          <div className="bg-slate-50 rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Gauge className="w-4 h-4 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-800 font-arabic text-sm">قراءة العداد</h3>
-                {inspection.odometerPhoto && (
-                  <p className="text-xs text-primary font-arabic flex items-center gap-1">
-                    <ZoomIn className="w-3 h-3" />
-                    اضغط على العداد لعرض الصورة الأصلية
-                  </p>
-                )}
-              </div>
-            </div>
-            <LuxuryOdometer 
-              odometer={inspection.odometer || 0} 
-              odometerPhoto={inspection.odometerPhoto}
-            />
-          </div>
-          
-          {inspection.inspectionType && (
-            <div className="mt-4 pt-4 border-t border-slate-100">
-              <div className="bg-primary/10 rounded-lg md:rounded-xl p-3 md:p-4 text-center">
-                <div className="text-xs md:text-sm text-slate-500 font-arabic mb-1">نوع الفحص</div>
-                <div className="font-bold text-lg md:text-xl text-primary">
-                  {getInspectionTypeLabel(inspection.inspectionType).ar}
-                </div>
-                <div className="text-sm text-slate-500">
-                  {getInspectionTypeLabel(inspection.inspectionType).en}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+      {/* Report Content */}
+      <div id="report-content" className="max-w-6xl mx-auto py-6 px-4 space-y-6 print:py-0">
+        {/* Company Header */}
+        <CompanyHeader />
 
-        {/* Car Visualization - After Vehicle Info */}
-        <CarAnatomyVisualization items={issueItems} onCategoryClick={handleCategoryClick} />
+        {/* Section 1: Vehicle Info Card */}
+        <VehicleInfoCard inspection={inspection} />
 
-        {/* Car Section Photos Gallery */}
+        {/* Section 2: Car Section Photos Gallery */}
         <CarSectionPhotosGallery inspection={inspection} />
 
-        {issueItems.length > 0 && (
-          <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100">
-            <div className="p-6 border-b border-slate-100">
-              <h2 className="text-xl font-bold flex items-center gap-2 font-arabic text-slate-800">
-                <AlertTriangle className="w-6 h-6 text-amber-500" />
-                نتائج الفحص
-              </h2>
-              <p className="text-slate-500 text-sm mt-1 font-arabic">اضغط على الصورة لتكبيرها</p>
-            </div>
-            
-            <div className="divide-y divide-slate-100">
-              {INSPECTION_CATEGORIES.map(cat => {
-                const catItems = issueItems.filter(i => i.category === cat.id);
-                if (catItems.length === 0) return null;
-                
-                const isHighlighted = highlightedCategory === cat.id;
-                
-                return (
-                  <div 
-                    key={cat.id} 
-                    id={`category-${cat.id}`}
-                    className={cn(
-                      "p-4 transition-all duration-300",
-                      isHighlighted && "bg-primary/5 ring-2 ring-primary ring-inset"
-                    )}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-bold text-slate-700 font-arabic">{cat.label}</h3>
-                      <span className="text-xs text-slate-400">{cat.labelEn}</span>
-                    </div>
-                    <div className="space-y-3">
-                      {catItems.map(item => (
-                        <div 
-                          key={item.id} 
-                          className="p-4 rounded-xl flex flex-col md:flex-row-reverse gap-4 bg-slate-50 border border-slate-100"
-                        >
-                          {item.imageUrl && (
-                            <button
-                              onClick={() => setSelectedImage({ url: item.imageUrl!, name: item.faultName.split(' - ')[0] })}
-                              className="relative w-full md:w-32 h-32 rounded-xl overflow-hidden shrink-0 group cursor-pointer"
-                            >
-                              <img src={item.imageUrl} alt="صورة العطل" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-                                <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                              </div>
-                            </button>
-                          )}
-                          <div className="flex-1 text-right">
-                            <div className="font-bold text-slate-800 font-arabic text-lg">{item.faultName.split(' - ')[0]}</div>
-                            {item.faultName.split(' - ')[1] && (
-                              <p className="text-xs text-slate-400 font-mono">{item.faultName.split(' - ')[1]}</p>
-                            )}
-                            {item.description && (
-                              <p className="text-sm text-slate-600 mt-2 font-arabic leading-relaxed">{item.description}</p>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        {/* Section 3: Inspection Results */}
+        <InspectionResults 
+          inspection={inspection} 
+          onImageClick={(url, name) => setSelectedImage({ url, name })}
+        />
 
-        {issueItems.length === 0 && (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-3xl p-8 text-center">
-            <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-emerald-800 font-arabic mb-2">المركبة في حالة ممتازة</h3>
-            <p className="text-emerald-600 font-arabic">لا توجد ملاحظات على المركبة</p>
-          </div>
-        )}
-
-        {/* Dynamic OBD Codes Section - Current & History */}
+        {/* Dynamic OBD Codes Section - Section 4 Current & Section 5 History */}
         {(() => {
           const obdCodes = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string; diagnosis?: string; causes?: string; solutions?: string; status?: 'current' | 'history'}> | null) || [];
           const currentCodes = obdCodes.filter(c => c.status !== 'history');
@@ -1050,65 +526,41 @@ export default function PublicReport() {
 
           if (currentCodes.length === 0 && historyCodes.length === 0) return null;
 
-          const getCodeType = (code: string) => {
-            const p = code.charAt(0).toUpperCase();
-            if (p === 'P') return { color: 'bg-red-600', labelAr: 'المحرك وناقل الحركة' };
-            if (p === 'C') return { color: 'bg-amber-600', labelAr: 'الشاصي' };
-            if (p === 'B') return { color: 'bg-blue-600', labelAr: 'الهيكل' };
-            if (p === 'U') return { color: 'bg-purple-600', labelAr: 'شبكة الاتصال' };
-            return { color: 'bg-slate-600', labelAr: 'أخرى' };
-          };
-
           const renderCodeList = (codes: typeof obdCodes, isHistory: boolean) => (
-            <div className="bg-white rounded-3xl overflow-hidden shadow-xl border-2 border-slate-200" data-testid={isHistory ? "obd-history-section" : "obd-current-section"}>
-              <div className={`p-6 text-white ${isHistory ? 'bg-gradient-to-l from-amber-700 via-amber-800 to-amber-950' : 'bg-gradient-to-l from-slate-900 via-red-950 to-black'}`}>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center shadow-lg">
-                      <PhosphorIcon name="cpu" weight="duotone" size={28} className={isHistory ? "text-amber-400" : "text-red-400"} />
-                    </div>
-                    <div>
-                      <div className="text-xs text-slate-300 font-mono font-bold tracking-wider" dir="ltr">HIGH SAFETY</div>
-                      <div className="text-xs text-slate-400 font-mono tracking-wider" dir="ltr">{isHistory ? "HISTORY FAULTS" : "CURRENT FAULTS"}</div>
-                    </div>
+            <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200" data-testid={isHistory ? "obd-history-section" : "obd-current-section"}>
+              <div className="bg-[#0C1A28] text-white px-6 py-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shadow-md">
+                    <PhosphorIcon name={isHistory ? "clock-counter-clockwise" : "warning-octagon"} weight="duotone" size={22} className={isHistory ? "text-amber-400" : "text-red-500"} />
                   </div>
-                  <div className="text-left bg-white/10 rounded-xl px-4 py-2" dir="ltr">
-                    <div className="text-xs text-slate-300 font-mono">{isHistory ? "STORED CODES" : "ACTIVE CODES"}</div>
-                    <div className={`text-3xl font-black ${isHistory ? "text-amber-400" : "text-red-400"}`}>{codes.length}</div>
+                  <div>
+                    <h3 className="font-bold text-lg font-arabic flex items-center gap-2">
+                      <span className="font-mono text-[#C5852C]">{isHistory ? "5 |" : "4 |"}</span>
+                      <span>{isHistory ? "الأعطال السابقة — History" : "الأعطال الحالية — Current"}</span>
+                      <span className="text-white/50 text-xs font-mono font-normal">| {isHistory ? "Stored & History Trouble Codes" : "Active & Current Trouble Codes"}</span>
+                    </h3>
                   </div>
-                </div>
-                <div className="text-center border-t border-white/10 pt-4">
-                  <h3 className="text-xl font-black font-arabic flex items-center justify-center gap-2">
-                    <PhosphorIcon name={isHistory ? "clock-counter-clockwise" : "warning-circle"} weight="duotone" size={24} className={isHistory ? "text-amber-400" : "text-red-400"} />
-                    <span>{isHistory ? "الأعطال السابقة — History" : "الأعطال الحالية — Current"}</span>
-                  </h3>
-                  <p className="text-slate-300 text-xs font-mono mt-1" dir="ltr">
-                    {isHistory ? "OBD-II Stored & History Diagnostic Trouble Codes" : "OBD-II Active & Current Diagnostic Trouble Codes"}
-                  </p>
                 </div>
               </div>
 
-              <div className="space-y-2 px-4 py-4">
-                {codes.map((obd, idx) => {
-                  const type = getCodeType(obd.code);
-                  return (
-                    <div key={idx} className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 text-right" dir="rtl">
-                      <div className="shrink-0 text-center">
-                        <div className={`font-mono font-black text-white text-base px-3 py-1.5 rounded-lg ${type.color} shadow-sm min-w-[80px] text-center`}>{obd.code}</div>
-                        <div className="text-[10px] text-center text-slate-500 mt-1 font-arabic font-medium">{type.labelAr}</div>
-                      </div>
-                      <div className="flex-1 min-w-0 pr-2">
-                        <div className="text-base font-bold text-slate-900 font-arabic leading-snug">{obd.nameAr}</div>
-                        <div className="text-xs text-slate-500 font-mono mt-0.5" dir="ltr">{obd.nameEn}</div>
-                      </div>
+              <div className="p-6 space-y-3">
+                {codes.map((obd, idx) => (
+                  <div key={idx} className="flex items-center gap-4 p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 text-right">
+                    <div className="shrink-0 text-center">
+                      <div className="font-mono font-black text-[#0C1A28] text-lg px-4 py-1.5 rounded-xl bg-slate-200/80 shadow-sm min-w-[90px] text-center">{obd.code}</div>
                     </div>
-                  );
-                })}
-              </div>
-
-              <div className="bg-slate-100 border-t-2 border-slate-200 px-5 py-3 flex items-center justify-between">
-                <span className="text-xs text-slate-500 font-mono font-bold" dir="ltr">HIGH SAFETY INSPECTION CENTER</span>
-                <span className="text-xs text-slate-400 font-mono" dir="ltr">HS-OBD-{isHistory ? 'HIST' : 'CURR'}-{String(inspection.id).padStart(4, '0')}</span>
+                    <div className="flex-1 min-w-0 pr-2">
+                      <div className="text-base font-black text-slate-900 font-arabic leading-snug">{obd.nameAr}</div>
+                      <div className="text-xs text-slate-400 font-mono mt-0.5" dir="ltr">{obd.nameEn}</div>
+                    </div>
+                    <div className="shrink-0">
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold font-arabic flex items-center gap-1.5 ${isHistory ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'}`}>
+                        <PhosphorIcon name={isHistory ? "clock-counter-clockwise" : "warning-octagon"} weight="duotone" size={14} />
+                        <span>{isHistory ? 'سابق History' : 'نشط Active'}</span>
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           );
@@ -1121,130 +573,143 @@ export default function PublicReport() {
           );
         })()}
 
-          {/* Autel Computer Report Section */}
+        {/* Section 6: Autel Computer Report Section */}
         {inspection.autelReportPdf && (
-          <div className="bg-white rounded-3xl overflow-hidden shadow-xl border-2 border-orange-200" data-testid="autel-report-section">
-            <div className="bg-gradient-to-l from-orange-600 to-orange-700 px-6 py-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-black text-white font-arabic">تقرير فحص الكمبيوتر</h3>
-                  <p className="text-orange-200 text-sm font-mono mt-1" dir="ltr">Autel Computer Diagnostic Report</p>
+          <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200" data-testid="autel-report-section">
+            <div className="bg-[#0C1A28] text-white px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shadow-md">
+                  <PhosphorIcon name="cpu" weight="duotone" size={22} className="text-[#C5852C]" />
                 </div>
-                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
-                  <PhosphorIcon name="cpu" weight="duotone" size={26} className="text-white" />
+                <div>
+                  <h3 className="font-bold text-lg font-arabic flex items-center gap-2">
+                    <span className="font-mono text-[#C5852C]">6 |</span>
+                    <span>تقرير فحص الكمبيوتر</span>
+                    <span className="text-white/50 text-xs font-mono font-normal">| Autel Computer Diagnostic Report</span>
+                  </h3>
                 </div>
               </div>
             </div>
-            <div className="p-6 text-center">
-              <p className="text-slate-600 font-arabic mb-4">تقرير فحص الكمبيوتر الشامل من جهاز Autel</p>
+            <div className="p-6 flex flex-col md:flex-row items-center justify-between gap-6 bg-slate-50/50">
+              <div className="flex items-center gap-4 text-right">
+                <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">
+                  <PhosphorIcon name="file-pdf" weight="duotone" size={36} className="text-red-500" />
+                </div>
+                <div>
+                  <h4 className="font-black text-slate-900 font-arabic text-base">تقرير فحص الكمبيوتر الشامل من جهاز Autel</h4>
+                  <p className="text-xs text-slate-500 font-mono mt-0.5" dir="ltr">Autel MaxiSys Diagnostic Report — Attached in PDF</p>
+                </div>
+              </div>
               <a
                 href={`/api/autel/report/public/${token}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-xl font-bold hover:bg-orange-700 transition-colors shadow-md"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-[#0C1A28] hover:bg-[#1a334d] text-white rounded-xl font-bold font-arabic transition-all shadow-md hover:shadow-lg"
                 data-testid="btn-open-autel-pdf"
               >
-                <PhosphorIcon name="file-pdf" weight="duotone" size={20} className="text-white" />
-                فتح تقرير Autel
+                <PhosphorIcon name="arrow-square-out" weight="duotone" size={20} className="text-[#C5852C]" />
+                <span>فتح تقرير Autel المرفق</span>
               </a>
-            </div>
-            <div className="bg-orange-50 border-t-2 border-orange-200 px-5 py-3 flex items-center justify-between">
-              <span className="text-xs text-orange-600 font-mono font-bold" dir="ltr">HIGH SAFETY INSPECTION CENTER</span>
-              <span className="text-xs text-orange-400 font-mono" dir="ltr">AUTEL-{String(inspection.id).padStart(4, '0')}</span>
             </div>
           </div>
         )}
 
-        {/* Terms and Conditions */}
-        <div className="bg-slate-50 rounded-3xl p-6 border border-slate-200">
-          <h3 className="text-lg font-bold text-slate-800 mb-4 text-center font-arabic">
-            الأحكام والشروط | Terms & Conditions
-          </h3>
-          <div className="space-y-3 text-sm">
-            <div className="flex gap-3 items-start">
-              <span className="text-primary font-bold min-w-[24px]">1.</span>
+        {/* Section 7: Terms and Conditions */}
+        <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200" data-testid="terms-section">
+          <div className="bg-[#0C1A28] text-white px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shadow-md">
+                <PhosphorIcon name="scales" weight="duotone" size={22} className="text-[#C5852C]" />
+              </div>
               <div>
-                <p className="text-slate-700 font-arabic">المركز غير مسئول عن أي أعطال تحدث أثناء الفحص أو بعده.</p>
-                <p className="text-slate-500 text-xs">The center is not responsible for any malfunctions occurring during or after inspection.</p>
+                <h3 className="font-bold text-lg font-arabic flex items-center gap-2">
+                  <span className="font-mono text-[#C5852C]">7 |</span>
+                  <span>الأحكام والشروط</span>
+                  <span className="text-white/50 text-xs font-mono font-normal">| Terms & Conditions</span>
+                </h3>
               </div>
             </div>
-            <div className="flex gap-3 items-start">
-              <span className="text-primary font-bold min-w-[24px]">2.</span>
-              <div>
-                <p className="text-slate-700 font-arabic">المركز مسئول عن نتيجة الفحص وقت الفحص فقط وغير مسئول بعد خروج المركبة من الفحص.</p>
-                <p className="text-slate-500 text-xs">The center is only responsible for inspection results at the time of inspection.</p>
+          </div>
+
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-start gap-3 text-right">
+              <div className="flex-1">
+                <p className="font-bold text-slate-900 font-arabic text-sm">1. المركز غير مسئول عن أي أعطال تحدث أثناء الفحص أو بعده.</p>
+                <p className="text-xs text-slate-500 font-mono mt-1" dir="ltr">The center is not responsible for any malfunctions occurring during or after inspection.</p>
+              </div>
+              <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
+                <PhosphorIcon name="shield-warning" weight="duotone" size={20} className="text-[#C5852C]" />
               </div>
             </div>
-            <div className="flex gap-3 items-start">
-              <span className="text-primary font-bold min-w-[24px]">3.</span>
-              <div>
-                <p className="text-slate-700 font-arabic">هذا الفحص غير معتمد لدى إدارة التراخيص.</p>
-                <p className="text-slate-500 text-xs">This inspection is not approved by the Licensing Authority.</p>
+
+            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-start gap-3 text-right">
+              <div className="flex-1">
+                <p className="font-bold text-slate-900 font-arabic text-sm">2. المركز مسئول عن نتيجة الفحص وقت الفحص فقط وغير مسئول بعد خروج المركبة من الفحص.</p>
+                <p className="text-xs text-slate-500 font-mono mt-1" dir="ltr">The center is only responsible for inspection results at the time of inspection.</p>
+              </div>
+              <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
+                <PhosphorIcon name="clock" weight="duotone" size={20} className="text-[#C5852C]" />
               </div>
             </div>
-            <div className="flex gap-3 items-start">
-              <span className="text-primary font-bold min-w-[24px]">4.</span>
-              <div>
-                <p className="text-slate-700 font-arabic">المركز غير مسئول عن أي أغراض شخصية داخل السيارة أثناء الفحص.</p>
-                <p className="text-slate-500 text-xs">The center is not responsible for any personal belongings inside the vehicle.</p>
+
+            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-start gap-3 text-right">
+              <div className="flex-1">
+                <p className="font-bold text-slate-900 font-arabic text-sm">3. هذا الفحص غير معتمد لدى إدارة التراخيص.</p>
+                <p className="text-xs text-slate-500 font-mono mt-1" dir="ltr">This inspection is not approved by the Licensing Authority.</p>
+              </div>
+              <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
+                <PhosphorIcon name="file-text" weight="duotone" size={20} className="text-[#C5852C]" />
               </div>
             </div>
-            <div className="flex gap-3 items-start">
-              <span className="text-primary font-bold min-w-[24px]">5.</span>
-              <div>
-                <p className="text-slate-700 font-arabic">يعتبر هذا التقرير لحالة المركبة حسب قراءة الأجهزة في وقت الفحص.</p>
-                <p className="text-slate-500 text-xs">This report reflects the vehicle condition based on device readings at inspection time.</p>
+
+            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-start gap-3 text-right">
+              <div className="flex-1">
+                <p className="font-bold text-slate-900 font-arabic text-sm">4. المركز غير مسئول عن أي أغراض شخصية داخل السيارة أثناء الفحص.</p>
+                <p className="text-xs text-slate-500 font-mono mt-1" dir="ltr">The center is not responsible for any personal belongings inside the vehicle.</p>
+              </div>
+              <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
+                <PhosphorIcon name="backpack" weight="duotone" size={20} className="text-[#C5852C]" />
+              </div>
+            </div>
+
+            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-start gap-3 text-right md:col-span-2">
+              <div className="flex-1">
+                <p className="font-bold text-slate-900 font-arabic text-sm">5. يعتبر هذا التقرير لحالة المركبة حسب قراءة الأجهزة في وقت الفحص.</p>
+                <p className="text-xs text-slate-500 font-mono mt-1" dir="ltr">This report reflects the vehicle condition based on device readings at the time of inspection.</p>
+              </div>
+              <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
+                <PhosphorIcon name="clipboard-check" weight="duotone" size={20} className="text-[#C5852C]" />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Footer with WhatsApp CTA */}
-        <div className="bg-gradient-to-br from-[#0C1A28] via-[#0f1f2e] to-[#0C1A28] rounded-2xl p-8 text-center text-white border border-[#C5852C]/20">
-          <div className="flex justify-center mb-4">
-            <div className="relative">
-              <div className="absolute -inset-2 rounded-full bg-gradient-to-br from-yellow-400/40 via-[#C5852C]/30 to-yellow-600/40 blur-lg" />
-              <img src={logoPath} alt="High Safety" className="h-16 w-16 rounded-full object-cover border border-[#C5852C]/30 relative z-10" style={{ filter: 'drop-shadow(0 0 10px rgba(197,133,44,0.8))' }} />
+        {/* Footer Banner */}
+        <div className="bg-[#0C1A28] text-white rounded-3xl p-6 border-t-2 border-[#C5852C] shadow-2xl text-center space-y-4">
+          <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-white/80 font-arabic">
+            <div className="flex items-center gap-2">
+              <PhosphorIcon name="phone" weight="duotone" size={16} className="text-[#C5852C]" />
+              <span className="font-mono font-bold">0542206000</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <PhosphorIcon name="envelope" weight="duotone" size={16} className="text-[#C5852C]" />
+              <span className="font-mono">highsafety2021@gmail.com</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <PhosphorIcon name="globe" weight="duotone" size={16} className="text-[#C5852C]" />
+              <span className="font-mono">www.highsafetyint.com</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <PhosphorIcon name="map-pin" weight="duotone" size={16} className="text-[#C5852C]" />
+              <span>سيتي بلازا الدراري - الشارقة - الإمارات العربية المتحدة</span>
             </div>
           </div>
-          <div className="bg-[#C5852C]/10 rounded-xl px-6 py-3 inline-block mb-3 border border-[#C5852C]/30">
-            <h3 className="text-xl md:text-2xl font-black font-arabic text-[#C5852C] tracking-wide drop-shadow-sm">
-              هاي سيفتي انترناشيونال
-            </h3>
-            <p className="text-[#C5852C]/80 text-sm font-bold tracking-widest mt-1">
-              HIGH SAFETY INTERNATIONAL
-            </p>
-          </div>
-          <p className="text-white/70 text-sm font-arabic font-medium">
-            مركز فحص السيارات - الشارقة، الإمارات
-          </p>
-          
-          {/* WhatsApp CTA Button */}
-          <a 
-            href="https://wa.me/971542206000" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 px-8 rounded-2xl mt-6 transition-all shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105"
-            data-testid="link-whatsapp-footer"
-          >
-            <svg className="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-            </svg>
-            <span className="font-arabic text-lg">تواصل معنا واتساب</span>
-            <span className="font-mono text-lg">0542206000</span>
-          </a>
-          
-          <div className="mt-6 pt-4 border-t border-white/10 flex flex-wrap justify-center gap-4 text-sm">
-            <div className="flex items-center gap-2 text-white/70">
-              <MapPin className="w-4 h-4" />
-              <span className="font-arabic">سيتي بلازا الدراري - الشارقة</span>
-            </div>
-          </div>
-          <p className="text-white/40 text-sm mt-4 font-arabic">
-              تاريخ التقرير: {new Date().toLocaleDateString('ar-AE', { year: 'numeric', month: 'long', day: 'numeric' })}
-          </p>
-        </div>
 
+          <div className="border-t border-white/10 pt-4 flex flex-col md:flex-row items-center justify-between text-xs text-white/50 gap-2">
+            <p className="font-arabic">جميع الحقوق محفوظة © {new Date().getFullYear()} مركز الأمان العالي الدولي للفحص الفني</p>
+            <p className="font-mono" dir="ltr">HIGH SAFETY INTERNATIONAL CENTER L.L.C.</p>
+          </div>
+        </div>
       </div>
     </div>
   );
