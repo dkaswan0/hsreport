@@ -427,11 +427,26 @@ export default function NewInspection() {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2 font-arabic">الماركة <span className="text-red-500">*</span></label>
                 <input
+                  list="car-makes-list"
                   {...form.register("make")}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#C5852C] focus:ring-4 focus:ring-[#C5852C]/10 transition-all font-arabic"
-                  placeholder="Toyota, BMW, Nissan..."
+                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#C5852C] focus:ring-4 focus:ring-[#C5852C]/10 transition-all font-arabic font-bold text-slate-900"
+                  placeholder="Bestune, Toyota, BMW, Nissan, Changan, Geely..."
                   data-testid="input-make"
                 />
+                <datalist id="car-makes-list">
+                  {[
+                    "Bestune", "Hongqi", "Changan", "Geely", "Haval", "Chery", "Jetour", "Tank", "Exeed", 
+                    "Omoda", "Jaecoo", "MG", "BYD", "GAC", "BAIC", "Deepal", "Zeekr", "Lynk & Co", "Forthing", 
+                    "Toyota", "Lexus", "Nissan", "Infiniti", "Honda", "Acura", "Hyundai", "Genesis", "Kia", 
+                    "Mazda", "Mitsubishi", "Subaru", "Suzuki", "BMW", "Mercedes-Benz", "Audi", "Volkswagen", 
+                    "Porsche", "Land Rover", "Jaguar", "Volvo", "Peugeot", "Renault", "Ford", "Lincoln", 
+                    "Chevrolet", "GMC", "Cadillac", "Jeep", "Dodge", "Chrysler", "Ram", "Tesla", "Lucid",
+                    "بستيون (Bestune)", "هونغ تشي (Hongqi)", "شانجان (Changan)", "جيلي (Geely)", "هافال (Haval)", 
+                    "شيري (Chery)", "جيتور (Jetour)", "تانك (Tank)", "إكسيد (Exeed)", "إم جي (MG)", "بي واي دي (BYD)"
+                  ].map((m) => (
+                    <option key={m} value={m} />
+                  ))}
+                </datalist>
                 {form.formState.errors.make && (
                   <p className="text-red-500 text-xs mt-1 font-arabic">{form.formState.errors.make.message}</p>
                 )}
@@ -441,11 +456,30 @@ export default function NewInspection() {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2 font-arabic">الموديل <span className="text-red-500">*</span></label>
                 <input
+                  list="car-models-list"
                   {...form.register("model")}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#C5852C] focus:ring-4 focus:ring-[#C5852C]/10 transition-all font-arabic"
-                  placeholder="Camry, X5, Patrol..."
+                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#C5852C] focus:ring-4 focus:ring-[#C5852C]/10 transition-all font-arabic font-bold text-slate-900"
+                  placeholder="B70, T77, T99, Land Cruiser, Patrol, Camry, X5..."
                   data-testid="input-model"
                 />
+                <datalist id="car-models-list">
+                  {[
+                    "B70", "T77", "T99", "T55", "T33", "T90", "B30", "NAT",
+                    "H5", "H9", "HS5", "E-HS9", "CS75 Plus", "CS85", "CS95", "UNI-K", "UNI-T", "UNI-V", "Eado",
+                    "Coolray", "Monjaro", "Tugella", "Emgrand", "Okavango", "Starray", "01", "03", "001",
+                    "Tiggo 8 Pro", "Tiggo 7 Pro", "Arrizo 8", "Dashing", "T2", "X70 Plus", "RX", "VX",
+                    "H6", "Jolion", "Dargo", "300", "500", "GT", "ZS", "RX5", "Song Plus", "Han", "Atto 3", "Seal",
+                    "GS8", "Empow", "Emkoo", "BJ40", "X35", "Land Cruiser", "Prado", "Camry", "Corolla", "Hilux", "RAV4", "Yaris",
+                    "Patrol", "Altima", "Sunny", "X-Trail", "Pathfinder", "Navara", "LX600", "LX570", "ES350", "RX350",
+                    "Sonata", "Elantra", "Santa Fe", "Tucson", "Palisade", "Accent", "Optima", "Sportage", "Telluride", "K5",
+                    "7 Series", "X5", "X6", "X7", "5 Series", "3 Series", "S-Class", "E-Class", "C-Class", "G-Class", "GLE", "GLS",
+                    "A8", "Q7", "Q8", "A6", "Touareg", "Passat", "Tiguan", "Cayenne", "911", "Panamera", "Macan",
+                    "Range Rover", "Defender", "Range Rover Sport", "F-Pace", "Mustang", "F-150", "Explorer", "Expedition",
+                    "Sierra", "Yukon", "Silverado", "Tahoe", "Suburban", "Escalade", "Wrangler", "Grand Cherokee", "Charger"
+                  ].map((mo) => (
+                    <option key={mo} value={mo} />
+                  ))}
+                </datalist>
               </div>
 
               {/* السنة */}

@@ -1211,146 +1211,26 @@ export async function registerRoutes(
   });
 
   // VIN Decoder using primary NHTSA API with CarAPI backup fallback
+  // VIN Decoder using VinDecoderService (WMI, Bestune, Hongqi, Chinese & Global brands, NHTSA, CarAPI, AI fallback)
   app.get("/api/vin/:vin", async (req, res) => {
     const { vin } = req.params;
     if (!vin || vin.length !== 17) {
       return res.status(400).json({ error: true, message: "رقم الهيكل يجب أن يتكون من 17 حرفاً" });
     }
 
-    // Normalize VIN: replace invalid characters O->0, I->1, Q->0
-    const normalizedVin = vin.toUpperCase()
-      .replace(/O/g, "0")
-      .replace(/I/g, "1")
-      .replace(/Q/g, "0");
-
-    // 1. Try Primary NHTSA API
     try {
-      const response = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/decodevinvaluesextended/${normalizedVin}?format=json`);
-      if (response.ok) {
-        const data: any = await response.json();
-        if (data.Results && data.Results[0]) {
-          const result = data.Results[0];
-          const make = result.Make || "";
-          const model = result.Model || "";
-          const year = result.ModelYear || "";
+      const { VinDecoderService } = await import("./services/vin-decoder");
+      const result = await VinDecoderService.decode(vin);
 
-          if (make) {
-            return res.json({
-              success: true,
-              provider: "nhtsa",
-              make,
-              model,
-              year: year ? parseInt(year, 10) : null
-            });
-          }
-        }
+      if (result.success && result.make) {
+        return res.json(result);
       }
-    } catch (nhtsaError) {
-      console.warn("NHTSA VIN decode failed, switching to CarAPI backup:", nhtsaError);
+
+      return res.status(404).json({ error: true, message: "لم يتم التعرف التلقائي على بيانات المركبة" });
+    } catch (err: any) {
+      console.error("VIN Decode endpoint error:", err?.message || err);
+      return res.status(500).json({ error: true, message: "حدث خطأ أثناء فك ترميز رقم الهيكل" });
     }
-
-    // 2. Try Secondary CarAPI Backup Provider (carapi.app)
-    try {
-      const { CarApiService } = await import("./services/car-api");
-      const carApiResult = await CarApiService.decodeVin(normalizedVin);
-      if (carApiResult.success && carApiResult.make) {
-        return res.json({
-          success: true,
-          provider: "carapi",
-          make: carApiResult.make,
-          model: carApiResult.model || "",
-          year: carApiResult.year || null,
-          trim: carApiResult.trim || ""
-        });
-      }
-    } catch (carApiErr) {
-      console.warn("CarAPI VIN decode error:", carApiErr);
-    }
-
-    // 3. Try WMI & AI Smart VIN Decoding Fallback (Global & GCC VINs)
-    try {
-      const wmiMap: Record<string, { make: string; country: string }> = {
-        "JTD": { make: "Toyota", country: "Japan" },
-        "JTE": { make: "Toyota", country: "Japan font-arabic" },
-        "JTM": { make: "Toyota", country: "Japan" },
-        "JTN": { make: "Toyota", country: "Japan" },
-        "4T1": { make: "Toyota", country: "USA" },
-        "5TD": { make: "Toyota", country: "USA" },
-        "2T1": { make: "Toyota", country: "Canada" },
-        "JN1": { make: "Nissan", country: "Japan" },
-        "JN8": { make: "Nissan", country: "Japan" },
-        "1N4": { make: "Nissan", country: "USA" },
-        "5N1": { make: "Nissan", country: "USA" },
-        "KMH": { make: "Hyundai", country: "South Korea" },
-        "KHM": { make: "Hyundai", country: "South Korea" },
-        "KM8": { make: "Hyundai", country: "South Korea" },
-        "KNA": { make: "Kia", country: "South Korea" },
-        "KND": { make: "Kia", country: "South Korea" },
-        "WBA": { make: "BMW", country: "Germany" },
-        "WBS": { make: "BMW", country: "Germany" },
-        "WDB": { make: "Mercedes-Benz", country: "Germany" },
-        "WDD": { make: "Mercedes-Benz", country: "Germany" },
-        "WAU": { make: "Audi", country: "Germany" },
-        "WVW": { make: "Volkswagen", country: "Germany" },
-        "WP0": { make: "Porsche", country: "Germany" },
-        "1FA": { make: "Ford", country: "USA" },
-        "1FT": { make: "Ford", country: "USA" },
-        "1FM": { make: "Ford", country: "USA" },
-        "1G1": { make: "Chevrolet", country: "USA" },
-        "1GC": { make: "Chevrolet", country: "USA" },
-        "1GN": { make: "Chevrolet", country: "USA" },
-        "1J4": { make: "Jeep", country: "USA" },
-        "SAL": { make: "Land Rover", country: "UK" },
-        "SAD": { make: "Jaguar", country: "UK" },
-        "MNT": { make: "Nissan", country: "Thailand" },
-        "MMB": { make: "Mitsubishi", country: "Thailand" },
-      };
-
-      const wmi = normalizedVin.substring(0, 3);
-      const wmiMatch = wmiMap[wmi];
-
-      // Decode 10th VIN Character (Model Year)
-      const yearChar = normalizedVin.charAt(9);
-      const yearCodeMap: Record<string, number> = {
-        'A': 2010, 'B': 2011, 'C': 2012, 'D': 2013, 'E': 2014, 'F': 2015, 'G': 2016, 'H': 2017,
-        'J': 2018, 'K': 2019, 'L': 2020, 'M': 2021, 'N': 2022, 'P': 2023, 'R': 2024, 'S': 2025, 'T': 2026,
-        '1': 2001, '2': 2002, '3': 2003, '4': 2004, '5': 2005, '6': 2006, '7': 2007, '8': 2008, '9': 2009
-      };
-      const decodedYear = yearCodeMap[yearChar] || null;
-
-      // Try AI decoding prompt for exact make & model
-      const { ImageAnalysisService } = await import("./services/image-analysis");
-      try {
-        const aiRes = await ImageAnalysisService.callAI(
-          `Identify vehicle specs from VIN: "${normalizedVin}". Return JSON: {"make": "...", "model": "...", "year": 2023}`
-        );
-        if (aiRes?.make) {
-          return res.json({
-            success: true,
-            provider: "ai-decoder",
-            make: aiRes.make,
-            model: aiRes.model || "",
-            year: aiRes.year || decodedYear
-          });
-        }
-      } catch (aiErr) {
-        console.warn("AI VIN decode fallback error:", aiErr);
-      }
-
-      if (wmiMatch) {
-        return res.json({
-          success: true,
-          provider: "wmi-decoder",
-          make: wmiMatch.make,
-          model: "",
-          year: decodedYear
-        });
-      }
-    } catch (fallbackErr) {
-      console.warn("WMI/AI VIN decode fallback error:", fallbackErr);
-    }
-
-    return res.status(404).json({ error: true, message: "لم يتم العثور على بيانات لهذه المركبة عبر خدمات فك ترميز رقم الهيكل" });
   });
 
 
