@@ -1042,10 +1042,14 @@ export default function PublicReport() {
           </div>
         )}
 
-        {/* OBD Codes Section - Professional HS Report */}
+        {/* Dynamic OBD Codes Section - Current & History */}
         {(() => {
-          const obdCodes = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string; diagnosis?: string; causes?: string; solutions?: string}> | null) || [];
-          if (obdCodes.length === 0 && !inspection.autelReportPdf) return null;
+          const obdCodes = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string; diagnosis?: string; causes?: string; solutions?: string; status?: 'current' | 'history'}> | null) || [];
+          const currentCodes = obdCodes.filter(c => c.status !== 'history');
+          const historyCodes = obdCodes.filter(c => c.status === 'history');
+
+          if (currentCodes.length === 0 && historyCodes.length === 0) return null;
+
           const getCodeType = (code: string) => {
             const p = code.charAt(0).toUpperCase();
             if (p === 'P') return { color: 'bg-red-600', labelAr: 'المحرك وناقل الحركة' };
@@ -1054,32 +1058,38 @@ export default function PublicReport() {
             if (p === 'U') return { color: 'bg-purple-600', labelAr: 'شبكة الاتصال' };
             return { color: 'bg-slate-600', labelAr: 'أخرى' };
           };
-          return (
-            <div className="bg-white rounded-3xl overflow-hidden shadow-xl border-2 border-slate-200" data-testid="obd-report-section">
-              <div className="bg-gradient-to-l from-slate-800 via-slate-900 to-black text-white p-6">
+
+          const renderCodeList = (codes: typeof obdCodes, isHistory: boolean) => (
+            <div className="bg-white rounded-3xl overflow-hidden shadow-xl border-2 border-slate-200" data-testid={isHistory ? "obd-history-section" : "obd-current-section"}>
+              <div className={`p-6 text-white ${isHistory ? 'bg-gradient-to-l from-amber-700 via-amber-800 to-amber-950' : 'bg-gradient-to-l from-slate-900 via-red-950 to-black'}`}>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center shadow-lg">
-                      <PhosphorIcon name="cpu" weight="duotone" size={28} className="text-[#C5852C]" />
+                      <PhosphorIcon name="cpu" weight="duotone" size={28} className={isHistory ? "text-amber-400" : "text-red-400"} />
                     </div>
                     <div>
                       <div className="text-xs text-slate-300 font-mono font-bold tracking-wider" dir="ltr">HIGH SAFETY</div>
-                      <div className="text-xs text-slate-400 font-mono tracking-wider" dir="ltr">DIAGNOSTIC REPORT</div>
+                      <div className="text-xs text-slate-400 font-mono tracking-wider" dir="ltr">{isHistory ? "HISTORY FAULTS" : "CURRENT FAULTS"}</div>
                     </div>
                   </div>
                   <div className="text-left bg-white/10 rounded-xl px-4 py-2" dir="ltr">
-                    <div className="text-xs text-slate-400 font-mono">CODES FOUND</div>
-                    <div className="text-3xl font-black text-[#C5852C]">{obdCodes.length}</div>
+                    <div className="text-xs text-slate-300 font-mono">{isHistory ? "STORED CODES" : "ACTIVE CODES"}</div>
+                    <div className={`text-3xl font-black ${isHistory ? "text-amber-400" : "text-red-400"}`}>{codes.length}</div>
                   </div>
                 </div>
                 <div className="text-center border-t border-white/10 pt-4">
-                  <h3 className="text-xl font-black font-arabic">تقرير فحص كمبيوتر السيارة</h3>
-                  <p className="text-slate-400 text-sm font-mono mt-1" dir="ltr">OBD-II Diagnostic Trouble Codes Report</p>
+                  <h3 className="text-xl font-black font-arabic flex items-center justify-center gap-2">
+                    <span>{isHistory ? "🟡" : "🔴"}</span>
+                    <span>{isHistory ? "الأعطال السابقة — History" : "الأعطال الحالية — Current"}</span>
+                  </h3>
+                  <p className="text-slate-300 text-xs font-mono mt-1" dir="ltr">
+                    {isHistory ? "OBD-II Stored & History Diagnostic Trouble Codes" : "OBD-II Active & Current Diagnostic Trouble Codes"}
+                  </p>
                 </div>
               </div>
 
               <div className="space-y-2 px-4 py-4">
-                {obdCodes.map((obd, idx) => {
+                {codes.map((obd, idx) => {
                   const type = getCodeType(obd.code);
                   return (
                     <div key={idx} className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 text-right" dir="rtl">
@@ -1098,8 +1108,15 @@ export default function PublicReport() {
 
               <div className="bg-slate-100 border-t-2 border-slate-200 px-5 py-3 flex items-center justify-between">
                 <span className="text-xs text-slate-500 font-mono font-bold" dir="ltr">HIGH SAFETY INSPECTION CENTER</span>
-                <span className="text-xs text-slate-400 font-mono" dir="ltr">HS-OBD-{String(inspection.id).padStart(4, '0')}</span>
+                <span className="text-xs text-slate-400 font-mono" dir="ltr">HS-OBD-{isHistory ? 'HIST' : 'CURR'}-{String(inspection.id).padStart(4, '0')}</span>
               </div>
+            </div>
+          );
+
+          return (
+            <div className="space-y-6">
+              {currentCodes.length > 0 && renderCodeList(currentCodes, false)}
+              {historyCodes.length > 0 && renderCodeList(historyCodes, true)}
             </div>
           );
         })()}

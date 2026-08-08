@@ -1845,6 +1845,7 @@ interface ObdCode {
   diagnosis?: string;
   causes?: string;
   solutions?: string;
+  status?: 'current' | 'history';
 }
 
 function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: Inspection; inspectionId: number; onClose: () => void }) {
@@ -1883,6 +1884,8 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
     });
   };
 
+  const [addStatus, setAddStatus] = useState<'current' | 'history'>('current');
+
   const saveObdCodes = (newCodes: ObdCode[]) => {
     updateInspection.mutate({ id: inspectionId, obdCodes: newCodes as any }, {
       onSuccess: () => {
@@ -1892,6 +1895,17 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
         toast({ title: "خطأ", description: "تعذر حفظ الأكواد", variant: "destructive" });
       }
     });
+  };
+
+  const handleToggleStatus = (targetCode: string) => {
+    const updated = obdCodes.map(c => {
+      if (c.code === targetCode) {
+        const newStatus: 'current' | 'history' = (c.status === 'history' ? 'current' : 'history');
+        return { ...c, status: newStatus };
+      }
+      return c;
+    });
+    saveObdCodes(updated);
   };
 
   const handleManualAdd = async () => {
@@ -1912,10 +1926,11 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
       });
       const data = await res.json();
       if (data.codes && data.codes.length > 0) {
-        const newCodes = [...obdCodes, ...data.codes];
+        const mapped = data.codes.map((c: ObdCode) => ({ ...c, status: addStatus }));
+        const newCodes = [...obdCodes, ...mapped];
         saveObdCodes(newCodes);
       } else {
-        const fallback: ObdCode = { code, nameEn: 'Unknown Code', nameAr: 'كود غير معروف' };
+        const fallback: ObdCode = { code, nameEn: 'Unknown Code', nameAr: 'كود غير معروف', status: addStatus };
         saveObdCodes([...obdCodes, fallback]);
       }
       setManualCode('');
@@ -2062,30 +2077,26 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
           </div>
 
           {obdCodes.length > 0 && (
-            <div className="mt-3 flex items-center gap-4 bg-white/10 rounded-xl px-4 py-2.5">
+            <div className="mt-3 flex items-center gap-3 bg-white/10 rounded-xl px-4 py-2.5">
               <div className="text-center">
-                <div className="text-3xl font-black">{obdCodes.length}</div>
-                <div className="text-xs text-emerald-200">أعطال</div>
+                <div className="text-2xl font-black">{obdCodes.length}</div>
+                <div className="text-[10px] text-emerald-200 font-arabic">إجمالي</div>
               </div>
-              <div className="h-10 w-px bg-white/20"></div>
-              <div className="flex gap-2 flex-wrap">
-                {['P', 'C', 'B', 'U'].map(prefix => {
-                  const count = obdCodes.filter(c => c.code.startsWith(prefix)).length;
-                  if (count === 0) return null;
-                  const colors = getSeverityColor(prefix + '0000');
-                  return (
-                    <span key={prefix} className={`px-3 py-1 rounded-lg text-xs font-bold text-white ${colors.badge}`}>
-                      {prefix}: {count}
-                    </span>
-                  );
-                })}
+              <div className="h-8 w-px bg-white/20"></div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="px-2.5 py-1 rounded-lg bg-red-600 text-white text-xs font-bold font-arabic shadow-sm">
+                  🔴 الحالي: {obdCodes.filter(c => c.status !== 'history').length}
+                </div>
+                <div className="px-2.5 py-1 rounded-lg bg-amber-500 text-white text-xs font-bold font-arabic shadow-sm">
+                  🟡 السابق: {obdCodes.filter(c => c.status === 'history').length}
+                </div>
               </div>
             </div>
           )}
         </div>
 
         {/* Action Buttons */}
-        <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 shrink-0">
+        <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 shrink-0 space-y-2.5">
           <div className="flex gap-2">
             <div className="flex-1 flex gap-2">
               <input
@@ -2093,18 +2104,18 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
                 value={manualCode}
                 onChange={(e) => setManualCode(e.target.value.toUpperCase())}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleManualAdd(); }}
-                placeholder="DTC"
-                className="flex-1 px-3 py-3 rounded-xl border border-slate-300 text-base font-mono text-center focus:ring-2 focus:ring-emerald-300 focus:border-emerald-500 outline-none bg-white"
+                placeholder="DTC كود العطل"
+                className="flex-1 px-3 py-2.5 rounded-xl border border-slate-300 text-base font-mono text-center focus:ring-2 focus:ring-emerald-300 focus:border-emerald-500 outline-none bg-white font-bold"
                 dir="ltr"
                 data-testid="input-obd-code"
               />
               <button
                 onClick={handleManualAdd}
                 disabled={isLookingUp || !manualCode.trim()}
-                className="px-5 py-3 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center gap-2 whitespace-nowrap active:scale-95"
+                className="px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap active:scale-95 shadow-sm font-arabic"
                 data-testid="btn-add-obd-code"
               >
-                {isLookingUp ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
+                {isLookingUp ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                 إضافة
               </button>
             </div>
@@ -2113,22 +2124,54 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
               <button
                 onClick={() => obdImageRef.current?.click()}
                 disabled={isExtracting}
-                className="h-full px-5 py-3 bg-slate-800 text-white rounded-xl text-sm font-bold hover:bg-slate-900 transition-colors disabled:opacity-50 flex items-center gap-2 whitespace-nowrap active:scale-95"
+                className="h-full px-4 py-2.5 bg-slate-800 text-white rounded-xl text-sm font-bold hover:bg-slate-900 transition-colors disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap active:scale-95 shadow-sm font-arabic"
                 data-testid="btn-obd-scan-image"
               >
-                {isExtracting ? <Loader2 className="w-5 h-5 animate-spin" /> : <PhosphorIcon name="camera" weight="duotone" size={20} className="text-white" />}
+                {isExtracting ? <Loader2 className="w-4 h-4 animate-spin" /> : <PhosphorIcon name="camera" weight="duotone" size={18} className="text-white" />}
                 {isExtracting ? 'جارٍ التحليل...' : 'تصوير'}
               </button>
             </div>
           </div>
-          <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+
+          {/* Status Selector for New Codes */}
+          <div className="flex items-center justify-between gap-2 px-1">
+            <span className="text-xs font-bold text-slate-600 font-arabic">حالة الكود عند الإضافة:</span>
+            <div className="flex gap-1.5">
+              <button
+                type="button"
+                onClick={() => setAddStatus('current')}
+                className={`px-3 py-1 rounded-lg text-xs font-bold font-arabic transition-all flex items-center gap-1.5 ${
+                  addStatus === 'current'
+                    ? 'bg-red-600 text-white shadow-sm ring-2 ring-red-400'
+                    : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                }`}
+              >
+                <span>🔴</span>
+                <span>حالي (Current)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setAddStatus('history')}
+                className={`px-3 py-1 rounded-lg text-xs font-bold font-arabic transition-all flex items-center gap-1.5 ${
+                  addStatus === 'history'
+                    ? 'bg-amber-500 text-white shadow-sm ring-2 ring-amber-300'
+                    : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                }`}
+              >
+                <span>🟡</span>
+                <span>سابق (History)</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-slate-200">
             <button
               onClick={handleAutelImport}
               disabled={isImportingAutel}
-              className="w-full px-4 py-3 bg-gradient-to-l from-orange-500 to-orange-600 text-white rounded-xl text-xs md:text-sm font-bold hover:from-orange-600 hover:to-orange-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98] shadow-sm font-arabic"
+              className="w-full px-4 py-2.5 bg-gradient-to-l from-orange-500 to-orange-600 text-white rounded-xl text-xs font-bold hover:from-orange-600 hover:to-orange-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98] shadow-sm font-arabic"
               data-testid="btn-import-autel"
             >
-              {isImportingAutel ? <Loader2 className="w-4 h-4 animate-spin" /> : <PhosphorIcon name="envelope-open" weight="duotone" size={20} className="text-white" />}
+              {isImportingAutel ? <Loader2 className="w-4 h-4 animate-spin" /> : <PhosphorIcon name="envelope-open" weight="duotone" size={18} className="text-white" />}
               {isImportingAutel ? 'جارٍ المطابقة والسحب...' : 'سحب من البريد تلقائياً'}
             </button>
 
@@ -2143,23 +2186,23 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
               <button
                 onClick={() => autelPdfInputRef.current?.click()}
                 disabled={isImportingAutel}
-                className="w-full px-4 py-3 bg-slate-800 text-white rounded-xl text-xs md:text-sm font-bold hover:bg-slate-900 transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98] shadow-sm font-arabic border border-slate-700"
+                className="w-full px-4 py-2.5 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-900 transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98] shadow-sm font-arabic border border-slate-700"
                 data-testid="btn-upload-autel-pdf"
               >
-                <PhosphorIcon name="file-pdf" weight="duotone" size={20} className="text-[#C5852C]" />
+                <PhosphorIcon name="file-pdf" weight="duotone" size={18} className="text-[#C5852C]" />
                 رفع تقرير PDF من الجهاز
               </button>
             </div>
           </div>
           {hasAutelReport && (
-            <div className="mt-2 flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5">
-              <PhosphorIcon name="check-circle" weight="duotone" size={22} className="text-emerald-600 shrink-0" />
-              <span className="text-sm font-bold text-emerald-800 flex-1">{inspection.autelReportName || 'تقرير Autel'}</span>
+            <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2">
+              <PhosphorIcon name="check-circle" weight="duotone" size={20} className="text-emerald-600 shrink-0" />
+              <span className="text-xs font-bold text-emerald-800 flex-1">{inspection.autelReportName || 'تقرير Autel'}</span>
               <a
                 href={`/api/autel/report/${inspectionId}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors flex items-center gap-1"
+                className="px-3 py-1 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors flex items-center gap-1"
                 data-testid="btn-view-autel-report"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -2176,44 +2219,59 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
               <div className="w-16 h-16 bg-slate-200 rounded-2xl flex items-center justify-center mb-3">
                 <Monitor className="w-8 h-8 text-slate-400" />
               </div>
-              <p className="text-base font-bold text-slate-500">لا توجد أكواد أعطال</p>
+              <p className="text-base font-bold text-slate-500 font-arabic">لا توجد أكواد أعطال</p>
             </div>
           ) : (
             <div className="p-3 space-y-2">
               {obdCodes.map((obd) => {
                 const colors = getSeverityColor(obd.code);
                 const isExpanded = expandedCode === obd.code;
+                const isHistory = obd.status === 'history';
                 return (
                   <div key={obd.code} className={`rounded-xl border-2 ${colors.border} overflow-hidden bg-white shadow-sm`}>
-                    <div className={`flex items-center gap-3 px-4 py-3.5`}>
+                    <div className={`flex items-center gap-3 px-4 py-3`}>
                       <div className="shrink-0">
-                        <span className={`font-mono font-black text-base px-4 py-2 rounded-xl text-white ${colors.badge} shadow-sm inline-block`}>{obd.code}</span>
+                        <span className={`font-mono font-black text-sm px-3 py-1.5 rounded-xl text-white ${colors.badge} shadow-sm inline-block`}>{obd.code}</span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-base font-bold text-slate-900 leading-snug">{obd.nameAr}</div>
-                        <div className="text-sm text-slate-500 font-mono mt-1" dir="ltr">{obd.nameEn}</div>
+                        <div className="text-sm font-bold text-slate-900 leading-snug">{obd.nameAr}</div>
+                        <div className="text-xs text-slate-500 font-mono mt-0.5" dir="ltr">{obd.nameEn}</div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
+                        {/* Status Toggle Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleToggleStatus(obd.code)}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-bold font-arabic transition-all flex items-center gap-1 cursor-pointer shadow-sm ${
+                            isHistory
+                              ? 'bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200'
+                              : 'bg-red-100 text-red-800 border border-red-300 hover:bg-red-200'
+                          }`}
+                          title="اضغط للتبديل بين عطل حالي أو سابق"
+                        >
+                          <span>{isHistory ? '🟡 سابق' : '🔴 حالي'}</span>
+                        </button>
+
                         {obd.diagnosis && (
                           <button
                             onClick={() => setExpandedCode(isExpanded ? null : obd.code)}
-                            className={`p-2.5 rounded-xl transition-colors ${isExpanded ? 'bg-emerald-100 text-emerald-600' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'}`}
+                            className={`p-2 rounded-xl transition-colors ${isExpanded ? 'bg-emerald-100 text-emerald-600' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'}`}
                             data-testid={`btn-toggle-obd-details-${obd.code}`}
                           >
-                            {isExpanded ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            {isExpanded ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                           </button>
                         )}
                         <button
                           onClick={() => handleDeleteCode(obd.code)}
-                          className="p-2.5 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                          className="p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                           data-testid={`btn-delete-obd-${obd.code}`}
                         >
-                          <Trash2 className="w-5 h-5" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
                     {isExpanded && obd.diagnosis && (
-                      <div className="px-4 pb-4 pt-1 space-y-2 border-t border-slate-100">
+                      <div className="px-4 pb-4 pt-1 space-y-2 border-t border-slate-100 font-arabic text-right" dir="rtl">
                         <div className="p-3 rounded-xl bg-blue-50 border border-blue-100">
                           <div className="text-xs font-bold text-blue-600 mb-1">التشخيص</div>
                           <div className="text-sm text-blue-800 leading-relaxed">{obd.diagnosis}</div>
