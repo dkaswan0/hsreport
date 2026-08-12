@@ -1,8 +1,8 @@
 import React, { forwardRef } from 'react';
 import logoPath from '@assets/hs-logo.png';
+import hsBannerPath from '@assets/hs-banner.jpeg';
 import hsCarBranding from '@assets/hs_car_branding.png';
 import { PhosphorIcon } from '@/components/phosphor-icon';
-import { CarBlueprintPinpoint } from '@/components/car-blueprint-pinpoint';
 // @ts-expect-error untyped module
 import reshaper from 'arabic-reshaper';
 
@@ -121,58 +121,28 @@ export const PdfHeaderBanner = ({
 }) => (
   <div style={{
     backgroundColor: BRAND.navy,
-    borderRadius: '10px',
-    padding: '12px 20px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderTop: `3px solid ${BRAND.gold}`,
+    borderRadius: '8px',
+    overflow: 'hidden',
+    border: `1px solid ${BRAND.gold}`,
     color: '#ffffff',
     flexShrink: 0,
     boxSizing: 'border-box',
     width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    marginBottom: '6px',
   }}>
-    {/* Left: English Branding */}
-    <div style={{ textAlign: 'left', minWidth: '220px' }} dir="ltr">
-      <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: BRAND.goldLight, letterSpacing: '0.5px' }}>
-        HIGH SAFETY
-      </h3>
-      <h4 style={{ margin: '1px 0 0 0', fontSize: '10px', fontWeight: 'bold', color: '#ffffff', letterSpacing: '0.3px' }}>
-        INTERNATIONAL CENTER L.L.C.
-      </h4>
-      <p style={{ margin: '2px 0 0 0', fontSize: '8px', color: '#94A3B8', maxWidth: '220px', lineHeight: '1.25' }}>
-        FOR THE TECHNICAL INSPECTION OF VEHICLES, EQUIPMENT AND MACHINERY
-      </p>
-    </div>
-
-    {/* Center: High Safety Gold Emblem with Wings */}
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '0 14px' }}>
-      <img 
-        src={logoPath} 
-        alt="Logo" 
-        style={{ 
-          width: '56px', 
-          height: '56px', 
-          borderRadius: '50%', 
-          objectFit: 'cover', 
-          border: `2px solid ${BRAND.gold}`,
-          backgroundColor: '#000000',
-        }} 
-      />
-    </div>
-
-    {/* Right: Arabic Branding (Identical to Master Reference) */}
-    <div style={{ textAlign: 'right', minWidth: '220px' }}>
-      <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 'bold', color: BRAND.goldLight }}>
-        {f('مركز الأمان العالي الدولي')}
-      </h3>
-      <h4 style={{ margin: '1px 0 0 0', fontSize: '11px', fontWeight: 'bold', color: BRAND.goldLight }}>
-        {f('ش.ذ.م.م')}
-      </h4>
-      <p style={{ margin: '2px 0 0 0', fontSize: '8.5px', color: '#94A3B8' }}>
-        {f('للفحص الفني للمركبات والمعدات والآليات')}
-      </p>
-    </div>
+    <img 
+      src={hsBannerPath} 
+      alt="High Safety International Center" 
+      style={{ 
+        width: '100%', 
+        height: 'auto', 
+        maxHeight: '92px', 
+        objectFit: 'contain',
+        display: 'block' 
+      }} 
+    />
   </div>
 );
 
@@ -409,11 +379,6 @@ export const PdfFindingCard = ({ item }: { item: InspectionItem }) => {
           <p style={{ fontSize: '8px', color: '#94A3B8', margin: 0, fontFamily: 'monospace' }} dir="ltr">{item.descriptionEn}</p>
         )}
       </div>
-
-      {/* Right: Top-Down Car Blueprint SVG Silhouette with Glowing Pinpoint Dot */}
-      <div style={{ width: '72px', height: '82px', borderRadius: '6px', backgroundColor: BRAND.bgLight, border: `1px solid ${BRAND.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: '2px' }}>
-        <CarBlueprintPinpoint category={item.category || ''} dotColor={BRAND.red} className="w-full h-full" />
-      </div>
     </div>
   );
 };
@@ -551,11 +516,9 @@ export const PdfFooterBar = ({ pageNum, totalPages }: { pageNum: number; totalPa
     marginTop: '8px',
     flexShrink: 0,
   }}>
-    <div style={{ display: 'flex', gap: '16px', color: '#cbd5e1' }}>
+    <div style={{ display: 'flex', gap: '20px', color: '#cbd5e1' }}>
       <span>📞 0542206000</span>
-      <span>✉️ highsafety2021@gmail.com</span>
-      <span>🌐 www.highsafetyint.com</span>
-      <span>📍 {f('سيتي بلازا الدراري - الشارقة')}</span>
+      <span>📍 {f('الشارقة الصناعية 13، طريق المدينة الجامعية')}</span>
     </div>
     <span style={{ color: BRAND.goldLight, fontWeight: 'bold', fontSize: '9px' }}>{f(`الصفحة ${pageNum} من ${totalPages}`)}</span>
   </div>

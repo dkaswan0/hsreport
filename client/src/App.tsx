@@ -46,14 +46,16 @@ function AppContent() {
     queryKey: ["/api/auth/check"],
     queryFn: async () => {
       const res = await fetch("/api/auth/check");
+      if (!res.ok) return { isAuthenticated: false };
       return res.json();
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 
   useEffect(() => {
     if (authData !== undefined) {
-      setIsAuthenticated(authData.isAuthenticated);
+      setIsAuthenticated(!!authData.isAuthenticated);
     }
   }, [authData]);
 

@@ -186,13 +186,6 @@ export async function registerRoutes(
     if (exempt.some(e => path.startsWith(e))) return next();
     if (req.session?.isAuthenticated) return next();
 
-    // Auto-grant default inspector session so creating/saving inspections never fails
-    if (req.session) {
-      req.session.isAuthenticated = true;
-      req.session.username = "hs";
-      return next();
-    }
-
     const rawKey = (req.headers["x-api-key"] as string) ||
                    (req.headers["authorization"] || "").replace(/^Bearer\s+/i, "");
     if (rawKey && rawKey.startsWith("hs_")) {
@@ -918,153 +911,180 @@ export async function registerRoutes(
       });
 
       await client.connect();
-      const lock = await client.getMailboxLock("INBOX");
-      
+
       try {
-        // Fetch all recent messages from inbox
-        const seqList = await client.search({ all: true });
-        const list = Array.isArray(seqList) ? seqList : [];
-        console.log(`Autel AI: Total inbox messages found: ${list.length}`);
-
-        if (list.length === 0) {
-          await lock.release();
-          await client.logout();
-          return res.status(404).json({ error: "لا توجد رسائل بريد في المجلد الوارد" });
-        }
-
-        // Fast fetch headers for last 25 messages
-        const recentSeqs = list.slice(-25).reverse();
-        const headerMessages: any[] = [];
-        for await (const m of client.fetch(recentSeqs.join(","), { envelope: true, bodyStructure: true })) {
-          headerMessages.push(m);
-        }
-
-        // Filter messages that have attachments/PDFs
-        const pdfMessages = headerMessages.filter(m => {
-          const bs = JSON.stringify(m.bodyStructure || {}).toLowerCase();
-          const subj = (m.envelope?.subject || "").toLowerCase();
-          return bs.includes("pdf") || bs.includes("attachment") || subj.includes("autel") || subj.includes("report") || subj.includes("maxisys");
-        }).slice(0, 10); // Check top 10 most recent candidate emails
-
-        console.log(`Autel AI: Found ${pdfMessages.length} candidate emails with PDF attachments out of last ${recentSeqs.length} emails.`);
+        const mailboxes = await client.list();
+        const availablePaths = mailboxes.map(m => m.path);
+        
+        // Priority order for search folders
+        // Priority order for search folders (Sent folders first as Autel sends from this address)
+        const candidateFolders = [
+          "[Gmail]/بريد مرسل",
+          "[Gmail]/Sent Mail",
+          "Sent",
+          "INBOX",
+          "[Gmail]/كل البريد",
+          "[Gmail]/All Mail"
+        ].filter(f => availablePaths.includes(f));
 
         const PDF_TYPES = ["application/pdf", "application/x-pdf", "application/octet-stream", "binary/octet-stream"];
 
         interface EmailCandidate {
+          folder: string;
           seq: number;
           subject: string;
           filename: string;
           pdfBase64: string;
           score: number;
           reason: string;
+          date?: Date;
         }
 
         const candidates: EmailCandidate[] = [];
 
-        // Scan candidate PDF emails for vehicle match
-        for (const meta of pdfMessages) {
+        // Search each folder
+        for (const folder of candidateFolders) {
           try {
-            const msg = await client.fetchOne(String(meta.seq), { source: true });
-            if (!msg || !msg.source) continue;
+            const lock = await client.getMailboxLock(folder);
+            try {
+              const seqList = await client.search({ all: true });
+              const list = Array.isArray(seqList) ? seqList : [];
+              if (list.length === 0) continue;
 
-            const parsed = await simpleParser(msg.source);
-            let pdfAttachment: { filename: string; content: Buffer } | null = null;
+              const recentSeqs = list.slice(-50).reverse();
+              const headerMessages: any[] = [];
+              for await (const m of client.fetch(recentSeqs.join(","), { envelope: true, bodyStructure: true })) {
+                headerMessages.push(m);
+              }
 
-            if (parsed.attachments && parsed.attachments.length > 0) {
-              for (const att of parsed.attachments) {
-                const isPdfByType = PDF_TYPES.includes(att.contentType?.toLowerCase() || "");
-                const isPdfByName = att.filename?.toLowerCase().endsWith(".pdf");
-                if (isPdfByType || isPdfByName) {
-                  pdfAttachment = { filename: att.filename || "autel-report.pdf", content: att.content };
-                  break;
+              const pdfMessages = headerMessages.filter(m => {
+                const bs = JSON.stringify(m.bodyStructure || {}).toLowerCase();
+                const subj = (m.envelope?.subject || "").toLowerCase();
+                return bs.includes("pdf") || bs.includes("attachment") || bs.includes("application") || subj.includes("autel") || subj.includes("report") || subj.includes("maxisys") || subj.includes("emailing") || subj.includes(".pdf");
+              }).slice(0, 15);
+
+              for (const meta of pdfMessages) {
+                try {
+                  const msg = await client.fetchOne(String(meta.seq), { source: true });
+                  if (!msg || !msg.source) continue;
+
+                  const parsed = await simpleParser(msg.source);
+                  let pdfAttachment: { filename: string; content: Buffer } | null = null;
+
+                  if (parsed.attachments && parsed.attachments.length > 0) {
+                    for (const att of parsed.attachments) {
+                      const isPdfByType = PDF_TYPES.includes(att.contentType?.toLowerCase() || "");
+                      const isPdfByName = att.filename?.toLowerCase().endsWith(".pdf");
+                      if (isPdfByType || isPdfByName) {
+                        pdfAttachment = { filename: att.filename || "autel-report.pdf", content: att.content };
+                        break;
+                      }
+                    }
+                    if (!pdfAttachment && parsed.attachments[0]?.content) {
+                      const first = parsed.attachments[0];
+                      pdfAttachment = { filename: first.filename || "autel-report.pdf", content: first.content };
+                    }
+                  }
+
+                  if (!pdfAttachment) continue;
+
+                  const subject = parsed.subject || "";
+                  const filename = pdfAttachment.filename;
+                  const pdfBase64 = pdfAttachment.content.toString("base64");
+                  const rawContent = pdfAttachment.content.toString("latin1");
+
+                  const combinedText = `${subject} ${filename} ${rawContent}`.toLowerCase();
+                  const combinedUpper = `${subject} ${filename} ${rawContent}`.toUpperCase();
+
+                  let score = 0;
+                  let reason = "";
+
+                  // 1. Exact VIN match (100 points)
+                  if (targetVin && targetVin.length >= 8 && combinedUpper.includes(targetVin)) {
+                    score = 100;
+                    reason = `مطابقة تامة برقم الهيكل (VIN: ${targetVin})`;
+                  } else {
+                    // 2. Make match (40 points)
+                    if (targetMake && targetMake.length > 1 && combinedText.includes(targetMake.toLowerCase())) {
+                      score += 40;
+                    }
+                    // 3. Model match (40 points)
+                    if (targetModel && targetModel.length > 1 && combinedText.includes(targetModel.toLowerCase())) {
+                      score += 40;
+                    }
+                    // 4. Year match (20 points)
+                    if (targetYear && combinedText.includes(targetYear)) {
+                      score += 20;
+                    }
+                    // 5. Customer name match (20 points)
+                    if (targetCustomer && combinedText.includes(targetCustomer.toLowerCase())) {
+                      score += 20;
+                    }
+                    reason = `مطابقة مواصفات المركبة (${targetMake} ${targetModel} ${targetYear})`;
+                  }
+
+                  // Push all valid PDF candidates with their dates
+                  candidates.push({ 
+                    folder, 
+                    seq: meta.seq, 
+                    subject, 
+                    filename, 
+                    pdfBase64, 
+                    score, 
+                    reason: reason || "أحدث تقرير فحص تم استلامه من جهاز Autel", 
+                    date: parsed.date || new Date() 
+                  });
+                  if (score === 100) break;
+                } catch (itemErr) {
+                  console.warn(`Autel AI: Error parsing candidate seq ${meta.seq} in ${folder}:`, itemErr);
                 }
               }
-              if (!pdfAttachment && parsed.attachments[0]?.content) {
-                const first = parsed.attachments[0];
-                pdfAttachment = { filename: first.filename || "autel-report.pdf", content: first.content };
-              }
+            } finally {
+              lock.release();
             }
 
-            if (!pdfAttachment) continue;
-
-            const subject = parsed.subject || "";
-            const filename = pdfAttachment.filename;
-            const pdfBase64 = pdfAttachment.content.toString("base64");
-            const rawContent = pdfAttachment.content.toString("latin1");
-
-            const combinedText = `${subject} ${filename} ${rawContent}`.toLowerCase();
-            const combinedUpper = `${subject} ${filename} ${rawContent}`.toUpperCase();
-
-            let score = 0;
-            let reason = "";
-
-            // 1. Exact VIN match (100 points)
-            if (targetVin && targetVin.length >= 8 && combinedUpper.includes(targetVin)) {
-              score = 100;
-              reason = `مطابقة تامة برقم الهيكل (VIN: ${targetVin})`;
-            } else {
-              // 2. Make match (40 points)
-              if (targetMake && targetMake.length > 1 && combinedText.includes(targetMake.toLowerCase())) {
-                score += 40;
-              }
-              // 3. Model match (40 points)
-              if (targetModel && targetModel.length > 1 && combinedText.includes(targetModel.toLowerCase())) {
-                score += 40;
-              }
-              // 4. Year match (20 points)
-              if (targetYear && combinedText.includes(targetYear)) {
-                score += 20;
-              }
-              // 5. Customer name match (20 points)
-              if (targetCustomer && combinedText.includes(targetCustomer.toLowerCase())) {
-                score += 20;
-              }
-              reason = `مطابقة مواصفات المركبة (${targetMake} ${targetModel} ${targetYear})`;
-            }
-
-            if (score >= 40 || score === 100) {
-              candidates.push({ seq: meta.seq, subject, filename, pdfBase64, score, reason });
-              console.log(`Autel AI Candidate: seq=${meta.seq} ("${filename}") -> Score=${score}% (${reason})`);
-              if (score === 100) break;
-            }
-          } catch (itemErr) {
-            console.warn(`Autel AI: Error parsing candidate seq ${meta.seq}:`, itemErr);
+            if (candidates.some(c => c.score === 100)) break;
+          } catch (folderErr) {
+            console.warn(`Autel AI: Error checking folder ${folder}:`, folderErr);
           }
         }
 
-        // Sort candidates by match score descending
-        candidates.sort((a, b) => b.score - a.score);
-
-        let bestMatch: EmailCandidate | null = candidates.length > 0 ? candidates[0] : null;
-
-        // If score is low (< 40) or no candidates matched vehicle criteria
-        if (!bestMatch || bestMatch.score < 40) {
-          await lock.release();
+        if (candidates.length === 0) {
           await client.logout();
           return res.status(404).json({
-            error: `لم يتم العثور على تقرير Autel مطابق لهذه السيارة (${targetMake || ''} ${targetModel || ''} ${targetYear || ''} ${targetVin ? 'VIN: ' + targetVin : ''}) في البريد الإلكتروني. يرجى التأكد من إرسال التقرير من جهاز Autel.`
+            error: "لم يتم العثور على أي ملف تقرير PDF في البريد الإلكتروني. يرجى إرسال التقرير من جهاز Autel أولاً."
           });
         }
 
-        // Save best matching Autel PDF
-        console.log(`Autel AI Match Success! Matched seq=${bestMatch.seq} ("${bestMatch.filename}") with score=${bestMatch.score}% (${bestMatch.reason})`);
+        // 1. If exact VIN match exists, use it
+        const exactMatch = candidates.find(c => c.score === 100);
+        
+        // 2. Otherwise sort by email date descending to get the very latest report
+        candidates.sort((a, b) => {
+          const timeA = a.date ? new Date(a.date).getTime() : 0;
+          const timeB = b.date ? new Date(b.date).getTime() : 0;
+          return timeB - timeA;
+        });
+
+        const bestMatch = exactMatch || candidates[0];
+
+        // Save latest matching Autel PDF
+        console.log(`Autel Fetch Success! Selected folder="${bestMatch.folder}" seq=${bestMatch.seq} ("${bestMatch.filename}") Date="${bestMatch.date}" (${bestMatch.reason})`);
 
         await storage.updateInspection(inspectionId, {
           autelReportPdf: bestMatch.pdfBase64,
           autelReportName: bestMatch.filename,
         } as any);
 
-        await lock.release();
         await client.logout();
 
         res.json({ 
           success: true, 
           filename: bestMatch.filename,
           score: bestMatch.score,
-          message: `تم مطابقة وسحب تقرير Autel الخاص بالمركبة بنجاح: ${bestMatch.reason}` 
+          message: `تم سحب أحدث تقرير Autel بنجاح (${bestMatch.filename})` 
         });
       } catch (innerError) {
-        try { await lock.release(); } catch {}
         try { await client.logout(); } catch {}
         throw innerError;
       }

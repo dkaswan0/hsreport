@@ -98,6 +98,21 @@ export default function NewInspection() {
     }
   });
 
+  const [decodedVinInfo, setDecodedVinInfo] = useState<{
+    make?: string;
+    model?: string;
+    year?: number | null;
+    vehicleType?: string;
+    country?: string;
+    continent?: string;
+    market?: string;
+    confidence?: string;
+    provider?: string;
+    manufacturer?: string;
+    wmi?: string;
+    vds?: string;
+  } | null>(null);
+
   const [isDecodingVin, setIsDecodingVin] = useState(false);
   const [isScanningVin, setIsScanningVin] = useState(false);
   const [isAnalyzingOdometer, setIsAnalyzingOdometer] = useState(false);
@@ -107,6 +122,34 @@ export default function NewInspection() {
   const watchMake = form.watch("make");
   const watchModel = form.watch("model");
   const watchYear = form.watch("year");
+
+  // Read URL query params on mount if navigated from VehicleData page
+  useState(() => {
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const urlVin = searchParams.get("vin");
+      const urlMake = searchParams.get("make");
+      const urlModel = searchParams.get("model");
+      const urlYear = searchParams.get("year");
+      const urlType = searchParams.get("vehicleType");
+      const urlCountry = searchParams.get("country");
+
+      if (urlVin) {
+        form.setValue("vin", urlVin);
+        if (urlMake) form.setValue("make", urlMake);
+        if (urlModel) form.setValue("model", urlModel);
+        if (urlYear) form.setValue("year", parseInt(urlYear, 10) || new Date().getFullYear());
+        setDecodedVinInfo({
+          make: urlMake || undefined,
+          model: urlModel || undefined,
+          year: urlYear ? parseInt(urlYear, 10) : undefined,
+          vehicleType: urlType || undefined,
+          country: urlCountry || undefined,
+          confidence: "high"
+        });
+      }
+    } catch (_) {}
+  });
 
   // Handle VIN photo OCR scanning
   const handleVinPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -169,25 +212,36 @@ export default function NewInspection() {
     }
   };
 
-  // Decode VIN via NHTSA + CarAPI fallback
+  // Decode VIN via Global & GCC-Aware Multi-Tier Engine
   const decodeVin = async (vinCode: string) => {
+    const cleanVin = (vinCode || "").toUpperCase().trim()
+      .replace(/[\s-]/g, "")
+      .replace(/O/g, "0")
+      .replace(/I/g, "1")
+      .replace(/Q/g, "0");
+
+    if (!cleanVin || cleanVin.length < 3) return;
+
     setIsDecodingVin(true);
     try {
-      const response = await fetch(`/api/vin/${vinCode}`);
+      const response = await fetch(`/api/vin/${cleanVin}`);
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
         throw new Error(errData.message || "فشل التعرف على رقم الهيكل");
       }
       const data = await response.json();
-      if (data.success) {
-        if (data.make) form.setValue("make", data.make);
+      if (data.success && data.make) {
+        setDecodedVinInfo(data);
+        form.setValue("make", data.make);
         if (data.model) form.setValue("model", data.model);
         if (data.year) form.setValue("year", data.year);
 
         toast({
-          title: "تم استخراج بيانات المركبة تلقائياً",
-          description: `الماركة: ${data.make} | الموديل: ${data.model} | سنة الصنع: ${data.year}`,
+          title: "✨ تم استخراج بيانات المركبة بنجاح",
+          description: `${data.make} ${data.model || ""} (${data.year || ""}) - ${data.country || ""}`,
         });
+      } else {
+        setDecodedVinInfo(null);
       }
     } catch (err: any) {
       console.error(err);
@@ -362,8 +416,27 @@ export default function NewInspection() {
               <div className="relative">
                 <input
                   {...form.register("vin")}
+                  onPaste={(e) => {
+                    const text = e.clipboardData.getData("text");
+                    if (text) {
+                      const clean = text.toUpperCase().trim()
+                        .replace(/[\s-]/g, "")
+                        .replace(/O/g, "0")
+                        .replace(/I/g, "1")
+                        .replace(/Q/g, "0");
+                      form.setValue("vin", clean);
+                      setTimeout(() => decodeVin(clean), 50);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      decodeVin(form.getValues("vin") || "");
+                    }
+                  }}
                   onChange={async (e) => {
                     const val = e.target.value.toUpperCase()
+                      .replace(/[\s-]/g, "")
                       .replace(/O/g, "0")
                       .replace(/I/g, "1")
                       .replace(/Q/g, "0");
@@ -372,31 +445,43 @@ export default function NewInspection() {
                       await decodeVin(val);
                     }
                   }}
-                  className="w-full px-4 py-3.5 rounded-xl bg-white border border-slate-300 focus:border-[#C5852C] focus:ring-4 focus:ring-[#C5852C]/20 transition-all font-mono text-lg tracking-widest uppercase pl-24 shadow-inner"
+                  className="w-full px-4 py-3.5 rounded-xl bg-white border border-slate-300 focus:border-[#C5852C] focus:ring-4 focus:ring-[#C5852C]/20 transition-all font-mono text-lg tracking-widest uppercase pl-48 shadow-inner"
                   placeholder="WBA3A5C50DF..."
                   maxLength={17}
                   data-testid="input-vin"
                 />
-                <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                  {isScanningVin || isDecodingVin ? (
-                    <div className="flex items-center gap-1 bg-[#0C1A28] text-[#C5852C] px-3 py-1.5 rounded-lg text-xs font-bold shadow">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>جارٍ الجلب...</span>
-                    </div>
-                  ) : (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => vinPhotoRef.current?.click()}
-                        className="bg-[#0C1A28] hover:bg-[#162A3E] text-[#C5852C] text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 font-bold shadow transition-all font-arabic"
-                        title="مسح رقم الشاصي من ملصق أو باركود بالكاميرا"
-                        data-testid="button-scan-vin"
-                      >
-                        <Camera className="w-3.5 h-3.5" />
-                        <span>كاميرا VIN</span>
-                      </button>
-                    </>
-                  )}
+                <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => decodeVin(form.getValues("vin") || "")}
+                    disabled={isDecodingVin || !(form.watch("vin") && form.watch("vin")!.length >= 3)}
+                    className="bg-[#C5852C] hover:bg-[#d8973b] disabled:opacity-50 text-[#0C1A28] text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 font-bold shadow transition-all font-arabic"
+                    title="فك وتحليل رقم الشاصي وجلب بيانات السيارة"
+                    data-testid="button-fetch-vin"
+                  >
+                    {isDecodingVin ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-3.5 h-3.5" />
+                    )}
+                    <span>جلب البيانات</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => vinPhotoRef.current?.click()}
+                    disabled={isScanningVin}
+                    className="bg-[#0C1A28] hover:bg-[#162A3E] text-[#C5852C] text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 font-bold shadow transition-all font-arabic border border-[#C5852C]/30"
+                    title="مسح رقم الشاصي من ملصق أو باركود بالكاميرا"
+                    data-testid="button-scan-vin"
+                  >
+                    {isScanningVin ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Camera className="w-3.5 h-3.5" />
+                    )}
+                    <span className="hidden sm:inline">كاميرا VIN</span>
+                  </button>
                 </div>
                 <input
                   ref={vinPhotoRef}
@@ -409,13 +494,42 @@ export default function NewInspection() {
               </div>
 
               {/* Decoded VIN Summary Badge */}
-              {(watchMake || watchModel) && (
-                <div className="mt-3 bg-white p-3 rounded-xl border border-[#C5852C]/30 flex items-center gap-3 shadow-sm font-arabic">
-                  <div className="w-9 h-9 rounded-lg bg-[#C5852C]/15 text-[#0C1A28] flex items-center justify-center font-bold shadow-inner">
-                    <PhosphorIcon name="car" weight="duotone" size={22} className="text-[#C5852C]" />
-                  </div>
-                  <div className="text-xs text-slate-700">
-                    <span className="font-bold text-[#0C1A28]">الماركة:</span> {watchMake || "غير محدد"} | <span className="font-bold text-[#0C1A28]">الموديل:</span> {watchModel || "غير محدد"} | <span className="font-bold text-[#0C1A28]">السنة:</span> {watchYear || "غير محدد"}
+              {(watchMake || watchModel || decodedVinInfo) && (
+                <div className="mt-3 bg-gradient-to-r from-slate-900 via-[#0C1A28] to-[#162A3E] p-4 rounded-2xl border border-[#C5852C]/40 text-white shadow-md font-arabic animate-in fade-in duration-300">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-[#C5852C]/20 text-[#C5852C] flex items-center justify-center font-bold border border-[#C5852C]/40 shadow-inner">
+                        <Car className="w-6 h-6 text-[#C5852C]" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-base font-bold text-white">
+                            {watchMake || "غير محدد"} {watchModel ? ` - ${watchModel}` : ""}
+                          </span>
+                          {watchYear && (
+                            <span className="bg-[#C5852C] text-[#0C1A28] text-xs font-black px-2 py-0.5 rounded-md">
+                              {watchYear}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-slate-300 flex items-center gap-2 mt-0.5">
+                          {decodedVinInfo?.vehicleType && <span>{decodedVinInfo.vehicleType}</span>}
+                          {decodedVinInfo?.country && <span>• بلد الصنع: {decodedVinInfo.country}</span>}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {decodedVinInfo?.market && (
+                        <span className="bg-white/10 text-emerald-300 border border-emerald-500/30 text-xs px-2.5 py-1 rounded-lg font-medium flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                          {decodedVinInfo.market}
+                        </span>
+                      )}
+                      <span className="bg-[#C5852C]/20 text-[#C5852C] border border-[#C5852C]/40 text-xs px-2.5 py-1 rounded-lg font-bold">
+                        فك مؤكد 100%
+                      </span>
+                    </div>
                   </div>
                 </div>
               )}

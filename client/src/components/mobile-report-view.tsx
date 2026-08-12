@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from "react";
 import { PhosphorIcon } from "@/components/phosphor-icon";
-import { CarBlueprintPinpoint } from "@/components/car-blueprint-pinpoint";
 import { INSPECTION_CATEGORIES } from "@shared/categories";
 import { getVehicleColor } from "@/lib/vehicle-utils";
 import logoPath from "@assets/hs-logo.png";
+import hsBannerPath from "@assets/hs-banner.jpeg";
 import hsCarBranding from "@assets/hs_car_branding.png";
 
 interface MobileReportViewProps {
@@ -64,41 +64,14 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
   return (
     <div className="w-full space-y-4 font-arabic antialiased text-slate-900 pb-8" dir="rtl">
       
-      {/* 1. Header Banner - Exact High Safety Mobile Reference */}
-      <div className="bg-[#0C1A28] rounded-2xl sm:rounded-3xl overflow-hidden border-t-4 border-[#C5852C] shadow-lg">
-        <div className="p-3 sm:p-4 flex items-center justify-between gap-2">
-          {/* Left: English Branding */}
-          <div className="text-left flex-1 min-w-0" dir="ltr">
-            <h2 className="text-[#C5852C] font-black text-xs sm:text-sm md:text-base tracking-wider uppercase truncate">
-              HIGH SAFETY
-            </h2>
-            <div className="text-white/80 font-mono text-[9px] sm:text-[10px] tracking-tight leading-tight">
-              INTERNATIONAL CENTER L.L.C.
-            </div>
-            <div className="text-white/50 text-[8px] sm:text-[9px] font-arabic mt-0.5 hidden xs:block truncate">
-              الفحص الفني للمركبات والمعدات والآليات
-            </div>
-          </div>
-
-          {/* Center: Gold Circular Emblem */}
-          <div className="shrink-0 px-1">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 border-[#C5852C]/70 bg-[#0C1A28] flex items-center justify-center p-1 shadow-md shadow-black/40">
-              <img src={logoPath} alt="High Safety Emblem" className="w-full h-full object-contain" />
-            </div>
-          </div>
-
-          {/* Right: Arabic Branding */}
-          <div className="text-right flex-1 min-w-0">
-            <h2 className="text-[#C5852C] font-black text-xs sm:text-sm md:text-base font-arabic truncate">
-              مركز الأمان العالي
-            </h2>
-            <div className="text-white font-bold text-[10px] sm:text-xs font-arabic leading-tight">
-              الدولي <span className="text-white/70 font-normal text-[8px]">ش.ذ.م.م</span>
-            </div>
-            <div className="text-white/50 text-[8px] sm:text-[9px] font-arabic mt-0.5 truncate">
-              للفحص الفني للمركبات والآليات
-            </div>
-          </div>
+      {/* 1. Header Banner - Approved Royal Blue & Gold High Safety Banner */}
+      <div className="bg-[#0C1A28] rounded-2xl overflow-hidden shadow-lg border border-[#C5852C]/40">
+        <div className="w-full bg-[#0C1A28]">
+          <img
+            src={hsBannerPath}
+            alt="High Safety International Center"
+            className="w-full h-auto object-contain block"
+          />
         </div>
 
         {/* Action buttons bar for quick interaction */}
@@ -408,44 +381,28 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
                 key={item.id || idx}
                 className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm p-3 space-y-2.5 text-right"
               >
-                {/* Finding Header: Category + Severity Badge */}
+                {/* Finding Header: Category */}
                 <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs font-black text-[#0C1A28] font-arabic">{cat.label}</span>
                     <span className="text-[10px] text-slate-400 font-mono" dir="ltr">| {cat.labelEn}</span>
                   </div>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                    أثر خفيف - بسيط
-                  </span>
                 </div>
 
-                {/* Defect Photo & Car Blueprint Pinpoint Row */}
-                <div className="grid grid-cols-12 gap-2.5 items-center">
-                  {/* Defect Photo */}
-                  <div className="col-span-8 h-28 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden relative">
-                    {item.imageUrl ? (
-                      <img
-                        src={item.imageUrl}
-                        alt={titleAr}
-                        className="w-full h-full object-cover cursor-pointer"
-                        onClick={() => onImageClick?.(item.imageUrl, titleAr)}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-1 bg-slate-50">
-                        <PhosphorIcon name="camera-slash" weight="duotone" size={20} />
-                        <span className="text-[9px]">لا توجد صورة</span>
-                      </div>
-                    )}
+                {/* Defect Photo if available */}
+                {item.imageUrl && (
+                  <div className="w-full h-44 sm:h-52 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden relative">
+                    <img
+                      src={item.imageUrl}
+                      alt={titleAr}
+                      className="w-full h-full object-cover cursor-pointer hover:scale-[1.02] transition-transform"
+                      onClick={() => onImageClick?.(item.imageUrl, titleAr)}
+                    />
                   </div>
-
-                  {/* Car Blueprint Pinpoint (Silhouette with Glowing Dot) */}
-                  <div className="col-span-4 h-28 bg-slate-50 rounded-xl border border-slate-200 p-1 flex items-center justify-center">
-                    <CarBlueprintPinpoint category={item.category || ''} dotColor="#dc2626" className="w-full h-full" />
-                  </div>
-                </div>
+                )}
 
                 {/* Defect Title in Red & Descriptions */}
-                <div className="space-y-1 pt-1">
+                <div className="space-y-1 pt-0.5">
                   <h4 className="text-xs sm:text-sm font-black text-red-600 font-arabic leading-snug">
                     {titleAr}
                   </h4>
@@ -482,23 +439,44 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
           <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
             <div className="divide-y divide-slate-100">
               {currentCodes.map((obd, idx) => (
-                <div key={idx} className="p-3 flex items-center justify-between gap-3 text-right">
-                  <div className="flex items-center gap-2.5 shrink-0">
-                    <div className="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0">
-                      <PhosphorIcon name="warning-octagon" weight="fill" size={14} />
+                <div key={idx} className="p-3.5 space-y-2 text-right">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2.5 shrink-0">
+                      <div className="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0 mt-0.5">
+                        <PhosphorIcon name="warning-octagon" weight="fill" size={14} />
+                      </div>
+                      <div className="text-right">
+                        <div className="text-[11px] font-bold text-red-700">نشط</div>
+                        <div className="text-[8px] text-slate-400 font-mono" dir="ltr">Active</div>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-[11px] font-bold text-red-700">نشط</div>
-                      <div className="text-[8px] text-slate-400 font-mono" dir="ltr">Active</div>
+                    <div className="flex-1 min-w-0 pr-2">
+                      <div className="text-xs sm:text-sm font-bold text-slate-900 font-arabic leading-snug break-words whitespace-normal">{obd.nameAr}</div>
+                      <div className="text-[10px] sm:text-xs text-slate-500 font-mono mt-0.5 break-words whitespace-normal" dir="ltr">{obd.nameEn}</div>
+                    </div>
+                    <div className="font-mono font-black text-xs sm:text-sm text-[#0C1A28] bg-slate-100 px-2.5 py-1 rounded-lg shrink-0">
+                      {obd.code}
                     </div>
                   </div>
-                  <div className="flex-1 min-w-0 pr-2">
-                    <div className="text-xs font-bold text-slate-900 font-arabic truncate">{obd.nameAr}</div>
-                    <div className="text-[10px] text-slate-400 font-mono truncate" dir="ltr">{obd.nameEn}</div>
-                  </div>
-                  <div className="font-mono font-black text-xs sm:text-sm text-[#0C1A28] bg-slate-100 px-2 py-1 rounded-lg shrink-0">
-                    {obd.code}
-                  </div>
+
+                  {obd.diagnosis && (
+                    <div className="bg-indigo-50/60 rounded-xl p-2.5 text-xs text-slate-800 leading-relaxed font-arabic border border-indigo-100/60 break-words whitespace-normal">
+                      <span className="font-bold text-indigo-800 ml-1">التشخيص:</span>
+                      {obd.diagnosis}
+                    </div>
+                  )}
+                  {obd.causes && (
+                    <div className="bg-amber-50/60 rounded-xl p-2.5 text-xs text-slate-800 leading-relaxed font-arabic border border-amber-100/60 break-words whitespace-normal">
+                      <span className="font-bold text-amber-800 ml-1">الأسباب:</span>
+                      {obd.causes}
+                    </div>
+                  )}
+                  {obd.solutions && (
+                    <div className="bg-emerald-50/60 rounded-xl p-2.5 text-xs text-slate-800 leading-relaxed font-arabic border border-emerald-100/60 break-words whitespace-normal">
+                      <span className="font-bold text-emerald-800 ml-1">خطوات الإصلاح:</span>
+                      {obd.solutions}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -522,23 +500,44 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
           <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
             <div className="divide-y divide-slate-100">
               {historyCodes.map((obd, idx) => (
-                <div key={idx} className="p-3 flex items-center justify-between gap-3 text-right">
-                  <div className="flex items-center gap-2.5 shrink-0">
-                    <div className="w-6 h-6 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
-                      <PhosphorIcon name="clock-counter-clockwise" weight="bold" size={14} />
+                <div key={idx} className="p-3.5 space-y-2 text-right">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2.5 shrink-0">
+                      <div className="w-6 h-6 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0 mt-0.5">
+                        <PhosphorIcon name="clock-counter-clockwise" weight="bold" size={14} />
+                      </div>
+                      <div className="text-right">
+                        <div className="text-[11px] font-bold text-amber-700">سابق</div>
+                        <div className="text-[8px] text-slate-400 font-mono" dir="ltr">History</div>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-[11px] font-bold text-amber-700">سابق</div>
-                      <div className="text-[8px] text-slate-400 font-mono" dir="ltr">History</div>
+                    <div className="flex-1 min-w-0 pr-2">
+                      <div className="text-xs sm:text-sm font-bold text-slate-900 font-arabic leading-snug break-words whitespace-normal">{obd.nameAr}</div>
+                      <div className="text-[10px] sm:text-xs text-slate-500 font-mono mt-0.5 break-words whitespace-normal" dir="ltr">{obd.nameEn}</div>
+                    </div>
+                    <div className="font-mono font-black text-xs sm:text-sm text-[#0C1A28] bg-slate-100 px-2.5 py-1 rounded-lg shrink-0">
+                      {obd.code}
                     </div>
                   </div>
-                  <div className="flex-1 min-w-0 pr-2">
-                    <div className="text-xs font-bold text-slate-900 font-arabic truncate">{obd.nameAr}</div>
-                    <div className="text-[10px] text-slate-400 font-mono truncate" dir="ltr">{obd.nameEn}</div>
-                  </div>
-                  <div className="font-mono font-black text-xs sm:text-sm text-[#0C1A28] bg-slate-100 px-2 py-1 rounded-lg shrink-0">
-                    {obd.code}
-                  </div>
+
+                  {obd.diagnosis && (
+                    <div className="bg-indigo-50/60 rounded-xl p-2.5 text-xs text-slate-800 leading-relaxed font-arabic border border-indigo-100/60 break-words whitespace-normal">
+                      <span className="font-bold text-indigo-800 ml-1">التشخيص:</span>
+                      {obd.diagnosis}
+                    </div>
+                  )}
+                  {obd.causes && (
+                    <div className="bg-amber-50/60 rounded-xl p-2.5 text-xs text-slate-800 leading-relaxed font-arabic border border-amber-100/60 break-words whitespace-normal">
+                      <span className="font-bold text-amber-800 ml-1">الأسباب:</span>
+                      {obd.causes}
+                    </div>
+                  )}
+                  {obd.solutions && (
+                    <div className="bg-emerald-50/60 rounded-xl p-2.5 text-xs text-slate-800 leading-relaxed font-arabic border border-emerald-100/60 break-words whitespace-normal">
+                      <span className="font-bold text-emerald-800 ml-1">خطوات الإصلاح:</span>
+                      {obd.solutions}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -732,7 +731,7 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
           {/* Term 5 */}
           <div className="bg-white rounded-xl border border-slate-200 p-3 flex items-start gap-3 shadow-xs">
             <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 mt-0.5">
-              <PhosphorIcon name="clipboard-check" weight="duotone" size={18} className="text-[#C5852C]" />
+              <PhosphorIcon name="check-circle" weight="duotone" size={18} className="text-[#C5852C]" />
             </div>
             <div className="flex-1 min-w-0 text-right">
               <div className="text-xs font-bold text-slate-900 font-arabic">
@@ -746,24 +745,16 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
         </div>
       </div>
 
-      {/* 10. Footer Banner - Matching the Reference Footer */}
+      {/* 10. Footer Banner */}
       <div className="bg-[#0C1A28] rounded-2xl p-4 text-white space-y-3 border-t-2 border-[#C5852C] shadow-lg text-center">
-        <div className="grid grid-cols-2 gap-2 text-[10px] sm:text-xs">
-          <div className="flex items-center justify-center gap-1.5 bg-white/5 rounded-lg p-1.5">
+        <div className="flex flex-wrap items-center justify-center gap-3 text-xs">
+          <div className="flex items-center justify-center gap-1.5 bg-white/5 rounded-lg px-3 py-1.5">
             <PhosphorIcon name="phone" weight="duotone" size={14} className="text-[#C5852C]" />
-            <span className="font-mono font-bold" dir="ltr">+971 50 123 4567</span>
+            <span className="font-mono font-bold" dir="ltr">0542206000</span>
           </div>
-          <div className="flex items-center justify-center gap-1.5 bg-white/5 rounded-lg p-1.5">
-            <PhosphorIcon name="envelope" weight="duotone" size={14} className="text-[#C5852C]" />
-            <span className="font-mono text-[9px] truncate" dir="ltr">info@highsafetyint.com</span>
-          </div>
-          <div className="flex items-center justify-center gap-1.5 bg-white/5 rounded-lg p-1.5">
-            <PhosphorIcon name="globe" weight="duotone" size={14} className="text-[#C5852C]" />
-            <span className="font-mono text-[9px] truncate" dir="ltr">www.highsafetyint.com</span>
-          </div>
-          <div className="flex items-center justify-center gap-1.5 bg-white/5 rounded-lg p-1.5">
+          <div className="flex items-center justify-center gap-1.5 bg-white/5 rounded-lg px-3 py-1.5">
             <PhosphorIcon name="map-pin" weight="duotone" size={14} className="text-[#C5852C]" />
-            <span className="truncate">الشارقة، المنطقة الصناعية 6</span>
+            <span className="font-arabic font-medium">الشارقة الصناعية 13، طريق المدينة الجامعية</span>
           </div>
         </div>
 

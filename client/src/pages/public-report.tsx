@@ -26,7 +26,6 @@ import logoPath from "@assets/hs-logo.png";
 import hsBannerPath from "@assets/hs-banner.jpeg";
 import hsCarBranding from "@assets/hs_car_branding.png";
 import { VinPlate } from "@/components/vin-plate";
-import { CarBlueprintPinpoint } from "@/components/car-blueprint-pinpoint";
 import type { Inspection, InspectionItem } from "@shared/schema";
 import { INSPECTION_CATEGORIES } from "@shared/categories";
 import { IntroAnimation } from "@/components/intro-animation";
@@ -106,13 +105,12 @@ const ImageModal = ({ imageUrl, faultName, onClose }: { imageUrl: string; faultN
 
 // Company Header Component - Exact High Safety Reference
 const CompanyHeader = () => (
-  <div className="rounded-3xl overflow-hidden shadow-2xl border border-[#C5852C]/30">
-    <div className="bg-[#0C1A28] relative">
+  <div className="rounded-3xl overflow-hidden shadow-2xl border border-[#C5852C]/40 bg-[#0C1A28]">
+    <div className="w-full bg-[#0C1A28]">
       <img 
         src={hsBannerPath} 
         alt="High Safety International Center" 
-        className="w-full object-cover"
-        style={{ maxHeight: '130px', objectPosition: 'center' }}
+        className="w-full h-auto max-h-[140px] md:max-h-[160px] object-contain block"
       />
     </div>
     <div className="bg-gradient-to-l from-[#0C1A28] to-[#0f2035] text-white px-6 py-3 flex flex-wrap justify-center md:justify-between items-center gap-3 border-t border-[#C5852C]/40">
@@ -122,12 +120,8 @@ const CompanyHeader = () => (
           <span className="font-mono font-bold">0542206000</span>
         </div>
         <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
-          <PhosphorIcon name="envelope" weight="duotone" size={16} className="text-[#C5852C]" />
-          <span className="text-xs font-mono">highsafety2021@gmail.com</span>
-        </div>
-        <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-xl">
           <PhosphorIcon name="map-pin" weight="duotone" size={16} className="text-[#C5852C]" />
-          <span className="font-arabic">سيتي بلازا الدراري - الشارقة</span>
+          <span className="font-arabic">الشارقة الصناعية 13، طريق المدينة الجامعية</span>
         </div>
       </div>
     </div>
@@ -468,33 +462,28 @@ const InspectionResults = ({
                     )}
                   </div>
 
-                  {/* Center: Details & Descriptions */}
+                  {/* Details & Descriptions */}
                   <div className="flex-1 min-w-0 space-y-1.5">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-xs font-bold text-[#C5852C] font-arabic">{cat.label}</span>
                       <span className="text-[10px] text-slate-400 font-mono" dir="ltr">{cat.labelEn}</span>
                     </div>
 
-                    <h4 className="font-bold text-slate-900 font-arabic text-sm leading-snug break-words">
+                    <h4 className="font-bold text-slate-900 font-arabic text-sm sm:text-base leading-snug break-words">
                       {titleAr}
                     </h4>
 
                     {item.description && (
-                      <p className="text-xs text-slate-700 font-arabic leading-relaxed line-clamp-2 break-words">
+                      <p className="text-xs sm:text-sm text-slate-700 font-arabic leading-relaxed break-words whitespace-normal">
                         {item.description}
                       </p>
                     )}
 
                     {item.descriptionEn && (
-                      <p className="text-[10px] text-slate-400 font-mono truncate" dir="ltr">
+                      <p className="text-[10px] sm:text-xs text-slate-500 font-mono break-words whitespace-normal" dir="ltr">
                         {item.descriptionEn}
                       </p>
                     )}
-                  </div>
-
-                  {/* Right: Top-down Car Blueprint SVG Pinpoint */}
-                  <div className="w-full sm:w-20 h-20 sm:h-24 bg-slate-50/80 rounded-xl border border-slate-100 p-1 flex items-center justify-center shrink-0">
-                    <CarBlueprintPinpoint category={item.category || ''} dotColor="#dc2626" className="w-full h-full" />
                   </div>
                 </div>
               );
@@ -619,24 +608,45 @@ export default function PublicReport() {
                 </div>
               </div>
 
-              <div className="p-3 sm:p-6 space-y-2.5 sm:space-y-3">
+              <div className="p-3 sm:p-6 space-y-3 sm:space-y-4">
                 {codes.map((obd, idx) => (
-                  <div key={idx} className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 sm:p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 text-right">
-                    <div className="flex items-center gap-3">
-                      <div className="shrink-0 text-center">
-                        <div className="font-mono font-black text-[#0C1A28] text-base sm:text-lg px-3 py-1 sm:px-4 sm:py-1.5 rounded-xl bg-slate-200/80 shadow-sm min-w-[80px] sm:min-w-[90px] text-center">{obd.code}</div>
+                  <div key={idx} className="p-3.5 sm:p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 text-right space-y-2">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                      <div className="flex items-start sm:items-center gap-3 flex-1 min-w-0">
+                        <div className="shrink-0 text-center">
+                          <div className="font-mono font-black text-[#0C1A28] text-base sm:text-lg px-3 py-1 sm:px-4 sm:py-1.5 rounded-xl bg-slate-200/80 shadow-sm min-w-[80px] sm:min-w-[90px] text-center">{obd.code}</div>
+                        </div>
+                        <div className="flex-1 min-w-0 pr-1 sm:pr-2">
+                          <div className="text-sm sm:text-base font-black text-slate-900 font-arabic leading-snug break-words whitespace-normal">{obd.nameAr}</div>
+                          <div className="text-xs text-slate-500 font-mono mt-0.5 break-words whitespace-normal" dir="ltr">{obd.nameEn}</div>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0 pr-1 sm:pr-2">
-                        <div className="text-sm sm:text-base font-black text-slate-900 font-arabic leading-snug break-words">{obd.nameAr}</div>
-                        <div className="text-xs text-slate-400 font-mono mt-0.5 break-words" dir="ltr">{obd.nameEn}</div>
+                      <div className="shrink-0 self-start sm:self-center">
+                        <span className={`px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-bold font-arabic flex items-center gap-1.5 ${isHistory ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'}`}>
+                          <PhosphorIcon name={isHistory ? "clock-counter-clockwise" : "warning-octagon"} weight="duotone" size={14} />
+                          <span>{isHistory ? 'سابق History' : 'نشط Active'}</span>
+                        </span>
                       </div>
                     </div>
-                    <div className="shrink-0 self-end sm:self-center">
-                      <span className={`px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-bold font-arabic flex items-center gap-1.5 ${isHistory ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'}`}>
-                        <PhosphorIcon name={isHistory ? "clock-counter-clockwise" : "warning-octagon"} weight="duotone" size={14} />
-                        <span>{isHistory ? 'سابق History' : 'نشط Active'}</span>
-                      </span>
-                    </div>
+
+                    {obd.diagnosis && (
+                      <div className="bg-indigo-50/60 rounded-xl p-2.5 text-xs text-slate-800 leading-relaxed font-arabic border border-indigo-100/60 break-words whitespace-normal">
+                        <span className="font-bold text-indigo-800 ml-1">التشخيص:</span>
+                        {obd.diagnosis}
+                      </div>
+                    )}
+                    {obd.causes && (
+                      <div className="bg-amber-50/60 rounded-xl p-2.5 text-xs text-slate-800 leading-relaxed font-arabic border border-amber-100/60 break-words whitespace-normal">
+                        <span className="font-bold text-amber-800 ml-1">الأسباب:</span>
+                        {obd.causes}
+                      </div>
+                    )}
+                    {obd.solutions && (
+                      <div className="bg-emerald-50/60 rounded-xl p-2.5 text-xs text-slate-800 leading-relaxed font-arabic border border-emerald-100/60 break-words whitespace-normal">
+                        <span className="font-bold text-emerald-800 ml-1">خطوات الإصلاح:</span>
+                        {obd.solutions}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -752,7 +762,7 @@ export default function PublicReport() {
                 <p className="text-[11px] sm:text-xs text-slate-500 font-mono mt-1" dir="ltr">This report reflects the vehicle condition based on device readings at the time of inspection.</p>
               </div>
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
-                <PhosphorIcon name="clipboard-check" weight="duotone" size={18} className="text-[#C5852C]" />
+                <PhosphorIcon name="check-circle" weight="duotone" size={18} className="text-[#C5852C]" />
               </div>
             </div>
           </div>
@@ -761,21 +771,13 @@ export default function PublicReport() {
         {/* Footer Banner */}
         <div className="bg-[#0C1A28] text-white rounded-3xl p-4 sm:p-6 border-t-2 border-[#C5852C] shadow-2xl text-center space-y-3 sm:space-y-4">
           <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs text-white/80 font-arabic">
-            <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 bg-white/5 rounded-lg px-3 py-1.5">
               <PhosphorIcon name="phone" weight="duotone" size={16} className="text-[#C5852C]" />
               <span className="font-mono font-bold">0542206000</span>
             </div>
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <PhosphorIcon name="envelope" weight="duotone" size={16} className="text-[#C5852C]" />
-              <span className="font-mono">highsafety2021@gmail.com</span>
-            </div>
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <PhosphorIcon name="globe" weight="duotone" size={16} className="text-[#C5852C]" />
-              <span className="font-mono">www.highsafetyint.com</span>
-            </div>
-            <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 bg-white/5 rounded-lg px-3 py-1.5">
               <PhosphorIcon name="map-pin" weight="duotone" size={16} className="text-[#C5852C]" />
-              <span>سيتي بلازا الدراري - الشارقة - الإمارات العربية المتحدة</span>
+              <span>الشارقة الصناعية 13، طريق المدينة الجامعية</span>
             </div>
           </div>
 
