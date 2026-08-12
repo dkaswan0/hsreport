@@ -73,6 +73,7 @@ export default function NewInspection() {
     frontRightDoor: string | null;
     hood: string | null;
     trunk: string | null;
+    interior: string | null;
   }>({
     rearLeftDoor: null,
     rearRightDoor: null,
@@ -80,6 +81,7 @@ export default function NewInspection() {
     frontRightDoor: null,
     hood: null,
     trunk: null,
+    interior: null,
   });
 
   const form = useForm<FormValues>({
@@ -344,6 +346,7 @@ export default function NewInspection() {
       frontRightDoorPhoto: carSectionPhotos.frontRightDoor || undefined,
       hoodPhoto: carSectionPhotos.hood || undefined,
       trunkPhoto: carSectionPhotos.trunk || undefined,
+      frontLeftDoorInteriorPhoto: carSectionPhotos.interior || undefined,
     };
 
     mutate(submissionData as any, {
@@ -827,11 +830,12 @@ export default function NewInspection() {
             {/* أقسام السيارة 6 جهات */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {[
-                { key: 'frontLeftDoor', label: 'الباب الأمامي يسار' },
+                { key: 'frontLeftDoor', label: 'الباب الأمامي يسار / الواجهة' },
                 { key: 'frontRightDoor', label: 'الباب الأمامي يمين' },
-                { key: 'rearLeftDoor', label: 'الباب الخلفي يسار (اختياري للبابين)' },
-                { key: 'rearRightDoor', label: 'الباب الخلفي يمين (اختياري للبابين)' },
-                { key: 'hood', label: 'غطاء المحرك (الكبوت)' },
+                { key: 'rearLeftDoor', label: 'الباب الخلفي يسار / الجانب' },
+                { key: 'rearRightDoor', label: 'الباب الخلفي يمين / الجانب' },
+                { key: 'hood', label: 'حجرة المحرك (الكبوت)' },
+                { key: 'interior', label: 'المقصورة والفرش الداخلي' },
                 { key: 'trunk', label: 'صندوق الأمتعة (الشنطة)' },
               ].map((section) => {
                 const photo = carSectionPhotos[section.key as keyof typeof carSectionPhotos];
