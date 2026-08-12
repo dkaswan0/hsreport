@@ -995,7 +995,7 @@ const CustomerInfoCard = ({ inspection }: { inspection: any }) => (
   </div>
 );
 
-// Inspection Results Section - Dynamic Layout
+// Inspection Results Section - Categorized Layout matching Master Reference
 const InspectionResults = ({ 
   inspection, 
   highlightedCategory, 
@@ -1007,6 +1007,58 @@ const InspectionResults = ({
 }) => {
   const items = inspection.items || [];
 
+  // Group findings by category
+  const categoryGroups = useMemo(() => {
+    const groupsMap = new Map<string, { id: string; labelAr: string; labelEn: string; iconName: string; items: any[] }>();
+
+    const getGroupMeta = (category: string) => {
+      const c = (category || '').toLowerCase();
+      if (c.includes('door') || c.includes('hood') || c.includes('trunk') || c.includes('fender') || c.includes('bumper') || c.includes('roof') || c.includes('pillar') || c.includes('chest') || c.includes('body') || c.includes('هيكل') || c.includes('صدام') || c.includes('باب') || c.includes('رفرف') || c.includes('كبوت') || c.includes('دعامية')) {
+        return { id: 'body', labelAr: 'الهيكل الخارجي', labelEn: 'Body & Exterior', iconName: 'car-profile' };
+      }
+      if (c.includes('brake') || c.includes('suspension') || c.includes('steering') || c.includes('engine') || c.includes('mechanic') || c.includes('fuel') || c.includes('exhaust') || c.includes('cooling') || c.includes('محرك') || c.includes('فرامل') || c.includes('ميكانيك') || c.includes('سير') || c.includes('بلوف') || c.includes('زيت')) {
+        return { id: 'mechanic', labelAr: 'الميكانيكا', labelEn: 'Mechanics & Powertrain', iconName: 'gear-six' };
+      }
+      if (c.includes('tire') || c.includes('wheel') || c.includes('rim') || c.includes('إطار') || c.includes('جنط') || c.includes('كفر') || c.includes('عجلات')) {
+        return { id: 'tires', labelAr: 'الإطارات والعجلات', labelEn: 'Tires & Wheels', iconName: 'circle-dashed' };
+      }
+      if (c.includes('electric') || c.includes('battery') || c.includes('light') || c.includes('sensor') || c.includes('كهرباء') || c.includes('بطارية') || c.includes('إضاءة') || c.includes('حساس')) {
+        return { id: 'electric', labelAr: 'الكهرباء والإلكترونيات', labelEn: 'Electrical & Electronics', iconName: 'lightning' };
+      }
+      if (c.includes('transmission') || c.includes('gear') || c.includes('قير')) {
+        return { id: 'transmission', labelAr: 'ناقل الحركة', labelEn: 'Transmission', iconName: 'arrows-left-right' };
+      }
+      if (c.includes('interior') || c.includes('window') || c.includes('seat') || c.includes('mirror') || c.includes('داخلي') || c.includes('فرش') || c.includes('زجاج') || c.includes('سلامة') || c.includes('مقصورة')) {
+        return { id: 'interior', labelAr: 'المقصورة والداخلية', labelEn: 'Interior & Cabin', iconName: 'armchair' };
+      }
+      const found = INSPECTION_CATEGORIES.find(ic => ic.id === category);
+      if (found) {
+        if (found.section === 'body') return { id: 'body', labelAr: 'الهيكل الخارجي', labelEn: 'Body & Exterior', iconName: 'car-profile' };
+        if (found.section === 'mechanic') return { id: 'mechanic', labelAr: 'الميكانيكا', labelEn: 'Mechanics & Powertrain', iconName: 'gear-six' };
+        if (found.section === 'electric') return { id: 'electric', labelAr: 'الكهرباء والإلكترونيات', labelEn: 'Electrical & Electronics', iconName: 'lightning' };
+        if (found.section === 'transmission') return { id: 'transmission', labelAr: 'ناقل الحركة', labelEn: 'Transmission', iconName: 'arrows-left-right' };
+        if (found.section === 'interior') return { id: 'interior', labelAr: 'المقصورة والداخلية', labelEn: 'Interior & Cabin', iconName: 'armchair' };
+      }
+      return { id: 'general', labelAr: 'الفحص العام', labelEn: 'General Inspection', iconName: 'clipboard-text' };
+    };
+
+    items.forEach((item: any) => {
+      const meta = getGroupMeta(item.category);
+      if (!groupsMap.has(meta.id)) {
+        groupsMap.set(meta.id, {
+          id: meta.id,
+          labelAr: meta.labelAr,
+          labelEn: meta.labelEn,
+          iconName: meta.iconName,
+          items: []
+        });
+      }
+      groupsMap.get(meta.id)!.items.push(item);
+    });
+
+    return Array.from(groupsMap.values());
+  }, [items]);
+
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden" data-testid="inspection-results-section">
       {/* Dark Navy Section Header with Phosphor Icon */}
@@ -1017,13 +1069,16 @@ const InspectionResults = ({
           </div>
           <div className="flex flex-wrap items-baseline gap-1.5 sm:gap-2">
             <span className="font-mono text-[#C5852C] font-black text-base sm:text-lg md:text-xl">3 |</span>
-            <span className="text-white font-black text-sm sm:text-base md:text-xl font-arabic">نتائج الفحص</span>
+            <span className="text-white font-black text-sm sm:text-base md:text-xl font-arabic">الأعطال المسجلة</span>
             <span className="text-slate-300 text-[11px] sm:text-xs md:text-sm font-mono font-semibold">| Inspection Results ({items.length})</span>
           </div>
         </div>
+        <div className="text-xs font-bold text-slate-300 font-arabic">
+          {categoryGroups.length} {categoryGroups.length === 1 ? 'قسم' : 'أقسام مفحوصة'}
+        </div>
       </div>
 
-      <div className="p-3 sm:p-4 md:p-6">
+      <div className="p-3 sm:p-4 md:p-6 space-y-6">
         {items.length === 0 ? (
           <div className="p-8 sm:p-12 text-center bg-slate-50 rounded-2xl border border-slate-100">
             <PhosphorIcon name="check-circle" weight="duotone" size={48} className="text-emerald-500 mx-auto mb-3" />
@@ -1031,64 +1086,100 @@ const InspectionResults = ({
             <p className="text-slate-500 text-xs sm:text-sm font-arabic">لم يتم تسجيل أي ملاحظات أو عيوب فنية على المركبة</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
-            {items.map((item: any, idx: number) => {
-              const cat = INSPECTION_CATEGORIES.find(c => c.id === item.category) || { label: item.category || 'فحص عام', labelEn: 'General' };
-              const titleAr = item.faultName?.split(' - ')[0] || item.faultName || 'ملاحظة فنية';
-
-              return (
-                <div
-                  key={item.id || idx}
-                  className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-all p-3 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 text-right"
-                >
-                  {/* Left: Defect Photo */}
-                  <div className="w-full sm:w-32 h-44 sm:h-28 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 relative group shrink-0">
-                    {item.imageUrl ? (
-                      <button
-                        type="button"
-                        onClick={() => onImageClick?.(item.imageUrl!, titleAr)}
-                        className="w-full h-full block cursor-pointer"
-                      >
-                        <img src={item.imageUrl} alt={titleAr} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                          <PhosphorIcon name="magnifying-glass-plus" weight="duotone" size={22} className="text-white" />
-                        </div>
-                      </button>
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-1 bg-slate-50">
-                        <PhosphorIcon name="camera-slash" weight="duotone" size={24} />
-                        <span className="text-[9px] font-arabic">لا توجد صورة</span>
-                      </div>
-                    )}
+          categoryGroups.map((group) => (
+            <div 
+              key={group.id} 
+              className="rounded-2xl border border-slate-300 overflow-hidden shadow-xs bg-white"
+            >
+              {/* Metallic Category Header Banner */}
+              <div className="bg-gradient-to-l from-slate-800 via-slate-700 to-slate-600 text-white px-4 py-2.5 sm:px-5 sm:py-3 flex items-center justify-between shadow-xs border-b border-slate-700/80">
+                <div className="flex items-center gap-2.5 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-900/90 border border-white/20 flex items-center justify-center shadow-inner shrink-0">
+                    <PhosphorIcon name={group.iconName as any} weight="duotone" size={18} className="text-white" />
                   </div>
-
-                  {/* Details & Descriptions */}
-                  <div className="flex-1 min-w-0 space-y-1.5">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-bold text-[#C5852C] font-arabic">{cat.label}</span>
-                      <span className="text-[10px] text-slate-400 font-mono" dir="ltr">{cat.labelEn}</span>
-                    </div>
-
-                    <h4 className="font-bold text-slate-900 font-arabic text-sm leading-snug break-words">
-                      {titleAr}
-                    </h4>
-
-                    {item.description && (
-                      <p className="text-xs text-slate-700 font-arabic leading-relaxed line-clamp-2 break-words">
-                        {item.description}
-                      </p>
-                    )}
-
-                    {item.descriptionEn && (
-                      <p className="text-[10px] text-slate-400 font-mono truncate" dir="ltr">
-                        {item.descriptionEn}
-                      </p>
-                    )}
+                  <div>
+                    <h3 className="font-bold text-sm sm:text-base md:text-lg text-white font-arabic leading-tight">{group.labelAr}</h3>
+                    <span className="text-[10px] sm:text-xs text-slate-300 font-mono" dir="ltr">{group.labelEn}</span>
                   </div>
                 </div>
-              );
-            })}
-          </div>
+                <div className="bg-black/25 backdrop-blur-xs px-2.5 py-1 rounded-full text-xs font-bold text-white/90">
+                  {group.items.length} {group.items.length === 1 ? 'ملاحظة' : 'ملاحظات'}
+                </div>
+              </div>
+
+              {/* Finding Cards List inside Category */}
+              <div className="divide-y divide-slate-100">
+                {group.items.map((item: any, idx: number) => {
+                  const titleAr = item.faultName?.split(' - ')[0] || item.faultName || 'ملاحظة فنية';
+
+                  return (
+                    <div
+                      key={item.id || idx}
+                      className="p-3 sm:p-4.5 bg-white hover:bg-slate-50/60 transition-colors"
+                    >
+                      <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 sm:gap-4 text-right">
+                        {/* Left: Defect Photo */}
+                        <div className="w-full md:w-56 lg:w-64 h-48 md:h-36 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 relative group">
+                          {item.imageUrl ? (
+                            <button
+                              type="button"
+                              onClick={() => onImageClick?.(item.imageUrl!, titleAr)}
+                              className="w-full h-full block cursor-pointer"
+                            >
+                              <img 
+                                src={item.imageUrl} 
+                                alt={titleAr} 
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                              />
+                              <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                <PhosphorIcon name="magnifying-glass-plus" weight="duotone" size={24} className="text-white drop-shadow-md" />
+                              </div>
+                            </button>
+                          ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-1 bg-slate-50">
+                              <PhosphorIcon name="camera-slash" weight="duotone" size={24} />
+                              <span className="text-[10px] font-arabic">لا توجد صورة</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Right: Defect Information with Right Vertical Accent Line */}
+                        <div className="flex-1 min-w-0 pr-3 sm:pr-4 border-r-4 border-[#0C1A28] py-0.5 space-y-1.5">
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <h4 className="font-bold text-slate-900 font-arabic text-sm sm:text-base md:text-lg leading-snug">
+                              {titleAr}
+                            </h4>
+                            {item.severity && (
+                              <span className={cn(
+                                "text-[11px] font-bold px-2.5 py-0.5 rounded-md border shrink-0",
+                                item.severity.includes('عالي') || item.severity.includes('high') ? "bg-red-50 text-red-700 border-red-200" :
+                                item.severity.includes('متوسط') || item.severity.includes('medium') ? "bg-amber-50 text-amber-700 border-amber-200" :
+                                "bg-slate-50 text-slate-700 border-slate-200"
+                              )}>
+                                {item.severity}
+                              </span>
+                            )}
+                          </div>
+
+                          {item.description && (
+                            <p className="text-xs sm:text-sm text-slate-700 font-arabic leading-relaxed">
+                              {item.description}
+                            </p>
+                          )}
+
+                          {item.descriptionEn && (
+                            <p className="text-[11px] sm:text-xs text-slate-500 font-mono mt-0.5" dir="ltr">
+                              {item.descriptionEn}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))
         )}
       </div>
     </div>

@@ -56,6 +56,58 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
 
   const items = inspection.items || [];
 
+  // Group findings by category
+  const categoryGroups = useMemo(() => {
+    const groupsMap = new Map<string, { id: string; labelAr: string; labelEn: string; iconName: string; items: any[] }>();
+
+    const getGroupMeta = (category: string) => {
+      const c = (category || '').toLowerCase();
+      if (c.includes('door') || c.includes('hood') || c.includes('trunk') || c.includes('fender') || c.includes('bumper') || c.includes('roof') || c.includes('pillar') || c.includes('chest') || c.includes('body') || c.includes('هيكل') || c.includes('صدام') || c.includes('باب') || c.includes('رفرف') || c.includes('كبوت') || c.includes('دعامية')) {
+        return { id: 'body', labelAr: 'الهيكل الخارجي', labelEn: 'Body & Exterior', iconName: 'car-profile' };
+      }
+      if (c.includes('brake') || c.includes('suspension') || c.includes('steering') || c.includes('engine') || c.includes('mechanic') || c.includes('fuel') || c.includes('exhaust') || c.includes('cooling') || c.includes('محرك') || c.includes('فرامل') || c.includes('ميكانيك') || c.includes('سير') || c.includes('بلوف') || c.includes('زيت')) {
+        return { id: 'mechanic', labelAr: 'الميكانيكا', labelEn: 'Mechanics & Powertrain', iconName: 'gear-six' };
+      }
+      if (c.includes('tire') || c.includes('wheel') || c.includes('rim') || c.includes('إطار') || c.includes('جنط') || c.includes('كفر') || c.includes('عجلات')) {
+        return { id: 'tires', labelAr: 'الإطارات والعجلات', labelEn: 'Tires & Wheels', iconName: 'circle-dashed' };
+      }
+      if (c.includes('electric') || c.includes('battery') || c.includes('light') || c.includes('sensor') || c.includes('كهرباء') || c.includes('بطارية') || c.includes('إضاءة') || c.includes('حساس')) {
+        return { id: 'electric', labelAr: 'الكهرباء والإلكترونيات', labelEn: 'Electrical & Electronics', iconName: 'lightning' };
+      }
+      if (c.includes('transmission') || c.includes('gear') || c.includes('قير')) {
+        return { id: 'transmission', labelAr: 'ناقل الحركة', labelEn: 'Transmission', iconName: 'arrows-left-right' };
+      }
+      if (c.includes('interior') || c.includes('window') || c.includes('seat') || c.includes('mirror') || c.includes('داخلي') || c.includes('فرش') || c.includes('زجاج') || c.includes('سلامة') || c.includes('مقصورة')) {
+        return { id: 'interior', labelAr: 'المقصورة والداخلية', labelEn: 'Interior & Cabin', iconName: 'armchair' };
+      }
+      const found = INSPECTION_CATEGORIES.find(ic => ic.id === category);
+      if (found) {
+        if (found.section === 'body') return { id: 'body', labelAr: 'الهيكل الخارجي', labelEn: 'Body & Exterior', iconName: 'car-profile' };
+        if (found.section === 'mechanic') return { id: 'mechanic', labelAr: 'الميكانيكا', labelEn: 'Mechanics & Powertrain', iconName: 'gear-six' };
+        if (found.section === 'electric') return { id: 'electric', labelAr: 'الكهرباء والإلكترونيات', labelEn: 'Electrical & Electronics', iconName: 'lightning' };
+        if (found.section === 'transmission') return { id: 'transmission', labelAr: 'ناقل الحركة', labelEn: 'Transmission', iconName: 'arrows-left-right' };
+        if (found.section === 'interior') return { id: 'interior', labelAr: 'المقصورة والداخلية', labelEn: 'Interior & Cabin', iconName: 'armchair' };
+      }
+      return { id: 'general', labelAr: 'الفحص العام', labelEn: 'General Inspection', iconName: 'clipboard-text' };
+    };
+
+    items.forEach((item: any) => {
+      const meta = getGroupMeta(item.category);
+      if (!groupsMap.has(meta.id)) {
+        groupsMap.set(meta.id, {
+          id: meta.id,
+          labelAr: meta.labelAr,
+          labelEn: meta.labelEn,
+          iconName: meta.iconName,
+          items: []
+        });
+      }
+      groupsMap.get(meta.id)!.items.push(item);
+    });
+
+    return Array.from(groupsMap.values());
+  }, [inspection.items]);
+
   // OBD Codes
   const obdCodes = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string; diagnosis?: string; causes?: string; solutions?: string}> | null) || [];
 
@@ -353,7 +405,7 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
       <div className="bg-[#0C1A28] rounded-xl px-4 py-2.5 flex items-center justify-between text-white shadow-sm border border-slate-800">
         <div className="flex items-center gap-2">
           <PhosphorIcon name="clipboard-text" weight="duotone" size={18} className="text-[#C5852C]" />
-          <h3 className="font-bold text-sm text-white font-arabic">نتائج الفحص</h3>
+          <h3 className="font-bold text-sm text-white font-arabic">الأعطال المسجلة</h3>
           <span className="text-[#C5852C] font-mono font-bold text-sm">3</span>
         </div>
         <div className="text-slate-400 font-mono text-[10px]" dir="ltr">
@@ -361,7 +413,7 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
         </div>
       </div>
 
-      {/* Inspection Finding Cards */}
+      {/* Inspection Finding Cards Grouped by Category */}
       {items.length === 0 ? (
         <div className="p-6 text-center bg-white rounded-2xl border border-slate-200 shadow-sm">
           <PhosphorIcon name="check-circle" weight="duotone" size={36} className="text-emerald-500 mx-auto mb-2" />
@@ -369,55 +421,73 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
           <p className="text-xs text-slate-500 mt-0.5">لم يتم تسجيل أي ملاحظات أو عيوب فنية</p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {items.map((item: any, idx: number) => {
-            const cat = INSPECTION_CATEGORIES.find(c => c.id === item.category) || { label: item.category || 'فحص عام', labelEn: 'General' };
-            const titleAr = item.faultName?.split(' - ')[0] || item.faultName || 'ملاحظة فنية';
-
-            return (
-              <div
-                key={item.id || idx}
-                className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm p-3 space-y-2.5 text-right"
-              >
-                {/* Finding Header: Category */}
-                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-black text-[#0C1A28] font-arabic">{cat.label}</span>
-                    <span className="text-[10px] text-slate-400 font-mono" dir="ltr">| {cat.labelEn}</span>
+        <div className="space-y-4">
+          {categoryGroups.map((group) => (
+            <div key={group.id} className="rounded-2xl border border-slate-300 overflow-hidden shadow-xs bg-white">
+              {/* Metallic Category Header */}
+              <div className="bg-gradient-to-l from-slate-800 via-slate-700 to-slate-600 text-white px-3.5 py-2.5 flex items-center justify-between shadow-xs border-b border-slate-700">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full bg-slate-900/90 border border-white/20 flex items-center justify-center shadow-inner shrink-0">
+                    <PhosphorIcon name={group.iconName as any} weight="duotone" size={16} className="text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-xs sm:text-sm text-white font-arabic leading-tight">{group.labelAr}</h4>
+                    <span className="text-[9px] text-slate-300 font-mono" dir="ltr">{group.labelEn}</span>
                   </div>
                 </div>
-
-                {/* Defect Photo if available */}
-                {item.imageUrl && (
-                  <div className="w-full h-44 sm:h-52 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden relative">
-                    <img
-                      src={item.imageUrl}
-                      alt={titleAr}
-                      className="w-full h-full object-cover cursor-pointer hover:scale-[1.02] transition-transform"
-                      onClick={() => onImageClick?.(item.imageUrl, titleAr)}
-                    />
-                  </div>
-                )}
-
-                {/* Defect Title in Red & Descriptions */}
-                <div className="space-y-1 pt-0.5">
-                  <h4 className="text-xs sm:text-sm font-black text-red-600 font-arabic leading-snug">
-                    {titleAr}
-                  </h4>
-                  {item.description && (
-                    <p className="text-xs text-slate-700 font-arabic leading-relaxed">
-                      {item.description}
-                    </p>
-                  )}
-                  {item.descriptionEn && (
-                    <p className="text-[10px] text-slate-400 font-mono leading-tight" dir="ltr">
-                      {item.descriptionEn}
-                    </p>
-                  )}
-                </div>
+                <span className="bg-black/30 px-2 py-0.5 rounded-full text-[10px] font-bold text-white/90">
+                  {group.items.length} {group.items.length === 1 ? 'ملاحظة' : 'ملاحظات'}
+                </span>
               </div>
-            );
-          })}
+
+              {/* Finding Cards List */}
+              <div className="divide-y divide-slate-100">
+                {group.items.map((item: any, idx: number) => {
+                  const titleAr = item.faultName?.split(' - ')[0] || item.faultName || 'ملاحظة فنية';
+
+                  return (
+                    <div key={item.id || idx} className="p-3 bg-white space-y-2.5 text-right">
+                      {/* Defect Photo if available */}
+                      {item.imageUrl && (
+                        <div className="w-full h-44 sm:h-52 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden relative group">
+                          <img
+                            src={item.imageUrl}
+                            alt={titleAr}
+                            className="w-full h-full object-cover cursor-pointer"
+                            onClick={() => onImageClick?.(item.imageUrl, titleAr)}
+                          />
+                        </div>
+                      )}
+
+                      {/* Defect Title with Vertical Accent Line */}
+                      <div className="border-r-4 border-[#0C1A28] pr-2.5 py-0.5 space-y-1">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <h4 className="text-xs sm:text-sm font-bold text-slate-900 font-arabic leading-snug">
+                            {titleAr}
+                          </h4>
+                          {item.severity && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 shrink-0">
+                              {item.severity}
+                            </span>
+                          )}
+                        </div>
+                        {item.description && (
+                          <p className="text-xs text-slate-700 font-arabic leading-relaxed">
+                            {item.description}
+                          </p>
+                        )}
+                        {item.descriptionEn && (
+                          <p className="text-[10px] text-slate-400 font-mono leading-tight" dir="ltr">
+                            {item.descriptionEn}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
