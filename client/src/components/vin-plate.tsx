@@ -169,7 +169,7 @@ export function VinPlate({ vin, make, model, year, vinPhoto, className }: VinPla
           {/* Rotating Image Container - Clickable */}
           <button
             type="button"
-            className="relative w-full rounded-2xl overflow-hidden border-2 border-[#C5852C]/40 bg-gradient-to-b from-neutral-900 to-black p-1 cursor-pointer hover:border-[#C5852C] transition-colors"
+            className="relative w-full rounded-2xl overflow-hidden border-2 border-zinc-800 bg-gradient-to-b from-neutral-900 to-black p-1 cursor-pointer hover:border-zinc-600 transition-colors"
             onClick={() => setShowFullSize(true)}
             data-testid="button-expand-vin-photo"
           >
@@ -183,7 +183,7 @@ export function VinPlate({ vin, make, model, year, vinPhoto, className }: VinPla
             
             {/* Instruction overlay */}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-4">
-              <div className="flex items-center justify-center gap-2 text-[#C5852C]">
+              <div className="flex items-center justify-center gap-2 text-zinc-300">
                 <ZoomIn className="w-4 h-4" />
                 <span className="text-sm font-arabic font-medium">اضغط على الصورة لعرضها بالحجم الكامل</span>
               </div>

@@ -37,26 +37,22 @@ export default function LayoutShell({ children, onLogout }: LayoutShellProps) {
 
   return (
     <div
-      className="min-h-screen flex"
+      className="min-h-screen flex bg-zinc-100 text-zinc-950"
       dir={isRtl ? "rtl" : "ltr"}
-      style={{ background: "#F7F6F3" }}
     >
       {/* ══ RAIL SIDEBAR (icon-only) ══ */}
       <aside
-        className="hidden md:flex flex-col items-center shrink-0 z-20"
+        className="hidden md:flex flex-col items-center shrink-0 z-20 bg-zinc-950 border-inline-end border-zinc-800"
         style={{
           width: 60,
-          background: "#0C1A28",
-          borderInlineEnd: "1px solid rgba(255,255,255,0.05)",
         }}
       >
         {/* logo */}
-        <div className="w-full flex items-center justify-center py-4 border-b border-white/5">
+        <div className="w-full flex items-center justify-center py-4 border-b border-zinc-800">
           <img
             src={logoPath}
             alt="HS"
-            className="w-8 h-8 rounded-lg object-contain"
-            style={{ border: "1px solid rgba(197,133,44,0.35)", background: "#0d1e30" }}
+            className="w-8 h-8 rounded-lg object-contain border border-zinc-800 bg-zinc-900 p-0.5"
           />
         </div>
 
@@ -71,22 +67,21 @@ export default function LayoutShell({ children, onLogout }: LayoutShellProps) {
                 title={isRtl ? item.labelAr : t(item.key)}
                 className={cn(
                   "group relative w-full flex items-center justify-center h-10 transition-colors",
-                  active ? "text-[#C5852C]" : "text-white/35 hover:text-white/70"
+                  active ? "text-white bg-zinc-900" : "text-zinc-400 hover:text-white hover:bg-zinc-900/60"
                 )}
               >
                 {active && (
                   <span
-                    className="absolute inset-y-1 rounded-full w-0.5"
+                    className="absolute inset-y-1 rounded-full w-0.5 bg-white"
                     style={{
                       [isRtl ? "right" : "left"]: 0,
-                      background: "#C5852C",
                     }}
                   />
                 )}
                 <item.icon className="w-4 h-4" />
                 {/* tooltip */}
                 <span
-                  className="pointer-events-none absolute hidden group-hover:flex items-center px-2 py-1 rounded text-[11px] font-medium bg-[#0C1A28] text-white whitespace-nowrap z-50 shadow-xl border border-white/10"
+                  className="pointer-events-none absolute hidden group-hover:flex items-center px-2 py-1 rounded text-[11px] font-medium bg-zinc-900 text-white whitespace-nowrap z-50 shadow-xl border border-zinc-800"
                   style={{ [isRtl ? "left" : "right"]: "calc(100% + 8px)" }}
                 >
                   {isRtl ? item.labelAr : t(item.key)}
@@ -97,11 +92,11 @@ export default function LayoutShell({ children, onLogout }: LayoutShellProps) {
         </nav>
 
         {/* footer */}
-        <div className="flex flex-col items-center gap-1 pb-4 w-full border-t border-white/5 pt-3">
+        <div className="flex flex-col items-center gap-1 pb-4 w-full border-t border-zinc-800 pt-3">
           <button
             onClick={() => setLang(lang === "ar" ? "en" : "ar")}
             title={lang === "ar" ? "Switch to English" : "تبديل للعربية"}
-            className="w-full h-9 flex items-center justify-center text-[11px] font-bold text-white/30 hover:text-white/60 transition-colors"
+            className="w-full h-9 flex items-center justify-center text-[11px] font-bold text-zinc-400 hover:text-white transition-colors"
           >
             {lang === "ar" ? "EN" : "ع"}
           </button>
@@ -109,7 +104,7 @@ export default function LayoutShell({ children, onLogout }: LayoutShellProps) {
             <button
               onClick={onLogout}
               title={isRtl ? "خروج" : "Logout"}
-              className="w-full h-9 flex items-center justify-center text-white/25 hover:text-red-400 transition-colors"
+              className="w-full h-9 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
               data-testid="button-logout"
             >
               <LogOut className="w-4 h-4" />
@@ -122,13 +117,12 @@ export default function LayoutShell({ children, onLogout }: LayoutShellProps) {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile top bar */}
         <div
-          className="md:hidden flex items-center justify-between px-4 h-12 border-b"
-          style={{ background: "#0C1A28", borderColor: "rgba(255,255,255,0.07)" }}
+          className="md:hidden flex items-center justify-between px-4 h-12 bg-zinc-950 border-b border-zinc-800"
         >
-          <img src={logoPath} alt="HS" className="w-7 h-7 rounded object-contain" style={{ background: "#0d1e30" }} />
+          <img src={logoPath} alt="HS" className="w-7 h-7 rounded object-contain bg-zinc-900 border border-zinc-800 p-0.5" />
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="text-white/60 hover:text-white"
+            className="text-zinc-400 hover:text-white"
           >
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -143,17 +137,16 @@ export default function LayoutShell({ children, onLogout }: LayoutShellProps) {
       {/* ══ Mobile Drawer ══ */}
       {mobileOpen && (
         <div className="fixed inset-0 z-40 md:hidden" onClick={() => setMobileOpen(false)}>
-          <div className="absolute inset-0 bg-black/50" />
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-xs" />
           <div
-            className="absolute top-0 h-full w-56 flex flex-col"
+            className="absolute top-0 h-full w-56 flex flex-col bg-zinc-950 border-zinc-800"
             style={{
               [isRtl ? "right" : "left"]: 0,
-              background: "#0C1A28",
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="h-12 flex items-center px-5 border-b border-white/5">
-              <span className="text-xs font-bold tracking-widest" style={{ color: "#C5852C" }}>
+            <div className="h-12 flex items-center px-5 border-b border-zinc-800">
+              <span className="text-xs font-black tracking-widest text-white">
                 HIGH SAFETY
               </span>
             </div>
@@ -167,7 +160,7 @@ export default function LayoutShell({ children, onLogout }: LayoutShellProps) {
                     onClick={() => setMobileOpen(false)}
                     className={cn(
                       "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
-                      active ? "text-[#C5852C] bg-white/5" : "text-white/45 hover:text-white/80 hover:bg-white/5"
+                      active ? "text-white bg-zinc-900 font-bold" : "text-zinc-400 hover:text-white hover:bg-zinc-900/60"
                     )}
                   >
                     <item.icon className="w-4 h-4 shrink-0" />
@@ -176,17 +169,17 @@ export default function LayoutShell({ children, onLogout }: LayoutShellProps) {
                 );
               })}
             </nav>
-            <div className="p-3 border-t border-white/5 flex gap-2">
+            <div className="p-3 border-t border-zinc-800 flex gap-2">
               <button
                 onClick={() => setLang(lang === "ar" ? "en" : "ar")}
-                className="flex-1 py-2 rounded-lg text-xs text-white/40 hover:text-white/70 hover:bg-white/5 transition-colors"
+                className="flex-1 py-2 rounded-lg text-xs text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors"
               >
                 {lang === "ar" ? "English" : "عربي"}
               </button>
               {onLogout && (
                 <button
                   onClick={onLogout}
-                  className="flex-1 py-2 rounded-lg text-xs text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-colors flex items-center justify-center gap-1"
+                  className="flex-1 py-2 rounded-lg text-xs text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors flex items-center justify-center gap-1"
                   data-testid="button-logout"
                 >
                   <LogOut className="w-3.5 h-3.5" />

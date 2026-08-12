@@ -273,8 +273,8 @@ const ImageModal = ({ imageUrl, faultName, onClose }: { imageUrl: string; faultN
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-3 text-right max-w-[75%]">
-          <div className="w-8 h-8 rounded-full bg-[#C5852C]/20 border border-[#C5852C]/40 flex items-center justify-center shrink-0">
-            <PhosphorIcon name="camera" weight="duotone" size={18} className="text-[#C5852C]" />
+          <div className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center shrink-0">
+            <PhosphorIcon name="camera" weight="duotone" size={18} className="text-white" />
           </div>
           <div className="min-w-0">
             <h3 className="text-white font-bold font-arabic text-sm sm:text-base truncate">{faultName}</h3>
@@ -284,7 +284,7 @@ const ImageModal = ({ imageUrl, faultName, onClose }: { imageUrl: string; faultN
 
         <button 
           onClick={onClose}
-          className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/10 hover:bg-red-600 active:scale-95 text-white flex items-center justify-center border border-white/20 transition-all cursor-pointer shadow-xl"
+          className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white/10 hover:bg-black active:scale-95 text-white flex items-center justify-center border border-white/20 transition-all cursor-pointer shadow-xl"
           title="إغلاق (ESC)"
           data-testid="btn-close-lightbox"
         >
@@ -404,9 +404,9 @@ const Car360Visualization = ({ items, onCategoryClick }: { items: any[], onCateg
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'fail': return 'bg-red-500 shadow-red-500/50';
-      case 'warning': return 'bg-amber-500 shadow-amber-500/50';
-      default: return 'bg-emerald-500 shadow-emerald-500/50';
+      case 'fail': return 'bg-zinc-950 shadow-zinc-950/50';
+      case 'warning': return 'bg-zinc-700 shadow-zinc-700/50';
+      default: return 'bg-zinc-400 shadow-zinc-400/50';
     }
   };
 
@@ -468,7 +468,7 @@ const Car360Visualization = ({ items, onCategoryClick }: { items: any[], onCateg
         </div>
 
         <div className="flex gap-2">
-          <div className="flex items-center gap-1.5 bg-[#C5852C]/20 text-[#C5852C] border border-[#C5852C]/30 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm font-arabic">
+          <div className="flex items-center gap-1.5 bg-zinc-800 text-zinc-200 border border-zinc-700 px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-sm font-arabic">
             <span>الملاحظات المسجلة: {stats.total}</span>
           </div>
         </div>
@@ -568,18 +568,18 @@ const Car360Visualization = ({ items, onCategoryClick }: { items: any[], onCateg
                           key={idx}
                           className={cn(
                             "p-2 rounded-lg text-xs",
-                            item.status === 'fail' ? "bg-red-50 border border-red-200" : "bg-amber-50 border border-amber-200"
+                            item.status === 'fail' ? "bg-zinc-100 border border-zinc-300" : "bg-zinc-50 border border-zinc-200"
                           )}
                         >
                           <div className="flex items-start gap-2">
                             {item.status === 'fail' ? 
-                              <XCircle className="w-3 h-3 text-red-500 shrink-0 mt-0.5" /> : 
-                              <AlertCircle className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" />
+                              <XCircle className="w-3 h-3 text-zinc-950 shrink-0 mt-0.5" /> : 
+                              <AlertCircle className="w-3 h-3 text-zinc-600 shrink-0 mt-0.5" />
                             }
                             <div>
                               <p className={cn(
                                 "font-bold font-arabic leading-tight",
-                                item.status === 'fail' ? "text-red-700" : "text-amber-700"
+                                item.status === 'fail' ? "text-zinc-950" : "text-zinc-700"
                               )}>
                                 {item.faultName.split(' - ')[0]}
                               </p>
@@ -1534,8 +1534,8 @@ export default function InteractiveReport() {
           catItemsWithImages.forEach(({ item, imageBase64 }: any) => {
             const faultAr = item.faultName.split(' - ')[0] || item.faultName;
             const statusSymbol = item.status === 'fail' ? '●' : '◐';
-            const statusColor = item.status === 'fail' ? '#dc2626' : '#d97706';
-            const bgColor = item.status === 'fail' ? '#fef2f2' : '#fffbeb';
+            const statusColor = item.status === 'fail' ? '#09090b' : '#52525b';
+            const bgColor = item.status === 'fail' ? '#e4e4e7' : '#f4f4f5';
             
             const itemContent: any = {
               table: {
@@ -1585,7 +1585,7 @@ export default function InteractiveReport() {
         findingsContent.push({
           table: {
             widths: ['*'],
-            body: [[{ text: 'أعطال وتشخيص كمبيوتر السيارة (OBD-II Diagnostic Trouble Codes)', style: 'sectionTitle', alignment: 'right', fillColor: '#0C1A28', color: '#ffffff', margin: [8, 6, 8, 6] }]]
+            body: [[{ text: 'أعطال وتشخيص كمبيوتر السيارة (OBD-II Diagnostic Trouble Codes)', style: 'sectionTitle', alignment: 'right', fillColor: '#09090b', color: '#ffffff', margin: [8, 6, 8, 6] }]]
           },
           layout: 'noBorders',
           margin: [0, 14, 0, 5]
@@ -1597,7 +1597,7 @@ export default function InteractiveReport() {
               widths: ['20%', '80%'],
               body: [
                 [
-                  { text: obd.code || 'DTC', bold: true, fontSize: 13, color: '#0C1A28', alignment: 'center', margin: [0, 6, 0, 6] },
+                  { text: obd.code || 'DTC', bold: true, fontSize: 13, color: '#09090b', alignment: 'center', margin: [0, 6, 0, 6] },
                   {
                     stack: [
                       { text: cleanArabicFaultName(obd.nameAr) || '', style: 'faultTitle', margin: [0, 0, 0, 2] },
@@ -1663,7 +1663,7 @@ export default function InteractiveReport() {
           catItems.forEach((item: any, idx: number) => {
             const faultAr = item.faultName.split(' - ')[0] || item.faultName;
             const statusSymbol = item.status === 'fail' ? '●' : '◐';
-            const statusColor = item.status === 'fail' ? '#dc2626' : '#d97706';
+            const statusColor = item.status === 'fail' ? '#09090b' : '#52525b';
             const rowBg = idx % 2 === 0 ? '#ffffff' : '#fafafa';
             
             findingsRows.push([
@@ -1702,7 +1702,7 @@ export default function InteractiveReport() {
           },
           
           // Professional Divider
-          { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 555, y2: 0, lineWidth: 3, lineColor: '#1e3a5f' }], margin: [0, 0, 0, 5] },
+          { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 555, y2: 0, lineWidth: 3, lineColor: '#09090b' }], margin: [0, 0, 0, 5] },
           { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 555, y2: 0, lineWidth: 1, lineColor: '#94a3b8' }], margin: [0, 0, 0, 10] },
           
           // Report Number Badge
@@ -1710,7 +1710,7 @@ export default function InteractiveReport() {
             table: {
               widths: ['*'],
               body: [[
-                { text: `تقرير فحص رقم: HS-${inspection.id}-${new Date().getFullYear()}`, style: 'reportBadge', alignment: 'center', fillColor: '#1e3a5f', color: '#ffffff', margin: [0, 8, 0, 8] }
+                { text: `تقرير فحص رقم: HS-${inspection.id}-${new Date().getFullYear()}`, style: 'reportBadge', alignment: 'center', fillColor: '#09090b', color: '#ffffff', margin: [0, 8, 0, 8] }
               ]]
             },
             layout: 'noBorders',
@@ -1758,9 +1758,9 @@ export default function InteractiveReport() {
                     table: {
                       widths: ['33%', '34%', '33%'],
                       body: [[
-                        { stack: [{ text: String(passedCount), style: 'statNumber', color: '#16a34a' }, { text: 'سليم', style: 'statLabel' }], alignment: 'center', fillColor: '#f0fdf4', margin: [0, 8, 0, 8] },
-                        { stack: [{ text: String(warningCount), style: 'statNumber', color: '#d97706' }, { text: 'متابعة', style: 'statLabel' }], alignment: 'center', fillColor: '#fffbeb', margin: [0, 8, 0, 8] },
-                        { stack: [{ text: String(failCount), style: 'statNumber', color: '#dc2626' }, { text: 'إصلاح', style: 'statLabel' }], alignment: 'center', fillColor: '#fef2f2', margin: [0, 8, 0, 8] }
+                        { stack: [{ text: String(passedCount), style: 'statNumber', color: '#18181b' }, { text: 'سليم', style: 'statLabel' }], alignment: 'center', fillColor: '#f4f4f5', margin: [0, 8, 0, 8] },
+                        { stack: [{ text: String(warningCount), style: 'statNumber', color: '#52525b' }, { text: 'متابعة', style: 'statLabel' }], alignment: 'center', fillColor: '#f4f4f5', margin: [0, 8, 0, 8] },
+                        { stack: [{ text: String(failCount), style: 'statNumber', color: '#09090b' }, { text: 'إصلاح', style: 'statLabel' }], alignment: 'center', fillColor: '#e4e4e7', margin: [0, 8, 0, 8] }
                       ]]
                     },
                     layout: { hLineWidth: () => 0, vLineWidth: () => 1, vLineColor: () => '#e2e8f0' }
@@ -1775,7 +1775,7 @@ export default function InteractiveReport() {
           {
             table: {
               widths: ['*'],
-              body: [[{ text: 'نتائج الفحص التفصيلية', style: 'sectionTitle', alignment: 'center', fillColor: '#1e3a5f', color: '#ffffff', margin: [0, 8, 0, 8] }]]
+              body: [[{ text: 'نتائج الفحص التفصيلية', style: 'sectionTitle', alignment: 'center', fillColor: '#09090b', color: '#ffffff', margin: [0, 8, 0, 8] }]]
             },
             layout: 'noBorders',
             margin: [0, 0, 0, 8]
@@ -1786,7 +1786,7 @@ export default function InteractiveReport() {
           
           // Footer with contact info
           { text: '', margin: [0, 10, 0, 0] },
-          { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 555, y2: 0, lineWidth: 1, lineColor: '#1e3a5f' }] },
+          { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 555, y2: 0, lineWidth: 1, lineColor: '#09090b' }] },
           { 
             columns: [
               { text: 'واتساب: 0542206000', style: 'footerContact', alignment: 'left' },
@@ -1799,7 +1799,7 @@ export default function InteractiveReport() {
           { text: 'هذا التقرير الإلكتروني صادر عن مركز الأمان العالي الدولي ويعكس حالة المركبة وقت الفحص فقط', style: 'disclaimer', alignment: 'center', margin: [0, 2, 0, 0] }
         ],
         styles: {
-          companyName: { fontSize: 18, bold: true, color: '#1e3a5f' },
+          companyName: { fontSize: 18, bold: true, color: '#09090b' },
           companyNameEn: { fontSize: 10, color: '#475569', margin: [0, 2, 0, 0] },
           tagline: { fontSize: 9, color: '#64748b', margin: [0, 2, 0, 0] },
           dateLabel: { fontSize: 9, color: '#64748b' },
@@ -1811,15 +1811,15 @@ export default function InteractiveReport() {
           statNumber: { fontSize: 22, bold: true },
           statLabel: { fontSize: 9, color: '#64748b', margin: [0, 2, 0, 0] },
           tableHeader: { fontSize: 10, bold: true, color: '#1e293b' },
-          catLabel: { fontSize: 9, bold: true, color: '#1e3a5f' },
+          catLabel: { fontSize: 9, bold: true, color: '#09090b' },
           faultText: { fontSize: 9, color: '#1e293b' },
           statusText: { fontSize: 9, bold: true },
-          successText: { fontSize: 12, bold: true, color: '#16a34a' },
-          categoryHeader: { fontSize: 11, bold: true, color: '#1e3a5f', decoration: 'underline' },
+          successText: { fontSize: 12, bold: true, color: '#18181b' },
+          categoryHeader: { fontSize: 11, bold: true, color: '#09090b', decoration: 'underline' },
           faultTitle: { fontSize: 10, bold: true, color: '#1e293b' },
           faultDesc: { fontSize: 8, color: '#64748b' },
           footerContact: { fontSize: 8, color: '#475569' },
-          centerBrand: { fontSize: 9, bold: true, color: '#1e3a5f' },
+          centerBrand: { fontSize: 9, bold: true, color: '#09090b' },
           disclaimer: { fontSize: 7, color: '#94a3b8', italics: true }
         }
       };
@@ -1942,7 +1942,7 @@ export default function InteractiveReport() {
             const faultAr = item.faultName.split(' - ')[0] || item.faultName;
             const faultEn = item.faultName.split(' - ')[1] || '';
             const statusSymbol = item.status === 'fail' ? '●' : '◐';
-            const statusColor = item.status === 'fail' ? '#dc2626' : '#d97706';
+            const statusColor = item.status === 'fail' ? '#09090b' : '#52525b';
             
             // Convert image to base64 if exists
             let imageBase64 = '';
@@ -2083,9 +2083,9 @@ export default function InteractiveReport() {
           // Summary Stats
           {
             columns: [
-              { stack: [{ text: String(passedCount), style: 'statNumber', color: '#16a34a' }, { text: '✓', style: 'statLabel' }], alignment: 'center', width: '*' },
-              { stack: [{ text: String(warningCount), style: 'statNumber', color: '#d97706' }, { text: '◐', style: 'statLabel' }], alignment: 'center', width: '*' },
-              { stack: [{ text: String(failCount), style: 'statNumber', color: '#dc2626' }, { text: '●', style: 'statLabel' }], alignment: 'center', width: '*' }
+              { stack: [{ text: String(passedCount), style: 'statNumber', color: '#18181b' }, { text: '✓', style: 'statLabel' }], alignment: 'center', width: '*' },
+              { stack: [{ text: String(warningCount), style: 'statNumber', color: '#52525b' }, { text: '◐', style: 'statLabel' }], alignment: 'center', width: '*' },
+              { stack: [{ text: String(failCount), style: 'statNumber', color: '#09090b' }, { text: '●', style: 'statLabel' }], alignment: 'center', width: '*' }
             ],
             margin: [0, 0, 0, 20]
           },
@@ -2130,7 +2130,7 @@ export default function InteractiveReport() {
           faultNameEn: { fontSize: 9, color: '#64748b' },
           statusBadge: { fontSize: 9, bold: true },
           description: { fontSize: 10, color: '#475569', margin: [0, 3, 0, 0] },
-          success: { fontSize: 14, bold: true, color: '#16a34a' },
+          success: { fontSize: 14, bold: true, color: '#18181b' },
           footer: { fontSize: 8, color: '#94a3b8' },
           termsHeader: { fontSize: 11, bold: true, color: '#1e293b' },
           termsAr: { fontSize: 9, color: '#374151' },
@@ -2209,7 +2209,7 @@ export default function InteractiveReport() {
   if (!inspection) {
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-slate-50">
-        <AlertTriangle className="w-16 h-16 text-red-500 mb-4" />
+        <AlertTriangle className="w-16 h-16 text-zinc-950 mb-4" />
         <h2 className="text-xl font-bold text-slate-900 font-arabic">التقرير غير موجود</h2>
         <p className="text-slate-500 font-arabic mt-2">تأكد من صحة الرابط</p>
       </div>
@@ -2272,10 +2272,10 @@ export default function InteractiveReport() {
 
           const getCodeType = (code: string) => {
             const p = code.charAt(0).toUpperCase();
-            if (p === 'P') return { color: 'bg-red-600', labelAr: 'المحرك وناقل الحركة' };
-            if (p === 'C') return { color: 'bg-amber-600', labelAr: 'الشاصي' };
-            if (p === 'B') return { color: 'bg-blue-600', labelAr: 'الهيكل' };
-            if (p === 'U') return { color: 'bg-purple-600', labelAr: 'شبكة الاتصال' };
+            if (p === 'P') return { color: 'bg-zinc-950', labelAr: 'المحرك وناقل الحركة' };
+            if (p === 'C') return { color: 'bg-zinc-800', labelAr: 'الشاصي' };
+            if (p === 'B') return { color: 'bg-zinc-700', labelAr: 'الهيكل' };
+            if (p === 'U') return { color: 'bg-zinc-600', labelAr: 'شبكة الاتصال' };
             return { color: 'bg-slate-600', labelAr: 'أخرى' };
           };
 

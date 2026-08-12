@@ -44,7 +44,7 @@ function CopyButton({ text, label = "نسخ" }: { text: string; label?: string }
       onClick={copy}
       className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-700 transition-colors"
     >
-      {done ? <CheckCheck className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+      {done ? <CheckCheck className="w-3.5 h-3.5 text-zinc-950" /> : <Copy className="w-3.5 h-3.5" />}
       {done ? "تم" : label}
     </button>
   );
@@ -203,7 +203,7 @@ curl "$BASE_URL/api/vin/1HGBH41JXMN109186" \\
           >
             <div className="flex items-center justify-between mb-2">
               <span className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold ${
-                s.done ? "bg-green-500 text-white" : "bg-slate-100 text-slate-600"
+                s.done ? "bg-zinc-950 text-white" : "bg-slate-100 text-slate-600"
               }`}>
                 {s.done ? <CheckCircle2 className="w-4 h-4" /> : s.num}
               </span>
@@ -282,7 +282,7 @@ curl "$BASE_URL/api/vin/1HGBH41JXMN109186" \\
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg"
+                        className="h-7 w-7 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-950 rounded-lg"
                         onClick={() => revokeMutation.mutate(k.id)}
                         disabled={revokeMutation.isPending}
                         data-testid={`button-revoke-key-${k.id}`}
@@ -299,9 +299,9 @@ curl "$BASE_URL/api/vin/1HGBH41JXMN109186" \\
       </div>
 
       {/* Live Tester */}
-      <Card className="rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-50 to-slate-50 shadow-sm">
+      <Card className="rounded-2xl border border-zinc-200 bg-zinc-50 shadow-sm">
         <CardContent className="p-5 space-y-4">
-          <p className="font-bold text-violet-800 font-arabic flex items-center gap-2">
+          <p className="font-bold text-zinc-950 font-arabic flex items-center gap-2">
             <Play className="w-4 h-4" />
             جرّب المفتاح الآن — مباشرة من هنا
           </p>
@@ -309,7 +309,7 @@ curl "$BASE_URL/api/vin/1HGBH41JXMN109186" \\
             <Button
               onClick={runTest}
               disabled={testLoading || !testKey.trim()}
-              className="h-11 px-6 rounded-xl font-arabic shrink-0 bg-violet-600 hover:bg-violet-700"
+              className="h-11 px-6 rounded-xl font-arabic shrink-0 bg-zinc-950 hover:bg-black"
             >
               {testLoading
                 ? <Loader2 className="w-4 h-4 animate-spin" />
@@ -329,13 +329,13 @@ curl "$BASE_URL/api/vin/1HGBH41JXMN109186" \\
           {testResult && (
             <div className={`rounded-xl border p-4 ${
               testResult.ok
-                ? "border-green-200 bg-green-50"
-                : "border-red-200 bg-red-50"
+                ? "border-zinc-300 bg-zinc-100"
+                : "border-zinc-300 bg-zinc-100"
             }`}>
               <div className="flex items-center justify-between mb-2">
                 <Badge className={testResult.ok
-                  ? "bg-green-500 text-white"
-                  : "bg-red-500 text-white"
+                  ? "bg-zinc-950 text-white"
+                  : "bg-zinc-900 text-white"
                 }>
                   {testResult.ok ? "✓ نجح" : "✗ فشل"} — {testResult.status}
                 </Badge>
@@ -384,7 +384,7 @@ curl "$BASE_URL/api/vin/1HGBH41JXMN109186" \\
               <div className="absolute top-3 left-3 z-10">
                 <CopyButton text={codeSnippets[showCode]} label="نسخ الكود" />
               </div>
-              <pre className="bg-slate-900 text-green-300 rounded-xl p-4 pt-8 text-xs font-mono ltr overflow-auto max-h-64 whitespace-pre">
+              <pre className="bg-zinc-950 text-zinc-200 rounded-xl p-4 pt-8 text-xs font-mono ltr overflow-auto max-h-64 whitespace-pre">
                 {codeSnippets[showCode]}
               </pre>
             </div>
@@ -414,10 +414,10 @@ curl "$BASE_URL/api/vin/1HGBH41JXMN109186" \\
             ].map(([method, path, desc]) => (
               <div key={path} className="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-slate-50">
                 <span className={`w-14 text-center font-bold text-xs rounded-md px-1.5 py-0.5 shrink-0 ${
-                  method === "GET" ? "bg-blue-100 text-blue-700" :
-                  method === "POST" ? "bg-green-100 text-green-700" :
-                  method === "PUT" ? "bg-amber-100 text-amber-700" :
-                  "bg-red-100 text-red-700"
+                  method === "GET" ? "bg-zinc-100 text-zinc-900 border border-zinc-300" :
+                  method === "POST" ? "bg-zinc-200 text-zinc-900 border border-zinc-400" :
+                  method === "PUT" ? "bg-zinc-100 text-zinc-800 border border-zinc-300" :
+                  "bg-zinc-900 text-white border border-zinc-950"
                 }`}>{method}</span>
                 <code className="flex-1 text-xs text-slate-600 ltr">{path}</code>
                 <span className="text-xs text-slate-400 font-arabic shrink-0">{desc}</span>
@@ -433,21 +433,21 @@ curl "$BASE_URL/api/vin/1HGBH41JXMN109186" \\
         <DialogContent className="max-w-md" dir="rtl">
           <DialogHeader>
             <DialogTitle className="font-arabic text-right flex items-center gap-2">
-              <CheckCheck className="w-5 h-5 text-green-500" />
+              <CheckCheck className="w-5 h-5 text-zinc-950" />
               مفتاحك الجديد جاهز!
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3">
-              <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-              <p className="text-sm text-amber-800 font-arabic leading-relaxed">
+            <div className="bg-zinc-100 border border-zinc-300 rounded-xl p-4 flex gap-3">
+              <AlertTriangle className="w-5 h-5 text-zinc-700 shrink-0 mt-0.5" />
+              <p className="text-sm text-zinc-900 font-arabic leading-relaxed">
                 <strong>مهم جداً:</strong> هذا المفتاح يظهر <strong>مرة واحدة فقط</strong>.
                 انسخه الآن واحفظه في مكان آمن. لو نسيته لازم تنشئ مفتاح جديد.
               </p>
             </div>
             <div className="bg-slate-900 rounded-xl p-4 ltr font-mono text-sm break-all select-all relative">
               {showKey
-                ? <span className="text-green-300">{createdKey}</span>
+                ? <span className="text-zinc-200">{createdKey}</span>
                 : <span className="text-slate-500">{"•".repeat(createdKey?.length || 50)}</span>
               }
             </div>

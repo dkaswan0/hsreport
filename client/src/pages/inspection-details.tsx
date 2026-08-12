@@ -145,14 +145,14 @@ export default function InspectionDetails() {
   if (isLoading) return <div className="flex justify-center items-center h-96"><Loader2 className="w-12 h-12 animate-spin text-primary" /></div>;
   if (!inspection && error) return (
     <div className="text-center p-12">
-      <div className="text-red-500 text-xl mb-4">حدث خطأ أثناء التحميل</div>
+      <div className="text-zinc-700 text-xl mb-4">حدث خطأ أثناء التحميل</div>
       <p className="text-slate-500 mb-4">تأكد من الاتصال بالإنترنت وحاول مرة أخرى</p>
       <button onClick={() => window.location.reload()} className="px-4 py-2 bg-primary text-white rounded-lg">إعادة المحاولة</button>
     </div>
   );
   if (!inspection) return (
     <div className="text-center p-12">
-      <div className="text-amber-500 text-xl mb-4">الفحص غير موجود</div>
+      <div className="text-zinc-950 text-xl mb-4">الفحص غير موجود</div>
       <p className="text-slate-500 mb-4">قد يكون قد حُذف أو أن الرابط غير صحيح</p>
       <a href="/" className="px-4 py-2 bg-primary text-white rounded-lg inline-block">العودة للرئيسية</a>
     </div>
@@ -212,7 +212,7 @@ export default function InspectionDetails() {
                   className={cn(
                     "px-4 py-2.5 rounded-xl font-arabic text-xs md:text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 border shadow-sm",
                     isActive
-                      ? "bg-[#0C1A28] text-white border-[#0C1A28] shadow-md ring-2 ring-[#C5852C]/30"
+                      ? "bg-[#09090b] text-white border-[#09090b] shadow-md ring-2 ring-[#18181b]/30"
                       : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:text-slate-900"
                   )}
                   data-testid={`section-tab-${section.id}`}
@@ -221,7 +221,7 @@ export default function InspectionDetails() {
                   {itemCount > 0 && (
                     <span className={cn(
                       "px-2 py-0.5 rounded-full text-[10px] font-bold",
-                      isActive ? "bg-[#C5852C] text-[#0C1A28]" : "bg-slate-200 text-slate-700"
+                      isActive ? "bg-[#18181b] text-[#09090b]" : "bg-slate-200 text-slate-700"
                     )}>
                       {itemCount}
                     </span>
@@ -248,7 +248,7 @@ export default function InspectionDetails() {
                   className={cn(
                     "px-3.5 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 font-arabic border",
                     isCatActive
-                      ? "bg-[#C5852C] text-[#0C1A28] border-[#C5852C] shadow-sm font-extrabold"
+                      ? "bg-[#18181b] text-[#09090b] border-[#18181b] shadow-sm font-extrabold"
                       : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900"
                   )}
                   data-testid={`category-pill-${cat.id}`}
@@ -257,7 +257,7 @@ export default function InspectionDetails() {
                   {catItemCount > 0 && (
                     <span className={cn(
                       "w-4 h-4 rounded-full text-[10px] flex items-center justify-center font-bold",
-                      isCatActive ? "bg-[#0C1A28] text-white" : "bg-slate-100 text-slate-600"
+                      isCatActive ? "bg-[#09090b] text-white" : "bg-slate-100 text-slate-600"
                     )}>
                       {catItemCount}
                     </span>
@@ -433,7 +433,7 @@ export default function InspectionDetails() {
                 {inspection.inspectionType && (
                   <div>
                     <div className="text-[10px] text-stone-400 uppercase tracking-wider font-semibold mb-0.5">نوع الفحص</div>
-                    <div className="text-sm font-semibold" style={{ color: '#C5852C' }}>{inspection.inspectionType}</div>
+                    <div className="text-sm font-semibold" style={{ color: '#18181b' }}>{inspection.inspectionType}</div>
                   </div>
                 )}
               </div>
@@ -481,7 +481,7 @@ export default function InspectionDetails() {
                 <button
                   onClick={() => handleStatusUpdate('completed')}
                   className="px-5 py-2.5 rounded-lg text-white text-sm font-bold transition-opacity hover:opacity-90 flex items-center gap-2"
-                  style={{ background: '#16a34a' }}
+                  style={{ background: '#18181b' }}
                 >
                   <Save className="w-4 h-4" />
                   خلص الفحص
@@ -490,7 +490,7 @@ export default function InspectionDetails() {
                 <button
                   onClick={() => handleStatusUpdate('draft')}
                   className="px-5 py-2.5 rounded-lg text-white text-sm font-bold transition-opacity hover:opacity-90"
-                  style={{ background: '#0C1A28' }}
+                  style={{ background: '#09090b' }}
                 >
                   رجعه للعمل
                 </button>
@@ -554,7 +554,7 @@ export default function InspectionDetails() {
 
           <div className="p-3 md:p-4 border-b border-slate-100 bg-white relative" ref={globalSearchContainerRef}>
             <div className="relative">
-              <div className="flex items-center border border-stone-200 rounded-xl px-3 bg-stone-50 focus-within:border-[#C5852C] focus-within:ring-2 focus-within:ring-[#C5852C]/10 transition-all">
+              <div className="flex items-center border border-stone-200 rounded-xl px-3 bg-stone-50 focus-within:border-[#18181b] focus-within:ring-2 focus-within:ring-[#18181b]/10 transition-all">
                 <Search className="ml-2 h-5 w-5 text-stone-400 shrink-0" />
                 <input
                   ref={globalSearchRef}
@@ -601,9 +601,9 @@ export default function InspectionDetails() {
                             {fault.severity && (
                               <span className={cn(
                                 "text-[10px] px-1.5 py-0.5 rounded-full font-medium",
-                                fault.severity === 'high' ? "bg-red-100 text-red-600" :
-                                fault.severity === 'medium' ? "bg-amber-100 text-amber-600" :
-                                "bg-green-100 text-green-600"
+                                fault.severity === 'high' ? "bg-zinc-900 text-white" :
+                                fault.severity === 'medium' ? "bg-zinc-200 text-zinc-900" :
+                                "bg-zinc-100 text-zinc-900"
                               )}>{fault.severity === 'high' ? 'عالي' : fault.severity === 'medium' ? 'متوسط' : 'منخفض'}</span>
                             )}
                           </div>
@@ -627,7 +627,7 @@ export default function InspectionDetails() {
             <button
               onClick={() => { setPrefilledFault(null); setIsAddItemOpen(true); }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-semibold transition-opacity hover:opacity-90"
-              style={{ background: '#0C1A28' }}
+              style={{ background: '#09090b' }}
             >
               <Plus className="w-3.5 h-3.5" />
               إضافة
@@ -657,12 +657,12 @@ export default function InspectionDetails() {
         {/* OBD Button */}
         <button
           onClick={() => setIsObdOpen(true)}
-          className="w-full flex items-center justify-between p-4 md:p-5 bg-white rounded-2xl shadow-sm border border-slate-200 hover:border-[#C5852C] hover:shadow-md transition-all group mt-2"
+          className="w-full flex items-center justify-between p-4 md:p-5 bg-white rounded-2xl shadow-sm border border-slate-200 hover:border-[#18181b] hover:shadow-md transition-all group mt-2"
           data-testid="btn-open-obd-section"
         >
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center shadow-inner group-hover:bg-[#C5852C]/10 transition-colors">
-              <PhosphorIcon name="cpu" weight="duotone" size={28} className="text-[#0C1A28] group-hover:text-[#C5852C] transition-colors" />
+            <div className="w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center shadow-inner group-hover:bg-[#18181b]/10 transition-colors">
+              <PhosphorIcon name="cpu" weight="duotone" size={28} className="text-[#09090b] group-hover:text-[#18181b] transition-colors" />
             </div>
             <div className="text-right">
               <div className="font-bold text-slate-900 text-sm">فحص كمبيوتر السيارة OBD</div>
@@ -674,7 +674,7 @@ export default function InspectionDetails() {
               </div>
             </div>
           </div>
-          <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-[#C5852C] transition-colors" />
+          <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-[#18181b] transition-colors" />
         </button>
       </div>
       </div>
@@ -689,7 +689,7 @@ export default function InspectionDetails() {
         <button
           onClick={() => { setPrefilledFault(null); setIsAddItemOpen(true); }}
           className="flex-1 px-3 py-2.5 rounded-lg text-white text-sm font-bold flex items-center justify-center gap-1.5 active:opacity-80"
-          style={{ background: '#0C1A28' }}
+          style={{ background: '#09090b' }}
           data-testid="button-add-item-mobile"
         >
           <Plus className="w-4 h-4" />
@@ -728,7 +728,7 @@ export default function InspectionDetails() {
           <button
             onClick={() => handleStatusUpdate('completed')}
             className="px-3 py-2.5 rounded-lg text-white text-sm font-bold flex items-center justify-center gap-1.5 active:opacity-80"
-            style={{ background: '#16a34a' }}
+            style={{ background: '#18181b' }}
             data-testid="button-complete-mobile"
           >
             <Save className="w-4 h-4" />
@@ -890,11 +890,11 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
       {/* Header Bar */}
       <div 
         onClick={() => setIsOpen(!isOpen)}
-        className="bg-gradient-to-l from-[#0C1A28] to-[#162738] text-white px-4 py-3 sm:px-5 sm:py-3.5 flex items-center justify-between cursor-pointer select-none hover:opacity-95 transition-opacity"
+        className="bg-gradient-to-l from-[#09090b] to-[#18181b] text-white px-4 py-3 sm:px-5 sm:py-3.5 flex items-center justify-between cursor-pointer select-none hover:opacity-95 transition-opacity"
       >
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-[#C5852C] shadow-inner shrink-0">
-            <Camera className="w-5 h-5 text-[#C5852C]" />
+          <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-[#18181b] shadow-inner shrink-0">
+            <Camera className="w-5 h-5 text-[#18181b]" />
           </div>
           <div>
             <h3 className="font-bold text-sm sm:text-base font-arabic flex items-center gap-2">
@@ -906,7 +906,7 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="bg-white/10 px-3 py-1 rounded-full text-xs font-bold font-mono text-[#C5852C]">
+          <div className="bg-white/10 px-3 py-1 rounded-full text-xs font-bold font-mono text-[#18181b]">
             {uploadedCount} / {photoSlots.length} مرفوعة
           </div>
           <button className="text-white/80 hover:text-white p-1">
@@ -927,7 +927,7 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
               return (
                 <div 
                   key={slot.key}
-                  className={`bg-white rounded-xl border ${photoUrl ? 'border-emerald-200 shadow-xs' : 'border-slate-200'} p-3 flex flex-col justify-between relative group hover:border-[#C5852C]/60 transition-all ${slot.isHero ? 'sm:col-span-2' : ''}`}
+                  className={`bg-white rounded-xl border ${photoUrl ? 'border-zinc-300 shadow-xs' : 'border-slate-200'} p-3 flex flex-col justify-between relative group hover:border-[#18181b]/60 transition-all ${slot.isHero ? 'sm:col-span-2' : ''}`}
                 >
                   {/* Slot Title & Status */}
                   <div className="flex items-center justify-between gap-2 mb-2">
@@ -935,7 +935,7 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
                       <span className="text-xs font-bold text-slate-800 font-arabic truncate">{slot.labelAr}</span>
                     </div>
                     {photoUrl ? (
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 shrink-0">
+                      <span className="text-[10px] font-bold text-zinc-900 bg-zinc-100 px-2 py-0.5 rounded-full border border-zinc-300 shrink-0">
                         مرفوعة ✅
                       </span>
                     ) : (
@@ -949,12 +949,12 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
                   <div className={`w-full ${slot.isHero ? 'h-40 sm:h-44' : 'h-32'} rounded-lg overflow-hidden bg-slate-100 border border-slate-200 relative flex items-center justify-center mb-3`}>
                     {isUploading ? (
                       <div className="flex flex-col items-center justify-center gap-2 text-slate-500">
-                        <Loader2 className="w-6 h-6 animate-spin text-[#C5852C]" />
+                        <Loader2 className="w-6 h-6 animate-spin text-[#18181b]" />
                         <span className="text-xs font-arabic">جاري الحفظ...</span>
                       </div>
                     ) : isScanning ? (
-                      <div className="flex flex-col items-center justify-center gap-2 text-purple-600">
-                        <Sparkles className="w-6 h-6 animate-spin text-purple-600" />
+                      <div className="flex flex-col items-center justify-center gap-2 text-zinc-700">
+                        <Sparkles className="w-6 h-6 animate-spin text-zinc-700" />
                         <span className="text-xs font-arabic">جاري القراءة الذكية...</span>
                       </div>
                     ) : photoUrl ? (
@@ -968,7 +968,7 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
                         <button
                           type="button"
                           onClick={() => handleRemovePhoto(slot.key, slot.labelAr)}
-                          className="absolute top-1.5 right-1.5 w-7 h-7 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center shadow-md transition-colors"
+                          className="absolute top-1.5 right-1.5 w-7 h-7 bg-zinc-900 hover:bg-black text-white rounded-full flex items-center justify-center shadow-md transition-colors"
                           title="حذف الصورة"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -992,7 +992,7 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
 
                   {/* Actions Buttons: Camera / Gallery */}
                   <div className="flex gap-2">
-                    <label className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 bg-[#0C1A28] hover:bg-[#162738] text-[#C5852C] rounded-lg text-xs font-bold font-arabic cursor-pointer transition-colors shadow-xs">
+                    <label className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 bg-[#09090b] hover:bg-[#18181b] text-[#18181b] rounded-lg text-xs font-bold font-arabic cursor-pointer transition-colors shadow-xs">
                       <Camera className="w-3.5 h-3.5" />
                       <span>كاميرا</span>
                       <input 
@@ -1222,10 +1222,10 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
               type="button"
               onClick={handleEnhanceText}
               disabled={isEnhancing || (!editData.faultName && !editData.description)}
-              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg transition-all shadow-sm disabled:opacity-50"
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-zinc-900 bg-zinc-100 hover:bg-zinc-200 border border-zinc-300 rounded-lg transition-all shadow-sm disabled:opacity-50"
               title="تحسين الصياغة بأسلوب تقارير الفحص الفنية"
             >
-              {isEnhancing ? <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" /> : <Pencil className="w-3.5 h-3.5 text-amber-600" />}
+              {isEnhancing ? <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-700" /> : <Pencil className="w-3.5 h-3.5 text-zinc-700" />}
               <span>تحسين الصياغة ✨</span>
             </button>
           </div>
@@ -1242,7 +1242,7 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
                 type="button"
                 onClick={handleEnhanceText}
                 disabled={isEnhancing || !editData.faultName}
-                className="p-1 text-amber-600 hover:text-amber-700 hover:bg-amber-100 rounded transition-colors"
+                className="p-1 text-zinc-700 hover:text-zinc-900 hover:bg-zinc-200 rounded transition-colors"
                 title="تحسين صياغة اسم العطل"
               >
                 {isEnhancing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Pencil className="w-3 h-3" />}
@@ -1264,7 +1264,7 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
                 type="button"
                 onClick={handleEnhanceText}
                 disabled={isEnhancing || !editData.description}
-                className="p-1 text-amber-600 hover:text-amber-700 hover:bg-amber-100 rounded transition-colors"
+                className="p-1 text-zinc-700 hover:text-zinc-900 hover:bg-zinc-200 rounded transition-colors"
                 title="تحسين صياغة التفاصيل"
               >
                 {isEnhancing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Pencil className="w-3 h-3" />}
@@ -1411,30 +1411,30 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
                 className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors flex items-center gap-1.5"
                 data-testid={`btn-edit-photo-ai-${item.id}`}
               >
-                <Lock className="w-3.5 h-3.5 text-amber-600" />
+                <Lock className="w-3.5 h-3.5 text-zinc-700" />
                 <span>تم القفل من قبل الإدارة</span>
               </button>
             </div>
           </div>
 
           {aiAnalyzing && (
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-purple-50 border border-purple-200">
-              <Loader2 className="w-4 h-4 animate-spin text-purple-600" />
-              <span className="text-sm text-purple-700">جارٍ تحليل وفحص الصورة...</span>
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-zinc-100 border border-zinc-300">
+              <Loader2 className="w-4 h-4 animate-spin text-zinc-700" />
+              <span className="text-sm text-zinc-900">جارٍ تحليل وفحص الصورة...</span>
             </div>
           )}
 
           {aiDetectedPart && (
-            <div className="p-3 rounded-xl bg-blue-50 border border-blue-200">
-              <div className="text-xs font-semibold text-blue-600 mb-1">الجزء المكتشف:</div>
-              <div className="text-sm font-bold text-blue-800">{aiDetectedPart}</div>
+            <div className="p-3 rounded-xl bg-zinc-100 border border-zinc-300">
+              <div className="text-xs font-semibold text-zinc-700 mb-1">الجزء المكتشف:</div>
+              <div className="text-sm font-bold text-zinc-950">{aiDetectedPart}</div>
             </div>
           )}
 
           {aiSuggestions.length > 0 && (
             <div className="space-y-2">
-              <div className="text-xs font-semibold text-purple-600 flex items-center gap-1">
-                <PhosphorIcon name="sparkle" weight="duotone" size={16} className="text-purple-600" />
+              <div className="text-xs font-semibold text-zinc-700 flex items-center gap-1">
+                <PhosphorIcon name="sparkle" weight="duotone" size={16} className="text-zinc-700" />
                 اقتراحات الفحص:
               </div>
               {aiSuggestions.map((suggestion, idx) => (
@@ -1449,15 +1449,15 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
                     }));
                     toast({ title: "تم تطبيق الاقتراح" });
                   }}
-                  className="w-full text-right p-3 rounded-xl border border-purple-200 bg-white hover:bg-purple-50 hover:border-purple-400 transition-all"
+                  className="w-full text-right p-3 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-100 hover:border-zinc-400 transition-all"
                   data-testid={`btn-ai-suggestion-${item.id}-${idx}`}
                 >
                   <div className="flex items-center justify-between">
                     <span className={cn(
                       "text-xs px-2 py-0.5 rounded-full font-medium",
-                      suggestion.severity === 'high' ? 'bg-red-100 text-red-700' :
-                      suggestion.severity === 'medium' ? 'bg-amber-100 text-amber-700' :
-                      'bg-green-100 text-green-700'
+                      suggestion.severity === 'high' ? 'bg-zinc-900 text-white' :
+                      suggestion.severity === 'medium' ? 'bg-zinc-200 text-zinc-900' :
+                      'bg-zinc-100 text-zinc-900'
                     )}>
                       {suggestion.severity === 'high' ? 'مرتفعة' : suggestion.severity === 'medium' ? 'متوسطة' : 'منخفضة'}
                     </span>
@@ -1495,10 +1495,10 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
   }
 
   const statusColor = isGood
-    ? { bar: '#16a34a', bg: '#f0fdf4', text: '#15803d' }
+    ? { bar: '#18181b', bg: '#f4f4f5', text: '#09090b' }
     : isWarning
-    ? { bar: '#d97706', bg: '#fffbeb', text: '#b45309' }
-    : { bar: '#dc2626', bg: '#fef2f2', text: '#b91c1c' };
+    ? { bar: '#71717a', bg: '#f4f4f5', text: '#27272a' }
+    : { bar: '#09090b', bg: '#e4e4e7', text: '#09090b' };
 
   return (
     <div
@@ -1537,14 +1537,14 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
               });
               setIsEditing(true);
             }}
-            className="p-1.5 text-stone-300 hover:text-[#C5852C] hover:bg-stone-100 rounded-lg transition-colors"
+            className="p-1.5 text-stone-300 hover:text-[#18181b] hover:bg-stone-100 rounded-lg transition-colors"
             data-testid={`btn-edit-item-${item.id}`}
           >
             <Pencil className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => deleteMutation.mutate({ id: item.id, inspectionId })}
-            className="p-1.5 text-stone-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+            className="p-1.5 text-stone-300 hover:text-zinc-950 hover:bg-zinc-100 rounded-lg transition-colors"
             data-testid={`btn-delete-item-${item.id}`}
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -1832,13 +1832,13 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
                   type="button"
                   onClick={handleEnhanceText}
                   disabled={isEnhancing || (!formData.faultName && !formData.description)}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 active:bg-amber-200 border border-amber-300 rounded-lg transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-zinc-900 bg-zinc-100 hover:bg-zinc-200 active:bg-zinc-300 border border-zinc-300 rounded-lg transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   title="تحسين الصياغة بأسلوب تقارير الفحص الفنية المعتمدة"
                 >
                   {isEnhancing ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-700" />
                   ) : (
-                    <Pencil className="w-3.5 h-3.5 text-amber-600" />
+                    <Pencil className="w-3.5 h-3.5 text-zinc-700" />
                   )}
                   <span>تحسين الصياغة ✨</span>
                 </button>
@@ -1922,13 +1922,13 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
                   type="button"
                   onClick={handleEnhanceText}
                   disabled={isEnhancing || (!formData.faultName && !formData.description)}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 active:bg-amber-200 border border-amber-300 rounded-lg transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-zinc-900 bg-zinc-100 hover:bg-zinc-200 active:bg-zinc-300 border border-zinc-300 rounded-lg transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   title="تحسين صياغة التفاصيل بأسلوب تقارير الفحص"
                 >
                   {isEnhancing ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-700" />
                   ) : (
-                    <Pencil className="w-3.5 h-3.5 text-amber-600" />
+                    <Pencil className="w-3.5 h-3.5 text-zinc-700" />
                   )}
                   <span>تحسين الصياغة الفنية</span>
                 </button>
@@ -1997,10 +1997,10 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
                   data-testid="button-ai-photo"
                 >
                   <div className="flex items-center gap-1.5 text-slate-500">
-                    <Lock className="w-4 h-4 text-amber-600" />
+                    <Lock className="w-4 h-4 text-zinc-700" />
                     <span className="text-xs font-bold text-slate-700">التعرف التلقائي</span>
                   </div>
-                  <span className="text-[10px] text-amber-700 font-semibold bg-amber-100/80 px-2 py-0.5 rounded-full border border-amber-300">
+                  <span className="text-[10px] text-zinc-900 font-semibold bg-zinc-200 px-2 py-0.5 rounded-full border border-zinc-400 text-zinc-900">
                     تم القفل من قبل الإدارة 🔒
                   </span>
                 </button>
@@ -2012,7 +2012,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
                   <button 
                     type="button"
                     onClick={() => { setPhoto(null); setFormData(prev => ({ ...prev, imageUrl: undefined })); setAiSuggestions([]); setDetectedPart(""); }}
-                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                    className="absolute top-2 right-2 p-1 bg-zinc-900 text-white rounded-full hover:bg-black transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -2021,15 +2021,15 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
               
               {/* AI Analysis Results */}
               {photoAnalysis.isPending && (
-                <div className="mt-2 p-3 bg-amber-50 rounded-xl border border-amber-200 flex items-center gap-2 text-amber-700">
+                <div className="mt-2 p-3 bg-zinc-100 rounded-xl border border-zinc-300 flex items-center gap-2 text-zinc-800">
                   <Loader2 className="w-4 h-4 animate-spin" />
                   <span className="text-sm font-arabic">يحلل الصورة... لحظة</span>
                 </div>
               )}
               
               {detectedPart && !photoAnalysis.isPending && (
-                <div className="mt-2 p-2 bg-green-50 rounded-xl border border-green-200">
-                  <div className="flex items-center gap-2 text-green-700">
+                <div className="mt-2 p-2 bg-zinc-100 rounded-xl border border-zinc-300">
+                  <div className="flex items-center gap-2 text-zinc-900">
                     <Sparkles className="w-4 h-4" />
                     <span className="text-sm font-bold font-arabic">تم التعرف على: {detectedPart}</span>
                   </div>
@@ -2047,7 +2047,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
                               severity: suggestion.severity
                             }));
                           }}
-                          className="w-full text-right p-2 bg-white rounded-lg border border-green-100 hover:border-green-300 transition-all text-sm"
+                          className="w-full text-right p-2 bg-white rounded-lg border border-zinc-200 hover:border-zinc-400 transition-all text-sm"
                         >
                           <div className="font-medium text-slate-800 font-arabic text-xs">{suggestion.faultName}</div>
                         </button>
@@ -2276,10 +2276,10 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
   const getSeverityColor = (code: string) => {
     const prefix = code.charAt(0).toUpperCase();
     switch (prefix) {
-      case 'P': return { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', badge: 'bg-red-600', label: 'Powertrain', labelAr: 'المحرك' };
-      case 'C': return { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', badge: 'bg-amber-600', label: 'Chassis', labelAr: 'الشاصي' };
-      case 'B': return { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', badge: 'bg-blue-600', label: 'Body', labelAr: 'الهيكل' };
-      case 'U': return { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700', badge: 'bg-purple-600', label: 'Network', labelAr: 'الشبكة' };
+      case 'P': return { bg: 'bg-zinc-100', border: 'border-zinc-300', text: 'text-zinc-950', badge: 'bg-zinc-950', label: 'Powertrain', labelAr: 'المحرك' };
+      case 'C': return { bg: 'bg-zinc-100', border: 'border-zinc-300', text: 'text-zinc-950', badge: 'bg-zinc-800', label: 'Chassis', labelAr: 'الشاصي' };
+      case 'B': return { bg: 'bg-zinc-100', border: 'border-zinc-300', text: 'text-zinc-950', badge: 'bg-zinc-700', label: 'Body', labelAr: 'الهيكل' };
+      case 'U': return { bg: 'bg-zinc-100', border: 'border-zinc-300', text: 'text-zinc-950', badge: 'bg-zinc-600', label: 'Network', labelAr: 'الشبكة' };
       default: return { bg: 'bg-slate-50', border: 'border-slate-200', text: 'text-slate-700', badge: 'bg-slate-600', label: 'Other', labelAr: 'أخرى' };
     }
   };
@@ -2288,15 +2288,15 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
     <div className="fixed inset-0 z-[60] bg-white md:bg-slate-900/60 md:backdrop-blur-sm md:flex md:items-center md:justify-center" dir="rtl">
       <div className="w-full h-full md:h-auto md:max-w-2xl md:max-h-[90vh] bg-white md:rounded-2xl md:shadow-2xl flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="bg-[#0C1A28] text-white px-5 py-4 shrink-0 border-b border-[#C5852C]/30">
+        <div className="bg-[#09090b] text-white px-5 py-4 shrink-0 border-b border-[#18181b]/30">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
-                <PhosphorIcon name="cpu" weight="duotone" size={24} className="text-[#C5852C]" />
+                <PhosphorIcon name="cpu" weight="duotone" size={24} className="text-[#18181b]" />
               </div>
               <div>
                 <h2 className="text-lg font-black font-arabic">فحص كمبيوتر السيارة</h2>
-                <p className="text-[#C5852C] text-xs font-mono" dir="ltr">OBD-II Diagnostic Scanner</p>
+                <p className="text-[#18181b] text-xs font-mono" dir="ltr">OBD-II Diagnostic Scanner</p>
               </div>
             </div>
             <button onClick={onClose} className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center hover:bg-white/20 transition-colors" data-testid="btn-close-obd">
@@ -2308,7 +2308,7 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
             <div className="mt-3 flex items-center gap-3 bg-white/10 rounded-xl px-4 py-2">
               <div className="text-center">
                 <div className="text-xl font-black">{obdCodes.length}</div>
-                <div className="text-[10px] text-emerald-200 font-arabic">إجمالي أكواد الأعطال المسجلة</div>
+                <div className="text-[10px] text-zinc-300 font-arabic">إجمالي أكواد الأعطال المسجلة</div>
               </div>
             </div>
           )}
@@ -2324,14 +2324,14 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
                 onChange={(e) => setManualCode(e.target.value.toUpperCase())}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleManualAdd(); }}
                 placeholder="DTC كود العطل"
-                className="flex-1 px-3 py-2.5 rounded-xl border border-slate-300 text-base font-mono text-center focus:ring-2 focus:ring-emerald-300 focus:border-emerald-500 outline-none bg-white font-bold"
+                className="flex-1 px-3 py-2.5 rounded-xl border border-slate-300 text-base font-mono text-center focus:ring-2 focus:ring-zinc-400 focus:border-zinc-900 outline-none bg-white font-bold"
                 dir="ltr"
                 data-testid="input-obd-code"
               />
               <button
                 onClick={handleManualAdd}
                 disabled={isLookingUp || !manualCode.trim()}
-                className="px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap active:scale-95 shadow-sm font-arabic"
+                className="px-4 py-2.5 bg-zinc-950 text-white rounded-xl text-sm font-bold hover:bg-black transition-colors disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap active:scale-95 shadow-sm font-arabic"
                 data-testid="btn-add-obd-code"
               >
                 {isLookingUp ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
@@ -2377,20 +2377,20 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
                 className="w-full px-4 py-2.5 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-900 transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98] shadow-sm font-arabic border border-slate-700"
                 data-testid="btn-upload-autel-pdf"
               >
-                <PhosphorIcon name="file-pdf" weight="duotone" size={18} className="text-[#C5852C]" />
+                <PhosphorIcon name="file-pdf" weight="duotone" size={18} className="text-[#18181b]" />
                 رفع تقرير PDF من الجهاز
               </button>
             </div>
           </div>
           {hasAutelReport && (
-            <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2">
-              <PhosphorIcon name="check-circle" weight="duotone" size={20} className="text-emerald-600 shrink-0" />
-              <span className="text-xs font-bold text-emerald-800 flex-1">{inspection.autelReportName || 'تقرير Autel'}</span>
+            <div className="flex items-center gap-2 bg-zinc-100 border border-zinc-300 rounded-xl px-4 py-2">
+              <PhosphorIcon name="check-circle" weight="duotone" size={20} className="text-zinc-900 shrink-0" />
+              <span className="text-xs font-bold text-zinc-950 flex-1">{inspection.autelReportName || 'تقرير Autel'}</span>
               <a
                 href={`/api/autel/report/${inspectionId}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-3 py-1 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors flex items-center gap-1"
+                className="px-3 py-1 bg-zinc-950 text-white rounded-lg text-xs font-bold hover:bg-black transition-colors flex items-center gap-1"
                 data-testid="btn-view-autel-report"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -2428,7 +2428,7 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
                         {obd.diagnosis && (
                           <button
                             onClick={() => setExpandedCode(isExpanded ? null : obd.code)}
-                            className={`p-2 rounded-xl transition-colors ${isExpanded ? 'bg-emerald-100 text-emerald-600' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'}`}
+                            className={`p-2 rounded-xl transition-colors ${isExpanded ? 'bg-zinc-900 text-white' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'}`}
                             data-testid={`btn-toggle-obd-details-${obd.code}`}
                           >
                             {isExpanded ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -2436,7 +2436,7 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
                         )}
                         <button
                           onClick={() => handleDeleteCode(obd.code)}
-                          className="p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                          className="p-2 rounded-xl text-slate-400 hover:text-zinc-950 hover:bg-zinc-100 transition-colors"
                           data-testid={`btn-delete-obd-${obd.code}`}
                         >
                           <Trash2 className="w-4 h-4" />
@@ -2445,20 +2445,20 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
                     </div>
                     {isExpanded && obd.diagnosis && (
                       <div className="px-4 pb-4 pt-1 space-y-2 border-t border-slate-100 font-arabic text-right" dir="rtl">
-                        <div className="p-3 rounded-xl bg-blue-50 border border-blue-100">
-                          <div className="text-xs font-bold text-blue-600 mb-1">التشخيص</div>
-                          <div className="text-sm text-blue-800 leading-relaxed">{obd.diagnosis}</div>
+                        <div className="p-3 rounded-xl bg-zinc-50 border border-zinc-200">
+                          <div className="text-xs font-bold text-zinc-700 mb-1">التشخيص</div>
+                          <div className="text-sm text-zinc-950 leading-relaxed">{obd.diagnosis}</div>
                         </div>
                         {obd.causes && (
-                          <div className="p-3 rounded-xl bg-amber-50 border border-amber-100">
-                            <div className="text-xs font-bold text-amber-600 mb-1">الأسباب المحتملة</div>
-                            <div className="text-sm text-amber-800 leading-relaxed">{obd.causes}</div>
+                          <div className="p-3 rounded-xl bg-zinc-50 border border-zinc-200">
+                            <div className="text-xs font-bold text-zinc-700 mb-1">الأسباب المحتملة</div>
+                            <div className="text-sm text-zinc-950 leading-relaxed">{obd.causes}</div>
                           </div>
                         )}
                         {obd.solutions && (
-                          <div className="p-3 rounded-xl bg-green-50 border border-green-100">
-                            <div className="text-xs font-bold text-green-600 mb-1">الحلول المقترحة</div>
-                            <div className="text-sm text-green-800 leading-relaxed">{obd.solutions}</div>
+                          <div className="p-3 rounded-xl bg-zinc-50 border border-zinc-200">
+                            <div className="text-xs font-bold text-zinc-700 mb-1">الحلول المقترحة</div>
+                            <div className="text-sm text-zinc-950 leading-relaxed">{obd.solutions}</div>
                           </div>
                         )}
                       </div>

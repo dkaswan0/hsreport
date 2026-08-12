@@ -9,7 +9,7 @@ interface CarBlueprintPinpointProps {
 export function CarBlueprintPinpoint({
   category,
   className = "w-20 h-36",
-  dotColor = "#dc2626",
+  dotColor = "#09090b",
 }: CarBlueprintPinpointProps) {
   // Map category to relative percentages (x%, y%) on top-down car outline
   const getCoordinates = (cat: string): { x: number; y: number } => {

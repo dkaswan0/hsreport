@@ -75,9 +75,9 @@ export function calculateInspectionStats(items: Array<{ status: string }>): Insp
 }
 
 export function getHealthLabel(percent: number): { ar: string; en: string; color: string } {
-  if (percent >= 80) return { ar: 'ممتاز', en: 'Excellent', color: '#059669' };
-  if (percent >= 60) return { ar: 'جيد', en: 'Good', color: '#D97706' };
-  return { ar: 'ضعيف', en: 'Poor', color: '#DC2626' };
+  if (percent >= 80) return { ar: 'ممتاز', en: 'Excellent', color: '#18181b' };
+  if (percent >= 60) return { ar: 'جيد', en: 'Good', color: '#52525b' };
+  return { ar: 'ضعيف', en: 'Poor', color: '#09090b' };
 }
 
 export const CAR_COLORS = [

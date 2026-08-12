@@ -39,7 +39,7 @@ export function IntroAnimation({ onComplete, duration = 4000 }: IntroAnimationPr
             {[...Array(20)].map((_, i) => (
               <motion.div
                 key={i}
-                className="absolute w-1 h-1 bg-amber-500/30 rounded-full"
+                className="absolute w-1 h-1 bg-zinc-400/30 rounded-full"
                 initial={{
                   x: Math.random() * window.innerWidth,
                   y: Math.random() * window.innerHeight,
@@ -62,17 +62,17 @@ export function IntroAnimation({ onComplete, duration = 4000 }: IntroAnimationPr
 
           {/* Rotating gear rings */}
           <motion.div
-            className="absolute w-[500px] h-[500px] border border-amber-500/10 rounded-full"
+            className="absolute w-[500px] h-[500px] border border-zinc-700/30 rounded-full"
             animate={{ rotate: 360 }}
             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
           />
           <motion.div
-            className="absolute w-[400px] h-[400px] border border-amber-500/20 rounded-full"
+            className="absolute w-[400px] h-[400px] border border-zinc-700/50 rounded-full"
             animate={{ rotate: -360 }}
             transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
           />
           <motion.div
-            className="absolute w-[300px] h-[300px] border border-amber-500/30 rounded-full"
+            className="absolute w-[300px] h-[300px] border border-zinc-700 rounded-full"
             animate={{ rotate: 360 }}
             transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
           />
@@ -111,7 +111,7 @@ export function IntroAnimation({ onComplete, duration = 4000 }: IntroAnimationPr
 
               {/* Pulsing ring */}
               <motion.div
-                className="absolute -inset-4 border-2 border-amber-500/50 rounded-full"
+                className="absolute -inset-4 border-2 border-zinc-600 rounded-full"
                 animate={{
                   scale: [1, 1.2, 1],
                   opacity: [0.8, 0, 0.8]
@@ -170,7 +170,7 @@ export function IntroAnimation({ onComplete, duration = 4000 }: IntroAnimationPr
                   <motion.p
                     className="text-lg md:text-2xl font-arabic"
                     style={{
-                      background: "linear-gradient(90deg, #C5852C, #FFD700, #C5852C)",
+                      background: "linear-gradient(90deg, #ffffff, #a1a1aa, #ffffff)",
                       WebkitBackgroundClip: "text",
                       WebkitTextFillColor: "transparent",
                       backgroundSize: "200% 100%"
@@ -200,7 +200,7 @@ export function IntroAnimation({ onComplete, duration = 4000 }: IntroAnimationPr
 
                   {/* Decorative line */}
                   <motion.div
-                    className="mt-6 h-0.5 bg-gradient-to-r from-transparent via-amber-500 to-transparent"
+                    className="mt-6 h-0.5 bg-gradient-to-r from-transparent via-zinc-400 to-transparent"
                     initial={{ width: 0 }}
                     animate={{ width: 200 }}
                     transition={{ duration: 0.8, delay: 0.8 }}
@@ -217,7 +217,7 @@ export function IntroAnimation({ onComplete, duration = 4000 }: IntroAnimationPr
                     {[0, 1, 2].map((i) => (
                       <motion.div
                         key={i}
-                        className="w-2 h-2 rounded-full bg-amber-500"
+                        className="w-2 h-2 rounded-full bg-white"
                         animate={{
                           scale: [1, 1.5, 1],
                           opacity: [0.5, 1, 0.5]
@@ -237,25 +237,25 @@ export function IntroAnimation({ onComplete, duration = 4000 }: IntroAnimationPr
 
           {/* Corner decorations */}
           <motion.div
-            className="absolute top-8 left-8 w-16 h-16 border-l-2 border-t-2 border-amber-500/30"
+            className="absolute top-8 left-8 w-16 h-16 border-l-2 border-t-2 border-zinc-700"
             initial={{ opacity: 0, scale: 0 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.5 }}
           />
           <motion.div
-            className="absolute top-8 right-8 w-16 h-16 border-r-2 border-t-2 border-amber-500/30"
+            className="absolute top-8 right-8 w-16 h-16 border-r-2 border-t-2 border-zinc-700"
             initial={{ opacity: 0, scale: 0 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.6 }}
           />
           <motion.div
-            className="absolute bottom-8 left-8 w-16 h-16 border-l-2 border-b-2 border-amber-500/30"
+            className="absolute bottom-8 left-8 w-16 h-16 border-l-2 border-b-2 border-zinc-700"
             initial={{ opacity: 0, scale: 0 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.7 }}
           />
           <motion.div
-            className="absolute bottom-8 right-8 w-16 h-16 border-r-2 border-b-2 border-amber-500/30"
+            className="absolute bottom-8 right-8 w-16 h-16 border-r-2 border-b-2 border-zinc-700"
             initial={{ opacity: 0, scale: 0 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.8 }}

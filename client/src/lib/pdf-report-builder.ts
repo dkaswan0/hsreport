@@ -39,8 +39,8 @@ interface Inspection {
 }
 
 const BRAND = {
-  navy: '#0C1A28',
-  gold: '#C5852C',
+  navy: '#09090b',
+  gold: '#18181b',
   goldLight: '#E8B86D',
   success: '#2D7A4F',
   successLight: '#4A9B6A',

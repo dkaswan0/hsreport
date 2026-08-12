@@ -9,11 +9,11 @@ interface StatusBadgeProps {
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
   const styles: Record<string, string> = {
-    draft: "bg-slate-100 text-slate-600 border-slate-200",
-    completed: "bg-blue-100 text-blue-700 border-blue-200",
-    pass: "bg-emerald-100 text-emerald-700 border-emerald-200",
-    fail: "bg-red-100 text-red-700 border-red-200",
-    warning: "bg-amber-100 text-amber-700 border-amber-200",
+    draft: "bg-zinc-100 text-zinc-600 border-zinc-200",
+    completed: "bg-zinc-950 text-white border-zinc-900",
+    pass: "bg-zinc-100 text-zinc-950 border-zinc-300 font-bold",
+    fail: "bg-zinc-900 text-white border-zinc-950 font-bold",
+    warning: "bg-zinc-200 text-zinc-900 border-zinc-400 font-bold",
   };
 
   const labels: Record<string, string> = {

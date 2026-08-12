@@ -5,7 +5,7 @@ export default function NotFound() {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 text-gray-900">
       <div className="text-center">
-        <div className="inline-flex p-4 rounded-full bg-amber-100 text-amber-600 mb-4">
+        <div className="inline-flex p-4 rounded-full bg-zinc-100 text-zinc-900 mb-4">
           <AlertTriangle className="w-12 h-12" />
         </div>
         <h1 className="text-4xl font-bold mb-4">404 - الصفحة غير موجودة</h1>

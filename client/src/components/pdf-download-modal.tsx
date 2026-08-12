@@ -62,14 +62,14 @@ export function PdfDownloadModal({
         <div className="flex flex-col items-center py-4">
           {isComplete ? (
             <div className="flex flex-col items-center gap-4 animate-in fade-in zoom-in">
-              <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                <CheckCircle className="w-12 h-12 text-green-600" />
+              <div className="w-20 h-20 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+                <CheckCircle className="w-12 h-12 text-zinc-950 dark:text-white" />
               </div>
-              <p className="text-lg font-semibold text-green-600">تم التحميل بنجاح!</p>
+              <p className="text-lg font-semibold text-zinc-950 dark:text-white">تم التحميل بنجاح!</p>
             </div>
           ) : (
             <>
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center mb-4 shadow-lg">
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-zinc-900 to-zinc-950 flex items-center justify-center mb-4 shadow-lg">
                 <FileText className="w-12 h-12 text-white" />
               </div>
 
@@ -100,7 +100,7 @@ export function PdfDownloadModal({
                       }}
                       data-testid="button-copy-link"
                     >
-                      {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                      {copied ? <Check className="w-4 h-4 text-zinc-950" /> : <Copy className="w-4 h-4" />}
                     </Button>
                   </div>
                 </div>
@@ -110,7 +110,7 @@ export function PdfDownloadModal({
                 <Button
                   onClick={handleDownload}
                   disabled={isDownloading}
-                  className="w-full h-14 text-lg gap-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                  className="w-full h-14 text-lg gap-3 bg-gradient-to-r bg-zinc-950 hover:bg-black text-white"
                   data-testid="button-download-pdf"
                 >
                   {isDownloading ? (

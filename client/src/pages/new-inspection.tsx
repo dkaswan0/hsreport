@@ -369,14 +369,14 @@ export default function NewInspection() {
   return (
     <div className="max-w-5xl mx-auto animate-in slide-in-from-bottom-4 duration-500 pb-16">
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between bg-gradient-to-r from-[#0C1A28] to-[#162A3E] p-6 rounded-3xl border border-[#C5852C]/30 shadow-xl text-white">
+      <div className="mb-8 flex items-center justify-between bg-gradient-to-r from-[#09090b] to-[#18181b] p-6 rounded-3xl border border-[#18181b]/30 shadow-xl text-white">
         <div className="flex items-center gap-4">
           <button onClick={() => history.back()} className="p-2.5 bg-white/10 hover:bg-white/20 rounded-2xl transition-colors text-white">
             <ArrowLeft className="w-6 h-6 rtl:rotate-180" />
           </button>
           <div>
             <div className="flex items-center gap-2">
-              <span className="bg-[#C5852C] text-[#0C1A28] text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+              <span className="bg-[#18181b] text-[#09090b] text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
                 فحص موثق جديد
               </span>
             </div>
@@ -384,7 +384,7 @@ export default function NewInspection() {
             <p className="text-slate-300 text-xs md:text-sm font-arabic">منظومة الفحص الميداني المتقدمة - High Safety Report</p>
           </div>
         </div>
-        <Car className="w-12 h-12 text-[#C5852C] hidden sm:block opacity-90" />
+        <Car className="w-12 h-12 text-[#18181b] hidden sm:block opacity-90" />
       </div>
 
       <div className="bg-white rounded-3xl shadow-sm border border-slate-200/80 p-6 md:p-8 space-y-8">
@@ -393,25 +393,25 @@ export default function NewInspection() {
           {/* ── 1. بيانات السيارة ── */}
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-3 gap-3">
-              <h3 className="text-lg font-bold flex items-center gap-2 text-[#0C1A28] font-arabic">
-                <span className="w-8 h-8 rounded-xl bg-[#0C1A28] text-[#C5852C] flex items-center justify-center text-sm font-bold shadow">1</span>
+              <h3 className="text-lg font-bold flex items-center gap-2 text-[#09090b] font-arabic">
+                <span className="w-8 h-8 rounded-xl bg-[#09090b] text-[#18181b] flex items-center justify-center text-sm font-bold shadow">1</span>
                 بيانات السيارة واستخراج الهيكل (VIN)
               </h3>
               <button
                 type="button"
                 onClick={() => setIsSearchModalOpen(true)}
-                className="text-xs bg-[#0C1A28] text-[#C5852C] hover:bg-[#162A3E] border border-[#C5852C]/40 px-3.5 py-2 rounded-xl flex items-center gap-2 transition-all font-medium shadow-md font-arabic"
+                className="text-xs bg-[#09090b] text-[#18181b] hover:bg-[#18181b] border border-[#18181b]/40 px-3.5 py-2 rounded-xl flex items-center gap-2 transition-all font-medium shadow-md font-arabic"
               >
-                <Globe className="w-4 h-4 text-[#C5852C] animate-pulse" />
+                <Globe className="w-4 h-4 text-[#18181b] animate-pulse" />
                 بحث عيوب واستدعاءات الموديل حياً (Search Router)
               </button>
             </div>
 
             {/* 1. رقم الهيكل VIN (أول خانة في الأعلى) */}
-            <div className="bg-gradient-to-br from-[#0C1A28]/5 to-[#C5852C]/10 p-5 rounded-2xl border-2 border-[#C5852C]/40 shadow-sm relative">
-              <label className="block text-sm font-bold text-[#0C1A28] mb-2 font-arabic flex items-center justify-between">
+            <div className="bg-gradient-to-br from-[#09090b]/5 to-[#18181b]/10 p-5 rounded-2xl border-2 border-[#18181b]/40 shadow-sm relative">
+              <label className="block text-sm font-bold text-[#09090b] mb-2 font-arabic flex items-center justify-between">
                 <span className="flex items-center gap-2">
-                  <PhosphorIcon name="shield-check" weight="duotone" size={18} className="text-[#C5852C]" />
+                  <PhosphorIcon name="shield-check" weight="duotone" size={18} className="text-[#18181b]" />
                   رقم الهيكل (VIN)
                   <span className="text-xs font-normal text-slate-500">(أدخل 17 رقم/حرف لجلب بيانات المركبة تلقائياً)</span>
                 </span>
@@ -448,7 +448,7 @@ export default function NewInspection() {
                       await decodeVin(val);
                     }
                   }}
-                  className="w-full px-4 py-3.5 rounded-xl bg-white border border-slate-300 focus:border-[#C5852C] focus:ring-4 focus:ring-[#C5852C]/20 transition-all font-mono text-lg tracking-widest uppercase pl-48 shadow-inner"
+                  className="w-full px-4 py-3.5 rounded-xl bg-white border border-slate-300 focus:border-[#18181b] focus:ring-4 focus:ring-[#18181b]/20 transition-all font-mono text-lg tracking-widest uppercase pl-48 shadow-inner"
                   placeholder="WBA3A5C50DF..."
                   maxLength={17}
                   data-testid="input-vin"
@@ -458,7 +458,7 @@ export default function NewInspection() {
                     type="button"
                     onClick={() => decodeVin(form.getValues("vin") || "")}
                     disabled={isDecodingVin || !(form.watch("vin") && form.watch("vin")!.length >= 3)}
-                    className="bg-[#C5852C] hover:bg-[#d8973b] disabled:opacity-50 text-[#0C1A28] text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 font-bold shadow transition-all font-arabic"
+                    className="bg-[#18181b] hover:bg-[#27272a] disabled:opacity-50 text-[#09090b] text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 font-bold shadow transition-all font-arabic"
                     title="فك وتحليل رقم الشاصي وجلب بيانات السيارة"
                     data-testid="button-fetch-vin"
                   >
@@ -474,7 +474,7 @@ export default function NewInspection() {
                     type="button"
                     onClick={() => vinPhotoRef.current?.click()}
                     disabled={isScanningVin}
-                    className="bg-[#0C1A28] hover:bg-[#162A3E] text-[#C5852C] text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 font-bold shadow transition-all font-arabic border border-[#C5852C]/30"
+                    className="bg-[#09090b] hover:bg-[#18181b] text-[#18181b] text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 font-bold shadow transition-all font-arabic border border-[#18181b]/30"
                     title="مسح رقم الشاصي من ملصق أو باركود بالكاميرا"
                     data-testid="button-scan-vin"
                   >
@@ -498,11 +498,11 @@ export default function NewInspection() {
 
               {/* Decoded VIN Summary Badge */}
               {(watchMake || watchModel || decodedVinInfo) && (
-                <div className="mt-3 bg-gradient-to-r from-slate-900 via-[#0C1A28] to-[#162A3E] p-4 rounded-2xl border border-[#C5852C]/40 text-white shadow-md font-arabic animate-in fade-in duration-300">
+                <div className="mt-3 bg-gradient-to-r from-slate-900 via-[#09090b] to-[#18181b] p-4 rounded-2xl border border-[#18181b]/40 text-white shadow-md font-arabic animate-in fade-in duration-300">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-[#C5852C]/20 text-[#C5852C] flex items-center justify-center font-bold border border-[#C5852C]/40 shadow-inner">
-                        <Car className="w-6 h-6 text-[#C5852C]" />
+                      <div className="w-10 h-10 rounded-xl bg-[#18181b]/20 text-[#18181b] flex items-center justify-center font-bold border border-[#18181b]/40 shadow-inner">
+                        <Car className="w-6 h-6 text-[#18181b]" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
@@ -510,7 +510,7 @@ export default function NewInspection() {
                             {watchMake || "غير محدد"} {watchModel ? ` - ${watchModel}` : ""}
                           </span>
                           {watchYear && (
-                            <span className="bg-[#C5852C] text-[#0C1A28] text-xs font-black px-2 py-0.5 rounded-md">
+                            <span className="bg-[#18181b] text-[#09090b] text-xs font-black px-2 py-0.5 rounded-md">
                               {watchYear}
                             </span>
                           )}
@@ -524,12 +524,12 @@ export default function NewInspection() {
 
                     <div className="flex items-center gap-2">
                       {decodedVinInfo?.market && (
-                        <span className="bg-white/10 text-emerald-300 border border-emerald-500/30 text-xs px-2.5 py-1 rounded-lg font-medium flex items-center gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="bg-white/10 text-zinc-200 border border-zinc-700 text-xs px-2.5 py-1 rounded-lg font-medium flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-white" />
                           {decodedVinInfo.market}
                         </span>
                       )}
-                      <span className="bg-[#C5852C]/20 text-[#C5852C] border border-[#C5852C]/40 text-xs px-2.5 py-1 rounded-lg font-bold">
+                      <span className="bg-[#18181b]/20 text-[#18181b] border border-[#18181b]/40 text-xs px-2.5 py-1 rounded-lg font-bold">
                         فك مؤكد 100%
                       </span>
                     </div>
@@ -542,11 +542,11 @@ export default function NewInspection() {
 
               {/* الماركة */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2 font-arabic">الماركة <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium text-slate-700 mb-2 font-arabic">الماركة <span className="text-zinc-600">*</span></label>
                 <input
                   list="car-makes-list"
                   {...form.register("make")}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#C5852C] focus:ring-4 focus:ring-[#C5852C]/10 transition-all font-arabic font-bold text-slate-900"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#18181b] focus:ring-4 focus:ring-[#18181b]/10 transition-all font-arabic font-bold text-slate-900"
                   placeholder="Bestune, Toyota, BMW, Nissan, Changan, Geely..."
                   data-testid="input-make"
                 />
@@ -565,17 +565,17 @@ export default function NewInspection() {
                   ))}
                 </datalist>
                 {form.formState.errors.make && (
-                  <p className="text-red-500 text-xs mt-1 font-arabic">{form.formState.errors.make.message}</p>
+                  <p className="text-zinc-600 text-xs mt-1 font-arabic">{form.formState.errors.make.message}</p>
                 )}
               </div>
 
               {/* الموديل */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2 font-arabic">الموديل <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium text-slate-700 mb-2 font-arabic">الموديل <span className="text-zinc-600">*</span></label>
                 <input
                   list="car-models-list"
                   {...form.register("model")}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#C5852C] focus:ring-4 focus:ring-[#C5852C]/10 transition-all font-arabic font-bold text-slate-900"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#18181b] focus:ring-4 focus:ring-[#18181b]/10 transition-all font-arabic font-bold text-slate-900"
                   placeholder="B70, T77, T99, Land Cruiser, Patrol, Camry, X5..."
                   data-testid="input-model"
                 />
@@ -601,11 +601,11 @@ export default function NewInspection() {
 
               {/* السنة */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2 font-arabic">سنة الصنع <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium text-slate-700 mb-2 font-arabic">سنة الصنع <span className="text-zinc-600">*</span></label>
                 <input
                   type="number"
                   {...form.register("year")}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#C5852C] focus:ring-4 focus:ring-[#C5852C]/10 transition-all font-arabic"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#18181b] focus:ring-4 focus:ring-[#18181b]/10 transition-all font-arabic"
                   data-testid="input-year"
                 />
               </div>
@@ -616,7 +616,7 @@ export default function NewInspection() {
                 <input
                   list="car-colors-list"
                   {...form.register("color")}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#C5852C] focus:ring-4 focus:ring-[#C5852C]/10 transition-all font-arabic"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#18181b] focus:ring-4 focus:ring-[#18181b]/10 transition-all font-arabic"
                   placeholder="اختر لوناً أو اكتب لون جديد..."
                   data-testid="input-color"
                 />
@@ -644,7 +644,7 @@ export default function NewInspection() {
                 <label className="block text-sm font-medium text-slate-700 mb-2 font-arabic flex items-center justify-between">
                   <span>العداد (كم)</span>
                   {isAnalyzingOdometer && (
-                    <span className="text-xs text-[#C5852C] font-bold flex items-center gap-1">
+                    <span className="text-xs text-[#18181b] font-bold flex items-center gap-1">
                       <Loader2 className="w-3 h-3 animate-spin" /> قراءة العداد تلقائياً...
                     </span>
                   )}
@@ -652,7 +652,7 @@ export default function NewInspection() {
                 <input
                   type="number"
                   {...form.register("odometer")}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#C5852C] focus:ring-4 focus:ring-[#C5852C]/10 transition-all font-arabic text-lg font-bold"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-[#18181b] focus:ring-4 focus:ring-[#18181b]/10 transition-all font-arabic text-lg font-bold"
                   data-testid="input-odometer"
                 />
               </div>
@@ -661,22 +661,22 @@ export default function NewInspection() {
               <div className="col-span-full">
                 <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center justify-between font-arabic">
                   <span className="flex items-center gap-2">
-                    <Camera className="w-4 h-4 text-[#0C1A28]" />
+                    <Camera className="w-4 h-4 text-[#09090b]" />
                     صورة العداد (التقاط كاميرا مباشر أو رفع وقراءة تلقائية)
                   </span>
-                  <span className="text-xs text-[#C5852C] font-bold">قراءة العداد التلقائية</span>
+                  <span className="text-xs text-[#18181b] font-bold">قراءة العداد التلقائية</span>
                 </label>
                 {odometerPhotoPreview ? (
                   <div className="relative inline-block">
                     <img
                       src={odometerPhotoPreview}
                       alt="صورة العداد"
-                      className="w-full max-w-md h-48 object-cover rounded-2xl border-2 border-[#C5852C]/40 shadow-md"
+                      className="w-full max-w-md h-48 object-cover rounded-2xl border-2 border-[#18181b]/40 shadow-md"
                     />
                     <button
                       type="button"
                       onClick={removeOdometerPhoto}
-                      className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors"
+                      className="absolute -top-2 -right-2 p-1.5 bg-zinc-900 text-white rounded-full shadow hover:bg-black transition-colors"
                       data-testid="button-remove-odometer-photo"
                     >
                       <X className="w-4 h-4" />
@@ -684,9 +684,9 @@ export default function NewInspection() {
                   </div>
                 ) : (
                   <div className="flex gap-3">
-                    <label className="flex-1 flex flex-col items-center justify-center h-36 border-2 border-dashed border-[#0C1A28]/40 rounded-2xl cursor-pointer bg-[#0C1A28]/5 hover:bg-[#0C1A28]/10 transition-colors shadow-sm">
-                      <Camera className="w-7 h-7 text-[#0C1A28] mb-2" />
-                      <p className="text-xs md:text-sm text-[#0C1A28] font-arabic font-bold">التقاط بالكاميرا مباشرة</p>
+                    <label className="flex-1 flex flex-col items-center justify-center h-36 border-2 border-dashed border-[#09090b]/40 rounded-2xl cursor-pointer bg-[#09090b]/5 hover:bg-[#09090b]/10 transition-colors shadow-sm">
+                      <Camera className="w-7 h-7 text-[#09090b] mb-2" />
+                      <p className="text-xs md:text-sm text-[#09090b] font-arabic font-bold">التقاط بالكاميرا مباشرة</p>
                       <span className="text-[10px] text-slate-500 font-arabic">يقوم بقراءة العداد تلقائياً</span>
                       <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleOdometerPhotoChange} data-testid="input-odometer-camera" />
                     </label>
@@ -704,12 +704,12 @@ export default function NewInspection() {
           {/* ── 2. بيانات العميل (خاصة بالمركز الداخلي) ── */}
           <div className="space-y-4 bg-slate-50/80 p-5 rounded-2xl border border-slate-200">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-3 gap-2">
-              <h3 className="text-lg font-bold flex items-center gap-2 text-[#0C1A28] font-arabic">
-                <span className="w-8 h-8 rounded-xl bg-[#0C1A28] text-[#C5852C] flex items-center justify-center text-sm font-bold shadow">2</span>
+              <h3 className="text-lg font-bold flex items-center gap-2 text-[#09090b] font-arabic">
+                <span className="w-8 h-8 rounded-xl bg-[#09090b] text-[#18181b] flex items-center justify-center text-sm font-bold shadow">2</span>
                 بيانات العميل
               </h3>
-              <div className="flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200 font-arabic font-medium">
-                <UserCheck className="w-4 h-4 text-amber-600" />
+              <div className="flex items-center gap-1.5 text-xs text-zinc-800 bg-zinc-100 px-3 py-1.5 rounded-lg border border-zinc-300 font-arabic font-medium">
+                <UserCheck className="w-4 h-4 text-zinc-700" />
                 <span>خاصة بالفاحص الداخلي فقط - مخفية تماماً عن رابط المشاركة والـ PDF</span>
               </div>
             </div>
@@ -718,7 +718,7 @@ export default function NewInspection() {
                 <label className="block text-sm font-medium text-slate-700 mb-2 font-arabic">اسم العميل</label>
                 <input
                   {...form.register("customerName")}
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-[#C5852C] focus:ring-4 focus:ring-[#C5852C]/10 transition-all font-arabic"
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-[#18181b] focus:ring-4 focus:ring-[#18181b]/10 transition-all font-arabic"
                   placeholder="الاسم الكامل"
                   data-testid="input-customer-name"
                 />
@@ -727,7 +727,7 @@ export default function NewInspection() {
                 <label className="block text-sm font-medium text-slate-700 mb-2 font-arabic">رقم الهاتف</label>
                 <input
                   {...form.register("customerPhone")}
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-[#C5852C] focus:ring-4 focus:ring-[#C5852C]/10 transition-all font-arabic"
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-[#18181b] focus:ring-4 focus:ring-[#18181b]/10 transition-all font-arabic"
                   placeholder="05xxxxxxxx"
                   data-testid="input-customer-phone"
                 />
@@ -737,7 +737,7 @@ export default function NewInspection() {
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-[#C5852C] focus:ring-4 focus:ring-[#C5852C]/10 transition-all min-h-[80px] font-arabic text-sm"
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-[#18181b] focus:ring-4 focus:ring-[#18181b]/10 transition-all min-h-[80px] font-arabic text-sm"
                   placeholder="معلومات إضافية أو طلبات خاصة من العميل..."
                 />
               </div>
@@ -746,9 +746,9 @@ export default function NewInspection() {
 
           {/* ── 3. نوع الفحص ── */}
           <div className="space-y-4">
-            <h3 className="text-lg font-bold flex items-center gap-2 text-[#0C1A28] border-b border-slate-200 pb-3 font-arabic">
-              <span className="w-8 h-8 rounded-xl bg-[#0C1A28] text-[#C5852C] flex items-center justify-center text-sm font-bold shadow">3</span>
-              <FileCheck className="w-5 h-5 text-[#0C1A28]" />
+            <h3 className="text-lg font-bold flex items-center gap-2 text-[#09090b] border-b border-slate-200 pb-3 font-arabic">
+              <span className="w-8 h-8 rounded-xl bg-[#09090b] text-[#18181b] flex items-center justify-center text-sm font-bold shadow">3</span>
+              <FileCheck className="w-5 h-5 text-[#09090b]" />
               نوع وباقة الفحص
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -762,15 +762,15 @@ export default function NewInspection() {
                     className={cn(
                       "p-4 rounded-2xl border-2 text-right transition-all flex flex-col justify-between relative overflow-hidden",
                       isSelected
-                        ? "border-[#C5852C] bg-gradient-to-br from-[#0C1A28] to-[#162A3E] text-white shadow-xl translate-y-[-2px]"
-                        : "border-slate-200 bg-white hover:border-[#C5852C]/50 hover:bg-slate-50 text-slate-800"
+                        ? "border-[#18181b] bg-gradient-to-br from-[#09090b] to-[#18181b] text-white shadow-xl translate-y-[-2px]"
+                        : "border-slate-200 bg-white hover:border-[#18181b]/50 hover:bg-slate-50 text-slate-800"
                     )}
                     data-testid={`button-inspection-type-${type.id}`}
                   >
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <PhosphorIcon name={type.iconName} weight="duotone" size={26} className={isSelected ? "text-[#C5852C]" : "text-slate-500"} />
-                        <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full font-arabic", isSelected ? "bg-[#C5852C] text-[#0C1A28]" : "bg-slate-100 text-slate-600")}>
+                        <PhosphorIcon name={type.iconName} weight="duotone" size={26} className={isSelected ? "text-[#18181b]" : "text-slate-500"} />
+                        <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full font-arabic", isSelected ? "bg-[#18181b] text-[#09090b]" : "bg-slate-100 text-slate-600")}>
                           {type.badge}
                         </span>
                       </div>
@@ -790,9 +790,9 @@ export default function NewInspection() {
           {/* ── 4. صور المركبة والأجزاء الخارجية ── */}
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-3 gap-2">
-              <h3 className="text-lg font-bold flex items-center gap-2 text-[#0C1A28] font-arabic">
-                <span className="w-8 h-8 rounded-xl bg-[#0C1A28] text-[#C5852C] flex items-center justify-center text-sm font-bold shadow">4</span>
-                <Camera className="w-5 h-5 text-[#0C1A28]" />
+              <h3 className="text-lg font-bold flex items-center gap-2 text-[#09090b] font-arabic">
+                <span className="w-8 h-8 rounded-xl bg-[#09090b] text-[#18181b] flex items-center justify-center text-sm font-bold shadow">4</span>
+                <Camera className="w-5 h-5 text-[#09090b]" />
                 صور أجزاء المركبة الخارجية (كاميرا مباشر أو معرض)
               </h3>
               <span className="text-xs text-slate-500 font-arabic">تدعم المركبات ذات البابين دون ترك خانات فارغة بالتقرير</span>
@@ -801,21 +801,21 @@ export default function NewInspection() {
             {/* الصورة الرئيسية للمركبة */}
             <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 mb-6">
               <label className="block text-sm font-bold text-slate-800 mb-2 font-arabic flex items-center gap-2">
-                <Car className="w-4 h-4 text-[#0C1A28]" />
+                <Car className="w-4 h-4 text-[#09090b]" />
                 صورة السيارة الرئيسية (تظهر في غلاف تقرير الـ PDF)
               </label>
               {mainCarPhoto ? (
                 <div className="relative inline-block">
-                  <img src={mainCarPhoto} alt="صورة السيارة" className="w-full max-w-lg h-56 object-cover rounded-2xl border-4 border-[#0C1A28]/30 shadow-lg" />
-                  <button type="button" onClick={() => setMainCarPhoto(null)} className="absolute -top-2 -right-2 p-1.5 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors" data-testid="button-remove-main-photo">
+                  <img src={mainCarPhoto} alt="صورة السيارة" className="w-full max-w-lg h-56 object-cover rounded-2xl border-4 border-[#09090b]/30 shadow-lg" />
+                  <button type="button" onClick={() => setMainCarPhoto(null)} className="absolute -top-2 -right-2 p-1.5 bg-zinc-900 text-white rounded-full shadow hover:bg-black transition-colors" data-testid="button-remove-main-photo">
                     <X className="w-4 h-4" />
                   </button>
                 </div>
               ) : (
                 <div className="flex gap-3 max-w-lg">
-                  <label className="flex-1 flex flex-col items-center justify-center h-40 border-2 border-dashed border-[#0C1A28]/40 rounded-2xl cursor-pointer bg-[#0C1A28]/5 hover:bg-[#0C1A28]/10 transition-colors shadow-sm">
-                    <Camera className="w-8 h-8 text-[#0C1A28] mb-2" />
-                    <p className="text-xs font-bold text-[#0C1A28] font-arabic">التقاط كاميرا الجوال</p>
+                  <label className="flex-1 flex flex-col items-center justify-center h-40 border-2 border-dashed border-[#09090b]/40 rounded-2xl cursor-pointer bg-[#09090b]/5 hover:bg-[#09090b]/10 transition-colors shadow-sm">
+                    <Camera className="w-8 h-8 text-[#09090b] mb-2" />
+                    <p className="text-xs font-bold text-[#09090b] font-arabic">التقاط كاميرا الجوال</p>
                     <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleMainCarPhotoChange} data-testid="input-main-car-camera" />
                   </label>
                   <label className="flex-1 flex flex-col items-center justify-center h-40 border-2 border-dashed border-slate-300 rounded-2xl cursor-pointer bg-white hover:bg-slate-100 transition-colors">
@@ -841,19 +841,19 @@ export default function NewInspection() {
                 const photo = carSectionPhotos[section.key as keyof typeof carSectionPhotos];
                 return (
                   <div key={section.key} className="bg-slate-50 rounded-2xl p-3.5 border border-slate-200 shadow-sm flex flex-col justify-between">
-                    <p className="text-xs font-bold text-[#0C1A28] mb-2 font-arabic text-center">{section.label}</p>
+                    <p className="text-xs font-bold text-[#09090b] mb-2 font-arabic text-center">{section.label}</p>
                     {photo ? (
                       <div className="relative">
                         <img src={photo} alt={section.label} className="w-full h-32 object-cover rounded-xl border border-slate-300 shadow-inner" />
-                        <button type="button" onClick={() => removeCarSectionPhoto(section.key as keyof typeof carSectionPhotos)} className="absolute -top-1.5 -right-1.5 p-1 bg-red-500 text-white rounded-full shadow hover:bg-red-600 transition-colors" data-testid={`button-remove-${section.key}`}>
+                        <button type="button" onClick={() => removeCarSectionPhoto(section.key as keyof typeof carSectionPhotos)} className="absolute -top-1.5 -right-1.5 p-1 bg-zinc-900 text-white rounded-full shadow hover:bg-black transition-colors" data-testid={`button-remove-${section.key}`}>
                           <X className="w-3 h-3" />
                         </button>
                       </div>
                     ) : (
                       <div className="flex gap-2">
-                        <label className="flex-1 flex flex-col items-center justify-center h-28 border border-dashed border-[#0C1A28]/40 rounded-xl cursor-pointer bg-[#0C1A28]/5 hover:bg-[#0C1A28]/10 transition-colors p-1 text-center">
-                          <Camera className="w-5 h-5 text-[#0C1A28] mb-1" />
-                          <span className="text-[11px] font-bold text-[#0C1A28] font-arabic">كاميرا</span>
+                        <label className="flex-1 flex flex-col items-center justify-center h-28 border border-dashed border-[#09090b]/40 rounded-xl cursor-pointer bg-[#09090b]/5 hover:bg-[#09090b]/10 transition-colors p-1 text-center">
+                          <Camera className="w-5 h-5 text-[#09090b] mb-1" />
+                          <span className="text-[11px] font-bold text-[#09090b] font-arabic">كاميرا</span>
                           <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleCarSectionPhotoChange(section.key as keyof typeof carSectionPhotos, e)} data-testid={`input-camera-${section.key}`} />
                         </label>
                         <label className="flex-1 flex flex-col items-center justify-center h-28 border border-dashed border-slate-300 rounded-xl cursor-pointer bg-white hover:bg-slate-50 transition-colors p-1 text-center">
@@ -890,12 +890,12 @@ export default function NewInspection() {
                   toast({ title: "يرجى التحقق من البيانات", description: msgs.join('\n') || "بعض الحقول المطلوبة غير مكتملة", variant: "destructive" });
                 })();
               }}
-              className="w-full sm:w-auto px-10 py-4 rounded-2xl font-bold text-base bg-gradient-to-r from-[#C5852C] to-[#DF9B3A] text-[#0C1A28] shadow-lg shadow-[#C5852C]/30 hover:shadow-xl hover:shadow-[#C5852C]/40 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed transition-all touch-manipulation font-arabic flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-10 py-4 rounded-2xl font-bold text-base bg-gradient-to-r from-[#18181b] to-[#27272a] text-[#09090b] shadow-lg shadow-[#18181b]/30 hover:shadow-xl hover:shadow-[#18181b]/40 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed transition-all touch-manipulation font-arabic flex items-center justify-center gap-2"
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               {isPending ? (
                 <span className="flex items-center gap-2">
-                  <Loader2 className="w-5 h-5 animate-spin text-[#0C1A28]" /> جارٍ الحفظ وبدء الفحص...
+                  <Loader2 className="w-5 h-5 animate-spin text-[#09090b]" /> جارٍ الحفظ وبدء الفحص...
                 </span>
               ) : (
                 <span className="flex items-center gap-2">

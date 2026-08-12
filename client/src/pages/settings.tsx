@@ -217,10 +217,10 @@ export default function Settings() {
           </div>
 
           {newPassword && confirmPassword && newPassword !== confirmPassword && (
-            <p className="text-red-500 text-sm font-arabic">⚠ كلمتا المرور غير متطابقتين</p>
+            <p className="text-zinc-900 text-sm font-arabic">⚠ كلمتا المرور غير متطابقتين</p>
           )}
           {newPassword && newPassword === confirmPassword && newPassword.length >= 6 && (
-            <p className="text-green-600 text-sm font-arabic">✓ كلمتا المرور متطابقتان</p>
+            <p className="text-zinc-900 text-sm font-arabic">✓ كلمتا المرور متطابقتان</p>
           )}
 
           <Button
@@ -368,13 +368,13 @@ export default function Settings() {
                     className="flex items-start gap-2 p-2 rounded-lg bg-slate-50 dark:bg-slate-800"
                     data-testid={`fault-item-${fault.id}`}
                   >
-                    <CheckCircle2 className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
+                    <CheckCircle2 className="w-4 h-4 text-zinc-900 mt-1 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-slate-900 dark:text-white truncate">{fault.faultName}</p>
                       {fault.severity && (
                         <span className={`text-xs ${
-                          fault.severity === 'high' ? 'text-red-500' :
-                          fault.severity === 'medium' ? 'text-amber-500' : 'text-green-500'
+                          fault.severity === 'high' ? 'text-zinc-900' :
+                          fault.severity === 'medium' ? 'text-zinc-700' : 'text-zinc-900'
                         }`}>
                           {fault.severity === 'high' ? 'عالي' : fault.severity === 'medium' ? 'متوسط' : 'منخفض'}
                         </span>

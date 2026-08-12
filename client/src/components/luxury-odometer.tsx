@@ -20,7 +20,7 @@ export function LuxuryOdometer({ odometer, odometerPhoto, className }: LuxuryOdo
       <button
         type="button"
         className={cn(
-          "relative w-full text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 rounded-2xl",
+          "relative w-full text-left group focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 rounded-2xl",
           odometerPhoto && "cursor-pointer",
           className
         )}
@@ -64,9 +64,9 @@ export function LuxuryOdometer({ odometer, odometerPhoto, className }: LuxuryOdo
             </linearGradient>
             
             <linearGradient id="blueGlow" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#1e40af" />
-              <stop offset="50%" stopColor="#3b82f6" />
-              <stop offset="100%" stopColor="#1e40af" />
+              <stop offset="0%" stopColor="#52525b" />
+              <stop offset="50%" stopColor="#a1a1aa" />
+              <stop offset="100%" stopColor="#52525b" />
             </linearGradient>
             
             <radialGradient id="speedometerGradient" cx="50%" cy="50%" r="50%">
@@ -138,8 +138,8 @@ export function LuxuryOdometer({ odometer, odometerPhoto, className }: LuxuryOdo
               const isRedZone = rpm >= 6;
               return (
                 <g key={rpm}>
-                  <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={isRedZone ? "#ef4444" : "#666"} strokeWidth="2" />
-                  <text x={textX} y={textY} fill={isRedZone ? "#ef4444" : "#888"} fontSize="10" textAnchor="middle" dominantBaseline="middle">
+                  <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#666" strokeWidth="2" />
+                  <text x={textX} y={textY} fill="#888" fontSize="10" textAnchor="middle" dominantBaseline="middle">
                     {rpm}
                   </text>
                 </g>
@@ -154,7 +154,7 @@ export function LuxuryOdometer({ odometer, odometerPhoto, className }: LuxuryOdo
             
             <line x1="250" y1="75" x2="550" y2="75" stroke="url(#blueGlow)" strokeWidth="1" opacity="0.5" />
             
-            <text x="400" y="95" fill="#3b82f6" fontSize="11" textAnchor="middle" fontFamily="Arial, sans-serif" letterSpacing="3">
+            <text x="400" y="95" fill="#e4e4e7" fontSize="11" textAnchor="middle" fontFamily="Arial, sans-serif" letterSpacing="3">
               MERCEDES-MAYBACH
             </text>
             
@@ -182,10 +182,10 @@ export function LuxuryOdometer({ odometer, odometerPhoto, className }: LuxuryOdo
               ODOMETER
             </text>
             
-            <circle cx="260" cy="210" r="4" fill="#22c55e" filter="url(#glow)" />
+            <circle cx="260" cy="210" r="4" fill="#a1a1aa" filter="url(#glow)" />
             <text x="272" y="213" fill="#555" fontSize="8">ECO</text>
             
-            <circle cx="520" cy="210" r="4" fill="#3b82f6" filter="url(#glow)" />
+            <circle cx="520" cy="210" r="4" fill="#e4e4e7" filter="url(#glow)" />
             <text x="532" y="213" fill="#555" fontSize="8">READY</text>
             
             <text x="400" y="65" fill="#444" fontSize="9" textAnchor="middle">
@@ -200,7 +200,7 @@ export function LuxuryOdometer({ odometer, odometerPhoto, className }: LuxuryOdo
         
         {odometerPhoto && (
           <div className="absolute bottom-3 left-0 right-0 flex flex-col items-center">
-            <div className="bg-black/80 backdrop-blur-sm rounded-full px-4 py-2 flex items-center gap-2 text-amber-400 group-hover:text-amber-300 transition-colors">
+            <div className="bg-black/80 backdrop-blur-sm rounded-full px-4 py-2 flex items-center gap-2 text-white group-hover:text-zinc-200 transition-colors">
               <Eye className="w-4 h-4" />
               <span className="text-xs font-arabic">اضغط لكشف عداد سيارتك</span>
             </div>
@@ -232,7 +232,7 @@ export function LuxuryOdometer({ odometer, odometerPhoto, className }: LuxuryOdo
             {/* Rotating Image Container - Clickable */}
             <button
               type="button"
-              className="relative w-full rounded-2xl overflow-hidden border-2 border-amber-500/40 bg-gradient-to-b from-neutral-900 to-black p-1 cursor-pointer hover:border-amber-500 transition-colors"
+              className="relative w-full rounded-2xl overflow-hidden border-2 border-zinc-800 bg-gradient-to-b from-neutral-900 to-black p-1 cursor-pointer hover:border-zinc-600 transition-colors"
               onClick={() => setShowFullSize(true)}
               data-testid="button-expand-odometer-photo"
             >
@@ -247,7 +247,7 @@ export function LuxuryOdometer({ odometer, odometerPhoto, className }: LuxuryOdo
               
               {/* Instruction overlay */}
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-4">
-                <div className="flex items-center justify-center gap-2 text-amber-400">
+                <div className="flex items-center justify-center gap-2 text-white">
                   <Eye className="w-4 h-4" />
                   <span className="text-sm font-arabic font-medium">اضغط على الصورة لعرضها بالحجم الكامل</span>
                 </div>

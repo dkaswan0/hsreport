@@ -72,8 +72,8 @@ function AppContent() {
 
   if (isLoading || isAuthenticated === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0C1A28]">
-        <div className="w-12 h-12 border-4 border-[#C5852C]/30 border-t-[#C5852C] rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-zinc-950">
+        <div className="w-12 h-12 border-4 border-zinc-800 border-t-white rounded-full animate-spin" />
       </div>
     );
   }

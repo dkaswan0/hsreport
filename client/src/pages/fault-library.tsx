@@ -150,28 +150,28 @@ const getSeverityInfo = (severity: string | null) => {
       return { 
         label: 'حرج', 
         labelEn: 'Critical',
-        color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+        color: 'bg-zinc-900 text-white dark:bg-zinc-800 dark:text-zinc-100',
         icon: XCircle
       };
     case 'high':
       return { 
         label: 'خطير', 
         labelEn: 'High',
-        color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+        color: 'bg-zinc-800 text-white dark:bg-zinc-700 dark:text-zinc-100',
         icon: XCircle
       };
     case 'medium':
       return { 
         label: 'متوسط', 
         labelEn: 'Medium',
-        color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+        color: 'bg-zinc-200 text-zinc-900 dark:bg-zinc-700 dark:text-zinc-100',
         icon: AlertCircle
       };
     case 'low':
       return { 
         label: 'بسيط', 
         labelEn: 'Low',
-        color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+        color: 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100',
         icon: CheckCircle2
       };
     default:
@@ -367,7 +367,7 @@ export default function FaultLibrary() {
     <div className="space-y-6 p-4 md:p-6" dir="rtl">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <PhosphorIcon name="wrench" weight="duotone" size={32} className="text-[#C5852C]" />
+          <PhosphorIcon name="wrench" weight="duotone" size={32} className="text-zinc-950 dark:text-white" />
           <div>
             <h1 className="text-2xl font-bold font-arabic">الأعطال</h1>
             <p className="text-muted-foreground font-arabic">كل أعطال السيارات في مكان واحد</p>
@@ -397,9 +397,9 @@ export default function FaultLibrary() {
           <Button
             variant="outline"
             onClick={() => setIsSearchModalOpen(true)}
-            className="font-arabic bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-950 dark:text-blue-300 border-blue-200 dark:border-blue-800"
+            className="font-arabic bg-zinc-100 text-zinc-900 hover:bg-zinc-200 dark:bg-zinc-900 dark:text-zinc-100 border-zinc-300 dark:border-zinc-700"
           >
-            <Globe className="w-4 h-4 ml-2 text-blue-600 animate-pulse" />
+            <Globe className="w-4 h-4 ml-2 text-zinc-800 dark:text-zinc-200 animate-pulse" />
             البحث الحي عبر الإنترنت (Search Router)
           </Button>
           <Badge variant="secondary" className="font-arabic">
@@ -417,19 +417,19 @@ export default function FaultLibrary() {
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-3xl font-bold text-red-600">{stats.high}</div>
+            <div className="text-3xl font-bold text-zinc-950">{stats.high}</div>
             <div className="text-sm text-muted-foreground font-arabic">خطير</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-3xl font-bold text-amber-600">{stats.medium}</div>
+            <div className="text-3xl font-bold text-zinc-700">{stats.medium}</div>
             <div className="text-sm text-muted-foreground font-arabic">متوسط</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-3xl font-bold text-emerald-600">{stats.low}</div>
+            <div className="text-3xl font-bold text-zinc-600">{stats.low}</div>
             <div className="text-sm text-muted-foreground font-arabic">بسيط</div>
           </CardContent>
         </Card>
@@ -495,7 +495,7 @@ export default function FaultLibrary() {
               className="font-arabic"
               data-testid="button-filter-severity-critical"
             >
-              <PhosphorIcon name="warning-octagon" weight="duotone" size={14} className="ml-1 text-red-500" />
+              <PhosphorIcon name="warning-octagon" weight="duotone" size={14} className="ml-1 text-zinc-900 dark:text-zinc-200" />
               حرج
             </Button>
             <Button
@@ -505,7 +505,7 @@ export default function FaultLibrary() {
               className="font-arabic"
               data-testid="button-filter-severity-high"
             >
-              <PhosphorIcon name="warning-circle" weight="duotone" size={14} className="ml-1 text-red-500" />
+              <PhosphorIcon name="warning-circle" weight="duotone" size={14} className="ml-1 text-zinc-900 dark:text-zinc-200" />
               خطير
             </Button>
             <Button
@@ -515,7 +515,7 @@ export default function FaultLibrary() {
               className="font-arabic"
               data-testid="button-filter-severity-medium"
             >
-              <PhosphorIcon name="warning" weight="duotone" size={14} className="ml-1 text-amber-500" />
+              <PhosphorIcon name="warning" weight="duotone" size={14} className="ml-1 text-zinc-700 dark:text-zinc-300" />
               متوسط
             </Button>
             <Button
@@ -525,7 +525,7 @@ export default function FaultLibrary() {
               className="font-arabic"
               data-testid="button-filter-severity-low"
             >
-              <PhosphorIcon name="check-circle" weight="duotone" size={14} className="ml-1 text-emerald-500" />
+              <PhosphorIcon name="check-circle" weight="duotone" size={14} className="ml-1 text-zinc-600 dark:text-zinc-400" />
               بسيط
             </Button>
           </div>
@@ -557,7 +557,7 @@ export default function FaultLibrary() {
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-3">
-                        <PhosphorIcon name={getSectionIconName(section.id)} weight="duotone" size={24} className="text-[#C5852C]" />
+                        <PhosphorIcon name={getSectionIconName(section.id)} weight="duotone" size={24} className="text-zinc-950 dark:text-white" />
                         {isExpanded ? (
                           <ChevronUp className="w-5 h-5 text-muted-foreground" />
                         ) : (
@@ -631,7 +631,7 @@ export default function FaultLibrary() {
                                     <button
                                       onClick={() => handleDeleteFault(fault.id, fault.faultName)}
                                       disabled={deletingId === fault.id}
-                                      className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                                      className="p-2 text-slate-400 hover:text-zinc-900 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50"
                                       title="حذف"
                                       data-testid={`button-delete-fault-${fault.id}`}
                                     >

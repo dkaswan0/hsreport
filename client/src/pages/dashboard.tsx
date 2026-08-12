@@ -69,20 +69,20 @@ export default function Dashboard() {
     <div className="h-full flex flex-col gap-0" style={{ fontFamily: "inherit" }}>
 
       {/* ── PAGE MASTHEAD ── */}
-      <div className="flex items-end justify-between pb-6 border-b border-stone-200/70">
+      <div className="flex items-end justify-between pb-6 border-b border-zinc-200">
         <div>
-          <p className="text-[11px] tracking-widest uppercase text-stone-400 mb-1">
+          <p className="text-[11px] tracking-widest uppercase text-zinc-400 mb-1">
             {ar ? "مركز الأمان العالي الدولي · لوحة التحكم" : "High Safety Int'l · Dashboard"}
           </p>
-          <h1 className="text-2xl font-bold text-stone-800 leading-none">
+          <h1 className="text-2xl font-bold text-zinc-950 leading-none">
             {ar ? "الفحوصات" : "Inspections"}
           </h1>
-          <p className="text-xs text-stone-400 mt-1">{today}</p>
+          <p className="text-xs text-zinc-400 mt-1">{today}</p>
         </div>
         <Link
           href="/inspections/new"
           className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white tracking-wide transition-opacity hover:opacity-80"
-          style={{ background: "#0C1A28", borderRadius: 6 }}
+          style={{ background: "#09090b", borderRadius: 6 }}
         >
           <Plus className="w-3.5 h-3.5" />
           {ar ? "فحص جديد" : "New Inspection"}
@@ -99,20 +99,20 @@ export default function Dashboard() {
           <div key={s.label} className="flex-1 px-6 first:pl-0 last:pr-0">
             <span
               className="block font-black leading-none"
-              style={{ fontSize: "clamp(2rem, 4vw, 3.5rem)", color: "#0C1A28", letterSpacing: "-0.03em" }}
+              style={{ fontSize: "clamp(2rem, 4vw, 3.5rem)", color: "#09090b", letterSpacing: "-0.03em" }}
             >
               {s.n.toLocaleString()}
             </span>
-            <span className="block text-[11px] font-semibold text-stone-500 uppercase tracking-wider mt-1">
+            <span className="block text-[11px] font-semibold text-zinc-600 uppercase tracking-wider mt-1">
               {s.label}
             </span>
-            <span className="block text-[10px] text-stone-400 mt-0.5">{s.sub}</span>
+            <span className="block text-[10px] text-zinc-400 mt-0.5">{s.sub}</span>
           </div>
         ))}
       </div>
 
       {/* ── TABLE AREA ── */}
-      <div className="flex-1 flex flex-col border-t border-stone-200/70">
+      <div className="flex-1 flex flex-col border-t border-zinc-200">
 
         {/* toolbar */}
         <div className="flex items-center justify-between py-3">
@@ -121,7 +121,7 @@ export default function Dashboard() {
               <button
                 onClick={handleDeleteSelected}
                 disabled={deleteMultipleMutation.isPending}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 transition-colors disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium text-white bg-zinc-900 hover:bg-black transition-colors disabled:opacity-50"
                 data-testid="button-delete-selected"
               >
                 {deleteMultipleMutation.isPending
@@ -130,21 +130,21 @@ export default function Dashboard() {
                 {ar ? `حذف ${selectedIds.length}` : `Delete ${selectedIds.length}`}
               </button>
             ) : (
-              <span className="text-[11px] text-stone-400">
+              <span className="text-[11px] text-zinc-400">
                 {isLoading ? (ar ? "جارٍ التحميل…" : "Loading…") : `${total.toLocaleString()} ${ar ? "سجل" : "records"}`}
               </span>
             )}
           </div>
           <div className="relative">
             <Search
-              className="absolute top-1/2 -translate-y-1/2 w-3 h-3 text-stone-400"
+              className="absolute top-1/2 -translate-y-1/2 w-3 h-3 text-zinc-400"
               style={{ [ar ? "left" : "right"]: 9 }}
             />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={ar ? "بحث…" : "Search…"}
-              className="text-xs py-1.5 rounded border border-stone-200 bg-white focus:outline-none focus:border-stone-400 transition-colors"
+              className="text-xs py-1.5 rounded border border-zinc-200 bg-white focus:outline-none focus:border-zinc-400 transition-colors"
               style={{
                 width: 180,
                 [ar ? "paddingLeft" : "paddingRight"]: 24,
@@ -159,15 +159,15 @@ export default function Dashboard() {
         <div className="flex-1 overflow-x-auto">
           <table className="w-full border-collapse text-sm">
             <thead>
-              <tr style={{ borderBottom: "2px solid #0C1A28" }}>
+              <tr style={{ borderBottom: "2px solid #09090b" }}>
                 <th className="pb-2 w-8 text-center">
                   <button
                     onClick={toggleAll}
-                    className="text-stone-400 hover:text-stone-700"
+                    className="text-zinc-400 hover:text-zinc-800"
                     data-testid="button-select-all"
                   >
                     {allSel
-                      ? <XSquare className="w-4 h-4 text-[#C5852C]" />
+                      ? <XSquare className="w-4 h-4 text-[#18181b]" />
                       : <CheckSquare className="w-4 h-4" />}
                   </button>
                 </th>
@@ -181,7 +181,7 @@ export default function Dashboard() {
                 ].map((h, i) => (
                   <th
                     key={i}
-                    className="pb-2 text-right text-[10px] font-black uppercase tracking-widest text-stone-800"
+                    className="pb-2 text-right text-[10px] font-black uppercase tracking-widest text-zinc-950"
                     style={{ paddingInlineEnd: i === 5 ? 0 : 16, paddingInlineStart: 0 }}
                   >
                     {h}
@@ -192,13 +192,13 @@ export default function Dashboard() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="py-16 text-center text-stone-400 text-xs">
+                  <td colSpan={7} className="py-16 text-center text-zinc-400 text-xs">
                     {ar ? "جارٍ التحميل…" : "Loading…"}
                   </td>
                 </tr>
               ) : !inspections?.length ? (
                 <tr>
-                  <td colSpan={7} className="py-16 text-center text-stone-400 text-xs">
+                  <td colSpan={7} className="py-16 text-center text-zinc-400 text-xs">
                     {ar ? "لا توجد نتائج" : "No records found"}
                   </td>
                 </tr>
@@ -211,37 +211,37 @@ export default function Dashboard() {
                       className="transition-colors"
                       style={{
                         borderBottom: "1px solid #e7e5e4",
-                        background: sel ? "rgba(197,133,44,0.04)" : "transparent",
+                        background: sel ? "rgba(0,0,0,0.04)" : "transparent",
                       }}
                     >
                       <td className="py-3 text-center">
                         <button
                           onClick={() => toggle(ins.id)}
-                          className="text-stone-300 hover:text-stone-600 transition-colors"
+                          className="text-zinc-300 hover:text-zinc-700 transition-colors"
                           data-testid={`checkbox-select-${ins.id}`}
                         >
                           {sel
-                            ? <CheckSquare className="w-4 h-4 text-[#C5852C]" />
+                            ? <CheckSquare className="w-4 h-4 text-[#18181b]" />
                             : <Square className="w-4 h-4" />}
                         </button>
                       </td>
-                      <td className="py-3 pe-4 font-mono text-[11px] text-stone-400">
+                      <td className="py-3 pe-4 font-mono text-[11px] text-zinc-400">
                         {ins.id.toString().padStart(4, "0")}
                       </td>
                       <td className="py-3 pe-4">
-                        <span className="font-semibold text-stone-800">{ins.make} {ins.model}</span>
-                        <span className="block font-mono text-[10px] text-stone-400 mt-0.5">{ins.vin}</span>
+                        <span className="font-semibold text-zinc-950">{ins.make} {ins.model}</span>
+                        <span className="block font-mono text-[10px] text-zinc-400 mt-0.5">{ins.vin}</span>
                       </td>
                       <td className="py-3 pe-4">
-                        <span className="text-stone-700">{ins.customerName || "—"}</span>
+                        <span className="text-zinc-800">{ins.customerName || "—"}</span>
                         {ins.customerPhone && (
-                          <span className="flex items-center gap-1 text-[10px] text-stone-400 mt-0.5">
+                          <span className="flex items-center gap-1 text-[10px] text-zinc-400 mt-0.5">
                             <Phone className="w-3 h-3" />
                             {ins.customerPhone}
                           </span>
                         )}
                       </td>
-                      <td className="py-3 pe-4 text-[11px] text-stone-500 tabular-nums">
+                      <td className="py-3 pe-4 text-[11px] text-zinc-600 tabular-nums">
                         {ins.createdAt ? format(new Date(ins.createdAt), "yyyy/MM/dd") : "—"}
                       </td>
                       <td className="py-3 pe-4">
@@ -251,7 +251,7 @@ export default function Dashboard() {
                         <div className="flex items-center justify-end gap-3">
                           <Link
                             href={`/inspections/${ins.id}`}
-                            className="text-[11px] font-semibold text-stone-500 hover:text-[#C5852C] transition-colors"
+                            className="text-[11px] font-semibold text-zinc-600 hover:text-[#18181b] transition-colors"
                             data-testid={`link-view-${ins.id}`}
                           >
                             {ar ? "عرض" : "View"}
@@ -259,7 +259,7 @@ export default function Dashboard() {
                           <button
                             onClick={(e) => handleDelete(ins.id, e)}
                             disabled={deletingId === ins.id}
-                            className="text-stone-300 hover:text-red-500 transition-colors disabled:opacity-40"
+                            className="text-zinc-300 hover:text-zinc-950 transition-colors disabled:opacity-40"
                             data-testid={`button-delete-inspection-${ins.id}`}
                           >
                             {deletingId === ins.id

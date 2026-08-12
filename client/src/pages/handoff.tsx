@@ -19,9 +19,9 @@ import type { Inspection, InspectionItem } from "@shared/schema";
 type InspectionWithItems = Inspection & { items: InspectionItem[] };
 
 const BRAND = {
-  navy: '#0C1A28',
-  gold: '#C5852C',
-  goldLight: '#FFD700'
+  navy: '#09090b',
+  gold: '#18181b',
+  goldLight: '#27272a'
 };
 
 export default function HandoffPage() {
@@ -89,7 +89,7 @@ export default function HandoffPage() {
         style={{ background: `linear-gradient(135deg, ${BRAND.navy} 0%, #1a2d3d 50%, ${BRAND.navy} 100%)` }}
       >
         <div className="text-center bg-white/10 backdrop-blur-lg rounded-3xl p-12 max-w-md">
-          <XCircle className="w-20 h-20 text-red-400 mx-auto mb-4" />
+          <XCircle className="w-20 h-20 text-zinc-300 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-white mb-2 font-arabic">التقرير غير موجود</h1>
           <p className="text-white/60 font-arabic">الرابط غير صحيح أو انتهت صلاحيته</p>
         </div>
@@ -106,22 +106,22 @@ export default function HandoffPage() {
     if (failCount > 0) return { 
       label: 'يحتاج مراجعة', 
       labelEn: 'Needs Review',
-      color: 'text-red-400', 
-      bg: 'bg-red-500/20', 
+      color: 'text-zinc-300', 
+      bg: 'bg-zinc-800', 
       icon: XCircle 
     };
     if (warningCount > 0) return { 
       label: 'تحذيرات', 
       labelEn: 'Warnings',
-      color: 'text-amber-400', 
-      bg: 'bg-amber-500/20', 
+      color: 'text-zinc-200', 
+      bg: 'bg-zinc-800', 
       icon: AlertCircle 
     };
     return { 
       label: 'ممتاز', 
       labelEn: 'Excellent',
-      color: 'text-emerald-400', 
-      bg: 'bg-emerald-500/20', 
+      color: 'text-white', 
+      bg: 'bg-zinc-800', 
       icon: CheckCircle2 
     };
   };
@@ -224,8 +224,8 @@ export default function HandoffPage() {
           </div>
 
           {/* Status Badge - Replacement with official trust text */}
-          <div className="flex flex-col items-center justify-center gap-2 py-4 px-6 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-center">
-            <ShieldCheck className="w-8 h-8 text-[#C5852C] animate-pulse" />
+          <div className="flex flex-col items-center justify-center gap-2 py-4 px-6 rounded-2xl bg-zinc-900 border border-zinc-800 text-center">
+            <ShieldCheck className="w-8 h-8 text-white animate-pulse" />
             <div>
               <span className="text-base font-bold font-arabic text-white block">
                 تقرير فحص فني معتمد إلكترونياً
