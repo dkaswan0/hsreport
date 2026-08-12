@@ -728,6 +728,25 @@ export async function registerRoutes(
     }
   });
 
+  // AI Text Enhancement - Refine fault name and details into professional Arabic inspection report wording
+  app.post("/api/enhance-finding-text", async (req, res) => {
+    try {
+      const { faultName, description, category } = req.body || {};
+      const result = await ImageAnalysisService.enhanceFindingText({
+        faultName: faultName?.trim(),
+        description: description?.trim(),
+        category: category?.trim()
+      });
+      res.json(result);
+    } catch (error: any) {
+      console.error("Text Enhancement Error:", error?.message || error);
+      res.json({
+        enhancedFaultName: req.body?.faultName || "",
+        enhancedDescription: req.body?.description || ""
+      });
+    }
+  });
+
   // AI Odometer Analysis - Read odometer reading from photo
   app.post("/api/analyze-odometer", async (req, res) => {
     try {

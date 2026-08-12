@@ -26,9 +26,7 @@ import {
   EyeOff,
   Download,
   ExternalLink,
-  Mic,
-  MicOff,
-  Volume2,
+  Lock,
 } from "lucide-react";
 import { PhosphorIcon } from "@/components/phosphor-icon";
 import { useState, useRef, useEffect, useMemo, useCallback, useDeferredValue } from "react";
@@ -770,7 +768,51 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
   const [aiSuggestions, setAiSuggestions] = useState<Array<{faultName: string, severity: string, description?: string}>>([]);
   const [aiDetectedPart, setAiDetectedPart] = useState('');
   const [aiAnalyzing, setAiAnalyzing] = useState(false);
+  const [isEnhancing, setIsEnhancing] = useState(false);
   const photoAnalysis = usePhotoAnalysis();
+
+  const handleEnhanceText = async () => {
+    if (!editData.faultName?.trim() && !editData.description?.trim()) {
+      toast({
+        title: "اكتب الملاحظة أولاً",
+        description: "يرجى كتابة اسم العطل أو الوصف لتحسين الصياغة الفنية",
+      });
+      return;
+    }
+    setIsEnhancing(true);
+    try {
+      const res = await fetch('/api/enhance-finding-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          faultName: editData.faultName || '',
+          description: editData.description || '',
+          category: getCategoryLabel(editData.category) || editData.category
+        })
+      });
+      if (!res.ok) throw new Error("تعذر تحسين النص");
+      const data = await res.json();
+      if (data.enhancedFaultName || data.enhancedDescription) {
+        setEditData(prev => ({
+          ...prev,
+          faultName: data.enhancedFaultName || prev.faultName,
+          description: data.enhancedDescription || prev.description
+        }));
+        toast({
+          title: "تم تحسين الصياغة بنجاح ✨",
+          description: "تمت إعادة صياغة الملاحظة بأسلوب تقارير فحص السيارات المعتمدة",
+        });
+      }
+    } catch (err: any) {
+      toast({
+        title: "خطأ في تحسين الصياغة",
+        description: "تعذر الاتصال بالخدمة حالياً",
+        variant: "destructive"
+      });
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
   
   const [arabic, english] = item.faultName.split(" - ");
   const isGood = item.status === 'pass';
@@ -869,7 +911,19 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
     return (
       <div className="flex flex-col gap-4 p-5 rounded-2xl border-2 border-primary/40 bg-primary/5 shadow-md" data-testid={`edit-card-${item.id}`}>
         <div className="flex items-center justify-between mb-1">
-          <h4 className="font-bold text-base text-primary">تعديل البند</h4>
+          <div className="flex items-center gap-2">
+            <h4 className="font-bold text-base text-primary">تعديل البند</h4>
+            <button
+              type="button"
+              onClick={handleEnhanceText}
+              disabled={isEnhancing || (!editData.faultName && !editData.description)}
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg transition-all shadow-sm disabled:opacity-50"
+              title="تحسين الصياغة بأسلوب تقارير الفحص الفنية"
+            >
+              {isEnhancing ? <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" /> : <Pencil className="w-3.5 h-3.5 text-amber-600" />}
+              <span>تحسين الصياغة ✨</span>
+            </button>
+          </div>
           <button onClick={() => { setIsEditing(false); setEditPhoto(null); setAiSuggestions([]); setAiDetectedPart(''); }} className="p-1.5 rounded-lg hover:bg-slate-200 transition-colors" data-testid={`btn-cancel-edit-${item.id}`}>
             <X className="w-4 h-4 text-slate-500" />
           </button>
@@ -877,7 +931,18 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
 
         <div className="space-y-3">
           <div>
-            <label className="text-xs font-semibold text-slate-500 mb-1 block">اسم العطل</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-semibold text-slate-600 block">اسم العطل</label>
+              <button
+                type="button"
+                onClick={handleEnhanceText}
+                disabled={isEnhancing || !editData.faultName}
+                className="p-1 text-amber-600 hover:text-amber-700 hover:bg-amber-100 rounded transition-colors"
+                title="تحسين صياغة اسم العطل"
+              >
+                {isEnhancing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Pencil className="w-3 h-3" />}
+              </button>
+            </div>
             <input
               value={editData.faultName}
               onChange={(e) => setEditData(d => ({ ...d, faultName: e.target.value }))}
@@ -888,7 +953,18 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-500 mb-1 block">الوصف</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-semibold text-slate-600 block">الوصف والتفاصيل</label>
+              <button
+                type="button"
+                onClick={handleEnhanceText}
+                disabled={isEnhancing || !editData.description}
+                className="p-1 text-amber-600 hover:text-amber-700 hover:bg-amber-100 rounded transition-colors"
+                title="تحسين صياغة التفاصيل"
+              >
+                {isEnhancing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Pencil className="w-3 h-3" />}
+              </button>
+            </div>
             <textarea
               value={editData.description}
               onChange={(e) => setEditData(d => ({ ...d, description: e.target.value }))}
@@ -1019,13 +1095,19 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
                 تغيير الصورة
               </button>
               <button
-                onClick={() => editAiFileRef.current?.click()}
-                disabled={aiAnalyzing}
-                className="px-3 py-1.5 text-xs font-medium rounded-lg border border-purple-300 bg-purple-50 hover:bg-purple-100 text-purple-700 transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                type="button"
+                onClick={() => {
+                  toast({
+                    title: "تنبيه من الإدارة",
+                    description: "تم القفل من قبل الإدارة",
+                    variant: "default"
+                  });
+                }}
+                className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors flex items-center gap-1.5"
                 data-testid={`btn-edit-photo-ai-${item.id}`}
               >
-                {aiAnalyzing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
-                {aiAnalyzing ? 'جارٍ التحليل...' : 'تحليل بالذكاء'}
+                <Lock className="w-3.5 h-3.5 text-amber-600" />
+                <span>تم القفل من قبل الإدارة</span>
               </button>
             </div>
           </div>
@@ -1191,158 +1273,48 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
   const [searchQuery, setSearchQuery] = useState("");
   
   const photoAnalysis = usePhotoAnalysis();
+  const [isEnhancing, setIsEnhancing] = useState(false);
 
-  const [isRecording, setIsRecording] = useState(false);
-  const [isAnalyzingVoice, setIsAnalyzingVoice] = useState(false);
-  const [voiceTranscript, setVoiceTranscript] = useState("");
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
-  const audioFileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleAudioFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
-    setIsAnalyzingVoice(true);
-    try {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onloadend = async () => {
-        const base64data = reader.result as string;
-        const cleanBase64 = base64data.split(',')[1];
-        
-        const response = await fetch('/api/analyze-voice', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ audioBase64: cleanBase64, mimeType: file.type || 'audio/webm' })
-        });
-        
-        if (!response.ok) {
-          const err = await response.json().catch(() => ({}));
-          throw new Error(err.error || "Failed to analyze voice");
-        }
-        
-        const data = await response.json();
-        if (data.detectedPartArabic || data.detectedPart) {
-          setDetectedPart(data.detectedPartArabic || data.detectedPart);
-        }
-        if (data.suggestedFaults) {
-          setAiSuggestions(data.suggestedFaults);
-        }
-        if (data.notes || data.transcript) {
-          setVoiceTranscript(data.transcript || "");
-          setFormData(prev => ({
-            ...prev,
-            faultName: data.suggestedFaults?.[0]?.faultName || prev.faultName || '',
-            description: data.notes || data.suggestedFaults?.[0]?.description || prev.description || '',
-            severity: data.suggestedFaults?.[0]?.severity || prev.severity || 'medium'
-          }));
-        }
-        
-        toast({
-          title: "تم تحليل الصوت بنجاح",
-          description: data.transcript ? `النص: "${data.transcript.substring(0, 50)}..."` : "تم تسجيل الملاحظة الصوتية وتعبئة التقرير",
-        });
-      };
-    } catch (err: any) {
-      console.error(err);
+  const handleEnhanceText = async () => {
+    if (!formData.faultName?.trim() && !formData.description?.trim()) {
       toast({
-        title: "تنبيه",
-        description: err.message || "تعذر معالجة الملف الصوتي المرفوع",
+        title: "اكتب الملاحظة أولاً",
+        description: "يرجى كتابة اسم العطل أو الوصف لتحسين الصياغة الفنية",
+      });
+      return;
+    }
+    setIsEnhancing(true);
+    try {
+      const res = await fetch('/api/enhance-finding-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          faultName: formData.faultName || '',
+          description: formData.description || '',
+          category: getCategoryLabel(formData.category || category) || (formData.category || category)
+        })
+      });
+      if (!res.ok) throw new Error("تعذر تحسين النص");
+      const data = await res.json();
+      if (data.enhancedFaultName || data.enhancedDescription) {
+        setFormData(prev => ({
+          ...prev,
+          faultName: data.enhancedFaultName || prev.faultName,
+          description: data.enhancedDescription || prev.description
+        }));
+        toast({
+          title: "تم تحسين الصياغة بنجاح ✨",
+          description: "تمت إعادة صياغة الملاحظة بأسلوب تقارير فحص السيارات المعتمدة",
+        });
+      }
+    } catch (err: any) {
+      toast({
+        title: "خطأ في تحسين الصياغة",
+        description: "تعذر الاتصال بالخدمة حالياً",
         variant: "destructive"
       });
     } finally {
-      setIsAnalyzingVoice(false);
-      e.target.value = '';
-    }
-  };
-
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      audioChunksRef.current = [];
-      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
-      mediaRecorderRef.current = mediaRecorder;
-      
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-      
-      mediaRecorder.onstop = async () => {
-        setIsAnalyzingVoice(true);
-        try {
-          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-          
-          const reader = new FileReader();
-          reader.readAsDataURL(audioBlob);
-          reader.onloadend = async () => {
-            const base64data = reader.result as string;
-            const cleanBase64 = base64data.split(',')[1];
-            
-            const response = await fetch('/api/analyze-voice', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ audioBase64: cleanBase64, mimeType: 'audio/webm' })
-            });
-            
-            if (!response.ok) {
-              const err = await response.json().catch(() => ({}));
-              throw new Error(err.error || "Failed to analyze voice");
-            }
-            
-            const data = await response.json();
-            if (data.detectedPartArabic || data.detectedPart) {
-              setDetectedPart(data.detectedPartArabic || data.detectedPart);
-            }
-            if (data.suggestedFaults) {
-              setAiSuggestions(data.suggestedFaults);
-            }
-            if (data.notes || data.transcript) {
-              setVoiceTranscript(data.transcript || "");
-              setFormData(prev => ({
-                ...prev,
-                faultName: data.suggestedFaults?.[0]?.faultName || prev.faultName || '',
-                description: data.notes || data.suggestedFaults?.[0]?.description || prev.description || '',
-                severity: data.suggestedFaults?.[0]?.severity || prev.severity || 'medium'
-              }));
-            }
-            
-            toast({
-              title: "تم تسجيل الصوت بنجاح",
-              description: data.transcript ? `النص: "${data.transcript.substring(0, 50)}..."` : "تم تسجيل الملاحظة وتعبئة التقرير",
-            });
-          };
-        } catch (err: any) {
-          console.error(err);
-          toast({
-            title: "تنبيه",
-            description: err.message || "تعذر معالجة التسجيل الصوتي",
-            variant: "destructive"
-          });
-        } finally {
-          setIsAnalyzingVoice(false);
-          stream.getTracks().forEach(track => track.stop());
-        }
-      };
-      
-      mediaRecorder.start();
-      setIsRecording(true);
-    } catch (err) {
-      console.error(err);
-      toast({
-        title: "خطأ في الميكروفون",
-        description: "يرجى منح صلاحية الوصول للميكروفون لتفعيل ميزة الفحص الصوتي",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
+      setIsEnhancing(false);
     }
   };
 
@@ -1549,36 +1521,67 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">اختر العطل</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-sm font-bold text-slate-800">اسم العطل</label>
+                <button
+                  type="button"
+                  onClick={handleEnhanceText}
+                  disabled={isEnhancing || (!formData.faultName && !formData.description)}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 active:bg-amber-200 border border-amber-300 rounded-lg transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="تحسين الصياغة بأسلوب تقارير الفحص الفنية المعتمدة"
+                >
+                  {isEnhancing ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
+                  ) : (
+                    <Pencil className="w-3.5 h-3.5 text-amber-600" />
+                  )}
+                  <span>تحسين الصياغة ✨</span>
+                </button>
+              </div>
+
+              {/* Manual Input + Library Search */}
               <div className="relative">
-                <div className="flex items-center border border-slate-200 rounded-xl px-3 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10">
-                  <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                <div className="flex items-center border-2 border-slate-200 rounded-xl px-3 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 bg-white">
                   <input
                     type="text"
-                    placeholder="دور على العطل..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="اكتب اسم العطل يدويًا أو ابحث في القائمة..."
+                    value={formData.faultName || ''}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, faultName: e.target.value }));
+                      setSearchQuery(e.target.value);
+                      if (!searchOpen && e.target.value.length > 0) setSearchOpen(true);
+                    }}
                     onFocus={() => setSearchOpen(true)}
-                    className="flex h-11 w-full bg-transparent py-3 text-sm outline-none placeholder:text-slate-400 text-right"
-                    data-testid="input-fault-search"
+                    className="flex h-11 w-full bg-transparent py-3 text-sm font-medium outline-none placeholder:text-slate-400 text-right"
+                    data-testid="input-fault-name"
+                    dir="auto"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setSearchOpen(!searchOpen)}
+                    className="p-1.5 text-slate-400 hover:text-primary transition-colors shrink-0"
+                    title="استعراض قائمة الأعطال الجاهزة"
+                  >
+                    <Search className="h-4 w-4" />
+                  </button>
                 </div>
+
                 {searchOpen && (
-                  <div className="absolute inset-x-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-[100] max-h-[300px] md:max-h-[350px] overflow-y-auto">
-                    <div className="sticky top-0 flex items-center justify-between px-3 py-2 border-b bg-white rounded-t-xl z-10">
-                      <span className="text-sm font-medium text-slate-700">الأعطال ({filteredFaults.length})</span>
+                  <div className="absolute inset-x-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-[100] max-h-[280px] md:max-h-[320px] overflow-y-auto">
+                    <div className="sticky top-0 flex items-center justify-between px-3 py-2 border-b bg-slate-50 rounded-t-xl z-10">
+                      <span className="text-xs font-bold text-slate-700">الأعطال الجاهزة ({filteredFaults.length})</span>
                       <button
                         type="button"
                         onClick={() => setSearchOpen(false)}
-                        className="p-1 text-slate-500 hover:text-slate-700"
+                        className="p-1 text-slate-400 hover:text-slate-700"
                       >
-                        <XCircle className="w-5 h-5" />
+                        <XCircle className="w-4 h-4" />
                       </button>
                     </div>
                     {filteredFaults.length === 0 ? (
-                      <div className="py-4 text-center text-sm text-slate-500">لا توجد نتائج</div>
+                      <div className="py-4 text-center text-xs text-slate-500">لا توجد نتائج مطابقة - يمكنك كتابة العطل يدويًا مباشرة</div>
                     ) : (
-                      filteredFaults.slice(0, 200).map(fault => (
+                      filteredFaults.slice(0, 150).map(fault => (
                         <button
                           key={fault.id}
                           type="button"
@@ -1587,17 +1590,17 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
                             setSearchOpen(false);
                           }}
                           className={cn(
-                            "w-full flex items-center justify-between gap-2 px-3 py-2 text-right hover:bg-slate-100 active:bg-slate-200 transition-colors cursor-pointer border-b border-slate-100",
-                            formData.faultName === fault.faultName && "bg-primary/10"
+                            "w-full flex items-center justify-between gap-2 px-3 py-2 text-right hover:bg-slate-100 active:bg-slate-200 transition-colors cursor-pointer border-b border-slate-100 text-sm",
+                            formData.faultName === fault.faultName && "bg-primary/10 font-bold text-primary"
                           )}
                           data-testid={`fault-item-${fault.id}`}
                         >
                           <div className="flex-1 min-w-0">
-                            <div className="font-medium text-sm">{fault.faultName}</div>
-                            <div className="text-xs text-slate-400">{getCategoryLabel(fault.category) || fault.category}</div>
+                            <div className="font-medium text-sm text-slate-800">{fault.faultName}</div>
+                            <div className="text-[11px] text-slate-400">{getCategoryLabel(fault.category) || fault.category}</div>
                           </div>
                           {formData.faultName === fault.faultName && (
-                            <Check className="w-5 h-5 text-primary shrink-0" />
+                            <Check className="w-4 h-4 text-primary shrink-0" />
                           )}
                         </button>
                       ))
@@ -1605,34 +1608,32 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
                   </div>
                 )}
               </div>
-              {formData.faultName && (
-                <div className="mt-3 p-3 bg-green-50 rounded-xl border-2 border-green-300 shadow-sm">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Check className="w-5 h-5 text-green-600" />
-                    <span className="text-sm text-green-700 font-bold">العطل المختار - اضغط للتحرير:</span>
-                  </div>
-                  <input
-                    type="text"
-                    value={formData.faultName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, faultName: e.target.value }))}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-green-400 bg-white text-base text-slate-900 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all text-right font-medium"
-                    placeholder="اكتب أو عدّل اسم العطل..."
-                    data-testid="input-fault-name-edit"
-                  />
-                  <p className="text-xs text-green-600 mt-1">يمكنك تعديل النص أعلاه - إضافة أو حذف كلمات</p>
-                </div>
-              )}
             </div>
 
-
-
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">التفاصيل</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-sm font-bold text-slate-800">التفاصيل والتشخيص</label>
+                <button
+                  type="button"
+                  onClick={handleEnhanceText}
+                  disabled={isEnhancing || (!formData.faultName && !formData.description)}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 active:bg-amber-200 border border-amber-300 rounded-lg transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="تحسين صياغة التفاصيل بأسلوب تقارير الفحص"
+                >
+                  {isEnhancing ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
+                  ) : (
+                    <Pencil className="w-3.5 h-3.5 text-amber-600" />
+                  )}
+                  <span>تحسين الصياغة الفنية</span>
+                </button>
+              </div>
               <textarea 
                 value={formData.description || ''}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all min-h-[60px] md:min-h-[80px]"
-                placeholder="زيد تفاصيل..."
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all min-h-[70px] md:min-h-[85px] text-sm text-slate-800"
+                placeholder="اكتب تفاصيل وملاحظات الفحص يدويًا... (اضغط على علامة القلم لتحسين الصياغة أوتوماتيكياً)"
+                dir="auto"
               />
             </div>
             
@@ -1680,87 +1681,24 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
                 
                 <button 
                   type="button"
-                  className={cn(
-                    "border-2 border-dashed rounded-xl py-3 transition-colors flex flex-col items-center justify-center gap-1",
-                    photo && detectedPart ? "border-amber-500 text-amber-600 bg-amber-50" : "border-amber-300 text-amber-600 bg-amber-50 hover:border-amber-400 hover:bg-amber-100"
-                  )}
-                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-slate-300 rounded-xl py-3 transition-colors flex flex-col items-center justify-center gap-1 bg-slate-100/70 text-slate-500 hover:bg-slate-100"
+                  onClick={() => {
+                    toast({
+                      title: "تنبيه من الإدارة",
+                      description: "تم القفل من قبل الإدارة",
+                      variant: "default"
+                    });
+                  }}
                   data-testid="button-ai-photo"
                 >
-                  <div className="flex items-center gap-1">
-                    <Camera className="w-5 h-5" />
-                    <PhosphorIcon name="sparkle" weight="duotone" size={16} className="text-[#C5852C]" />
+                  <div className="flex items-center gap-1.5 text-slate-500">
+                    <Lock className="w-4 h-4 text-amber-600" />
+                    <span className="text-xs font-bold text-slate-700">التعرف التلقائي</span>
                   </div>
-                  <span className="text-xs font-medium">التعرف التلقائي</span>
-                  <span className="text-[10px] text-amber-500">يكتشف العطل</span>
+                  <span className="text-[10px] text-amber-700 font-semibold bg-amber-100/80 px-2 py-0.5 rounded-full border border-amber-300">
+                    تم القفل من قبل الإدارة 🔒
+                  </span>
                 </button>
-              </div>
-
-              {/* Voice Recording Assistant */}
-              <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5 font-arabic">الفحص والتسجيل الصوتي</label>
-                
-                {/* Hidden input for audio file upload fallback */}
-                <input
-                  type="file"
-                  ref={audioFileInputRef}
-                  onChange={handleAudioFileUpload}
-                  accept="audio/*"
-                  className="hidden"
-                />
-
-                <div className="flex flex-wrap items-center gap-2">
-                  {isRecording ? (
-                    <button
-                      type="button"
-                      onClick={stopRecording}
-                      className="bg-red-500 hover:bg-red-600 text-white rounded-lg p-2.5 flex items-center gap-1.5 transition-all text-xs font-arabic animate-pulse"
-                    >
-                      <MicOff className="w-4 h-4" />
-                      إيقاف التسجيل
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={startRecording}
-                      disabled={isAnalyzingVoice}
-                      className="bg-[#0C1A28] hover:bg-[#0f2035] text-white rounded-lg p-2.5 flex items-center gap-1.5 transition-all text-xs font-arabic disabled:opacity-50"
-                    >
-                      <Mic className="w-4 h-4" />
-                      ابدأ التسجيل الصوتي
-                    </button>
-                  )}
-
-                  {!isRecording && (
-                    <button
-                      type="button"
-                      onClick={() => audioFileInputRef.current?.click()}
-                      disabled={isAnalyzingVoice}
-                      className="bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg p-2.5 flex items-center gap-1.5 transition-all text-xs font-arabic disabled:opacity-50"
-                    >
-                      <Upload className="w-4 h-4" />
-                      رفع ملف صوتي
-                    </button>
-                  )}
-
-                  {isAnalyzingVoice && (
-                    <div className="flex items-center gap-1.5 text-xs text-amber-600 font-arabic">
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      يحلل الصوت الآن...
-                    </div>
-                  )}
-                  {!isRecording && !isAnalyzingVoice && voiceTranscript && (
-                    <div className="flex items-center gap-1.5 text-xs text-green-600 font-arabic">
-                      <Volume2 className="w-3.5 h-3.5" />
-                      تم التعرف على النص
-                    </div>
-                  )}
-                </div>
-                {voiceTranscript && (
-                  <p className="mt-2 text-[10px] text-slate-500 font-arabic leading-relaxed italic bg-white p-2 rounded-lg border border-slate-100">
-                    "{voiceTranscript}"
-                  </p>
-                )}
               </div>
 
               {photo && (

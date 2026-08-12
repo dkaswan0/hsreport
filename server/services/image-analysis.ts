@@ -987,4 +987,44 @@ Return the result in Arabic as a JSON object matching the following structure:
 
     return this.callAI(prompt, undefined, schema);
   }
+
+  static async enhanceFindingText(params: {
+    faultName?: string;
+    description?: string;
+    category?: string;
+  }): Promise<{ enhancedFaultName: string; enhancedDescription: string }> {
+    const { faultName = '', description = '', category = '' } = params;
+
+    const prompt = `أنت خبير فني أول معتمد لفحص وتقييم المركبات في مركز الأمان العالي الدولي للفحص الفني.
+المهمة: تحسين وتدقيق صياغة اسم العطل وتفاصيل الملاحظة الفنية المكتوبة بالعامية أو باختصار لتصبح صياغة احترافية ودقيقة ومعتمدة باللغة العربية الفصحى المستخدمة في تقارير فحص وتقييم المركبات.
+
+المدخلات:
+- القسم: ${category || 'عام'}
+- اسم العطل الحالي: ${faultName || 'غير محدد'}
+- التفاصيل الحالية: ${description || 'غير محدد'}
+
+التعليمات والقواعد:
+1. إذا كان اسم العطل أو الوصف به كلمات عامية أو صياغة مختصرة أو أخطاء، أعد صياغتها بمصطلحات فنية معتمدة ودقيقة (مثل: وجود آثار رش دهان غير أصلي، صدمة سطحية في بطانة الرفرف، تهريب زيت طفيف من كارتير المحرك، تآكل في جلب المقصات الأمامية، إلخ).
+2. اجعل اسم العطل واضحاً ومختصراً ومهنياً.
+3. اجعل التفاصيل توضح الملاحظة وموضعها وطبيعتها بدقة دون مبالغة أو ذكر استبدال قطع.
+4. أرجع النتيجة فقط بصيغة JSON:
+{
+  "enhancedFaultName": "اسم العطل المصاغ باحترافية",
+  "enhancedDescription": "الوصف والتشخيص الفني المفصل بأسلوب تقارير الفحص"
+}`;
+
+    try {
+      const res = await this.callAI(prompt);
+      return {
+        enhancedFaultName: res.enhancedFaultName || faultName,
+        enhancedDescription: res.enhancedDescription || description
+      };
+    } catch (err) {
+      console.warn("AI enhancement fallback:", err);
+      return {
+        enhancedFaultName: faultName,
+        enhancedDescription: description
+      };
+    }
+  }
 }
