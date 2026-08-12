@@ -122,7 +122,7 @@ const CompanyHeader = ({ inspection }: { inspection?: any }) => (
         </div>
         <div className="text-right">
           <h1 className="text-sm sm:text-base md:text-lg font-black font-arabic text-white tracking-wide">
-            مركز هاي سيفتي الدولي لفحص السيارات
+            مركز الأمان العالي الدولي لفحص السيارات
           </h1>
           <p className="text-[11px] sm:text-xs md:text-sm font-mono text-zinc-400 font-semibold tracking-wider uppercase mt-1" dir="ltr">
             HIGH SAFETY INTERNATIONAL VEHICLE INSPECTION CENTER

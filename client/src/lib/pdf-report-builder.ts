@@ -409,7 +409,7 @@ export async function generateInspectionPdf(inspection: Inspection, logoUrl?: st
   pdf.setFont('Amiri', 'bold');
   pdf.setFontSize(14);
   pdf.setTextColor(255, 255, 255);
-  pdf.text(reshapeArabic('هاي سيفتي انترناشيونال'), pageWidth - margin - 22, 13, { align: 'right' });
+  pdf.text(reshapeArabic('الأمان العالي انترناشيونال'), pageWidth - margin - 22, 13, { align: 'right' });
   
   pdf.setFont('Amiri', 'normal');
   pdf.setFontSize(9);

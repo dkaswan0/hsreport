@@ -134,7 +134,7 @@ export const PdfHeaderBanner = ({
         </div>
         <div>
           <h1 style={{ margin: 0, fontSize: '13px', fontWeight: '900', color: '#ffffff' }}>
-            مركز هاي سيفتي الدولي لفحص السيارات
+            مركز الأمان العالي الدولي لفحص السيارات
           </h1>
           <p style={{ margin: '1px 0 0 0', fontSize: '7.5px', color: '#a1a1aa', fontFamily: 'monospace', letterSpacing: '0.5px' }} dir="ltr">
             HIGH SAFETY INTERNATIONAL VEHICLE INSPECTION

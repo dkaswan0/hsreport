@@ -636,7 +636,7 @@ const CompanyHeader = ({
         </div>
         <div>
           <h1 className="text-xl md:text-2xl font-black text-white font-arabic tracking-tight">
-            مركز هاي سيفتي الدولي لفحص السيارات
+            مركز الأمان العالي الدولي لفحص السيارات
           </h1>
           <p className="text-xs md:text-sm text-zinc-400 font-mono tracking-widest uppercase mt-1" dir="ltr">
             HIGH SAFETY INTERNATIONAL VEHICLE INSPECTION
@@ -2171,7 +2171,7 @@ export default function InteractiveReport() {
         try {
           await navigator.share({
             title: `تقرير فحص - ${inspection?.make} ${inspection?.model}`,
-            text: `تقرير فحص سيارة من High Safety`,
+            text: `تقرير فحص سيارة من الأمان العالي`,
             url: shareUrl,
           });
           shared = true;

@@ -116,7 +116,7 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
       {/* 1. Header Card - Luxury Monochrome with Logo */}
       <div className="bg-zinc-950 rounded-2xl overflow-hidden shadow-lg border border-zinc-800 p-3 sm:p-3.5 text-white">
         <div className="flex items-center gap-3.5">
-          <div className="w-13 h-13 sm:w-15 sm:h-15 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center p-1 shrink-0 shadow-inner">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center p-1 shrink-0 shadow-inner">
             <img
               src={logoPath}
               alt="High Safety Logo"
@@ -125,7 +125,7 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
           </div>
           <div className="flex-1 min-w-0 text-right">
             <h1 className="text-sm font-black text-white font-arabic leading-tight">
-              مركز هاي سيفتي الدولي لفحص السيارات
+              مركز الأمان العالي الدولي لفحص السيارات
             </h1>
             <p className="text-[10px] text-zinc-400 font-mono tracking-wider uppercase mt-0.5" dir="ltr">
               HIGH SAFETY INTERNATIONAL
