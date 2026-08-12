@@ -111,12 +111,12 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
   const obdCodes = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string; diagnosis?: string; causes?: string; solutions?: string}> | null) || [];
 
   return (
-    <div className="w-full space-y-3.5 font-arabic antialiased text-zinc-900 pb-8" dir="rtl">
+    <div className="w-full space-y-2.5 font-arabic antialiased text-zinc-900 pb-6" dir="rtl">
       
       {/* 1. Header Card - Luxury Monochrome with Logo */}
-      <div className="bg-zinc-950 rounded-2xl overflow-hidden shadow-lg border border-zinc-800 p-4 text-white">
+      <div className="bg-zinc-950 rounded-2xl overflow-hidden shadow-lg border border-zinc-800 p-3 sm:p-3.5 text-white">
         <div className="flex items-center gap-3.5">
-          <div className="w-16 h-16 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center p-1 shrink-0 shadow-inner">
+          <div className="w-13 h-13 sm:w-15 sm:h-15 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center p-1 shrink-0 shadow-inner">
             <img
               src={logoPath}
               alt="High Safety Logo"
@@ -185,12 +185,12 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
       </div>
 
       {/* Main Car Photo (Large Hero Card with Crisp Aspect Ratio) */}
-      <div className="bg-white rounded-2xl border border-zinc-200 p-2 sm:p-3 shadow-xs overflow-hidden flex items-center justify-center min-h-[190px] sm:min-h-[220px] bg-zinc-100/70">
+      <div className="bg-white rounded-2xl border border-zinc-200 p-2 sm:p-3 shadow-xs overflow-hidden flex items-center justify-center min-h-[160px] sm:min-h-[190px] bg-zinc-100/70">
         {inspection.mainCarPhoto ? (
           <img
             src={inspection.mainCarPhoto}
             alt={`${inspection.make} ${inspection.model}`}
-            className="w-full max-h-[210px] sm:max-h-[250px] object-contain rounded-xl drop-shadow-md cursor-pointer hover:scale-[1.02] transition-transform"
+            className="w-full max-h-[180px] sm:max-h-[210px] object-contain rounded-xl drop-shadow-md cursor-pointer hover:scale-[1.02] transition-transform"
             onClick={() => onImageClick?.(inspection.mainCarPhoto, `${inspection.make} ${inspection.model}`)}
           />
         ) : (
@@ -205,7 +205,7 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
       {/* Vehicle Data Key-Value Specs Card */}
       <div className="bg-white rounded-2xl border border-zinc-200 shadow-xs overflow-hidden divide-y divide-zinc-200 text-right">
         {/* الشركة المصنعة */}
-        <div className="p-2.5 sm:p-3 flex items-center justify-between gap-2">
+        <div className="p-2 sm:p-2.5 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-right">
             <div className="w-7 h-7 rounded-lg bg-zinc-100 flex items-center justify-center shrink-0">
               <PhosphorIcon name="buildings" weight="bold" size={16} className="text-zinc-600" />
@@ -221,7 +221,7 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
         </div>
 
         {/* الموديل */}
-        <div className="p-2.5 sm:p-3 flex items-center justify-between gap-2">
+        <div className="p-2 sm:p-2.5 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-right">
             <div className="w-7 h-7 rounded-lg bg-zinc-100 flex items-center justify-center shrink-0">
               <PhosphorIcon name="car" weight="bold" size={16} className="text-zinc-600" />
@@ -237,7 +237,7 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
         </div>
 
         {/* سنة الصنع */}
-        <div className="p-2.5 sm:p-3 flex items-center justify-between gap-2">
+        <div className="p-2 sm:p-2.5 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-right">
             <div className="w-7 h-7 rounded-lg bg-zinc-100 flex items-center justify-center shrink-0">
               <PhosphorIcon name="calendar-blank" weight="bold" size={16} className="text-zinc-600" />
@@ -253,7 +253,7 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
         </div>
 
         {/* اللون */}
-        <div className="p-2.5 sm:p-3 flex items-center justify-between gap-2">
+        <div className="p-2 sm:p-2.5 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-right">
             <div className="w-7 h-7 rounded-lg bg-zinc-100 flex items-center justify-center shrink-0">
               <PhosphorIcon name="paint-brush" weight="bold" size={16} className="text-zinc-600" />
@@ -275,7 +275,7 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
         </div>
 
         {/* رقم الهيكل (VIN) */}
-        <div className="p-2.5 sm:p-3 flex items-center justify-between gap-2">
+        <div className="p-2 sm:p-2.5 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-right">
             <div className="w-7 h-7 rounded-lg bg-zinc-100 flex items-center justify-center shrink-0">
               <PhosphorIcon name="barcode" weight="bold" size={16} className="text-zinc-600" />
@@ -291,7 +291,7 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
         </div>
 
         {/* قراءة العداد */}
-        <div className="p-2.5 sm:p-3 flex items-center justify-between gap-2">
+        <div className="p-2 sm:p-2.5 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-right">
             <div className="w-7 h-7 rounded-lg bg-zinc-100 flex items-center justify-center shrink-0">
               <PhosphorIcon name="gauge" weight="bold" size={16} className="text-zinc-600" />
@@ -307,7 +307,7 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
         </div>
 
         {/* نوع الفحص */}
-        <div className="p-2.5 sm:p-3 flex items-center justify-between gap-2">
+        <div className="p-2 sm:p-2.5 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-right">
             <div className="w-7 h-7 rounded-lg bg-zinc-100 flex items-center justify-center shrink-0">
               <PhosphorIcon name="shield-check" weight="bold" size={16} className="text-zinc-600" />
@@ -759,7 +759,7 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
       </div>
 
       {/* 10. Footer Banner */}
-      <div className="bg-zinc-950 rounded-2xl p-4 text-white space-y-3 border-t-2 border-zinc-700 shadow-lg text-center">
+      <div className="bg-zinc-950 rounded-2xl p-3 sm:p-3.5 text-white space-y-3 border-t-2 border-zinc-700 shadow-lg text-center">
         <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-zinc-300">
           <div className="flex items-center justify-center gap-1.5 bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5">
             <PhosphorIcon name="phone" weight="bold" size={14} className="text-zinc-400" />

@@ -110,10 +110,10 @@ const ImageModal = ({ imageUrl, faultName, onClose }: { imageUrl: string; faultN
 // Company Header Component - Luxury Monochrome Brand Header with Logo
 const CompanyHeader = ({ inspection }: { inspection?: any }) => (
   <div className="bg-zinc-950 text-white rounded-3xl overflow-hidden shadow-xl border border-zinc-800">
-    <div className="p-5 sm:p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-5 md:gap-6">
+    <div className="p-3.5 sm:p-4 md:p-5 flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4">
       {/* Right: High-Res Logo & Center Titles */}
       <div className="flex items-center gap-4 text-center md:text-right">
-        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800 flex items-center justify-center p-1.5 shrink-0 shadow-lg">
+        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800 flex items-center justify-center p-1.5 shrink-0 shadow-lg">
           <img 
             src={logoPath} 
             alt="High Safety Logo" 
@@ -121,7 +121,7 @@ const CompanyHeader = ({ inspection }: { inspection?: any }) => (
           />
         </div>
         <div className="text-right">
-          <h1 className="text-lg sm:text-xl md:text-2xl font-black font-arabic text-white tracking-wide">
+          <h1 className="text-sm sm:text-base md:text-lg font-black font-arabic text-white tracking-wide">
             مركز هاي سيفتي الدولي لفحص السيارات
           </h1>
           <p className="text-[11px] sm:text-xs md:text-sm font-mono text-zinc-400 font-semibold tracking-wider uppercase mt-1" dir="ltr">
@@ -132,11 +132,11 @@ const CompanyHeader = ({ inspection }: { inspection?: any }) => (
 
       {/* Left: Report Meta Info */}
       <div className="flex flex-wrap items-center justify-center md:justify-end gap-2.5 sm:gap-3 text-xs">
-        <div className="bg-zinc-900 border border-zinc-800 px-3.5 py-2 rounded-xl text-center shadow-xs min-w-[110px]">
+        <div className="bg-zinc-900 border border-zinc-800 px-3.5 py-1.5 rounded-lg text-center shadow-xs min-w-[95px]">
           <div className="text-[10px] text-zinc-400 font-arabic">رقم التقرير | Report No</div>
           <div className="font-mono font-black text-sm text-white">{inspection?.vin ? `HS-${inspection?.id}` : (inspection?.id ? `HS-${inspection.id}` : '-')}</div>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 px-3.5 py-2 rounded-xl text-center shadow-xs min-w-[110px]">
+        <div className="bg-zinc-900 border border-zinc-800 px-3.5 py-1.5 rounded-lg text-center shadow-xs min-w-[95px]">
           <div className="text-[10px] text-zinc-400 font-arabic">تاريخ الفحص | Date</div>
           <div className="font-mono font-bold text-xs text-zinc-200">
             {inspection?.createdAt ? new Date(inspection.createdAt).toLocaleDateString('ar-AE') : new Date().toLocaleDateString('ar-AE')}
@@ -169,11 +169,11 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
   const vehicleColor = useMemo(() => getVehicleColor(inspection.color), [inspection.color]);
 
   return (
-    <div className="bg-white rounded-3xl shadow-sm border border-zinc-200 overflow-hidden" data-testid="vehicle-info-card">
+    <div className="bg-white rounded-2xl shadow-xs border border-zinc-200 overflow-hidden" data-testid="vehicle-info-card">
       {/* Section Header */}
-      <div className="bg-zinc-950 text-white px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800">
+      <div className="bg-zinc-950 text-white px-3.5 py-2.5 sm:px-4 sm:py-2.5 flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800">
         <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 shadow-md">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 shadow-inner">
             <PhosphorIcon name="car-profile" weight="bold" size={18} className="text-white sm:text-[22px]" />
           </div>
           <div className="flex flex-wrap items-baseline gap-1.5 sm:gap-2">
@@ -184,10 +184,10 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
         </div>
       </div>
 
-      <div className="p-3 sm:p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+      <div className="p-3 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4">
         {/* Left Side (5 Cols): 2-Column Key-Value Specs Table */}
         <div className="lg:col-span-5 flex flex-col justify-between divide-y divide-zinc-200 border border-zinc-200 rounded-2xl p-2 bg-zinc-50/50">
-          <div className="py-2 sm:py-2.5 px-2.5 sm:px-3 flex items-center justify-between text-right gap-2">
+          <div className="py-1.5 px-2 flex items-center justify-between text-right gap-2">
             <span className="font-bold text-zinc-950 text-xs sm:text-sm font-arabic truncate max-w-[50%]">{inspection.make || '-'}</span>
             <div className="flex items-center gap-1.5 sm:gap-2 text-zinc-500 shrink-0">
               <span className="text-[10px] sm:text-xs text-zinc-400 font-mono hidden sm:inline">Manufacturer</span>
@@ -196,7 +196,7 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
             </div>
           </div>
 
-          <div className="py-2 sm:py-2.5 px-2.5 sm:px-3 flex items-center justify-between text-right gap-2">
+          <div className="py-1.5 px-2 flex items-center justify-between text-right gap-2">
             <span className="font-bold text-zinc-950 text-xs sm:text-sm font-arabic truncate max-w-[50%]">{inspection.model || '-'}</span>
             <div className="flex items-center gap-1.5 sm:gap-2 text-zinc-500 shrink-0">
               <span className="text-[10px] sm:text-xs text-zinc-400 font-mono hidden sm:inline">Model</span>
@@ -205,7 +205,7 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
             </div>
           </div>
 
-          <div className="py-2 sm:py-2.5 px-2.5 sm:px-3 flex items-center justify-between text-right gap-2">
+          <div className="py-1.5 px-2 flex items-center justify-between text-right gap-2">
             <span className="font-bold text-zinc-950 text-xs sm:text-sm font-mono truncate max-w-[50%]">{inspection.year || '-'}</span>
             <div className="flex items-center gap-1.5 sm:gap-2 text-zinc-500 shrink-0">
               <span className="text-[10px] sm:text-xs text-zinc-400 font-mono hidden sm:inline">Year</span>
@@ -214,7 +214,7 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
             </div>
           </div>
 
-          <div className="py-2 sm:py-2.5 px-2.5 sm:px-3 flex items-center justify-between text-right gap-2">
+          <div className="py-1.5 px-2 flex items-center justify-between text-right gap-2">
             <div className="flex items-center gap-2 truncate max-w-[50%]">
               <span className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border border-zinc-300 shadow-sm shrink-0" style={{ backgroundColor: vehicleColor.hex }} />
               <span className="font-bold text-zinc-950 text-xs sm:text-sm font-arabic truncate">{vehicleColor.ar}</span>
@@ -226,7 +226,7 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
             </div>
           </div>
 
-          <div className="py-2 sm:py-2.5 px-2.5 sm:px-3 flex items-center justify-between text-right gap-2">
+          <div className="py-1.5 px-2 flex items-center justify-between text-right gap-2">
             <span className="font-mono font-bold text-zinc-950 text-xs tracking-wider truncate max-w-[50%]" dir="ltr">{inspection.vin || '-'}</span>
             <div className="flex items-center gap-1.5 sm:gap-2 text-zinc-500 shrink-0">
               <span className="text-[10px] sm:text-xs text-zinc-400 font-mono hidden sm:inline">VIN</span>
@@ -235,7 +235,7 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
             </div>
           </div>
 
-          <div className="py-2 sm:py-2.5 px-2.5 sm:px-3 flex items-center justify-between text-right gap-2">
+          <div className="py-1.5 px-2 flex items-center justify-between text-right gap-2">
             <span className="font-mono font-bold text-zinc-950 text-xs sm:text-sm truncate max-w-[50%]">{inspection.odometer?.toLocaleString() || '0'} كم</span>
             <div className="flex items-center gap-1.5 sm:gap-2 text-zinc-500 shrink-0">
               <span className="text-[10px] sm:text-xs text-zinc-400 font-mono hidden sm:inline">Odometer</span>
@@ -244,7 +244,7 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
             </div>
           </div>
 
-          <div className="py-2 sm:py-2.5 px-2.5 sm:px-3 flex items-center justify-between text-right gap-2">
+          <div className="py-1.5 px-2 flex items-center justify-between text-right gap-2">
             <span className="font-bold text-zinc-900 bg-zinc-200/80 px-2 py-0.5 rounded text-xs sm:text-sm font-arabic truncate max-w-[50%]">فحص شامل / Full</span>
             <div className="flex items-center gap-1.5 sm:gap-2 text-zinc-500 shrink-0">
               <span className="text-[10px] sm:text-xs text-zinc-400 font-mono hidden sm:inline">Type</span>
@@ -257,7 +257,7 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
         {/* Right Side (7 Cols): Car 3D Photo + VIN Card & Odometer Card */}
         <div className="lg:col-span-7 flex flex-col justify-between gap-3 sm:gap-4">
           {/* Main Car Photo */}
-          <div className="w-full h-52 sm:h-64 md:h-80 lg:h-[400px] rounded-2xl overflow-hidden bg-zinc-100/80 border border-zinc-200 flex items-center justify-center p-3 sm:p-4 relative group shadow-xs">
+          <div className="w-full h-40 sm:h-48 md:h-52 lg:h-56 rounded-2xl overflow-hidden bg-zinc-100/80 border border-zinc-200 flex items-center justify-center p-3 sm:p-4 relative group shadow-xs">
             {inspection.mainCarPhoto ? (
               <img 
                 src={inspection.mainCarPhoto} 
@@ -277,7 +277,7 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="rounded-xl border border-zinc-200 bg-zinc-50/60 p-2.5 sm:p-3 text-center flex flex-col justify-between">
               <div className="text-xs font-bold text-zinc-800 font-arabic mb-1">رقم الهيكل (VIN)</div>
-              <div className="h-24 sm:h-32 md:h-36 rounded-xl overflow-hidden bg-white border border-zinc-200 flex items-center justify-center p-2 shadow-inner">
+              <div className="h-16 sm:h-20 rounded-lg overflow-hidden bg-white border border-zinc-200 flex items-center justify-center p-2 shadow-inner">
                 {inspection.vinPhoto ? (
                   <img src={inspection.vinPhoto} alt="VIN Plate" className="max-h-full max-w-full object-contain rounded-lg" />
                 ) : (
@@ -288,7 +288,7 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
 
             <div className="rounded-xl border border-zinc-200 bg-zinc-50/60 p-2.5 sm:p-3 text-center flex flex-col justify-between">
               <div className="text-xs font-bold text-zinc-800 font-arabic mb-1">قراءة العداد (Odometer)</div>
-              <div className="h-24 sm:h-32 md:h-36 rounded-xl overflow-hidden bg-white border border-zinc-200 flex flex-col items-center justify-center p-2 shadow-inner">
+              <div className="h-16 sm:h-20 rounded-lg overflow-hidden bg-white border border-zinc-200 flex flex-col items-center justify-center p-2 shadow-inner">
                 {inspection.odometerPhoto ? (
                   <img src={inspection.odometerPhoto} alt="Odometer Photo" className="max-h-full max-w-full object-contain rounded-lg" />
                 ) : (
@@ -335,10 +335,10 @@ const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
   return (
     <>
       {/* Section 2: Car Section Photos Gallery */}
-      <div className="bg-white rounded-3xl shadow-sm border border-zinc-200 overflow-hidden" data-testid="car-section-photos-gallery">
-        <div className="bg-zinc-950 text-white px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800">
+      <div className="bg-white rounded-2xl shadow-xs border border-zinc-200 overflow-hidden" data-testid="car-section-photos-gallery">
+        <div className="bg-zinc-950 text-white px-3.5 py-2.5 sm:px-4 sm:py-2.5 flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800">
           <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 shadow-md">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 shadow-inner">
               <PhosphorIcon name="camera" weight="bold" size={18} className="text-white sm:text-[22px]" />
             </div>
             <div className="flex flex-wrap items-baseline gap-1.5 sm:gap-2">
@@ -350,7 +350,7 @@ const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
         </div>
 
         {/* Intelligent Visual Grid Layout based on actual photo count */}
-        <div className="p-3 sm:p-4 md:p-6">
+        <div className="p-2.5 sm:p-3.5">
           <div className={
             count === 1 
               ? "max-w-xl mx-auto" 
@@ -384,7 +384,7 @@ const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
                   disabled={!sec.photo}
                   className={`group flex flex-col rounded-2xl border border-zinc-200 overflow-hidden bg-white hover:border-zinc-400 hover:shadow-md transition-all text-center cursor-pointer disabled:cursor-default ${spanClass}`}
                 >
-                  <div className="w-full aspect-[16/11] bg-zinc-100/70 flex items-center justify-center p-2 relative overflow-hidden">
+                  <div className="w-full aspect-[4/3] bg-zinc-100/70 flex items-center justify-center p-2 relative overflow-hidden">
                     {sec.photo ? (
                       <img 
                         src={sec.photo} 
@@ -400,7 +400,7 @@ const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
                       </div>
                     )}
                   </div>
-                  <div className="p-2.5 sm:p-3 border-t border-zinc-100 bg-white flex items-center justify-between gap-2">
+                  <div className="p-1.5 sm:p-2 border-t border-zinc-100 bg-white flex items-center justify-between gap-1.5">
                     <div className="text-xs md:text-sm font-bold text-zinc-950 font-arabic truncate">{sec.labelAr}</div>
                     <div className="text-[11px] text-zinc-400 font-mono truncate" dir="ltr">{sec.labelEn}</div>
                   </div>
@@ -506,11 +506,11 @@ const InspectionResults = ({
   const categoryGroups = useMemo(() => groupInspectionItemsByCategory(items), [items]);
 
   return (
-    <div className="bg-white rounded-3xl shadow-sm border border-zinc-200 overflow-hidden" data-testid="inspection-results-section">
+    <div className="bg-white rounded-2xl shadow-xs border border-zinc-200 overflow-hidden" data-testid="inspection-results-section">
       {/* Section 3 Header */}
-      <div className="bg-zinc-950 text-white px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800">
+      <div className="bg-zinc-950 text-white px-3.5 py-2.5 sm:px-4 sm:py-2.5 flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800">
         <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 shadow-md">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 shadow-inner">
             <PhosphorIcon name="clipboard-text" weight="bold" size={18} className="text-white sm:text-[22px]" />
           </div>
           <div className="flex flex-wrap items-baseline gap-1.5 sm:gap-2">
@@ -524,7 +524,7 @@ const InspectionResults = ({
         </div>
       </div>
 
-      <div className="p-3 sm:p-4 md:p-6 space-y-6">
+      <div className="p-2.5 sm:p-3.5 space-y-3">
         {items.length === 0 ? (
           <div className="p-8 sm:p-12 text-center bg-zinc-50 rounded-2xl border border-zinc-200">
             <PhosphorIcon name="check-circle" weight="bold" size={48} className="text-zinc-700 mx-auto mb-3" />
@@ -538,9 +538,9 @@ const InspectionResults = ({
               className="rounded-2xl border border-zinc-200 overflow-hidden shadow-xs bg-white"
             >
               {/* Sleek Metallic Category Header Banner */}
-              <div className="bg-gradient-to-l from-zinc-800 via-zinc-700 to-zinc-600 text-white px-4 py-2.5 sm:px-5 sm:py-3 flex items-center justify-between shadow-xs border-b border-zinc-700">
+              <div className="bg-gradient-to-l from-zinc-800 via-zinc-700 to-zinc-600 text-white px-3.5 py-2 flex items-center justify-between shadow-xs border-b border-zinc-700">
                 <div className="flex items-center gap-2.5 sm:gap-3">
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-zinc-900 border border-zinc-600 flex items-center justify-center shadow-inner shrink-0">
+                  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-zinc-900 border border-zinc-600 flex items-center justify-center shadow-inner shrink-0">
                     <PhosphorIcon name={group.iconName as any} weight="bold" size={18} className="text-white" />
                   </div>
                   <div>
@@ -561,11 +561,11 @@ const InspectionResults = ({
                   return (
                     <div
                       key={item.id || idx}
-                      className="p-3 sm:p-4.5 bg-white hover:bg-zinc-50/60 transition-colors"
+                      className="p-2.5 sm:p-3 bg-white hover:bg-zinc-50/60 transition-colors"
                     >
                       <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 sm:gap-4 text-right">
                         {/* Left: Defect Photo */}
-                        <div className="w-full md:w-56 lg:w-64 h-48 md:h-36 rounded-xl overflow-hidden bg-zinc-100 border border-zinc-200 shrink-0 relative group">
+                        <div className="w-full sm:w-40 md:w-48 h-32 sm:h-24 md:h-28 rounded-lg overflow-hidden bg-zinc-100 border border-zinc-200 shrink-0 relative group">
                           {item.imageUrl ? (
                             <button
                               type="button"
@@ -826,7 +826,7 @@ export default function PublicReport() {
       </div>
 
       {/* Tablet & Desktop Layout (768px+) */}
-      <div id="report-content" className="hidden md:block max-w-7xl mx-auto py-3 sm:py-6 px-3 sm:px-4 md:px-6 space-y-4 sm:space-y-6 print:py-0">
+      <div id="report-content" className="hidden md:block max-w-5xl mx-auto py-3 sm:py-4 px-3 sm:px-4 space-y-3 sm:space-y-3.5 print:py-0">
         {/* Company Header with Logo */}
         <CompanyHeader inspection={inspection} />
 
@@ -849,10 +849,10 @@ export default function PublicReport() {
           if (obdCodes.length === 0) return null;
 
           return (
-            <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-zinc-200" data-testid="obd-diagnostic-section">
-              <div className="bg-zinc-950 text-white px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800">
+            <div className="bg-white rounded-2xl overflow-hidden shadow-xs border border-zinc-200" data-testid="obd-diagnostic-section">
+              <div className="bg-zinc-950 text-white px-3.5 py-2.5 sm:px-4 sm:py-2.5 flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800">
                 <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 shadow-md">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 shadow-inner">
                     <PhosphorIcon name="cpu" weight="bold" size={18} className="text-white" />
                   </div>
                   <div className="flex flex-wrap items-baseline gap-1.5 sm:gap-2">
@@ -866,12 +866,12 @@ export default function PublicReport() {
                 </div>
               </div>
 
-              <div className="p-3 sm:p-6 space-y-3 sm:space-y-4">
+              <div className="p-2.5 sm:p-3.5 space-y-2.5">
                 {obdCodes.map((obd, idx) => (
-                  <div key={idx} className="p-3.5 sm:p-4 bg-zinc-50 rounded-2xl border border-zinc-200 text-right space-y-2">
+                  <div key={idx} className="p-2.5 sm:p-3 bg-zinc-50 rounded-xl border border-zinc-200 text-right space-y-1.5">
                     <div className="flex items-start sm:items-center gap-3 flex-1 min-w-0">
                       <div className="shrink-0 text-center">
-                        <div className="font-mono font-black text-white text-base sm:text-lg px-3 py-1 sm:px-4 sm:py-1.5 rounded-xl bg-zinc-950 shadow-sm min-w-[80px] sm:min-w-[90px] text-center">{obd.code}</div>
+                        <div className="font-mono font-black text-white text-base sm:text-lg px-2.5 py-1 rounded-lg bg-zinc-950 shadow-xs min-w-[75px] text-center">{obd.code}</div>
                       </div>
                       <div className="flex-1 min-w-0 pr-1 sm:pr-2">
                         <div className="text-sm sm:text-base font-black text-zinc-950 font-arabic leading-snug break-words whitespace-normal">{obd.nameAr}</div>
@@ -906,10 +906,10 @@ export default function PublicReport() {
 
         {/* Section 6: Autel Computer Report Section */}
         {inspection.autelReportPdf && (
-          <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-zinc-200" data-testid="autel-report-section">
-            <div className="bg-zinc-950 text-white px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800">
+          <div className="bg-white rounded-2xl overflow-hidden shadow-xs border border-zinc-200" data-testid="autel-report-section">
+            <div className="bg-zinc-950 text-white px-3.5 py-2.5 sm:px-4 sm:py-2.5 flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800">
               <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 shadow-md">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 shadow-inner">
                   <PhosphorIcon name="cpu" weight="bold" size={18} className="text-white sm:text-[22px]" />
                 </div>
                 <div className="flex flex-wrap items-baseline gap-1.5 sm:gap-2">
@@ -919,9 +919,9 @@ export default function PublicReport() {
                 </div>
               </div>
             </div>
-            <div className="p-4 sm:p-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 sm:gap-6 bg-zinc-50">
+            <div className="p-3 sm:p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-zinc-50/60">
               <div className="flex items-center gap-3 sm:gap-4 text-right">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-white border border-zinc-200 flex items-center justify-center shadow-sm shrink-0">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white border border-zinc-200 flex items-center justify-center shadow-sm shrink-0">
                   <PhosphorIcon name="file-pdf" weight="bold" size={30} className="text-zinc-800 sm:text-[36px]" />
                 </div>
                 <div>
@@ -933,7 +933,7 @@ export default function PublicReport() {
                 href={`/api/autel/report/public/${token}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-3 bg-zinc-950 hover:bg-black text-white rounded-xl font-bold font-arabic transition-all shadow-md hover:shadow-lg min-h-[44px]"
+                className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-zinc-950 hover:bg-black text-white rounded-xl font-bold font-arabic text-xs transition-all shadow-xs"
                 data-testid="btn-open-autel-pdf"
               >
                 <PhosphorIcon name="arrow-square-out" weight="bold" size={20} className="text-white" />
@@ -944,10 +944,10 @@ export default function PublicReport() {
         )}
 
         {/* Section 7: Terms and Conditions */}
-        <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-zinc-200" data-testid="terms-section">
-          <div className="bg-zinc-950 text-white px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800">
+        <div className="bg-white rounded-2xl overflow-hidden shadow-xs border border-zinc-200" data-testid="terms-section">
+          <div className="bg-zinc-950 text-white px-3.5 py-2.5 sm:px-4 sm:py-2.5 flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800">
             <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 shadow-md">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 shadow-inner">
                 <PhosphorIcon name="scales" weight="bold" size={18} className="text-white sm:text-[22px]" />
               </div>
               <div className="flex flex-wrap items-baseline gap-1.5 sm:gap-2">
@@ -958,53 +958,53 @@ export default function PublicReport() {
             </div>
           </div>
 
-          <div className="p-3 sm:p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-            <div className="bg-zinc-50 rounded-2xl p-3 sm:p-4 border border-zinc-200 flex items-start gap-3 text-right">
+          <div className="p-2.5 sm:p-3.5 grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+            <div className="bg-zinc-50 rounded-xl p-2.5 border border-zinc-200 flex items-start gap-2.5 text-right">
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-zinc-950 font-arabic text-xs sm:text-sm">1. المركز غير مسئول عن أي أعطال تحدث أثناء الفحص أو بعده.</p>
                 <p className="text-[11px] sm:text-xs text-zinc-500 font-mono mt-1" dir="ltr">The center is not responsible for any malfunctions occurring during or after inspection.</p>
               </div>
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white border border-zinc-200 flex items-center justify-center shrink-0 shadow-sm">
+              <div className="w-7 h-7 rounded-lg bg-white border border-zinc-200 flex items-center justify-center shrink-0 shadow-xs">
                 <PhosphorIcon name="shield-warning" weight="bold" size={18} className="text-zinc-700" />
               </div>
             </div>
 
-            <div className="bg-zinc-50 rounded-2xl p-3 sm:p-4 border border-zinc-200 flex items-start gap-3 text-right">
+            <div className="bg-zinc-50 rounded-xl p-2.5 border border-zinc-200 flex items-start gap-2.5 text-right">
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-zinc-950 font-arabic text-xs sm:text-sm">2. المركز مسئول عن نتيجة الفحص وقت الفحص فقط وغير مسئول بعد خروج المركبة من الفحص.</p>
                 <p className="text-[11px] sm:text-xs text-zinc-500 font-mono mt-1" dir="ltr">The center is only responsible for inspection results at the time of inspection.</p>
               </div>
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white border border-zinc-200 flex items-center justify-center shrink-0 shadow-sm">
+              <div className="w-7 h-7 rounded-lg bg-white border border-zinc-200 flex items-center justify-center shrink-0 shadow-xs">
                 <PhosphorIcon name="clock" weight="bold" size={18} className="text-zinc-700" />
               </div>
             </div>
 
-            <div className="bg-zinc-50 rounded-2xl p-3 sm:p-4 border border-zinc-200 flex items-start gap-3 text-right">
+            <div className="bg-zinc-50 rounded-xl p-2.5 border border-zinc-200 flex items-start gap-2.5 text-right">
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-zinc-950 font-arabic text-xs sm:text-sm">3. هذا الفحص غير معتمد لدى إدارة التراخيص.</p>
                 <p className="text-[11px] sm:text-xs text-zinc-500 font-mono mt-1" dir="ltr">This inspection is not approved by the Licensing Authority.</p>
               </div>
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white border border-zinc-200 flex items-center justify-center shrink-0 shadow-sm">
+              <div className="w-7 h-7 rounded-lg bg-white border border-zinc-200 flex items-center justify-center shrink-0 shadow-xs">
                 <PhosphorIcon name="file-text" weight="bold" size={18} className="text-zinc-700" />
               </div>
             </div>
 
-            <div className="bg-zinc-50 rounded-2xl p-3 sm:p-4 border border-zinc-200 flex items-start gap-3 text-right">
+            <div className="bg-zinc-50 rounded-xl p-2.5 border border-zinc-200 flex items-start gap-2.5 text-right">
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-zinc-950 font-arabic text-xs sm:text-sm">4. المركز غير مسئول عن أي أغراض شخصية داخل السيارة أثناء الفحص.</p>
                 <p className="text-[11px] sm:text-xs text-zinc-500 font-mono mt-1" dir="ltr">The center is not responsible for any personal belongings inside the vehicle.</p>
               </div>
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white border border-zinc-200 flex items-center justify-center shrink-0 shadow-sm">
+              <div className="w-7 h-7 rounded-lg bg-white border border-zinc-200 flex items-center justify-center shrink-0 shadow-xs">
                 <PhosphorIcon name="backpack" weight="bold" size={18} className="text-zinc-700" />
               </div>
             </div>
 
-            <div className="bg-zinc-50 rounded-2xl p-3 sm:p-4 border border-zinc-200 flex items-start gap-3 text-right md:col-span-2">
+            <div className="bg-zinc-50 rounded-xl p-2.5 border border-zinc-200 flex items-start gap-2.5 text-right md:col-span-2">
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-zinc-950 font-arabic text-xs sm:text-sm">5. يعتبر هذا التقرير لحالة المركبة حسب قراءة الأجهزة في وقت الفحص.</p>
                 <p className="text-[11px] sm:text-xs text-zinc-500 font-mono mt-1" dir="ltr">This report reflects the vehicle condition based on device readings at the time of inspection.</p>
               </div>
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white border border-zinc-200 flex items-center justify-center shrink-0 shadow-sm">
+              <div className="w-7 h-7 rounded-lg bg-white border border-zinc-200 flex items-center justify-center shrink-0 shadow-xs">
                 <PhosphorIcon name="check-circle" weight="bold" size={18} className="text-zinc-700" />
               </div>
             </div>
@@ -1012,7 +1012,7 @@ export default function PublicReport() {
         </div>
 
         {/* Footer Banner */}
-        <div className="bg-zinc-950 text-white rounded-3xl p-4 sm:p-6 border-t-2 border-zinc-700 shadow-2xl text-center space-y-3 sm:space-y-4">
+        <div className="bg-zinc-950 text-white rounded-2xl p-3.5 sm:p-4 border-t-2 border-zinc-700 shadow-md text-center space-y-2.5">
           <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs text-zinc-300 font-arabic">
             <div className="flex items-center gap-1.5 sm:gap-2 bg-zinc-900 rounded-lg px-3 py-1.5 border border-zinc-800">
               <PhosphorIcon name="phone" weight="bold" size={16} className="text-zinc-400" />

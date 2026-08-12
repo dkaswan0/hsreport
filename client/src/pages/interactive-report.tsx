@@ -2231,7 +2231,7 @@ export default function InteractiveReport() {
       </div>
 
       {/* Tablet & Desktop Layout (768px+) */}
-      <div id="report-content" className="hidden md:block max-w-6xl mx-auto py-4 px-4 space-y-6 print:py-0">
+      <div id="report-content" className="hidden md:block max-w-5xl mx-auto py-3 sm:py-4 px-3 sm:px-4 space-y-3 sm:space-y-3.5 print:py-0">
         {/* Company Header */}
         <CompanyHeader 
           onShare={handleShareReport}
