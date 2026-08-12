@@ -15,34 +15,34 @@ export function CarBlueprintPinpoint({
   const getCoordinates = (cat: string): { x: number; y: number } => {
     const c = (cat || '').toLowerCase();
     
-    if (c.includes('front_bumper') || c.includes('front_chest') || c.includes('bumper_frame_front') || c.includes('front')) {
-      return { x: 50, y: 12 };
+    if (c.includes('front_bumper') || c.includes('front_chest') || c.includes('bumper_frame_front') || c.includes('front') || c.includes('الواجهة الأمامية') || c.includes('الصدام الأمامي')) {
+      return { x: 50, y: 14 };
     }
-    if (c.includes('hood') || c.includes('engine') || c.includes('radiator') || c.includes('ac_cooling')) {
-      return { x: 50, y: 24 };
+    if (c.includes('hood') || c.includes('engine') || c.includes('radiator') || c.includes('ac_cooling') || c.includes('المحرك') || c.includes('الكبوت')) {
+      return { x: 50, y: 26 };
     }
-    if (c.includes('front_left') || c.includes('door_front_left') || c.includes('fender_front_left')) {
-      return { x: 26, y: 36 };
+    if (c.includes('front_left') || c.includes('door_front_left') || c.includes('fender_front_left') || c.includes('الأيسر الأمامي') || c.includes('يسار')) {
+      return { x: 24, y: 36 };
     }
-    if (c.includes('front_right') || c.includes('door_front_right') || c.includes('fender_front_right')) {
-      return { x: 74, y: 36 };
+    if (c.includes('front_right') || c.includes('door_front_right') || c.includes('fender_front_right') || c.includes('الأيمن الأمامي') || c.includes('يمين')) {
+      return { x: 76, y: 36 };
     }
-    if (c.includes('roof') || c.includes('interior') || c.includes('windows') || c.includes('pillars')) {
+    if (c.includes('roof') || c.includes('interior') || c.includes('windows') || c.includes('pillars') || c.includes('السقف') || c.includes('المقصورة')) {
       return { x: 50, y: 50 };
     }
-    if (c.includes('rear_left') || c.includes('door_rear_left') || c.includes('fender_rear_left')) {
-      return { x: 26, y: 64 };
+    if (c.includes('rear_left') || c.includes('door_rear_left') || c.includes('fender_rear_left') || c.includes('الأيسر الخلفي')) {
+      return { x: 24, y: 64 };
     }
-    if (c.includes('rear_right') || c.includes('door_rear_right') || c.includes('fender_rear_right')) {
-      return { x: 74, y: 64 };
+    if (c.includes('rear_right') || c.includes('door_rear_right') || c.includes('fender_rear_right') || c.includes('الأيمن الخلفي')) {
+      return { x: 76, y: 64 };
     }
-    if (c.includes('trunk') || c.includes('rear_bumper') || c.includes('rear_chest') || c.includes('bumper_frame_rear') || c.includes('rear')) {
+    if (c.includes('trunk') || c.includes('rear_bumper') || c.includes('rear_chest') || c.includes('bumper_frame_rear') || c.includes('rear') || c.includes('صندوق') || c.includes('الخلفي')) {
       return { x: 70, y: 86 };
     }
-    if (c.includes('brake') || c.includes('tire') || c.includes('wheel') || c.includes('suspension')) {
-      return { x: 24, y: 32 };
+    if (c.includes('brake') || c.includes('tire') || c.includes('wheel') || c.includes('suspension') || c.includes('الإطارات') || c.includes('الفرامل')) {
+      return { x: 22, y: 32 };
     }
-    if (c.includes('chassis') || c.includes('transmission') || c.includes('exhaust') || c.includes('fuel')) {
+    if (c.includes('chassis') || c.includes('transmission') || c.includes('exhaust') || c.includes('fuel') || c.includes('الشاصي') || c.includes('القير')) {
       return { x: 50, y: 68 };
     }
     return { x: 50, y: 84 };
@@ -114,17 +114,17 @@ export function CarBlueprintPinpoint({
         <rect x="86" y="145" width="5" height="18" rx="2" fill="#64748b" />
       </svg>
 
-      {/* Pinpoint Glowing Indicator */}
+      {/* Pinpoint Solid & Glowing Indicator (Reliable for Web & PDF Export) */}
       <div
         className="absolute pointer-events-none -translate-x-1/2 -translate-y-1/2 z-10 flex items-center justify-center"
         style={{ left: `${x}%`, top: `${y}%` }}
       >
         <span
-          className="animate-ping absolute inline-flex h-5 w-5 rounded-full opacity-75"
+          className="absolute inline-flex h-4 w-4 rounded-full opacity-40"
           style={{ backgroundColor: dotColor }}
         />
         <span
-          className="relative inline-flex rounded-full h-3.5 w-3.5 border-2 border-white shadow-md"
+          className="relative inline-flex rounded-full h-3 w-3 border-2 border-white shadow-md"
           style={{ backgroundColor: dotColor }}
         />
       </div>

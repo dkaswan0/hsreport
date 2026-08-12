@@ -31,6 +31,11 @@ import { INSPECTION_CATEGORIES } from "@shared/categories";
 import { IntroAnimation } from "@/components/intro-animation";
 import { MobileReportView } from "@/components/mobile-report-view";
 
+import { useRef } from "react";
+import html2canvas from "html2canvas";
+import { useToast } from "@/hooks/use-toast";
+import { PdfMultiPageDocument } from "@/components/pdf-report-template";
+
 type InspectionWithItems = Inspection & { items: InspectionItem[] };
 
 // Image Modal for High-Resolution Zoom with ESC key and high z-index
@@ -508,10 +513,134 @@ export default function PublicReport() {
     return !hasSeenIntro;
   });
 
+  const { toast } = useToast();
+  const pdfContainerRef = useRef<HTMLDivElement>(null);
+
   const handleIntroComplete = () => {
     setShowIntro(false);
     if (token) {
       sessionStorage.setItem(`hs_intro_${token}`, 'true');
+    }
+  };
+
+  const waitForImages = async (element: HTMLElement): Promise<void> => {
+    const images = element.querySelectorAll('img');
+    const imagePromises = Array.from(images).map((img) => {
+      if (img.complete && img.naturalHeight !== 0) {
+        return Promise.resolve();
+      }
+      return new Promise<void>((resolve) => {
+        img.onload = () => resolve();
+        img.onerror = () => resolve();
+        setTimeout(resolve, 5000);
+      });
+    });
+    await Promise.all(imagePromises);
+  };
+
+  const dataUrlToArrayBuffer = (dataUrl: string): ArrayBuffer => {
+    const base64 = dataUrl.split(',')[1];
+    const binaryString = window.atob(base64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer;
+  };
+
+  const handleNewPdfDownload = async (pdfLang: 'ar' | 'en' = 'ar') => {
+    if (!inspection) return;
+    if (!pdfContainerRef.current) return;
+    
+    toast({ 
+      title: "جارٍ التحضير",
+      description: "جارٍ إنشاء تقرير PDF فخم وعالي الجودة..."
+    });
+    
+    try {
+      const A4_WIDTH = 794;
+      const A4_HEIGHT = 1123;
+      
+      if (document.fonts && document.fonts.ready) {
+        await document.fonts.ready;
+      }
+      
+      const canvasOpts = {
+        scale: 3,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        width: A4_WIDTH,
+        height: A4_HEIGHT,
+        windowWidth: A4_WIDTH,
+        imageTimeout: 30000,
+        onclone: (clonedDoc: Document) => {
+          const clonedImages = clonedDoc.querySelectorAll('img');
+          clonedImages.forEach((img) => {
+            if (img.style.width) img.setAttribute('width', img.style.width);
+            if (img.style.height) img.setAttribute('height', img.style.height);
+          });
+        },
+      };
+
+      const { PDFDocument } = await import('pdf-lib');
+      const pdfDoc = await PDFDocument.create();
+
+      const pageElements = pdfContainerRef.current.querySelectorAll<HTMLElement>('.pdf-page-render');
+      for (let i = 0; i < pageElements.length; i++) {
+        const pageEl = pageElements[i];
+        toast({
+          title: "معالجة الصفحات",
+          description: `جارٍ معالجة الصفحة ${i + 1} من ${pageElements.length}...`
+        });
+        await waitForImages(pageEl);
+        await new Promise(resolve => setTimeout(resolve, 300));
+        const canvas = await html2canvas(pageEl, canvasOpts);
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const imgBytes = dataUrlToArrayBuffer(imgData);
+        const pdfImg = await pdfDoc.embedJpg(imgBytes);
+        const page = pdfDoc.addPage([595.27, 841.89]);
+        page.drawImage(pdfImg, { x: 0, y: 0, width: 595.27, height: 841.89 });
+      }
+
+      // Merge Autel pages seamlessly if attached
+      if (inspection.autelReportPdf) {
+        try {
+          const autelBytes = Uint8Array.from(atob(inspection.autelReportPdf), c => c.charCodeAt(0));
+          const autelPdfDoc = await PDFDocument.load(autelBytes);
+          const autelPageIndices = autelPdfDoc.getPageIndices();
+          const copiedPages = await pdfDoc.copyPages(autelPdfDoc, autelPageIndices);
+          copiedPages.forEach((page) => pdfDoc.addPage(page));
+        } catch (autelErr) {
+          console.warn('Could not append Autel PDF pages:', autelErr);
+        }
+      }
+
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const downloadUrl = URL.createObjectURL(blob);
+      const fileName = `تقرير_فحص_${inspection.vin}_HS${inspection.id}.pdf`;
+      
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = fileName;
+      link.click();
+      
+      setTimeout(() => URL.revokeObjectURL(downloadUrl), 100);
+
+      toast({ 
+        title: "تم بنجاح",
+        description: "تم تحميل تقرير PDF بنجاح"
+      });
+    } catch (error) {
+      console.error('PDF error:', error);
+      toast({ 
+        title: "خطأ",
+        description: "حدث خطأ أثناء إنشاء التقرير",
+        variant: "destructive"
+      });
     }
   };
 
@@ -563,6 +692,7 @@ export default function PublicReport() {
         <MobileReportView
           inspection={inspection}
           onImageClick={(url, name) => setSelectedImage({ url, name })}
+          onDownloadPdf={handleNewPdfDownload}
           isPublicView={true}
           token={token}
         />
@@ -772,6 +902,11 @@ export default function PublicReport() {
             <p className="font-mono" dir="ltr">HIGH SAFETY INTERNATIONAL CENTER L.L.C.</p>
           </div>
         </div>
+      </div>
+
+      {/* Hidden Dynamic Multi-Page PDF Document for High-Quality Export */}
+      <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', opacity: 0, pointerEvents: 'none' }}>
+        <PdfMultiPageDocument ref={pdfContainerRef} inspection={inspection} lang="ar" />
       </div>
     </div>
   );
