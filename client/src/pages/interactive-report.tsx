@@ -1469,66 +1469,26 @@ export default function InteractiveReport() {
         return text.replace(/\s*\([A-Z0-9_-]+\)\s*/gi, ' ').trim();
       };
 
-      // Add Dynamic Computer Diagnostics & OBD Codes to PDF (Current & History)
-      const obdList = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string; diagnosis?: string; causes?: string; solutions?: string; status?: 'current' | 'history'}> | null) || [];
-      const currentCodes = obdList.filter((c: any) => c.status !== 'history');
-      const historyCodes = obdList.filter((c: any) => c.status === 'history');
+      // Add Dynamic Computer Diagnostics & OBD Codes to PDF
+      const obdList = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string; diagnosis?: string; causes?: string; solutions?: string}> | null) || [];
 
-      // Current Faults Section - Only shown if currentCodes exist
-      if (currentCodes.length > 0) {
+      if (obdList.length > 0) {
         findingsContent.push({
           table: {
             widths: ['*'],
-            body: [[{ text: 'الأعطال الحالية — Current (Current Active Faults Report)', style: 'sectionTitle', alignment: 'right', fillColor: '#0C1A28', color: '#ffffff', margin: [8, 6, 8, 6] }]]
+            body: [[{ text: 'أعطال وتشخيص كمبيوتر السيارة (OBD-II Diagnostic Trouble Codes)', style: 'sectionTitle', alignment: 'right', fillColor: '#0C1A28', color: '#ffffff', margin: [8, 6, 8, 6] }]]
           },
           layout: 'noBorders',
           margin: [0, 14, 0, 5]
         });
 
-        currentCodes.forEach((obd: any) => {
+        obdList.forEach((obd: any) => {
           findingsContent.push({
             table: {
               widths: ['20%', '80%'],
               body: [
                 [
                   { text: obd.code || 'DTC', bold: true, fontSize: 13, color: '#0C1A28', alignment: 'center', margin: [0, 6, 0, 6] },
-                  {
-                    stack: [
-                      { text: cleanArabicFaultName(obd.nameAr) || '', style: 'faultTitle', margin: [0, 0, 0, 2] },
-                      { text: obd.nameEn || '', style: 'faultDesc', margin: [0, 0, 0, 2] },
-                      ...(obd.diagnosis ? [{ text: `التشخيص: ${obd.diagnosis}`, style: 'faultDesc', color: '#4338ca', margin: [0, 2, 0, 0] }] : []),
-                      ...(obd.causes ? [{ text: `الأسباب المحتملة: ${obd.causes}`, style: 'faultDesc', color: '#b45309', margin: [0, 2, 0, 0] }] : []),
-                      ...(obd.solutions ? [{ text: `خطوات الإصلاح: ${obd.solutions}`, style: 'faultDesc', color: '#047857', margin: [0, 2, 0, 0] }] : [])
-                    ],
-                    margin: [6, 6, 6, 6]
-                  }
-                ]
-              ]
-            },
-            layout: { hLineWidth: () => 0.5, vLineWidth: () => 0.5, hLineColor: () => '#cbd5e1', vLineColor: () => '#cbd5e1' },
-            margin: [0, 2, 0, 2]
-          });
-        });
-      }
-
-      // History Faults Section - Only shown if historyCodes exist
-      if (historyCodes.length > 0) {
-        findingsContent.push({
-          table: {
-            widths: ['*'],
-            body: [[{ text: 'الأعطال السابقة — History (History / Stored Faults)', style: 'sectionTitle', alignment: 'right', fillColor: '#b45309', color: '#ffffff', margin: [8, 6, 8, 6] }]]
-          },
-          layout: 'noBorders',
-          margin: [0, 14, 0, 5]
-        });
-
-        historyCodes.forEach((obd: any) => {
-          findingsContent.push({
-            table: {
-              widths: ['20%', '80%'],
-              body: [
-                [
-                  { text: obd.code || 'DTC', bold: true, fontSize: 13, color: '#b45309', alignment: 'center', margin: [0, 6, 0, 6] },
                   {
                     stack: [
                       { text: cleanArabicFaultName(obd.nameAr) || '', style: 'faultTitle', margin: [0, 0, 0, 2] },
@@ -2195,13 +2155,11 @@ export default function InteractiveReport() {
           onImageClick={(url, name) => setSelectedImage({ url, name })}
         />
 
-        {/* Dynamic OBD Codes Section - Current & History */}
+        {/* Dynamic OBD Codes Section */}
         {(() => {
-          const obdCodes = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string; diagnosis?: string; causes?: string; solutions?: string; status?: 'current' | 'history'}> | null) || [];
-          const currentCodes = obdCodes.filter(c => c.status !== 'history');
-          const historyCodes = obdCodes.filter(c => c.status === 'history');
+          const obdCodes = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string; diagnosis?: string; causes?: string; solutions?: string}> | null) || [];
 
-          if (currentCodes.length === 0 && historyCodes.length === 0) return null;
+          if (obdCodes.length === 0) return null;
 
           const getCodeType = (code: string) => {
             const p = code.charAt(0).toUpperCase();
@@ -2212,43 +2170,43 @@ export default function InteractiveReport() {
             return { color: 'bg-slate-600', labelAr: 'أخرى' };
           };
 
-          const renderCodeList = (codes: typeof obdCodes, isHistory: boolean) => (
-            <div className="bg-white rounded-3xl overflow-hidden shadow-xl border-2 border-slate-200" data-testid={isHistory ? "obd-history-section" : "obd-current-section"}>
-              <div className={`p-4 sm:p-6 text-white ${isHistory ? 'bg-gradient-to-l from-amber-700 via-amber-800 to-amber-950' : 'bg-gradient-to-l from-slate-900 via-red-950 to-black'}`}>
+          return (
+            <div className="bg-white rounded-3xl overflow-hidden shadow-xl border-2 border-slate-200" data-testid="obd-diagnostic-section">
+              <div className="p-4 sm:p-6 text-white bg-gradient-to-l from-slate-900 via-slate-950 to-black">
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                   <div className="flex items-center gap-2.5 sm:gap-3">
                     <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/10 rounded-xl flex items-center justify-center shrink-0 shadow-lg">
-                      <PhosphorIcon name="cpu" weight="duotone" size={24} className={isHistory ? "text-amber-400" : "text-red-400"} />
+                      <PhosphorIcon name="cpu" weight="duotone" size={24} className="text-[#C5852C]" />
                     </div>
                     <div>
                       <div className="text-xs text-slate-300 font-mono font-bold tracking-wider" dir="ltr">HIGH SAFETY</div>
-                      <div className="text-[11px] text-slate-400 font-mono tracking-wider" dir="ltr">{isHistory ? "HISTORY FAULTS" : "CURRENT FAULTS"}</div>
+                      <div className="text-[11px] text-slate-400 font-mono tracking-wider" dir="ltr">DIAGNOSTIC REPORT</div>
                     </div>
                   </div>
                   <div className="text-left bg-white/10 rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 shrink-0" dir="ltr">
-                    <div className="text-[10px] sm:text-xs text-slate-300 font-mono">{isHistory ? "STORED CODES" : "ACTIVE CODES"}</div>
-                    <div className={`text-2xl sm:text-3xl font-black ${isHistory ? "text-amber-400" : "text-red-400"}`}>{codes.length}</div>
+                    <div className="text-[10px] sm:text-xs text-slate-300 font-mono">OBD-II CODES</div>
+                    <div className="text-2xl sm:text-3xl font-black text-[#C5852C]">{obdCodes.length}</div>
                   </div>
                 </div>
                 <div className="text-center border-t border-white/10 pt-3 sm:pt-4">
                   <h3 className="text-lg sm:text-xl font-black font-arabic flex items-center justify-center gap-2">
-                    <PhosphorIcon name={isHistory ? "clock-counter-clockwise" : "warning-circle"} weight="duotone" size={22} className={isHistory ? "text-amber-400" : "text-red-400"} />
-                    <span>{isHistory ? "الأعطال السابقة — History" : "الأعطال الحالية — Current"}</span>
+                    <PhosphorIcon name="cpu" weight="duotone" size={22} className="text-[#C5852C]" />
+                    <span>أعطال وتشخيص كمبيوتر السيارة</span>
                   </h3>
                   <p className="text-slate-300 text-[11px] sm:text-xs font-mono mt-1" dir="ltr">
-                    {isHistory ? "OBD-II Stored & History Diagnostic Trouble Codes" : "OBD-II Active & Current Diagnostic Trouble Codes"}
+                    OBD-II Diagnostic Trouble Codes
                   </p>
                 </div>
               </div>
 
               <div className="divide-y divide-slate-100 px-2 pb-2">
                 <Accordion type="single" collapsible className="w-full">
-                  {codes.map((obd, idx) => {
+                  {obdCodes.map((obd, idx) => {
                     const type = getCodeType(obd.code);
                     const hasAiDetails = obd.diagnosis || obd.causes || obd.solutions;
                     
                     return (
-                      <AccordionItem value={`item-${isHistory ? 'hist' : 'curr'}-${idx}`} key={idx} className="border-b-0 mb-2 bg-slate-50/50 rounded-2xl overflow-hidden data-[state=open]:bg-white data-[state=open]:shadow-md data-[state=open]:ring-1 data-[state=open]:ring-slate-200 transition-all">
+                      <AccordionItem value={`item-${idx}`} key={idx} className="border-b-0 mb-2 bg-slate-50/50 rounded-2xl overflow-hidden data-[state=open]:bg-white data-[state=open]:shadow-md data-[state=open]:ring-1 data-[state=open]:ring-slate-200 transition-all">
                         <AccordionTrigger className="p-3 sm:p-4 hover:no-underline [&[data-state=open]>div>div>div.ai-badge]:opacity-0 [&[data-state=open]>div>div>div.ai-badge]:scale-95">
                           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full text-right">
                             <div className="shrink-0 flex sm:flex-col items-center justify-between sm:justify-center gap-2">
@@ -2261,7 +2219,7 @@ export default function InteractiveReport() {
                                 <div className="text-xs text-slate-500 font-mono mt-0.5 text-right break-words" dir="ltr">{obd.nameEn}</div>
                               </div>
                               {hasAiDetails && (
-                                <div className={`ai-badge shrink-0 flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border transition-all duration-300 ${isHistory ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-indigo-50 text-indigo-600 border-indigo-100'}`}>
+                                <div className="ai-badge shrink-0 flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border transition-all duration-300 bg-amber-50 text-amber-700 border-amber-200">
                                   <PhosphorIcon name="file-text" weight="duotone" size={14} />
                                   <span className="text-[11px] sm:text-xs font-bold font-arabic">شرح العطل</span>
                                 </div>
@@ -2322,15 +2280,8 @@ export default function InteractiveReport() {
 
               <div className="bg-slate-100 border-t-2 border-slate-200 px-4 py-2.5 sm:px-5 sm:py-3 flex flex-wrap items-center justify-between gap-2">
                 <span className="text-xs text-slate-500 font-mono font-bold" dir="ltr">HIGH SAFETY INSPECTION CENTER</span>
-                <span className="text-xs text-slate-400 font-mono" dir="ltr">HS-OBD-{isHistory ? 'HIST' : 'CURR'}-{String(inspection.id).padStart(4, '0')}</span>
+                <span className="text-xs text-slate-400 font-mono" dir="ltr">HS-OBD-{String(inspection.id).padStart(4, '0')}</span>
               </div>
-            </div>
-          );
-
-          return (
-            <div className="space-y-4 sm:space-y-6">
-              {currentCodes.length > 0 && renderCodeList(currentCodes, false)}
-              {historyCodes.length > 0 && renderCodeList(historyCodes, true)}
             </div>
           );
         })()}

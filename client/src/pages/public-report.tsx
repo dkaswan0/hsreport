@@ -585,47 +585,40 @@ export default function PublicReport() {
           onImageClick={(url, name) => setSelectedImage({ url, name })}
         />
 
-        {/* Dynamic OBD Codes Section - Section 4 Current & Section 5 History */}
+        {/* Dynamic OBD Codes Section - Section 4 OBD Diagnostic Report */}
         {(() => {
-          const obdCodes = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string; diagnosis?: string; causes?: string; solutions?: string; status?: 'current' | 'history'}> | null) || [];
-          const currentCodes = obdCodes.filter(c => c.status !== 'history');
-          const historyCodes = obdCodes.filter(c => c.status === 'history');
+          const obdCodes = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string; diagnosis?: string; causes?: string; solutions?: string}> | null) || [];
 
-          if (currentCodes.length === 0 && historyCodes.length === 0) return null;
+          if (obdCodes.length === 0) return null;
 
-          const renderCodeList = (codes: typeof obdCodes, isHistory: boolean) => (
-            <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200" data-testid={isHistory ? "obd-history-section" : "obd-current-section"}>
+          return (
+            <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200" data-testid="obd-diagnostic-section">
               <div className="bg-[#0C1A28] text-white px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0 shadow-md">
-                    <PhosphorIcon name={isHistory ? "clock-counter-clockwise" : "warning-octagon"} weight="duotone" size={18} className={isHistory ? "text-amber-400" : "text-red-500"} />
+                    <PhosphorIcon name="cpu" weight="duotone" size={18} className="text-[#C5852C]" />
                   </div>
                   <div className="flex flex-wrap items-baseline gap-1.5 sm:gap-2">
-                    <span className="font-mono text-[#C5852C] font-black text-base sm:text-lg md:text-xl">{isHistory ? "5 |" : "4 |"}</span>
-                    <span className="text-white font-black text-sm sm:text-base md:text-xl font-arabic">{isHistory ? "الأعطال السابقة — History" : "الأعطال الحالية — Current"}</span>
-                    <span className="text-slate-300 text-[11px] sm:text-xs md:text-sm font-mono font-semibold">| {isHistory ? "Stored & History Trouble Codes" : "Active & Current Trouble Codes"}</span>
+                    <span className="font-mono text-[#C5852C] font-black text-base sm:text-lg md:text-xl">4 |</span>
+                    <span className="text-white font-black text-sm sm:text-base md:text-xl font-arabic">أعطال وتشخيص كمبيوتر السيارة (OBD-II)</span>
+                    <span className="text-slate-300 text-[11px] sm:text-xs md:text-sm font-mono font-semibold">| Diagnostic Trouble Codes</span>
                   </div>
+                </div>
+                <div className="bg-white/10 rounded-xl px-3 py-1 text-xs font-mono text-[#C5852C] font-bold">
+                  {obdCodes.length} DTC
                 </div>
               </div>
 
               <div className="p-3 sm:p-6 space-y-3 sm:space-y-4">
-                {codes.map((obd, idx) => (
+                {obdCodes.map((obd, idx) => (
                   <div key={idx} className="p-3.5 sm:p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 text-right space-y-2">
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                      <div className="flex items-start sm:items-center gap-3 flex-1 min-w-0">
-                        <div className="shrink-0 text-center">
-                          <div className="font-mono font-black text-[#0C1A28] text-base sm:text-lg px-3 py-1 sm:px-4 sm:py-1.5 rounded-xl bg-slate-200/80 shadow-sm min-w-[80px] sm:min-w-[90px] text-center">{obd.code}</div>
-                        </div>
-                        <div className="flex-1 min-w-0 pr-1 sm:pr-2">
-                          <div className="text-sm sm:text-base font-black text-slate-900 font-arabic leading-snug break-words whitespace-normal">{obd.nameAr}</div>
-                          <div className="text-xs text-slate-500 font-mono mt-0.5 break-words whitespace-normal" dir="ltr">{obd.nameEn}</div>
-                        </div>
+                    <div className="flex items-start sm:items-center gap-3 flex-1 min-w-0">
+                      <div className="shrink-0 text-center">
+                        <div className="font-mono font-black text-white text-base sm:text-lg px-3 py-1 sm:px-4 sm:py-1.5 rounded-xl bg-[#0C1A28] shadow-sm min-w-[80px] sm:min-w-[90px] text-center">{obd.code}</div>
                       </div>
-                      <div className="shrink-0 self-start sm:self-center">
-                        <span className={`px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-bold font-arabic flex items-center gap-1.5 ${isHistory ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'}`}>
-                          <PhosphorIcon name={isHistory ? "clock-counter-clockwise" : "warning-octagon"} weight="duotone" size={14} />
-                          <span>{isHistory ? 'سابق History' : 'نشط Active'}</span>
-                        </span>
+                      <div className="flex-1 min-w-0 pr-1 sm:pr-2">
+                        <div className="text-sm sm:text-base font-black text-slate-900 font-arabic leading-snug break-words whitespace-normal">{obd.nameAr}</div>
+                        <div className="text-xs text-slate-500 font-mono mt-0.5 break-words whitespace-normal" dir="ltr">{obd.nameEn}</div>
                       </div>
                     </div>
 
@@ -650,13 +643,6 @@ export default function PublicReport() {
                   </div>
                 ))}
               </div>
-            </div>
-          );
-
-          return (
-            <div className="space-y-4 sm:space-y-6">
-              {currentCodes.length > 0 && renderCodeList(currentCodes, false)}
-              {historyCodes.length > 0 && renderCodeList(historyCodes, true)}
             </div>
           );
         })()}

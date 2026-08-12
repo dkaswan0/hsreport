@@ -385,71 +385,43 @@ export const PdfFindingCard = ({ item }: { item: InspectionItem }) => {
 
 // ----------------------------------------------------
 // 5. SECTIONS 4, 5, 6, 7: OBD, AUTEL & TERMS BLOCK
-// ----------------------------------------------------
 export const PdfObdAndTermsBlock = ({ inspection }: { inspection: Inspection }) => {
   const obdCodes = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string; status?: string}> | null) || [];
-  const currentCodes = obdCodes.filter(c => c.status !== 'history');
-  const historyCodes = obdCodes.filter(c => c.status === 'history');
   const hasAutel = !!inspection.autelReportPdf;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px', flexShrink: 0 }}>
-      {/* 3-Column Block: Section 4 Current, Section 5 History, Section 7 Terms */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-        {/* Col 1: Section 4 - Current Trouble Codes */}
+      {/* 2-Column Block: Section 4 OBD Codes, Section 5 Terms */}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '8px' }}>
+        {/* Col 1: Section 4 - OBD Diagnostic Trouble Codes */}
         <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '8px', overflow: 'hidden', backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column' }}>
           <div style={{ backgroundColor: BRAND.navy, color: '#ffffff', padding: '6px 8px', fontSize: '10px', fontWeight: 'bold' }}>
-            <span style={{ color: BRAND.goldLight, marginRight: '3px' }}>4 |</span> {f('الأعطال الحالية | Current')}
-            <div style={{ fontSize: '7.5px', color: '#94a3b8' }}>OBD-II Active Trouble Codes</div>
+            <span style={{ color: BRAND.goldLight, marginRight: '3px' }}>4 |</span> {f('أعطال وتشخيص كمبيوتر السيارة')}
+            <div style={{ fontSize: '7.5px', color: '#94a3b8' }}>OBD-II Diagnostic Trouble Codes</div>
           </div>
           <div style={{ padding: '6px', flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', backgroundColor: BRAND.bgLight }}>
-            {currentCodes.length === 0 ? (
+            {obdCodes.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '12px 4px', color: BRAND.textMuted, fontSize: '9px' }}>
-                {f('لا توجد أعطال حالية مسجلة')}
+                {f('لا توجد أكواد أعطال مسجلة (OBD Clear)')}
               </div>
             ) : (
-              currentCodes.slice(0, 3).map((c, i) => (
+              obdCodes.slice(0, 4).map((c, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 6px', backgroundColor: '#ffffff', borderRadius: '4px', border: '1px solid #e2e8f0', fontSize: '8.5px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{ fontFamily: 'monospace', fontWeight: 'bold', color: BRAND.navy, fontSize: '10px' }}>{c.code}</span>
-                    <span style={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '105px' }}>{f(c.nameAr)}</span>
+                    <span style={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px' }}>{f(c.nameAr)}</span>
                   </div>
-                  <span style={{ color: BRAND.red, fontSize: '8px', fontWeight: 'bold' }}>{f('نشط')}</span>
+                  <span style={{ fontSize: '7.5px', color: '#64748b', fontFamily: 'monospace' }}>{c.nameEn}</span>
                 </div>
               ))
             )}
           </div>
         </div>
 
-        {/* Col 2: Section 5 - History Trouble Codes */}
+        {/* Col 2: Section 5 - Terms & Conditions */}
         <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '8px', overflow: 'hidden', backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column' }}>
           <div style={{ backgroundColor: BRAND.navy, color: '#ffffff', padding: '6px 8px', fontSize: '10px', fontWeight: 'bold' }}>
-            <span style={{ color: BRAND.goldLight, marginRight: '3px' }}>5 |</span> {f('الأعطال السابقة | History')}
-            <div style={{ fontSize: '7.5px', color: '#94a3b8' }}>OBD-II Stored Trouble Codes</div>
-          </div>
-          <div style={{ padding: '6px', flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', backgroundColor: BRAND.bgLight }}>
-            {historyCodes.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '12px 4px', color: BRAND.textMuted, fontSize: '9px' }}>
-                {f('لا توجد أعطال سابقة')}
-              </div>
-            ) : (
-              historyCodes.slice(0, 3).map((c, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 6px', backgroundColor: '#ffffff', borderRadius: '4px', border: '1px solid #e2e8f0', fontSize: '8.5px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    <span style={{ fontFamily: 'monospace', fontWeight: 'bold', color: BRAND.navy, fontSize: '10px' }}>{c.code}</span>
-                    <span style={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '105px' }}>{f(c.nameAr)}</span>
-                  </div>
-                  <span style={{ color: BRAND.yellow, fontSize: '8px', fontWeight: 'bold' }}>{f('سابق')}</span>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Col 3: Section 7 - Terms & Conditions */}
-        <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: '8px', overflow: 'hidden', backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ backgroundColor: BRAND.navy, color: '#ffffff', padding: '6px 8px', fontSize: '10px', fontWeight: 'bold' }}>
-            <span style={{ color: BRAND.goldLight, marginRight: '3px' }}>7 |</span> {f('الأحكام والشروط')}
+            <span style={{ color: BRAND.goldLight, marginRight: '3px' }}>5 |</span> {f('الأحكام والشروط')}
             <div style={{ fontSize: '7.5px', color: '#94a3b8' }}>Terms & Conditions</div>
           </div>
           <div style={{ padding: '6px 8px', fontSize: '8px', lineHeight: '1.3', backgroundColor: '#ffffff', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>

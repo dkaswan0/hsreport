@@ -57,9 +57,7 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
   const items = inspection.items || [];
 
   // OBD Codes
-  const obdCodes = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string; diagnosis?: string; causes?: string; solutions?: string; status?: 'current' | 'history'}> | null) || [];
-  const currentCodes = obdCodes.filter(c => c.status !== 'history');
-  const historyCodes = obdCodes.filter(c => c.status === 'history');
+  const obdCodes = (inspection.obdCodes as Array<{code: string; nameEn: string; nameAr: string; diagnosis?: string; causes?: string; solutions?: string}> | null) || [];
 
   return (
     <div className="w-full space-y-4 font-arabic antialiased text-slate-900 pb-8" dir="rtl">
@@ -423,100 +421,30 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
         </div>
       )}
 
-      {/* 5. Section 4: Current Faults Header */}
-      {currentCodes.length > 0 && (
+      {/* 5. Section 4: OBD Diagnostic Faults Header */}
+      {obdCodes.length > 0 && (
         <div className="space-y-2.5">
           <div className="bg-[#0C1A28] rounded-xl px-4 py-2.5 flex items-center justify-between text-white shadow-sm border border-slate-800">
             <div className="flex items-center gap-2">
-              <span className="text-red-500 font-mono font-black text-base">4.</span>
-              <h3 className="font-bold text-sm text-white font-arabic">الأعطال الحالية — Current</h3>
+              <span className="text-[#C5852C] font-mono font-black text-base">4.</span>
+              <h3 className="font-bold text-sm text-white font-arabic">أعطال وتشخيص كمبيوتر السيارة</h3>
             </div>
-            <div className="text-red-400 font-mono text-[9px] uppercase tracking-tight" dir="ltr">
-              OBD-II Active Codes
+            <div className="text-[#C5852C] font-mono text-[9px] uppercase tracking-tight" dir="ltr">
+              OBD-II Diagnostic Codes
             </div>
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
             <div className="divide-y divide-slate-100">
-              {currentCodes.map((obd, idx) => (
+              {obdCodes.map((obd, idx) => (
                 <div key={idx} className="p-3.5 space-y-2 text-right">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-2.5 shrink-0">
-                      <div className="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0 mt-0.5">
-                        <PhosphorIcon name="warning-octagon" weight="fill" size={14} />
-                      </div>
-                      <div className="text-right">
-                        <div className="text-[11px] font-bold text-red-700">نشط</div>
-                        <div className="text-[8px] text-slate-400 font-mono" dir="ltr">Active</div>
-                      </div>
+                    <div className="font-mono font-black text-xs sm:text-sm text-white bg-[#0C1A28] px-2.5 py-1 rounded-lg shrink-0 shadow-xs">
+                      {obd.code}
                     </div>
                     <div className="flex-1 min-w-0 pr-2">
                       <div className="text-xs sm:text-sm font-bold text-slate-900 font-arabic leading-snug break-words whitespace-normal">{obd.nameAr}</div>
                       <div className="text-[10px] sm:text-xs text-slate-500 font-mono mt-0.5 break-words whitespace-normal" dir="ltr">{obd.nameEn}</div>
-                    </div>
-                    <div className="font-mono font-black text-xs sm:text-sm text-[#0C1A28] bg-slate-100 px-2.5 py-1 rounded-lg shrink-0">
-                      {obd.code}
-                    </div>
-                  </div>
-
-                  {obd.diagnosis && (
-                    <div className="bg-indigo-50/60 rounded-xl p-2.5 text-xs text-slate-800 leading-relaxed font-arabic border border-indigo-100/60 break-words whitespace-normal">
-                      <span className="font-bold text-indigo-800 ml-1">التشخيص:</span>
-                      {obd.diagnosis}
-                    </div>
-                  )}
-                  {obd.causes && (
-                    <div className="bg-amber-50/60 rounded-xl p-2.5 text-xs text-slate-800 leading-relaxed font-arabic border border-amber-100/60 break-words whitespace-normal">
-                      <span className="font-bold text-amber-800 ml-1">الأسباب:</span>
-                      {obd.causes}
-                    </div>
-                  )}
-                  {obd.solutions && (
-                    <div className="bg-emerald-50/60 rounded-xl p-2.5 text-xs text-slate-800 leading-relaxed font-arabic border border-emerald-100/60 break-words whitespace-normal">
-                      <span className="font-bold text-emerald-800 ml-1">خطوات الإصلاح:</span>
-                      {obd.solutions}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 6. Section 5: History Faults Header */}
-      {historyCodes.length > 0 && (
-        <div className="space-y-2.5">
-          <div className="bg-[#0C1A28] rounded-xl px-4 py-2.5 flex items-center justify-between text-white shadow-sm border border-slate-800">
-            <div className="flex items-center gap-2">
-              <span className="text-amber-500 font-mono font-black text-base">5.</span>
-              <h3 className="font-bold text-sm text-white font-arabic">الأعطال السابقة — History</h3>
-            </div>
-            <div className="text-amber-400 font-mono text-[9px] uppercase tracking-tight" dir="ltr">
-              OBD-II Stored Codes
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-            <div className="divide-y divide-slate-100">
-              {historyCodes.map((obd, idx) => (
-                <div key={idx} className="p-3.5 space-y-2 text-right">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-2.5 shrink-0">
-                      <div className="w-6 h-6 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0 mt-0.5">
-                        <PhosphorIcon name="clock-counter-clockwise" weight="bold" size={14} />
-                      </div>
-                      <div className="text-right">
-                        <div className="text-[11px] font-bold text-amber-700">سابق</div>
-                        <div className="text-[8px] text-slate-400 font-mono" dir="ltr">History</div>
-                      </div>
-                    </div>
-                    <div className="flex-1 min-w-0 pr-2">
-                      <div className="text-xs sm:text-sm font-bold text-slate-900 font-arabic leading-snug break-words whitespace-normal">{obd.nameAr}</div>
-                      <div className="text-[10px] sm:text-xs text-slate-500 font-mono mt-0.5 break-words whitespace-normal" dir="ltr">{obd.nameEn}</div>
-                    </div>
-                    <div className="font-mono font-black text-xs sm:text-sm text-[#0C1A28] bg-slate-100 px-2.5 py-1 rounded-lg shrink-0">
-                      {obd.code}
                     </div>
                   </div>
 
