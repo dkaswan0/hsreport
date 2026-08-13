@@ -1067,6 +1067,91 @@ export async function registerRoutes(
     }
   });
 
+
+  // Generate a full synchronized Professional Vehicle Photo Sheet across all vehicle slots
+  app.post("/api/generate-vehicle-photo-sheet", requireAuth, async (req, res) => {
+    try {
+      const { inspectionId } = req.body || {};
+      const user = (req as any).user;
+
+      if (!inspectionId) {
+        return res.status(400).json({ error: "inspectionId مطلوب" });
+      }
+
+      const id = Number(inspectionId);
+      const existing = await storage.getInspection(id);
+      if (!existing) {
+        return res.status(404).json({ error: "الفحص غير موجود" });
+      }
+
+      const candidateSlots = [
+        'mainCarPhoto',
+        'frontLeftDoorPhoto',
+        'trunkPhoto',
+        'rearLeftDoorPhoto',
+        'frontRightDoorPhoto',
+        'hoodPhoto',
+        'frontLeftDoorInteriorPhoto',
+        'trunkInteriorPhoto',
+      ];
+
+      const currentMeta = (existing.vehiclePhotosMeta as Record<string, VehiclePhotoSlotMeta>) || {};
+      const imagesMap: Record<string, string> = {};
+
+      for (const slot of candidateSlots) {
+        const url = currentMeta[slot]?.originalUrl || (existing as any)[slot];
+        if (url && typeof url === 'string' && url.startsWith('data:image/')) {
+          imagesMap[slot] = url;
+        }
+      }
+
+      if (Object.keys(imagesMap).length === 0) {
+        return res.status(400).json({ error: "لا توجد صور مرفوعة للمركبة لمعالجتها" });
+      }
+
+      const { sheet, provider, version } = await VehiclePhotoProcessor.processVehiclePhotoSheet({
+        inspectionId: id,
+        images: imagesMap,
+      });
+
+      let updatedInspection = existing;
+      const now = new Date().toISOString();
+
+      for (const [slotKey, processedUrl] of Object.entries(sheet)) {
+        const originalUrl = imagesMap[slotKey] || processedUrl;
+        const audit: VehiclePhotoAuditEntry = {
+          id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+          action: "processing_completed",
+          userId: user?.id,
+          username: user?.username,
+          inspectionId: id,
+          slotKey,
+          timestamp: now,
+          details: "تم توليد وتجهيز زاوية الاستوديو ضمن طقم صور المركبة"
+        };
+
+        updatedInspection = await storage.updateInspectionPhotoMeta(id, slotKey, {
+          originalUrl,
+          processedUrl,
+          activeMode: "processed",
+          processingStatus: "processed",
+          processedAt: now,
+          processingProvider: provider,
+          processingVersion: version,
+        }, audit);
+      }
+
+      res.json({
+        success: true,
+        inspection: updatedInspection,
+        sheet,
+      });
+    } catch (error: any) {
+      console.error("Generate Vehicle Photo Sheet Error:", error);
+      res.status(500).json({ error: error?.message || "تعذر إنشاء طقم صور الاستوديو" });
+    }
+  });
+
   // Reprocess existing vehicle photo
   app.post("/api/reprocess-vehicle-photo", requireAuth, async (req, res) => {
     try {

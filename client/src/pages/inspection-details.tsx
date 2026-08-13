@@ -1061,6 +1061,7 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
   const [isOpen, setIsOpen] = useState(true);
   const [uploadingSlot, setUploadingSlot] = useState<string | null>(null);
   const [processingSlots, setProcessingSlots] = useState<Record<string, boolean>>({});
+  const [isGeneratingSheet, setIsGeneratingSheet] = useState(false);
   const [scanningSlot, setScanningSlot] = useState<string | null>(null);
   const [previewPhoto, setPreviewPhoto] = useState<{ url: string; title: string; meta?: any } | null>(null);
   const [compareSlot, setCompareSlot] = useState<{ slotKey: string; labelAr: string; originalUrl: string; processedUrl: string; activeMode: string } | null>(null);
@@ -1095,16 +1096,16 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
   };
 
   const photoSlots = [
-    { key: 'mainCarPhoto', labelAr: 'صورة السيارة الرئيسية', labelEn: 'Main Vehicle Photo', isHero: true, canProcess: true },
+    { key: 'mainCarPhoto', labelAr: 'صورة السيارة الرئيسية (Front 3/4)', labelEn: 'Main Vehicle Photo', isHero: true, canProcess: true },
     { key: 'vinPhoto', labelAr: 'صورة رقم الهيكل (VIN)', labelEn: 'VIN Plate Photo', isHero: false, ocrType: 'vin', canProcess: false },
     { key: 'odometerPhoto', labelAr: 'صورة العداد (Odometer)', labelEn: 'Odometer Photo', isHero: false, ocrType: 'odometer', canProcess: false },
-    { key: 'frontLeftDoorPhoto', labelAr: 'الواجهة الأمامية', labelEn: 'Front Side Photo', isHero: false, canProcess: true },
-    { key: 'trunkPhoto', labelAr: 'الواجهة الخلفية', labelEn: 'Rear Side Photo', isHero: false, canProcess: true },
-    { key: 'rearLeftDoorPhoto', labelAr: 'الجانب الأيسر', labelEn: 'Left Side Photo', isHero: false, canProcess: true },
-    { key: 'frontRightDoorPhoto', labelAr: 'الجانب الأيمن', labelEn: 'Right Side Photo', isHero: false, canProcess: true },
-    { key: 'hoodPhoto', labelAr: 'حجرة المحرك', labelEn: 'Engine Bay Photo', isHero: false, canProcess: false },
-    { key: 'frontLeftDoorInteriorPhoto', labelAr: 'المقصورة الداخلية', labelEn: 'Interior Photo', isHero: false, canProcess: false },
-    { key: 'trunkInteriorPhoto', labelAr: 'صندوق الأمتعة', labelEn: 'Trunk Photo', isHero: false, canProcess: false },
+    { key: 'frontLeftDoorPhoto', labelAr: 'الواجهة الأمامية (Front View)', labelEn: 'Front Side Photo', isHero: false, canProcess: true },
+    { key: 'trunkPhoto', labelAr: 'الواجهة الخلفية (Rear View)', labelEn: 'Rear Side Photo', isHero: false, canProcess: true },
+    { key: 'rearLeftDoorPhoto', labelAr: 'الجانب الأيسر (Left Side View)', labelEn: 'Left Side Photo', isHero: false, canProcess: true },
+    { key: 'frontRightDoorPhoto', labelAr: 'الجانب الأيمن (Right Side View)', labelEn: 'Right Side Photo', isHero: false, canProcess: true },
+    { key: 'hoodPhoto', labelAr: 'حجرة المحرك (Engine Bay)', labelEn: 'Engine Bay Photo', isHero: false, canProcess: false },
+    { key: 'frontLeftDoorInteriorPhoto', labelAr: 'المقصورة الداخلية (Interior)', labelEn: 'Interior Photo', isHero: false, canProcess: false },
+    { key: 'trunkInteriorPhoto', labelAr: 'صندوق الأمتعة (Trunk)', labelEn: 'Trunk Photo', isHero: false, canProcess: false },
   ];
 
   const uploadedCount = useMemo(() => {
@@ -1113,6 +1114,40 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
       return !!(meta?.originalUrl || meta?.processedUrl || (inspection as any)[slot.key]);
     }).length;
   }, [inspection]);
+
+  // Generate full synchronized Professional Vehicle Photo Sheet
+  const handleGeneratePhotoSheet = async () => {
+    setIsGeneratingSheet(true);
+    try {
+      const res = await fetch("/api/generate-vehicle-photo-sheet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ inspectionId: inspection.id }),
+      });
+
+      if (res.ok) {
+        queryClient.invalidateQueries({ queryKey: [`/api/inspections/${inspection.id}`] });
+        toast({
+          title: "تم إنشاء طقم زوايا الاستوديو",
+          description: "تم تجهيز كافة زوايا المركبة بالخلفية البيضاء النقية والظلال الاحترافية",
+        });
+      } else {
+        toast({
+          title: "تنبيه",
+          description: "تعذر توليد طقم الاستوديو، يرجى التأكد من رفع صور للمركبة أولاً",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      toast({
+        title: "خطأ في المعالجة",
+        description: "حدث خطأ أثناء إنشاء طقم الاستوديو",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingSheet(false);
+    }
+  };
 
   // Non-blocking background AI image processing
   const triggerBackgroundProcessing = async (slotKey: string, compressedImage: string, slotTitle: string) => {
@@ -1135,7 +1170,7 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
         if (data.activeMode === 'processed') {
           toast({
             title: "تم تحسين الصورة",
-            description: `تم تجهيز خلفية الاستوديو وإضاءة ${slotTitle}`,
+            description: `تم تجهيز خلفية الاستوديو البيضاء وإضاءة ${slotTitle}`,
           });
         }
       }
@@ -1312,14 +1347,30 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
           </div>
           <div>
             <h3 className="font-bold text-sm sm:text-base font-arabic flex items-center gap-2 text-white">
-              <span>صور فحص السيارة</span>
-              <span className="text-[11px] font-normal text-zinc-400 font-mono hidden sm:inline">| Vehicle Section Photos</span>
+              <span>طقم صور فحص المركبة الاحترافي</span>
+              <span className="text-[11px] font-normal text-zinc-400 font-mono hidden sm:inline">| Professional Photo Sheet</span>
             </h3>
-            <p className="text-[11px] text-zinc-400 font-arabic">إدارة وتجهيز صور السيارة مع حفظ الأصل كمرجع نهائي دائم</p>
+            <p className="text-[11px] text-zinc-400 font-arabic">استوديو التصوير الاحترافي بزوايا متناسقة مع الحفاظ الدائم على الأصل كمرجع نهائي</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Quick Photo Sheet Action Button */}
+          <button
+            type="button"
+            disabled={uploadedCount === 0 || isGeneratingSheet}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleGeneratePhotoSheet();
+            }}
+            className="px-3 py-1.5 bg-white text-zinc-950 hover:bg-zinc-100 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-xs font-bold font-arabic flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+            title="تجهيز طقم زوايا الاستوديو لجميع الصور المرفوعة"
+          >
+            <PhosphorIcon name={isGeneratingSheet ? "spinner-gap" : "magic-wand"} className={isGeneratingSheet ? "animate-spin" : ""} weight="bold" size={14} />
+            <span className="hidden sm:inline">{isGeneratingSheet ? "جاري تجهيز الطقم..." : "تجهيز طقم الاستوديو"}</span>
+            <span className="sm:hidden">{isGeneratingSheet ? "جاري..." : "الاستوديو"}</span>
+          </button>
+
           <div className="bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-full text-xs font-bold font-mono text-zinc-200">
             {uploadedCount} / {photoSlots.length} مرفوعة
           </div>
@@ -1364,7 +1415,7 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
                     ) : isProcessedActive ? (
                       <span className="text-[10px] font-bold text-zinc-950 bg-zinc-100 px-2 py-0.5 rounded-full border border-zinc-300 flex items-center gap-1 shrink-0">
                         <PhosphorIcon name="check-circle" weight="bold" size={11} />
-                        <span>تم تحسين الصورة</span>
+                        <span>استوديو نقي</span>
                       </span>
                     ) : hasPhoto ? (
                       <span className="text-[10px] font-bold text-zinc-700 bg-zinc-100 px-2 py-0.5 rounded-full border border-zinc-200 flex items-center gap-1 shrink-0">
@@ -1379,7 +1430,7 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
                   </div>
 
                   {/* Photo Preview / Container */}
-                  <div className={`w-full ${slot.isHero ? 'h-40 sm:h-44' : 'h-32'} rounded-lg overflow-hidden bg-zinc-100 border border-zinc-200 relative flex items-center justify-center mb-3`}>
+                  <div className={`w-full ${slot.isHero ? 'h-40 sm:h-44' : 'h-32'} rounded-lg overflow-hidden bg-white border border-zinc-200 relative flex items-center justify-center mb-3`}>
                     {isUploading ? (
                       <div className="flex flex-col items-center justify-center gap-2 text-zinc-500">
                         <PhosphorIcon name="spinner-gap" className="animate-spin text-zinc-950" size={24} />
@@ -1395,7 +1446,7 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
                         <img 
                           src={displayPhotoUrl} 
                           alt={slot.labelAr} 
-                          className="w-full h-full object-cover cursor-pointer group-hover:scale-105 transition-transform duration-300"
+                          className="w-full h-full object-contain cursor-pointer group-hover:scale-105 transition-transform duration-300"
                           onClick={() => setPreviewPhoto({ url: displayPhotoUrl, title: slot.labelAr, meta })}
                         />
 
@@ -1578,7 +1629,7 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-white font-arabic flex items-center gap-1.5">
                     <PhosphorIcon name="magic-wand" weight="bold" size={14} />
-                    <span>الصورة المعالجة (خلفية استوديو وإضاءة)</span>
+                    <span>صورة الاستوديو الأبيض النقي</span>
                   </span>
                   {compareSlot.activeMode === 'processed' && (
                     <span className="text-[10px] bg-white text-zinc-950 font-bold px-2 py-0.5 rounded-full">
@@ -1603,7 +1654,7 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
                   }`}
                 >
                   <PhosphorIcon name="check-circle" weight="bold" size={14} />
-                  <span>اعتماد الصورة المحسنة بالتقرير</span>
+                  <span>اعتماد صورة الاستوديو بالتقرير</span>
                 </button>
               </div>
             </div>

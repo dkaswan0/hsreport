@@ -3,6 +3,16 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
+export interface VehiclePhotoSheetAngles {
+  front34?: string;
+  front?: string;
+  leftSide?: string;
+  rightSide?: string;
+  rear?: string;
+  rear34?: string;
+  topView?: string;
+}
+
 export interface VehiclePhotoSlotMeta {
   originalUrl: string;
   processedUrl?: string;
@@ -14,6 +24,7 @@ export interface VehiclePhotoSlotMeta {
   processingVersion?: string;
   imageHash?: string;
   appliedPerspectiveCorrection?: boolean;
+  generatedAngles?: VehiclePhotoSheetAngles;
 }
 
 export interface VehiclePhotoAuditEntry {
