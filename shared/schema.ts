@@ -72,6 +72,29 @@ export const inspectionItems = pgTable("inspection_items", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const inspectionSections = pgTable("inspection_sections", {
+  id: text("id").primaryKey(), // unique slug or id e.g. "mechanic", "transmission", "custom_17234..."
+  label: text("label").notNull(),
+  labelEn: text("label_en"),
+  icon: text("icon"),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  isDefault: boolean("is_default").default(false).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const inspectionCategories = pgTable("inspection_categories", {
+  id: text("id").primaryKey(), // unique slug or id e.g. "engine", "custom_cat_..."
+  sectionId: text("section_id").notNull(),
+  label: text("label").notNull(),
+  labelEn: text("label_en"),
+  icon: text("icon"),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  isDefault: boolean("is_default").default(false).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const faultLibrary = pgTable("fault_library", {
   id: serial("id").primaryKey(),
   category: text("category").notNull(),
@@ -98,6 +121,15 @@ export const inspectionItemsRelations = relations(inspectionItems, ({ one }) => 
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
 export const insertInspectionSchema = createInsertSchema(inspections).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertInspectionItemSchema = createInsertSchema(inspectionItems).omit({ id: true, createdAt: true });
+export const insertInspectionSectionSchema = createInsertSchema(inspectionSections).omit({ createdAt: true });
+export const insertInspectionCategorySchema = createInsertSchema(inspectionCategories).omit({ createdAt: true });
+
+export type InspectionSection = typeof inspectionSections.$inferSelect;
+export type InsertInspectionSection = z.infer<typeof insertInspectionSectionSchema>;
+
+export type InspectionCategory = typeof inspectionCategories.$inferSelect;
+export type InsertInspectionCategory = z.infer<typeof insertInspectionCategorySchema>;
+
 export const insertFaultLibrarySchema = createInsertSchema(faultLibrary).omit({ id: true });
 
 // === EXPLICIT TYPES ===

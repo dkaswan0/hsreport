@@ -37,6 +37,8 @@ import { useToast } from "@/hooks/use-toast";
 import type { InspectionItem, CreateInspectionItemRequest, FaultLibrary, Inspection } from "@shared/schema";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { INSPECTION_CATEGORIES, CATEGORY_GROUPS, MAIN_SECTIONS, getCategoryLabel } from "@shared/categories";
+import { useInspectionStructure } from "@/hooks/use-inspection-structure";
+import { AddEditSectionModal, AddEditCategoryModal } from "@/components/section-category-manager-modal";
 import { queryClient } from "@/lib/queryClient";
 
 export default function InspectionDetails() {
@@ -56,6 +58,63 @@ export default function InspectionDetails() {
   const [isEditingInfo, setIsEditingInfo] = useState(false);
   const [editInfo, setEditInfo] = useState<Record<string, any>>({});
   const [isObdOpen, setIsObdOpen] = useState(false);
+
+  // Dynamic Sections and Categories Structure
+  const {
+    sections,
+    allCategories,
+    getCategoriesForSection,
+    getCategoryLabel: getDynamicCategoryLabel,
+    getSectionLabel,
+    createSection,
+    updateSection,
+    deleteSection,
+    reorderSections,
+    createCategory,
+    updateCategory,
+    deleteCategory,
+    reorderCategories,
+  } = useInspectionStructure();
+
+  const [isAddSectionOpen, setIsAddSectionOpen] = useState(false);
+  const [isEditSectionOpen, setIsEditSectionOpen] = useState(false);
+  const [sectionToEdit, setSectionToEdit] = useState<any>(null);
+
+  const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
+  const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false);
+  const [categoryToEdit, setCategoryToEdit] = useState<any>(null);
+
+  const [draggedSectionIndex, setDraggedSectionIndex] = useState<number | null>(null);
+  const [draggedCategoryIndex, setDraggedCategoryIndex] = useState<number | null>(null);
+
+  // Sync initial selection
+  useEffect(() => {
+    if (sections.length > 0 && !activeSection) {
+      setActiveSection(sections[0].id);
+      const initialCats = getCategoriesForSection(sections[0].id);
+      if (initialCats.length > 0 && initialCats[0]) {
+        setActiveCategory(initialCats[0].id);
+      }
+    }
+  }, [sections]);
+
+  const handleSectionDrop = async (targetIndex: number) => {
+    if (draggedSectionIndex === null || draggedSectionIndex === targetIndex) return;
+    const reordered = [...sections];
+    const [moved] = reordered.splice(draggedSectionIndex, 1);
+    reordered.splice(targetIndex, 0, moved);
+    setDraggedSectionIndex(null);
+    await reorderSections(reordered.map(s => s.id));
+  };
+
+  const handleCategoryDrop = async (currentSectionCats: any[], targetIndex: number) => {
+    if (draggedCategoryIndex === null || draggedCategoryIndex === targetIndex) return;
+    const reordered = [...currentSectionCats];
+    const [moved] = reordered.splice(draggedCategoryIndex, 1);
+    reordered.splice(targetIndex, 0, moved);
+    setDraggedCategoryIndex(null);
+    await reorderCategories(reordered.map(c => c.id));
+  };
   
   const { toast } = useToast();
 
@@ -121,11 +180,7 @@ export default function InspectionDetails() {
     setIsAddItemOpen(true);
   }, []);
   
-  const getCategoriesForSection = (sectionId: string) => {
-    const group = CATEGORY_GROUPS.find(g => g.sectionId === sectionId);
-    if (!group) return [];
-    return group.categories.map(catId => INSPECTION_CATEGORIES.find(c => c.id === catId)).filter(Boolean);
-  };
+
 
   const toggleSection = (sectionId: string) => {
     const willExpand = !expandedSections[sectionId];
@@ -182,53 +237,104 @@ export default function InspectionDetails() {
   return (
     <div className="min-h-[calc(100vh-100px)] flex flex-col gap-4 animate-in fade-in duration-500 pb-20 md:pb-0">
       
-      {/* ── Top Clean Tabs Navigation Bar (Modern & Non-Cluttered) ── */}
+      {/* ── Top Clean Tabs Navigation Bar (Dynamic Section & Category Builder) ── */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-4">
         
         {/* Main Sections Horizontal Tabs */}
         <div>
           <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 font-arabic flex items-center justify-between">
             <span>الأقسام الرئيسية للفحص</span>
-            <span className="text-slate-400 font-normal">اختر القسـم للتنقّـل السـريع</span>
+            <span className="text-slate-400 font-normal">اختر القسـم للتنقّـل السـريع (يمكن السحب لإعادة الترتيب)</span>
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-            {MAIN_SECTIONS.map((section) => {
-              const isActive = (activeSection || "mechanic") === section.id;
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none items-center">
+            {sections.map((section, idx) => {
+              const currentActiveSecId = activeSection || (sections[0]?.id || "mechanic");
+              const isActive = currentActiveSecId === section.id;
               const sectionCategories = getCategoriesForSection(section.id);
               const itemCount = inspection?.items?.filter(item => 
                 sectionCategories.some(c => c?.id === item.category)
               ).length || 0;
 
               return (
-                <button
+                <div
                   key={section.id}
-                  onClick={() => {
-                    setActiveSection(section.id);
-                    const cats = getCategoriesForSection(section.id);
-                    if (cats.length > 0 && cats[0]) {
-                      setActiveCategory(cats[0].id);
-                    }
-                  }}
-                  className={cn(
-                    "px-4 py-2.5 rounded-xl font-arabic text-xs md:text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 border shadow-sm",
-                    isActive
-                      ? "bg-[#09090b] text-white border-[#09090b] shadow-md ring-2 ring-[#18181b]/30"
-                      : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:text-slate-900"
-                  )}
-                  data-testid={`section-tab-${section.id}`}
+                  draggable
+                  onDragStart={() => setDraggedSectionIndex(idx)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => handleSectionDrop(idx)}
+                  className="relative group shrink-0"
                 >
-                  <span>{section.label}</span>
-                  {itemCount > 0 && (
-                    <span className={cn(
-                      "px-2 py-0.5 rounded-full text-[10px] font-bold",
-                      isActive ? "bg-[#18181b] text-[#09090b]" : "bg-slate-200 text-slate-700"
-                    )}>
-                      {itemCount}
-                    </span>
-                  )}
-                </button>
+                  <button
+                    onClick={() => {
+                      setActiveSection(section.id);
+                      const cats = getCategoriesForSection(section.id);
+                      if (cats.length > 0 && cats[0]) {
+                        setActiveCategory(cats[0].id);
+                      }
+                    }}
+                    className={cn(
+                      "px-3.5 sm:px-4 py-2.5 rounded-xl font-arabic text-xs md:text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 border shadow-xs cursor-pointer",
+                      isActive
+                        ? "bg-[#09090b] text-white border-[#09090b] shadow-md ring-2 ring-[#18181b]/30"
+                        : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:text-slate-900"
+                    )}
+                    data-testid={`section-tab-${section.id}`}
+                  >
+                    <span>{section.label}</span>
+                    {itemCount > 0 && (
+                      <span className={cn(
+                        "px-2 py-0.5 rounded-full text-[10px] font-bold",
+                        isActive ? "bg-[#18181b] text-white" : "bg-slate-200 text-slate-700"
+                      )}>
+                        {itemCount}
+                      </span>
+                    )}
+                  </button>
+
+                  {/* Quick Edit/Delete on Hover */}
+                  <div className="absolute -top-2 -left-1 hidden group-hover:flex items-center gap-1 bg-white border border-zinc-200 rounded-lg p-0.5 shadow-md z-10">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSectionToEdit(section);
+                        setIsEditSectionOpen(true);
+                      }}
+                      className="p-1 hover:bg-zinc-100 text-zinc-700 rounded transition-colors"
+                      title="تعديل اسم القسم"
+                    >
+                      <Pencil className="w-3 h-3" />
+                    </button>
+                    {!section.isDefault && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm(`هل أنت متأكد من حذف قسم "${section.label}"؟`)) {
+                            deleteSection(section.id);
+                          }
+                        }}
+                        className="p-1 hover:bg-zinc-100 text-zinc-700 hover:text-zinc-950 rounded transition-colors"
+                        title="حذف القسم"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                </div>
               );
             })}
+
+            {/* + إضافة قسم Button */}
+            <button
+              type="button"
+              onClick={() => setIsAddSectionOpen(true)}
+              className="px-3.5 py-2.5 rounded-xl font-arabic text-xs md:text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 border border-dashed border-zinc-400 bg-zinc-50 hover:bg-zinc-100 text-zinc-900 shadow-xs cursor-pointer shrink-0"
+              data-testid="btn-add-section"
+            >
+              <Plus className="w-4 h-4 text-zinc-900" />
+              <span>+ إضافة قسم</span>
+            </button>
           </div>
         </div>
 
@@ -236,38 +342,156 @@ export default function InspectionDetails() {
         <div className="pt-2 border-t border-slate-100">
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none items-center">
             <span className="text-xs font-bold text-slate-400 font-arabic whitespace-nowrap me-1">الفئات:</span>
-            {getCategoriesForSection(activeSection || "mechanic").map((cat) => {
-              if (!cat) return null;
-              const isCatActive = activeCategory === cat.id;
-              const catItemCount = inspection?.items?.filter(item => item.category === cat.id).length || 0;
+            {(() => {
+              const currentSecId = activeSection || (sections[0]?.id || "mechanic");
+              const currentSectionCats = getCategoriesForSection(currentSecId);
 
               return (
-                <button
-                  key={cat.id}
-                  onClick={() => setActiveCategory(cat.id)}
-                  className={cn(
-                    "px-3.5 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 font-arabic border",
-                    isCatActive
-                      ? "bg-[#18181b] text-[#09090b] border-[#18181b] shadow-sm font-extrabold"
-                      : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900"
-                  )}
-                  data-testid={`category-pill-${cat.id}`}
-                >
-                  <span>{cat.label}</span>
-                  {catItemCount > 0 && (
-                    <span className={cn(
-                      "w-4 h-4 rounded-full text-[10px] flex items-center justify-center font-bold",
-                      isCatActive ? "bg-[#09090b] text-white" : "bg-slate-100 text-slate-600"
-                    )}>
-                      {catItemCount}
-                    </span>
-                  )}
-                </button>
+                <>
+                  {currentSectionCats.map((cat, idx) => {
+                    if (!cat) return null;
+                    const isCatActive = activeCategory === cat.id;
+                    const catItemCount = inspection?.items?.filter(item => item.category === cat.id).length || 0;
+
+                    return (
+                      <div
+                        key={cat.id}
+                        draggable
+                        onDragStart={() => setDraggedCategoryIndex(idx)}
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={() => handleCategoryDrop(currentSectionCats, idx)}
+                        className="relative group shrink-0"
+                      >
+                        <button
+                          onClick={() => setActiveCategory(cat.id)}
+                          className={cn(
+                            "px-3.5 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 font-arabic border cursor-pointer",
+                            isCatActive
+                              ? "bg-[#18181b] text-white border-[#18181b] shadow-sm font-extrabold"
+                              : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900"
+                          )}
+                          data-testid={`category-pill-${cat.id}`}
+                        >
+                          <span>{cat.label}</span>
+                          {catItemCount > 0 && (
+                            <span className={cn(
+                              "w-4 h-4 rounded-full text-[10px] flex items-center justify-center font-bold",
+                              isCatActive ? "bg-[#09090b] text-white" : "bg-slate-100 text-slate-600"
+                            )}>
+                              {catItemCount}
+                            </span>
+                          )}
+                        </button>
+
+                        {/* Quick Edit/Delete on Hover */}
+                        <div className="absolute -top-2 -left-1 hidden group-hover:flex items-center gap-1 bg-white border border-zinc-200 rounded-lg p-0.5 shadow-md z-10">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCategoryToEdit(cat);
+                              setIsEditCategoryOpen(true);
+                            }}
+                            className="p-0.5 hover:bg-zinc-100 text-zinc-700 rounded transition-colors"
+                            title="تعديل اسم الفئة"
+                          >
+                            <Pencil className="w-2.5 h-2.5" />
+                          </button>
+                          {!cat.isDefault && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (confirm(`هل أنت متأكد من حذف فئة "${cat.label}"؟`)) {
+                                  deleteCategory(cat.id);
+                                }
+                              }}
+                              className="p-0.5 hover:bg-zinc-100 text-zinc-700 hover:text-zinc-950 rounded transition-colors"
+                              title="حذف الفئة"
+                            >
+                              <Trash2 className="w-2.5 h-2.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* + إضافة فئة Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsAddCategoryOpen(true)}
+                    className="px-3 py-1 rounded-full text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1 font-arabic border border-dashed border-zinc-400 bg-zinc-50 hover:bg-zinc-100 text-zinc-900 cursor-pointer shrink-0"
+                    data-testid="btn-add-category"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-zinc-900" />
+                    <span>+ إضافة فئة</span>
+                  </button>
+                </>
               );
-            })}
+            })()}
           </div>
         </div>
       </div>
+
+      {/* Modals for Dynamic Sections and Categories */}
+      <AddEditSectionModal
+        isOpen={isAddSectionOpen}
+        onClose={() => setIsAddSectionOpen(false)}
+        mode="add"
+        onSave={async (data) => {
+          const newSec = await createSection(data);
+          if (newSec?.id) {
+            setActiveSection(newSec.id);
+          }
+        }}
+      />
+
+      <AddEditSectionModal
+        isOpen={isEditSectionOpen}
+        onClose={() => {
+          setIsEditSectionOpen(false);
+          setSectionToEdit(null);
+        }}
+        mode="edit"
+        initialData={sectionToEdit}
+        onSave={async (data) => {
+          if (sectionToEdit?.id) {
+            await updateSection({ id: sectionToEdit.id, updates: data });
+          }
+        }}
+      />
+
+      <AddEditCategoryModal
+        isOpen={isAddCategoryOpen}
+        onClose={() => setIsAddCategoryOpen(false)}
+        mode="add"
+        sectionId={activeSection || (sections[0]?.id || "mechanic")}
+        sectionLabel={getSectionLabel(activeSection || (sections[0]?.id || "mechanic"))}
+        onSave={async (data) => {
+          const newCat = await createCategory(data);
+          if (newCat?.id) {
+            setActiveCategory(newCat.id);
+          }
+        }}
+      />
+
+      <AddEditCategoryModal
+        isOpen={isEditCategoryOpen}
+        onClose={() => {
+          setIsEditCategoryOpen(false);
+          setCategoryToEdit(null);
+        }}
+        mode="edit"
+        sectionId={categoryToEdit?.sectionId || activeSection || (sections[0]?.id || "mechanic")}
+        sectionLabel={getSectionLabel(categoryToEdit?.sectionId || activeSection || (sections[0]?.id || "mechanic"))}
+        initialData={categoryToEdit}
+        onSave={async (data) => {
+          if (categoryToEdit?.id) {
+            await updateCategory({ id: categoryToEdit.id, updates: data });
+          }
+        }}
+      />
 
       <div className="flex flex-col gap-4 flex-1">
         {/* Main Content Area */}

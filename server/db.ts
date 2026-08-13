@@ -22,5 +22,28 @@ pool.query(`
     CONSTRAINT "user_sessions_pkey" PRIMARY KEY ("sid")
   );
   CREATE INDEX IF NOT EXISTS "IDX_user_sessions_expire" ON "user_sessions" ("expire");
-`).catch(err => console.error("Session table init warning:", err?.message || err));
+
+  CREATE TABLE IF NOT EXISTS "inspection_sections" (
+    "id" text PRIMARY KEY,
+    "label" text NOT NULL,
+    "label_en" text,
+    "icon" text,
+    "sort_order" integer DEFAULT 0 NOT NULL,
+    "is_default" boolean DEFAULT false NOT NULL,
+    "is_active" boolean DEFAULT true NOT NULL,
+    "created_at" timestamp DEFAULT now()
+  );
+
+  CREATE TABLE IF NOT EXISTS "inspection_categories" (
+    "id" text PRIMARY KEY,
+    "section_id" text NOT NULL,
+    "label" text NOT NULL,
+    "label_en" text,
+    "icon" text,
+    "sort_order" integer DEFAULT 0 NOT NULL,
+    "is_default" boolean DEFAULT false NOT NULL,
+    "is_active" boolean DEFAULT true NOT NULL,
+    "created_at" timestamp DEFAULT now()
+  );
+`).catch(err => console.error("Database tables init warning:", err?.message || err));
 
