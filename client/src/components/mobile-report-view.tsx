@@ -5,6 +5,23 @@ import { getVehicleColor } from "@/lib/vehicle-utils";
 import logoPath from "@assets/hs-logo.png";
 import hsCarBranding from "@assets/hs_car_branding.png";
 
+function formatInspectionDateTime(dateInput?: Date | string | null): string {
+  if (!dateInput) return "";
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return "";
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  let h = d.getHours();
+  const min = String(d.getMinutes()).padStart(2, '0');
+  const ampm = h >= 12 ? 'م' : 'ص';
+  h = h % 12;
+  h = h ? h : 12;
+  const formattedH = String(h).padStart(2, '0');
+  return `${y}/${m}/${day} — ${formattedH}:${min} ${ampm}`;
+}
+
+
 interface MobileReportViewProps {
   inspection: any;
   onDownloadPdf?: (lang: 'ar' | 'en') => void;
@@ -572,93 +589,72 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
         </div>
       )}
 
-      {/* 7. Section 6: Autel Computer Diagnostic Report */}
-      <div className="space-y-2.5">
-        <div className="bg-zinc-950 rounded-xl px-4 py-2.5 flex items-center justify-between text-white shadow-sm border border-zinc-800">
-          <div className="flex items-center gap-2">
-            <span className="text-zinc-400 font-mono font-black text-base">6.</span>
-            <h3 className="font-bold text-sm text-white font-arabic">تقرير فحص الكمبيوتر</h3>
+      {/* 7. Section 6: Autel Computer Diagnostic Report - ONLY shown when actually attached */}
+      {Boolean(inspection.autelReportPdf || inspection.autelReportName) && (
+        <div className="space-y-2.5" data-testid="mobile-autel-section">
+          <div className="bg-zinc-950 rounded-xl px-4 py-2.5 flex items-center justify-between text-white shadow-sm border border-zinc-800">
+            <div className="flex items-center gap-2">
+              <span className="text-zinc-400 font-mono font-black text-base">6.</span>
+              <h3 className="font-bold text-sm text-white font-arabic">تقرير فحص الكمبيوتر</h3>
+            </div>
+            <div className="text-zinc-400 font-mono text-[10px]" dir="ltr">
+              Autel Computer Diagnostic Report
+            </div>
           </div>
-          <div className="text-zinc-400 font-mono text-[10px]" dir="ltr">
-            Autel Computer Diagnostic Report
+
+          <div className="bg-white rounded-2xl border border-zinc-200 overflow-hidden shadow-xs p-3 space-y-3">
+            <div className="divide-y divide-zinc-200 border border-zinc-200 rounded-xl overflow-hidden text-xs">
+              <div className="p-2 flex items-center justify-between bg-zinc-50/50">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-zinc-900">الجهاز</span>
+                  <span className="text-[9px] text-zinc-400 font-mono" dir="ltr">Scanner</span>
+                </div>
+                <div className="font-bold font-mono text-zinc-900" dir="ltr">Autel MaxiSys Diagnostic System</div>
+              </div>
+
+              {inspection.autelReportName && (
+                <div className="p-2 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-zinc-900">اسم ملف التقرير</span>
+                    <span className="text-[9px] text-zinc-400 font-mono" dir="ltr">File</span>
+                  </div>
+                  <div className="font-mono text-zinc-900 text-[11px] truncate max-w-[200px]" dir="ltr">{inspection.autelReportName}</div>
+                </div>
+              )}
+
+              <div className="p-2 flex items-center justify-between bg-zinc-50/50">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-zinc-900">تاريخ الفحص</span>
+                  <span className="text-[9px] text-zinc-400 font-mono" dir="ltr">Date</span>
+                </div>
+                <div className="font-mono text-zinc-900" dir="ltr">
+                  {formatInspectionDateTime(inspection.createdAt)}
+                </div>
+              </div>
+
+              <div className="p-2 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-zinc-900">رقم الهيكل (VIN)</span>
+                </div>
+                <div className="font-mono font-bold text-zinc-900" dir="ltr">{inspection.vin || '-'}</div>
+              </div>
+            </div>
+
+            {/* Autel Open Link if PDF is attached */}
+            {inspection.autelReportPdf && (
+              <a
+                href={isPublicView ? `/api/autel/report/public/${token}` : `/api/autel/report/${inspection.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 bg-zinc-950 text-white rounded-xl font-bold text-xs hover:bg-black transition-all shadow-xs cursor-pointer"
+              >
+                <PhosphorIcon name="arrow-square-out" weight="bold" size={16} className="text-white" />
+                <span>فتح تقرير Autel المرفق الأصلي</span>
+              </a>
+            )}
           </div>
         </div>
-
-        <div className="bg-white rounded-2xl border border-zinc-200 overflow-hidden shadow-xs p-3 space-y-3">
-          {/* Autel Preview Certificate Card */}
-          <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-2 overflow-hidden shadow-xs flex items-center justify-center">
-            <div className="w-full bg-white rounded-lg border border-zinc-200 p-2.5 text-center space-y-1">
-              <div className="text-zinc-900 font-black font-mono text-sm tracking-wider" dir="ltr">
-                AUTEL
-              </div>
-              <div className="text-[11px] font-bold text-zinc-900 font-arabic">
-                تقرير فحص كمبيوتر المركبة الشامل MaxiSys
-              </div>
-              <div className="text-[9px] text-zinc-400 font-mono" dir="ltr">
-                Vehicle Diagnostic Report System
-              </div>
-            </div>
-          </div>
-
-          {/* Autel Key-Value Specs Table */}
-          <div className="divide-y divide-zinc-200 border border-zinc-200 rounded-xl overflow-hidden text-xs">
-            <div className="p-2 flex items-center justify-between bg-zinc-50/50">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-zinc-900">الجهاز</span>
-                <span className="text-[9px] text-zinc-400 font-mono" dir="ltr">Scanner</span>
-              </div>
-              <div className="font-bold font-mono text-zinc-900" dir="ltr">Autel MaxiSys MS908 BT</div>
-            </div>
-
-            <div className="p-2 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-zinc-900">التقرير</span>
-                <span className="text-[9px] text-zinc-400 font-mono" dir="ltr">Report No.</span>
-              </div>
-              <div className="font-mono text-zinc-900" dir="ltr">AUTEL-2024-05-20-001</div>
-            </div>
-
-            <div className="p-2 flex items-center justify-between bg-zinc-50/50">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-zinc-900">الفحص</span>
-                <span className="text-[9px] text-zinc-400 font-mono" dir="ltr">Date</span>
-              </div>
-              <div className="font-mono text-zinc-900" dir="ltr">
-                {inspection.createdAt ? new Date(inspection.createdAt).toLocaleDateString('en-GB') : '20/05/2024'} 02:35 PM
-              </div>
-            </div>
-
-            <div className="p-2 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-zinc-900">رقم الهيكل (VIN)</span>
-              </div>
-              <div className="font-mono font-bold text-zinc-900" dir="ltr">{inspection.vin || '-'}</div>
-            </div>
-
-            <div className="p-2 flex items-center justify-between bg-zinc-50/50">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-zinc-900">المسافة المقطوعة</span>
-              </div>
-              <div className="font-mono font-bold text-zinc-900" dir="ltr">
-                {inspection.odometer ? `${inspection.odometer.toLocaleString()} KM` : '0 KM'}
-              </div>
-            </div>
-          </div>
-
-          {/* Autel Open PDF Link if exists */}
-          {inspection.autelReportPdf && (
-            <a
-              href={isPublicView ? `/api/autel/report/public/${token}` : `/api/autel/report/${inspection.id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 bg-zinc-950 text-white rounded-xl font-bold text-xs hover:bg-black transition-all shadow-xs cursor-pointer"
-            >
-              <PhosphorIcon name="arrow-square-out" weight="bold" size={16} className="text-white" />
-              <span>فتح تقرير Autel المرفق الأصلي</span>
-            </a>
-          )}
-        </div>
-      </div>
+      )}
 
       {/* 8. Download Full Report (PDF) Prominent Button */}
       {onDownloadPdf && (
