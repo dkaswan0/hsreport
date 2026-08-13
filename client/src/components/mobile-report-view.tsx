@@ -137,7 +137,7 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
             <img
               src={logoPath}
               alt="High Safety Logo"
-              className="w-full h-full object-contain drop-shadow-md"
+              className="w-full h-full rounded-full object-contain aspect-square select-none drop-shadow-md"
             />
           </div>
           <div className="flex-1 min-w-0 text-right">

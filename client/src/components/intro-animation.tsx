@@ -127,7 +127,7 @@ export function IntroAnimation({ onComplete, duration = 4000 }: IntroAnimationPr
               <motion.img
                 src={newLogoPath}
                 alt="High Safety"
-                className="w-40 h-40 md:w-56 md:h-56 rounded-full object-cover shadow-2xl"
+                className="w-40 h-40 md:w-56 md:h-56 rounded-full object-contain aspect-square shadow-2xl"
                 style={{
                   boxShadow: "0 0 60px rgba(197, 133, 44, 0.5), 0 0 120px rgba(197, 133, 44, 0.3)"
                 }}

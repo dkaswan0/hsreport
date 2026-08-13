@@ -52,7 +52,7 @@ export default function LayoutShell({ children, onLogout }: LayoutShellProps) {
           <img
             src={logoPath}
             alt="High Safety"
-            className="w-10 h-10 object-contain drop-shadow-md"
+            className="w-10 h-10 rounded-full object-contain aspect-square select-none drop-shadow-md"
           />
         </div>
 
@@ -119,7 +119,7 @@ export default function LayoutShell({ children, onLogout }: LayoutShellProps) {
         <div
           className="md:hidden flex items-center justify-between px-4 h-12 bg-zinc-950 border-b border-zinc-800"
         >
-          <img src={logoPath} alt="High Safety" className="w-8 h-8 object-contain drop-shadow-md" />
+          <img src={logoPath} alt="High Safety" className="w-8 h-8 rounded-full object-contain aspect-square select-none drop-shadow-md" />
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             className="text-zinc-400 hover:text-white"

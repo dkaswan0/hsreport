@@ -140,7 +140,7 @@ const CompanyHeader = ({ inspection }: { inspection?: any }) => {
             <img 
               src={logoPath} 
               alt="High Safety Logo" 
-              className="w-full h-full object-contain drop-shadow-md"
+              className="w-full h-full rounded-full object-contain aspect-square select-none drop-shadow-md"
             />
           </div>
           <div className="text-right">

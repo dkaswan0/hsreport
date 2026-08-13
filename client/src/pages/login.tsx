@@ -58,7 +58,7 @@ export default function Login({ onLoginSuccess }: { onLoginSuccess: () => void }
               <img
                 src={logoPath}
                 alt="High Safety Logo"
-                className="w-full h-full object-contain drop-shadow-md"
+                className="w-full h-full rounded-full object-contain aspect-square select-none drop-shadow-md"
               />
             </div>
             <div>
@@ -82,7 +82,7 @@ export default function Login({ onLoginSuccess }: { onLoginSuccess: () => void }
           
           {/* Top Logo Icon */}
           <div className="w-20 h-20 flex items-center justify-center mx-auto mb-3">
-            <img src={logoPath} alt="High Safety Logo" className="w-full h-full object-contain drop-shadow-lg" />
+            <img src={logoPath} alt="High Safety Logo" className="w-full h-full rounded-full object-contain aspect-square select-none drop-shadow-lg" />
           </div>
 
           {/* Subtitle Tag */}

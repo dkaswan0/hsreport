@@ -649,7 +649,7 @@ const CompanyHeader = ({
             <img 
               src={logoPath} 
               alt="High Safety International Center" 
-              className="w-full h-full object-contain drop-shadow-md"
+              className="w-full h-full rounded-full object-contain aspect-square select-none drop-shadow-md"
             />
           </div>
           <div>
