@@ -6,6 +6,8 @@ import { z } from "zod";
 import { createHash, randomBytes } from "crypto";
 import { openai } from "./replit_integrations/image/client";
 import { ImageAnalysisService } from "./services/image-analysis";
+import { VehiclePhotoProcessor } from "./services/vehicle-photo-processor";
+import { VehiclePhotoSlotMeta, VehiclePhotoAuditEntry } from "@shared/schema";
 import { SearchRouterService } from "./services/search-router";
 
 // ── API Key helpers ───────────────────────────────────────────────────────────
@@ -890,6 +892,254 @@ export async function registerRoutes(
         enhancedFaultName: req.body?.faultName || "",
         enhancedDescription: req.body?.description || ""
       });
+    }
+  });
+
+
+  // ═══ Vehicle Photo Presentation & Studio Processing Endpoints ═══
+
+  // Process vehicle section photo with background cleanup, studio lighting, and safe perspective alignment
+  app.post("/api/process-vehicle-photo", requireAuth, async (req, res) => {
+    try {
+      const { inspectionId, slotKey, imageUrl, enablePerspectiveCorrection } = req.body || {};
+      const user = (req as any).user;
+
+      if (!inspectionId || !slotKey || !imageUrl) {
+        return res.status(400).json({ error: "البيانات المطلوبة غير مكتملة (inspectionId, slotKey, imageUrl)" });
+      }
+
+      const id = Number(inspectionId);
+      const existing = await storage.getInspection(id);
+      if (!existing) {
+        return res.status(404).json({ error: "الفحص غير موجود" });
+      }
+
+      const timestamp = new Date().toISOString();
+      const imageHash = VehiclePhotoProcessor.calculateImageHash(imageUrl);
+
+      // Audit: processing started
+      const auditStart: VehiclePhotoAuditEntry = {
+        id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+        action: "processing_started",
+        userId: user?.id,
+        username: user?.username,
+        inspectionId: id,
+        slotKey,
+        timestamp,
+        details: `بدء معالجة صورة ${slotKey} بالذكاء الاصطناعي`
+      };
+
+      await storage.updateInspectionPhotoMeta(id, slotKey, {
+        originalUrl: imageUrl,
+        processingStatus: "processing",
+        imageHash,
+        appliedPerspectiveCorrection: !!enablePerspectiveCorrection,
+      }, auditStart);
+
+      // Call AI processor
+      try {
+        const processResult = await VehiclePhotoProcessor.processVehiclePhoto({
+          imageUrl,
+          slotKey,
+          inspectionId: id,
+          enablePerspectiveCorrection: !!enablePerspectiveCorrection,
+        });
+
+        const isSuccess = processResult.processedUrl && processResult.processedUrl.startsWith("data:image/");
+        const finalProcessedUrl = isSuccess ? processResult.processedUrl : imageUrl;
+        const finalStatus = isSuccess ? "processed" : "failed";
+
+        const auditDone: VehiclePhotoAuditEntry = {
+          id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+          action: isSuccess ? "processing_completed" : "processing_failed",
+          userId: user?.id,
+          username: user?.username,
+          inspectionId: id,
+          slotKey,
+          timestamp: new Date().toISOString(),
+          details: isSuccess ? "اكتملت معالجة الصورة بنجاح وتجهيز خلفية الاستوديو" : "تعذر تحسين الصورة تلقائيًا، تم اعتماد الصورة الأصلية"
+        };
+
+        const updated = await storage.updateInspectionPhotoMeta(id, slotKey, {
+          originalUrl: imageUrl,
+          processedUrl: finalProcessedUrl,
+          activeMode: isSuccess ? "processed" : "original",
+          processingStatus: finalStatus,
+          processedAt: new Date().toISOString(),
+          processingProvider: processResult.provider,
+          processingVersion: processResult.version,
+          imageHash: processResult.imageHash,
+          appliedPerspectiveCorrection: processResult.appliedPerspectiveCorrection,
+        }, auditDone);
+
+        res.json({
+          success: true,
+          slotKey,
+          processedUrl: finalProcessedUrl,
+          activeMode: isSuccess ? "processed" : "original",
+          processingStatus: finalStatus,
+          inspection: updated,
+        });
+      } catch (procErr: any) {
+        console.warn("[VehiclePhotoProcessor] Route error:", procErr);
+        const auditErr: VehiclePhotoAuditEntry = {
+          id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+          action: "processing_failed",
+          userId: user?.id,
+          username: user?.username,
+          inspectionId: id,
+          slotKey,
+          timestamp: new Date().toISOString(),
+          details: `فشل المعالجة: ${procErr?.message || "خطأ غير معروف"}`
+        };
+
+        const updated = await storage.updateInspectionPhotoMeta(id, slotKey, {
+          originalUrl: imageUrl,
+          activeMode: "original",
+          processingStatus: "failed",
+          processingError: procErr?.message || "خطأ في خدمة المعالجة",
+        }, auditErr);
+
+        res.json({
+          success: false,
+          slotKey,
+          originalUrl: imageUrl,
+          activeMode: "original",
+          processingStatus: "failed",
+          inspection: updated,
+        });
+      }
+    } catch (error: any) {
+      console.error("Vehicle Photo Processing Route Error:", error);
+      res.status(500).json({ error: error?.message || "حدث خطأ أثناء معالجة صورة المركبة" });
+    }
+  });
+
+  // Toggle active photo mode between original and processed
+  app.post("/api/toggle-vehicle-photo-mode", requireAuth, async (req, res) => {
+    try {
+      const { inspectionId, slotKey, mode } = req.body || {};
+      const user = (req as any).user;
+
+      if (!inspectionId || !slotKey || !["original", "processed"].includes(mode)) {
+        return res.status(400).json({ error: "بيانات غير صالحة" });
+      }
+
+      const id = Number(inspectionId);
+      const existing = await storage.getInspection(id);
+      if (!existing) {
+        return res.status(404).json({ error: "الفحص غير موجود" });
+      }
+
+      const metaMap = (existing.vehiclePhotosMeta as Record<string, VehiclePhotoSlotMeta>) || {};
+      const slotMeta = metaMap[slotKey];
+      if (!slotMeta || !slotMeta.originalUrl) {
+        return res.status(400).json({ error: "الصورة غير موجودة" });
+      }
+
+      // If requested processed but none exists, keep original
+      const targetMode = mode === "processed" && !slotMeta.processedUrl ? "original" : mode;
+
+      const audit: VehiclePhotoAuditEntry = {
+        id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+        action: targetMode === "original" ? "original_restored" : "processed_activated",
+        userId: user?.id,
+        username: user?.username,
+        inspectionId: id,
+        slotKey,
+        timestamp: new Date().toISOString(),
+        details: targetMode === "original" ? "تمت استعادة واعتماد الصورة الأصلية بالتقرير" : "تم تفعيل واعتماد الصورة المعالجة بالتقرير"
+      };
+
+      const updated = await storage.updateInspectionPhotoMeta(id, slotKey, {
+        activeMode: targetMode,
+      }, audit);
+
+      res.json({
+        success: true,
+        slotKey,
+        activeMode: targetMode,
+        inspection: updated,
+      });
+    } catch (error: any) {
+      console.error("Toggle photo mode error:", error);
+      res.status(500).json({ error: error?.message || "تعذر تغيير وضع الصورة" });
+    }
+  });
+
+  // Reprocess existing vehicle photo
+  app.post("/api/reprocess-vehicle-photo", requireAuth, async (req, res) => {
+    try {
+      const { inspectionId, slotKey, enablePerspectiveCorrection } = req.body || {};
+      const user = (req as any).user;
+
+      if (!inspectionId || !slotKey) {
+        return res.status(400).json({ error: "بيانات غير مكتملة" });
+      }
+
+      const id = Number(inspectionId);
+      const existing = await storage.getInspection(id);
+      if (!existing) {
+        return res.status(404).json({ error: "الفحص غير موجود" });
+      }
+
+      const metaMap = (existing.vehiclePhotosMeta as Record<string, VehiclePhotoSlotMeta>) || {};
+      const slotMeta = metaMap[slotKey];
+      const sourceUrl = slotMeta?.originalUrl || (existing as any)[slotKey];
+
+      if (!sourceUrl) {
+        return res.status(400).json({ error: "لا توجد صورة أصلية لإعادة معالجتها" });
+      }
+
+      const auditReprocess: VehiclePhotoAuditEntry = {
+        id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+        action: "photo_reprocessed",
+        userId: user?.id,
+        username: user?.username,
+        inspectionId: id,
+        slotKey,
+        timestamp: new Date().toISOString(),
+        details: `طلب إعادة معالجة صورة ${slotKey}`
+      };
+
+      await storage.updateInspectionPhotoMeta(id, slotKey, {
+        processingStatus: "processing",
+      }, auditReprocess);
+
+      const processResult = await VehiclePhotoProcessor.processVehiclePhoto({
+        imageUrl: sourceUrl,
+        slotKey,
+        inspectionId: id,
+        enablePerspectiveCorrection: !!enablePerspectiveCorrection,
+      });
+
+      const isSuccess = processResult.processedUrl && processResult.processedUrl.startsWith("data:image/");
+      const finalProcessedUrl = isSuccess ? processResult.processedUrl : sourceUrl;
+      const finalStatus = isSuccess ? "processed" : "failed";
+
+      const updated = await storage.updateInspectionPhotoMeta(id, slotKey, {
+        originalUrl: sourceUrl,
+        processedUrl: finalProcessedUrl,
+        activeMode: isSuccess ? "processed" : "original",
+        processingStatus: finalStatus,
+        processedAt: new Date().toISOString(),
+        processingProvider: processResult.provider,
+        processingVersion: processResult.version,
+        imageHash: processResult.imageHash,
+        appliedPerspectiveCorrection: processResult.appliedPerspectiveCorrection,
+      });
+
+      res.json({
+        success: isSuccess,
+        slotKey,
+        processedUrl: finalProcessedUrl,
+        activeMode: isSuccess ? "processed" : "original",
+        processingStatus: finalStatus,
+        inspection: updated,
+      });
+    } catch (error: any) {
+      console.error("Reprocess photo error:", error);
+      res.status(500).json({ error: error?.message || "تعذر إعادة معالجة الصورة" });
     }
   });
 

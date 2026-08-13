@@ -1,3 +1,4 @@
+import { getVehicleColor, calculateInspectionStats, getHealthLabel, resolveVehiclePhoto } from "@/lib/vehicle-utils";
 import React, { forwardRef } from 'react';
 import logoPath from '@assets/hs-logo.png';
 import hsCarBranding from '@assets/hs_car_branding.png';
@@ -266,9 +267,9 @@ export const PdfVehicleInfoSection = ({ inspection }: { inspection: Inspection }
             padding: '3px',
             boxSizing: 'border-box'
           }}>
-            {inspection.mainCarPhoto ? (
+            {resolveVehiclePhoto(inspection, "mainCarPhoto") ? (
               <img 
-                src={inspection.mainCarPhoto} 
+                src={resolveVehiclePhoto(inspection, "mainCarPhoto")} 
                 alt="Vehicle Main" 
                 style={{ 
                   maxWidth: '100%', 

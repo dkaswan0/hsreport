@@ -128,3 +128,21 @@ export function getInspectionTypeLabel(type?: string | null): { ar: string; en: 
 
   return { ar: trimmed, en: trimmed };
 }
+
+/**
+ * Resolves the currently active photo URL for a vehicle slot based on vehiclePhotosMeta.
+ * Automatically falls back to originalUrl or the root slot column if processed is unavailable.
+ */
+export function resolveVehiclePhoto(inspection: any, slotKey: string): string {
+  if (!inspection) return '';
+  const meta = inspection.vehiclePhotosMeta?.[slotKey];
+  if (meta) {
+    if (meta.activeMode === 'processed' && meta.processedUrl) {
+      return meta.processedUrl;
+    }
+    if (meta.originalUrl) {
+      return meta.originalUrl;
+    }
+  }
+  return inspection[slotKey] || '';
+}

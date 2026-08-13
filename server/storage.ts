@@ -1,3 +1,4 @@
+import { VehiclePhotoSlotMeta, VehiclePhotoAuditEntry } from "@shared/schema";
 import { db } from "./db";
 import {
   inspections, inspectionItems, faultLibrary, apiKeys,
@@ -20,6 +21,12 @@ export interface IStorage {
   generateShareToken(id: number): Promise<string>;
   createInspection(inspection: InsertInspection): Promise<Inspection>;
   updateInspection(id: number, updates: UpdateInspectionRequest): Promise<Inspection>;
+  updateInspectionPhotoMeta(
+    id: number,
+    slotKey: string,
+    metaUpdates: Partial<VehiclePhotoSlotMeta>,
+    auditEntry?: VehiclePhotoAuditEntry
+  ): Promise<Inspection>;
   deleteInspection(id: number): Promise<void>;
   deleteMultipleInspections(ids: number[]): Promise<number>;
 
@@ -146,6 +153,60 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return updated;
   }
+  async updateInspectionPhotoMeta(
+    id: number,
+    slotKey: string,
+    metaUpdates: Partial<VehiclePhotoSlotMeta>,
+    auditEntry?: VehiclePhotoAuditEntry
+  ): Promise<Inspection> {
+    const existing = await this.getInspection(id);
+    if (!existing) {
+      throw new Error(`Inspection #${id} not found`);
+    }
+
+    const currentMetaMap = (existing.vehiclePhotosMeta as Record<string, VehiclePhotoSlotMeta>) || {};
+    const existingSlotMeta = currentMetaMap[slotKey] || {
+      originalUrl: (existing as any)[slotKey] || '',
+      activeMode: 'original',
+      processingStatus: 'idle',
+    };
+
+    const updatedSlotMeta: VehiclePhotoSlotMeta = {
+      ...existingSlotMeta,
+      ...metaUpdates,
+    };
+
+    const newMetaMap = {
+      ...currentMetaMap,
+      [slotKey]: updatedSlotMeta,
+    };
+
+    // Determine the active display image for the root slot column
+    const activePhotoUrl = updatedSlotMeta.activeMode === 'processed' && updatedSlotMeta.processedUrl
+      ? updatedSlotMeta.processedUrl
+      : updatedSlotMeta.originalUrl;
+
+    const currentAuditList = (existing.vehiclePhotosAudit as VehiclePhotoAuditEntry[]) || [];
+    const newAuditList = auditEntry ? [auditEntry, ...currentAuditList.slice(0, 49)] : currentAuditList;
+
+    const updates: any = {
+      vehiclePhotosMeta: newMetaMap,
+      vehiclePhotosAudit: newAuditList,
+      updatedAt: new Date(),
+    };
+
+    if (activePhotoUrl) {
+      updates[slotKey] = activePhotoUrl;
+    }
+
+    const [updated] = await db.update(inspections)
+      .set(updates)
+      .where(eq(inspections.id, id))
+      .returning();
+
+    return updated;
+  }
+
 
   async deleteInspection(id: number): Promise<void> {
     await db.delete(inspectionItems).where(eq(inspectionItems.inspectionId, id));

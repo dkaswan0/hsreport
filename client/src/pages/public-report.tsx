@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { PhosphorIcon } from "@/components/phosphor-icon";
 import { cn } from "@/lib/utils";
-import { getVehicleColor, calculateInspectionStats, getInspectionTypeLabel } from "@/lib/vehicle-utils";
+import { getVehicleColor, calculateInspectionStats, getInspectionTypeLabel, resolveVehiclePhoto } from "@/lib/vehicle-utils";
 import logoPath from "@assets/hs-logo.png";
 import hsCarBranding from "@assets/hs_car_branding.png";
 import { VinPlate } from "@/components/vin-plate";
@@ -284,9 +284,9 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
         <div className="lg:col-span-7 flex flex-col justify-between gap-3 sm:gap-4">
           {/* Main Car Photo */}
           <div className="w-full h-40 sm:h-48 md:h-52 lg:h-56 rounded-2xl overflow-hidden bg-zinc-100/80 border border-zinc-200 flex items-center justify-center p-3 sm:p-4 relative group shadow-xs">
-            {inspection.mainCarPhoto ? (
+            {resolveVehiclePhoto(inspection, "mainCarPhoto") ? (
               <img 
-                src={inspection.mainCarPhoto} 
+                src={resolveVehiclePhoto(inspection, "mainCarPhoto")} 
                 alt="Vehicle Main" 
                 className="w-full h-full max-h-full max-w-full object-contain drop-shadow-md" 
               />

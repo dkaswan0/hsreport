@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { PhosphorIcon } from "@/components/phosphor-icon";
 import { INSPECTION_CATEGORIES } from "@shared/categories";
-import { getVehicleColor } from "@/lib/vehicle-utils";
+import { getVehicleColor, resolveVehiclePhoto } from "@/lib/vehicle-utils";
 import logoPath from "@assets/hs-logo.png";
 import hsCarBranding from "@assets/hs_car_branding.png";
 
@@ -48,13 +48,13 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
   // Section 2 Photos List
   const sectionPhotos = useMemo(() => {
     const raw = [
-      { key: 'frontSide', labelAr: 'الواجهة الأمامية', labelEn: 'Front Side', photo: inspection.frontSidePhoto || inspection.frontLeftDoorPhoto },
-      { key: 'rearSide', labelAr: 'الواجهة الخلفية', labelEn: 'Rear Side', photo: inspection.rearSidePhoto || inspection.trunkPhoto },
-      { key: 'leftSide', labelAr: 'الجانب الأيسر', labelEn: 'Left Side', photo: inspection.rearLeftDoorPhoto || inspection.frontLeftDoorPhoto },
-      { key: 'rightSide', labelAr: 'الجانب الأيمن', labelEn: 'Right Side', photo: inspection.frontRightDoorPhoto || inspection.rearRightDoorPhoto },
-      { key: 'engineBay', labelAr: 'حجرة المحرك', labelEn: 'Engine Bay', photo: inspection.hoodPhoto },
-      { key: 'interior', labelAr: 'المقصورة الداخلية', labelEn: 'Interior', photo: inspection.interiorPhoto || inspection.frontLeftDoorInteriorPhoto },
-      { key: 'trunk', labelAr: 'صندوق الأمتعة', labelEn: 'Trunk', photo: inspection.trunkPhoto },
+      { key: 'frontSide', labelAr: 'الواجهة الأمامية', labelEn: 'Front Side', photo: resolveVehiclePhoto(inspection, 'frontSidePhoto') || resolveVehiclePhoto(inspection, 'frontLeftDoorPhoto') || resolveVehiclePhoto(inspection, 'mainCarPhoto') },
+      { key: 'rearSide', labelAr: 'الواجهة الخلفية', labelEn: 'Rear Side', photo: resolveVehiclePhoto(inspection, 'rearSidePhoto') || resolveVehiclePhoto(inspection, 'trunkPhoto') },
+      { key: 'leftSide', labelAr: 'الجانب الأيسر', labelEn: 'Left Side', photo: resolveVehiclePhoto(inspection, 'rearLeftDoorPhoto') || resolveVehiclePhoto(inspection, 'frontLeftDoorPhoto') },
+      { key: 'rightSide', labelAr: 'الجانب الأيمن', labelEn: 'Right Side', photo: resolveVehiclePhoto(inspection, 'frontRightDoorPhoto') || resolveVehiclePhoto(inspection, 'rearRightDoorPhoto') },
+      { key: 'engineBay', labelAr: 'حجرة المحرك', labelEn: 'Engine Bay', photo: resolveVehiclePhoto(inspection, 'hoodPhoto') },
+      { key: 'interior', labelAr: 'المقصورة الداخلية', labelEn: 'Interior', photo: resolveVehiclePhoto(inspection, 'interiorPhoto') || resolveVehiclePhoto(inspection, 'frontLeftDoorInteriorPhoto') },
+      { key: 'trunk', labelAr: 'صندوق الأمتعة', labelEn: 'Trunk', photo: resolveVehiclePhoto(inspection, 'trunkPhoto') || resolveVehiclePhoto(inspection, 'trunkInteriorPhoto') },
     ].filter(s => s.photo);
 
     if (raw.length > 0) return raw;

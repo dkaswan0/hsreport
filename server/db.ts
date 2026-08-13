@@ -45,5 +45,8 @@ pool.query(`
     "is_active" boolean DEFAULT true NOT NULL,
     "created_at" timestamp DEFAULT now()
   );
+
+  ALTER TABLE "inspections" ADD COLUMN IF NOT EXISTS "vehicle_photos_meta" jsonb;
+  ALTER TABLE "inspections" ADD COLUMN IF NOT EXISTS "vehicle_photos_audit" jsonb;
 `).catch(err => console.error("Database tables init warning:", err?.message || err));
 

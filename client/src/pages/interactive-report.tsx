@@ -45,7 +45,7 @@ import carRightView from "@assets/generated_images/car_right_side_view.png";
 import carRearView from "@assets/generated_images/car_rear_view_diagram.png";
 import carLeftView from "@assets/generated_images/car_left_side_view.png";
 import { INSPECTION_CATEGORIES, CATEGORY_GROUPS } from "@shared/categories";
-import { getVehicleColor, calculateInspectionStats } from "@/lib/vehicle-utils";
+import { getVehicleColor, calculateInspectionStats, resolveVehiclePhoto } from "@/lib/vehicle-utils";
 import { VinPlate } from "@/components/vin-plate";
 import hsCarBranding from "@assets/hs_car_branding.png";
 import { MobileReportView } from "@/components/mobile-report-view";
@@ -821,9 +821,9 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
         <div className="lg:col-span-7 flex flex-col justify-between gap-3 sm:gap-4">
           {/* Main Car Photo */}
           <div className="w-full h-52 sm:h-64 md:h-80 lg:h-[400px] rounded-2xl overflow-hidden bg-zinc-100/70 border border-zinc-200 flex items-center justify-center p-3 sm:p-4 relative group shadow-xs">
-            {inspection.mainCarPhoto ? (
+            {resolveVehiclePhoto(inspection, "mainCarPhoto") ? (
               <img 
-                src={inspection.mainCarPhoto} 
+                src={resolveVehiclePhoto(inspection, "mainCarPhoto")} 
                 alt="Vehicle Main" 
                 className="w-full h-full max-h-full max-w-full object-contain drop-shadow-md" 
               />

@@ -3,6 +3,30 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
+export interface VehiclePhotoSlotMeta {
+  originalUrl: string;
+  processedUrl?: string;
+  activeMode: 'processed' | 'original';
+  processingStatus: 'idle' | 'processing' | 'processed' | 'failed';
+  processedAt?: string;
+  processingProvider?: string;
+  processingError?: string;
+  processingVersion?: string;
+  imageHash?: string;
+  appliedPerspectiveCorrection?: boolean;
+}
+
+export interface VehiclePhotoAuditEntry {
+  id: string;
+  action: 'photo_uploaded' | 'processing_started' | 'processing_completed' | 'processing_failed' | 'processed_activated' | 'original_restored' | 'photo_reprocessed' | 'photo_deleted';
+  userId?: number;
+  username?: string;
+  inspectionId: number;
+  slotKey: string;
+  timestamp: string;
+  details?: string;
+}
+
 // === TABLE DEFINITIONS ===
 
 export const users = pgTable("users", {
@@ -51,6 +75,8 @@ export const inspections = pgTable("inspections", {
   autelReportName: text("autel_report_name"), // Original filename of Autel report
   mojazRecord: text("mojaz_record"), // سجل حوادث موجز المكتوب/الملصق
   mojazAnalysis: jsonb("mojaz_analysis").$type<any>(), // تحليل تطابق الحوادث بالذكاء الاصطناعي
+  vehiclePhotosMeta: jsonb("vehicle_photos_meta").$type<Record<string, VehiclePhotoSlotMeta>>(), // إدارة صور السيارة المحسنة والأصلية
+  vehiclePhotosAudit: jsonb("vehicle_photos_audit").$type<VehiclePhotoAuditEntry[]>(), // سجل تدقيق وتتبع تعديلات صور المركبة
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({
