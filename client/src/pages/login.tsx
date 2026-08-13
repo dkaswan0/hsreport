@@ -54,11 +54,11 @@ export default function Login({ onLoginSuccess }: { onLoginSuccess: () => void }
       <div className="w-full bg-zinc-950 border-b border-zinc-800 shadow-md">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center p-1 shrink-0">
+            <div className="w-11 h-11 flex items-center justify-center shrink-0">
               <img
                 src={logoPath}
                 alt="High Safety Logo"
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain drop-shadow-md"
               />
             </div>
             <div>
@@ -81,8 +81,8 @@ export default function Login({ onLoginSuccess }: { onLoginSuccess: () => void }
         <div className="w-full max-w-md bg-white rounded-3xl border border-zinc-200 shadow-xl overflow-hidden p-6 md:p-8 animate-in fade-in zoom-in-95 duration-300">
           
           {/* Top Logo Icon */}
-          <div className="w-14 h-14 rounded-2xl bg-zinc-950 border border-zinc-800 shadow-md flex items-center justify-center mx-auto mb-4 p-2">
-            <img src={logoPath} alt="Logo" className="w-full h-full object-contain" />
+          <div className="w-20 h-20 flex items-center justify-center mx-auto mb-3">
+            <img src={logoPath} alt="High Safety Logo" className="w-full h-full object-contain drop-shadow-lg" />
           </div>
 
           {/* Subtitle Tag */}

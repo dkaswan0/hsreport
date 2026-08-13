@@ -136,11 +136,11 @@ const CompanyHeader = ({ inspection }: { inspection?: any }) => {
       <div className="p-2.5 sm:p-3 md:p-3.5 flex flex-col md:flex-row items-center justify-between gap-2.5 sm:gap-3">
         {/* Right: High-Res Logo & Center Titles */}
         <div className="flex items-center gap-3 text-center md:text-right">
-          <div className="w-11 h-11 sm:w-12 sm:h-12 md:w-13 md:h-13 rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800 flex items-center justify-center p-1 shrink-0 shadow-inner">
+          <div className="w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 flex items-center justify-center shrink-0">
             <img 
               src={logoPath} 
               alt="High Safety Logo" 
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain drop-shadow-md"
             />
           </div>
           <div className="text-right">
