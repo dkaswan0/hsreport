@@ -222,6 +222,152 @@ export async function registerRoutes(
     ok ? res.json({ success: true }) : res.status(404).json({ message: "Key not found" });
   });
 
+
+  // === Dynamic Inspection Sections Management ===
+  app.get("/api/inspection-sections", async (_req, res) => {
+    try {
+      const sections = await storage.getInspectionSections();
+      res.json(sections);
+    } catch (e: any) {
+      console.error("GET /api/inspection-sections error:", e);
+      res.status(500).json({ message: e.message || "فشل جلب الأقسام الرئيسية" });
+    }
+  });
+
+  app.post("/api/inspection-sections", async (req, res) => {
+    try {
+      const { label, labelEn, icon, sortOrder, isDefault, isActive } = req.body;
+      if (!label || !label.trim()) {
+        return res.status(400).json({ message: "يرجى إدخال اسم القسم" });
+      }
+      const section = await storage.createInspectionSection({
+        id: `sec_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        label: label.trim(),
+        labelEn: labelEn?.trim() || null,
+        icon: icon?.trim() || "wrench",
+        sortOrder: Number(sortOrder) || 0,
+        isDefault: !!isDefault,
+        isActive: isActive !== false,
+      });
+      res.status(201).json(section);
+    } catch (e: any) {
+      console.error("POST /api/inspection-sections error:", e);
+      res.status(400).json({ message: e.message || "فشل إنشاء القسم" });
+    }
+  });
+
+  app.patch("/api/inspection-sections/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      const updated = await storage.updateInspectionSection(id, updates);
+      res.json(updated);
+    } catch (e: any) {
+      console.error("PATCH /api/inspection-sections/:id error:", e);
+      res.status(400).json({ message: e.message || "فشل تعديل القسم" });
+    }
+  });
+
+  app.delete("/api/inspection-sections/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteInspectionSection(id);
+      res.json({ success });
+    } catch (e: any) {
+      console.error("DELETE /api/inspection-sections/:id error:", e);
+      res.status(500).json({ message: e.message || "فشل حذف القسم" });
+    }
+  });
+
+  app.post("/api/inspection-sections/reorder", async (req, res) => {
+    try {
+      const { ids } = req.body;
+      if (!Array.isArray(ids)) {
+        return res.status(400).json({ message: "مصفوفة المعرفات مطلوبة" });
+      }
+      await storage.reorderInspectionSections(ids);
+      res.json({ success: true });
+    } catch (e: any) {
+      console.error("POST /api/inspection-sections/reorder error:", e);
+      res.status(500).json({ message: e.message || "فشل حفظ ترتيب الأقسام" });
+    }
+  });
+
+  // === Dynamic Inspection Categories Management ===
+  app.get("/api/inspection-categories", async (req, res) => {
+    try {
+      const sectionId = req.query.sectionId as string | undefined;
+      const categories = await storage.getInspectionCategories(sectionId);
+      res.json(categories);
+    } catch (e: any) {
+      console.error("GET /api/inspection-categories error:", e);
+      res.status(500).json({ message: e.message || "فشل جلب الفئات" });
+    }
+  });
+
+  app.post("/api/inspection-categories", async (req, res) => {
+    try {
+      const { sectionId, label, labelEn, icon, sortOrder, isDefault, isActive } = req.body;
+      if (!sectionId) {
+        return res.status(400).json({ message: "معرف القسم الرئيسي مطلوب" });
+      }
+      if (!label || !label.trim()) {
+        return res.status(400).json({ message: "يرجى إدخال اسم الفئة" });
+      }
+      const category = await storage.createInspectionCategory({
+        id: `cat_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        sectionId: sectionId.trim(),
+        label: label.trim(),
+        labelEn: labelEn?.trim() || null,
+        icon: icon?.trim() || null,
+        sortOrder: Number(sortOrder) || 0,
+        isDefault: !!isDefault,
+        isActive: isActive !== false,
+      });
+      res.status(201).json(category);
+    } catch (e: any) {
+      console.error("POST /api/inspection-categories error:", e);
+      res.status(400).json({ message: e.message || "فشل إنشاء الفئة" });
+    }
+  });
+
+  app.patch("/api/inspection-categories/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      const updated = await storage.updateInspectionCategory(id, updates);
+      res.json(updated);
+    } catch (e: any) {
+      console.error("PATCH /api/inspection-categories/:id error:", e);
+      res.status(400).json({ message: e.message || "فشل تعديل الفئة" });
+    }
+  });
+
+  app.delete("/api/inspection-categories/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteInspectionCategory(id);
+      res.json({ success });
+    } catch (e: any) {
+      console.error("DELETE /api/inspection-categories/:id error:", e);
+      res.status(500).json({ message: e.message || "فشل حذف الفئة" });
+    }
+  });
+
+  app.post("/api/inspection-categories/reorder", async (req, res) => {
+    try {
+      const { ids } = req.body;
+      if (!Array.isArray(ids)) {
+        return res.status(400).json({ message: "مصفوفة المعرفات مطلوبة" });
+      }
+      await storage.reorderInspectionCategories(ids);
+      res.json({ success: true });
+    } catch (e: any) {
+      console.error("POST /api/inspection-categories/reorder error:", e);
+      res.status(500).json({ message: e.message || "فشل حفظ ترتيب الفئات" });
+    }
+  });
+
   // === Inspections ===
   app.get(api.inspections.list.path, async (req, res) => {
     const list = await storage.getInspections(

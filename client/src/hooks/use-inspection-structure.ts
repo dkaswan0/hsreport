@@ -64,6 +64,21 @@ export function useInspectionStructure() {
     return fallback?.label || id;
   };
 
+  // Safe error parser helper
+  const parseResponseError = async (res: Response, defaultMessage: string): Promise<string> => {
+    try {
+      const text = await res.text();
+      try {
+        const json = JSON.parse(text);
+        return json.message || defaultMessage;
+      } catch {
+        return text || res.statusText || defaultMessage;
+      }
+    } catch {
+      return res.statusText || defaultMessage;
+    }
+  };
+
   // === Mutations for Sections ===
 
   const createSectionMutation = useMutation({
@@ -74,22 +89,24 @@ export function useInspectionStructure() {
         body: JSON.stringify(newSection),
       });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || "فشل إنشاء القسم");
+        const errorMsg = await parseResponseError(res, "فشل إنشاء القسم");
+        throw new Error(errorMsg);
       }
       return await res.json();
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/inspection-sections"] });
+    onSuccess: async (data) => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/inspection-sections"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/inspection-sections"] });
       toast({
         title: "تم إنشاء القسم بنجاح",
         description: `تمت إضافة قسم "${data.label}" مباشرة`,
       });
     },
     onError: (err: any) => {
+      console.error("Create section error:", err);
       toast({
         title: "خطأ في إنشاء القسم",
-        description: err.message || "تعذر إنشاء القسم",
+        description: err.message || "تعذر إنشاء القسم، يرجى المحاولة مرة أخرى",
         variant: "destructive",
       });
     },
@@ -103,19 +120,21 @@ export function useInspectionStructure() {
         body: JSON.stringify(updates),
       });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || "فشل تعديل القسم");
+        const errorMsg = await parseResponseError(res, "فشل تعديل القسم");
+        throw new Error(errorMsg);
       }
       return await res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/inspection-sections"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/inspection-sections"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/inspection-sections"] });
       toast({ title: "تم تحديث القسم بنجاح" });
     },
     onError: (err: any) => {
+      console.error("Update section error:", err);
       toast({
         title: "خطأ في تحديث القسم",
-        description: err.message,
+        description: err.message || "تعذر تحديث القسم",
         variant: "destructive",
       });
     },
@@ -125,20 +144,22 @@ export function useInspectionStructure() {
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/inspection-sections/${id}`, { method: "DELETE" });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || "فشل حذف القسم");
+        const errorMsg = await parseResponseError(res, "فشل حذف القسم");
+        throw new Error(errorMsg);
       }
       return await res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/inspection-sections"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/inspection-categories"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/inspection-sections"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/inspection-categories"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/inspection-sections"] });
       toast({ title: "تم حذف القسم بنجاح" });
     },
     onError: (err: any) => {
+      console.error("Delete section error:", err);
       toast({
         title: "خطأ في حذف القسم",
-        description: err.message,
+        description: err.message || "تعذر حذف القسم",
         variant: "destructive",
       });
     },
@@ -151,11 +172,22 @@ export function useInspectionStructure() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ids }),
       });
-      if (!res.ok) throw new Error("فشل حفظ الترتيب");
+      if (!res.ok) {
+        const errorMsg = await parseResponseError(res, "فشل حفظ ترتيب الأقسام");
+        throw new Error(errorMsg);
+      }
       return await res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/inspection-sections"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/inspection-sections"] });
+    },
+    onError: (err: any) => {
+      console.error("Reorder sections error:", err);
+      toast({
+        title: "خطأ في إعادة الترتيب",
+        description: err.message || "تعذر حفظ الترتيب الجديد",
+        variant: "destructive",
+      });
     },
   });
 
@@ -169,22 +201,24 @@ export function useInspectionStructure() {
         body: JSON.stringify(newCat),
       });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || "فشل إنشاء الفئة");
+        const errorMsg = await parseResponseError(res, "فشل إنشاء الفئة");
+        throw new Error(errorMsg);
       }
       return await res.json();
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/inspection-categories"] });
+    onSuccess: async (data) => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/inspection-categories"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/inspection-categories"] });
       toast({
         title: "تم إنشاء الفئة بنجاح",
         description: `تمت إضافة فئة "${data.label}"`,
       });
     },
     onError: (err: any) => {
+      console.error("Create category error:", err);
       toast({
         title: "خطأ في إنشاء الفئة",
-        description: err.message || "تعذر إنشاء الفئة",
+        description: err.message || "تعذر إنشاء الفئة، يرجى المحاولة مرة أخرى",
         variant: "destructive",
       });
     },
@@ -198,19 +232,21 @@ export function useInspectionStructure() {
         body: JSON.stringify(updates),
       });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || "فشل تعديل الفئة");
+        const errorMsg = await parseResponseError(res, "فشل تعديل الفئة");
+        throw new Error(errorMsg);
       }
       return await res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/inspection-categories"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/inspection-categories"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/inspection-categories"] });
       toast({ title: "تم تحديث الفئة بنجاح" });
     },
     onError: (err: any) => {
+      console.error("Update category error:", err);
       toast({
         title: "خطأ في تحديث الفئة",
-        description: err.message,
+        description: err.message || "تعذر تحديث الفئة",
         variant: "destructive",
       });
     },
@@ -220,19 +256,21 @@ export function useInspectionStructure() {
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/inspection-categories/${id}`, { method: "DELETE" });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || "فشل حذف الفئة");
+        const errorMsg = await parseResponseError(res, "فشل حذف الفئة");
+        throw new Error(errorMsg);
       }
       return await res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/inspection-categories"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/inspection-categories"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/inspection-categories"] });
       toast({ title: "تم حذف الفئة بنجاح" });
     },
     onError: (err: any) => {
+      console.error("Delete category error:", err);
       toast({
         title: "خطأ في حذف الفئة",
-        description: err.message,
+        description: err.message || "تعذر حذف الفئة",
         variant: "destructive",
       });
     },
@@ -245,11 +283,22 @@ export function useInspectionStructure() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ids }),
       });
-      if (!res.ok) throw new Error("فشل حفظ الترتيب");
+      if (!res.ok) {
+        const errorMsg = await parseResponseError(res, "فشل حفظ ترتيب الفئات");
+        throw new Error(errorMsg);
+      }
       return await res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/inspection-categories"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["/api/inspection-categories"] });
+    },
+    onError: (err: any) => {
+      console.error("Reorder categories error:", err);
+      toast({
+        title: "خطأ في إعادة الترتيب",
+        description: err.message || "تعذر حفظ الترتيب الجديد",
+        variant: "destructive",
+      });
     },
   });
 

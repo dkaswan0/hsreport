@@ -19,6 +19,7 @@ import {
   Search,
   Check,
   Pencil,
+  GripVertical,
   X,
   Monitor,
   Upload,
@@ -85,7 +86,9 @@ export default function InspectionDetails() {
   const [categoryToEdit, setCategoryToEdit] = useState<any>(null);
 
   const [draggedSectionIndex, setDraggedSectionIndex] = useState<number | null>(null);
+  const [dragOverSectionIndex, setDragOverSectionIndex] = useState<number | null>(null);
   const [draggedCategoryIndex, setDraggedCategoryIndex] = useState<number | null>(null);
+  const [dragOverCategoryIndex, setDragOverCategoryIndex] = useState<number | null>(null);
 
   // Sync initial selection
   useEffect(() => {
@@ -98,21 +101,61 @@ export default function InspectionDetails() {
     }
   }, [sections]);
 
-  const handleSectionDrop = async (targetIndex: number) => {
-    if (draggedSectionIndex === null || draggedSectionIndex === targetIndex) return;
+  const handleSectionDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedSectionIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", String(index));
+  };
+
+  const handleSectionDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragOverSectionIndex !== index) {
+      setDragOverSectionIndex(index);
+    }
+  };
+
+  const handleSectionDrop = async (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedSectionIndex === null || draggedSectionIndex === targetIndex) {
+      setDraggedSectionIndex(null);
+      setDragOverSectionIndex(null);
+      return;
+    }
     const reordered = [...sections];
     const [moved] = reordered.splice(draggedSectionIndex, 1);
     reordered.splice(targetIndex, 0, moved);
     setDraggedSectionIndex(null);
+    setDragOverSectionIndex(null);
     await reorderSections(reordered.map(s => s.id));
   };
 
-  const handleCategoryDrop = async (currentSectionCats: any[], targetIndex: number) => {
-    if (draggedCategoryIndex === null || draggedCategoryIndex === targetIndex) return;
+  const handleCategoryDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedCategoryIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", String(index));
+  };
+
+  const handleCategoryDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragOverCategoryIndex !== index) {
+      setDragOverCategoryIndex(index);
+    }
+  };
+
+  const handleCategoryDrop = async (e: React.DragEvent, currentSectionCats: any[], targetIndex: number) => {
+    e.preventDefault();
+    if (draggedCategoryIndex === null || draggedCategoryIndex === targetIndex) {
+      setDraggedCategoryIndex(null);
+      setDragOverCategoryIndex(null);
+      return;
+    }
     const reordered = [...currentSectionCats];
     const [moved] = reordered.splice(draggedCategoryIndex, 1);
     reordered.splice(targetIndex, 0, moved);
     setDraggedCategoryIndex(null);
+    setDragOverCategoryIndex(null);
     await reorderCategories(reordered.map(c => c.id));
   };
   
@@ -244,9 +287,9 @@ export default function InspectionDetails() {
         <div>
           <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 font-arabic flex items-center justify-between">
             <span>الأقسام الرئيسية للفحص</span>
-            <span className="text-slate-400 font-normal">اختر القسـم للتنقّـل السـريع (يمكن السحب لإعادة الترتيب)</span>
+            <span className="text-slate-400 font-normal">اسحب المقبض (⠿) لإعادة الترتيب أو اضغط للتنقّل</span>
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none items-center">
+          <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none items-center">
             {sections.map((section, idx) => {
               const currentActiveSecId = activeSection || (sections[0]?.id || "mechanic");
               const isActive = currentActiveSecId === section.id;
@@ -259,12 +302,36 @@ export default function InspectionDetails() {
                 <div
                   key={section.id}
                   draggable
-                  onDragStart={() => setDraggedSectionIndex(idx)}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={() => handleSectionDrop(idx)}
-                  className="relative group shrink-0"
+                  onDragStart={(e) => handleSectionDragStart(e, idx)}
+                  onDragOver={(e) => handleSectionDragOver(e, idx)}
+                  onDrop={(e) => handleSectionDrop(e, idx)}
+                  onDragEnd={() => {
+                    setDraggedSectionIndex(null);
+                    setDragOverSectionIndex(null);
+                  }}
+                  className={cn(
+                    "relative group shrink-0 flex items-stretch rounded-xl border transition-all select-none shadow-xs overflow-hidden",
+                    isActive
+                      ? "bg-[#09090b] text-white border-[#09090b] shadow-md ring-2 ring-[#18181b]/30"
+                      : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:text-slate-900",
+                    dragOverSectionIndex === idx && "ring-2 ring-zinc-500 scale-105 opacity-80",
+                    draggedSectionIndex === idx && "opacity-40"
+                  )}
                 >
+                  {/* Dedicated Drag Handle */}
+                  <div
+                    className={cn(
+                      "px-2 py-2 flex items-center justify-center cursor-grab active:cursor-grabbing border-l border-zinc-200/50 transition-colors",
+                      isActive ? "text-zinc-400 hover:text-white border-zinc-800 bg-zinc-900/50" : "text-zinc-400 hover:text-zinc-700 bg-slate-100/60"
+                    )}
+                    title="اسحب لتغيير ترتيب القسم"
+                  >
+                    <GripVertical className="w-3.5 h-3.5" />
+                  </div>
+
+                  {/* Section Button */}
                   <button
+                    type="button"
                     onClick={() => {
                       setActiveSection(section.id);
                       const cats = getCategoriesForSection(section.id);
@@ -272,12 +339,7 @@ export default function InspectionDetails() {
                         setActiveCategory(cats[0].id);
                       }
                     }}
-                    className={cn(
-                      "px-3.5 sm:px-4 py-2.5 rounded-xl font-arabic text-xs md:text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 border shadow-xs cursor-pointer",
-                      isActive
-                        ? "bg-[#09090b] text-white border-[#09090b] shadow-md ring-2 ring-[#18181b]/30"
-                        : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:text-slate-900"
-                    )}
+                    className="px-3.5 py-2.5 font-arabic text-xs md:text-sm font-bold whitespace-nowrap flex items-center gap-2 cursor-pointer"
                     data-testid={`section-tab-${section.id}`}
                   >
                     <span>{section.label}</span>
@@ -292,7 +354,7 @@ export default function InspectionDetails() {
                   </button>
 
                   {/* Quick Edit/Delete on Hover */}
-                  <div className="absolute -top-2 -left-1 hidden group-hover:flex items-center gap-1 bg-white border border-zinc-200 rounded-lg p-0.5 shadow-md z-10">
+                  <div className="absolute top-1 left-1 hidden group-hover:flex items-center gap-1 bg-white/95 backdrop-blur-xs border border-zinc-300 rounded-lg p-0.5 shadow-md z-20">
                     <button
                       type="button"
                       onClick={(e) => {
@@ -300,7 +362,7 @@ export default function InspectionDetails() {
                         setSectionToEdit(section);
                         setIsEditSectionOpen(true);
                       }}
-                      className="p-1 hover:bg-zinc-100 text-zinc-700 rounded transition-colors"
+                      className="p-1 hover:bg-zinc-100 text-zinc-700 rounded transition-colors cursor-pointer"
                       title="تعديل اسم القسم"
                     >
                       <Pencil className="w-3 h-3" />
@@ -314,7 +376,7 @@ export default function InspectionDetails() {
                             deleteSection(section.id);
                           }
                         }}
-                        className="p-1 hover:bg-zinc-100 text-zinc-700 hover:text-zinc-950 rounded transition-colors"
+                        className="p-1 hover:bg-zinc-100 text-zinc-700 hover:text-zinc-950 rounded transition-colors cursor-pointer"
                         title="حذف القسم"
                       >
                         <Trash2 className="w-3 h-3" />
@@ -357,19 +419,38 @@ export default function InspectionDetails() {
                       <div
                         key={cat.id}
                         draggable
-                        onDragStart={() => setDraggedCategoryIndex(idx)}
-                        onDragOver={(e) => e.preventDefault()}
-                        onDrop={() => handleCategoryDrop(currentSectionCats, idx)}
-                        className="relative group shrink-0"
+                        onDragStart={(e) => handleCategoryDragStart(e, idx)}
+                        onDragOver={(e) => handleCategoryDragOver(e, idx)}
+                        onDrop={(e) => handleCategoryDrop(e, currentSectionCats, idx)}
+                        onDragEnd={() => {
+                          setDraggedCategoryIndex(null);
+                          setDragOverCategoryIndex(null);
+                        }}
+                        className={cn(
+                          "relative group shrink-0 flex items-stretch rounded-full border transition-all select-none shadow-xs overflow-hidden",
+                          isCatActive
+                            ? "bg-[#18181b] text-white border-[#18181b] shadow-sm font-extrabold"
+                            : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900",
+                          dragOverCategoryIndex === idx && "ring-2 ring-zinc-500 scale-105 opacity-80",
+                          draggedCategoryIndex === idx && "opacity-40"
+                        )}
                       >
-                        <button
-                          onClick={() => setActiveCategory(cat.id)}
+                        {/* Drag Handle */}
+                        <div
                           className={cn(
-                            "px-3.5 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 font-arabic border cursor-pointer",
-                            isCatActive
-                              ? "bg-[#18181b] text-white border-[#18181b] shadow-sm font-extrabold"
-                              : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900"
+                            "pr-2 pl-1 py-1 flex items-center justify-center cursor-grab active:cursor-grabbing transition-colors",
+                            isCatActive ? "text-zinc-400 hover:text-white" : "text-zinc-400 hover:text-zinc-700"
                           )}
+                          title="اسحب لتغيير ترتيب الفئة"
+                        >
+                          <GripVertical className="w-3 h-3" />
+                        </div>
+
+                        {/* Category Button */}
+                        <button
+                          type="button"
+                          onClick={() => setActiveCategory(cat.id)}
+                          className="pl-3.5 pr-1 py-1.5 text-xs font-bold whitespace-nowrap flex items-center gap-1.5 font-arabic cursor-pointer"
                           data-testid={`category-pill-${cat.id}`}
                         >
                           <span>{cat.label}</span>
@@ -384,7 +465,7 @@ export default function InspectionDetails() {
                         </button>
 
                         {/* Quick Edit/Delete on Hover */}
-                        <div className="absolute -top-2 -left-1 hidden group-hover:flex items-center gap-1 bg-white border border-zinc-200 rounded-lg p-0.5 shadow-md z-10">
+                        <div className="absolute top-0.5 left-0.5 hidden group-hover:flex items-center gap-1 bg-white/95 backdrop-blur-xs border border-zinc-300 rounded-lg p-0.5 shadow-md z-20">
                           <button
                             type="button"
                             onClick={(e) => {
@@ -392,7 +473,7 @@ export default function InspectionDetails() {
                               setCategoryToEdit(cat);
                               setIsEditCategoryOpen(true);
                             }}
-                            className="p-0.5 hover:bg-zinc-100 text-zinc-700 rounded transition-colors"
+                            className="p-0.5 hover:bg-zinc-100 text-zinc-700 rounded transition-colors cursor-pointer"
                             title="تعديل اسم الفئة"
                           >
                             <Pencil className="w-2.5 h-2.5" />
@@ -406,7 +487,7 @@ export default function InspectionDetails() {
                                   deleteCategory(cat.id);
                                 }
                               }}
-                              className="p-0.5 hover:bg-zinc-100 text-zinc-700 hover:text-zinc-950 rounded transition-colors"
+                              className="p-0.5 hover:bg-zinc-100 text-zinc-700 hover:text-zinc-950 rounded transition-colors cursor-pointer"
                               title="حذف الفئة"
                             >
                               <Trash2 className="w-2.5 h-2.5" />
@@ -421,7 +502,7 @@ export default function InspectionDetails() {
                   <button
                     type="button"
                     onClick={() => setIsAddCategoryOpen(true)}
-                    className="px-3 py-1 rounded-full text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1 font-arabic border border-dashed border-zinc-400 bg-zinc-50 hover:bg-zinc-100 text-zinc-900 cursor-pointer shrink-0"
+                    className="px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1 font-arabic border border-dashed border-zinc-400 bg-zinc-50 hover:bg-zinc-100 text-zinc-900 cursor-pointer shrink-0"
                     data-testid="btn-add-category"
                   >
                     <Plus className="w-3.5 h-3.5 text-zinc-900" />
