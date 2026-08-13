@@ -114,12 +114,19 @@ export const formatInspectionDateTime = (dateStr?: string | Date | null) => {
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
-  const hours = String(d.getHours()).padStart(2, '0');
+  
+  let hours = d.getHours();
   const minutes = String(d.getMinutes()).padStart(2, '0');
+  const ampm = hours >= 12 ? 'م' : 'ص';
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  const formattedHours = String(hours).padStart(2, '0');
+  const timeStr = `${formattedHours}:${minutes} ${ampm}`;
+
   return {
     date: `${year}/${month}/${day}`,
-    time: `${hours}:${minutes}`,
-    full: `${year}/${month}/${day} — ${hours}:${minutes}`
+    time: timeStr,
+    full: `${year}/${month}/${day} — ${timeStr}`
   };
 };
 

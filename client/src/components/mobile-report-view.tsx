@@ -140,9 +140,13 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
                   const y = d.getFullYear();
                   const m = String(d.getMonth() + 1).padStart(2, '0');
                   const day = String(d.getDate()).padStart(2, '0');
-                  const h = String(d.getHours()).padStart(2, '0');
+                  let h = d.getHours();
                   const min = String(d.getMinutes()).padStart(2, '0');
-                  return `${y}/${m}/${day} — ${h}:${min}`;
+                  const ampm = h >= 12 ? 'م' : 'ص';
+                  h = h % 12;
+                  h = h ? h : 12;
+                  const formattedH = String(h).padStart(2, '0');
+                  return `${y}/${m}/${day} — ${formattedH}:${min} ${ampm}`;
                 })() : '-'}
               </span>
             </div>

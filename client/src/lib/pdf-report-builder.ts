@@ -378,7 +378,7 @@ export async function generateInspectionPdf(inspection: Inspection, logoUrl?: st
   const inspectionDate = inspection.createdAt ? new Date(inspection.createdAt) : new Date();
   const dateStr = inspectionDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
   const arabicDate = inspectionDate.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
-  const timeStr = inspectionDate.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', hour12: false });
+  const timeStr = inspectionDate.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', hour12: true });
 
   let logoBase64: string | null = null;
   if (logoUrl) {

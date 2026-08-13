@@ -631,9 +631,13 @@ const CompanyHeader = ({
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
-    const h = String(d.getHours()).padStart(2, '0');
+    let h = d.getHours();
     const min = String(d.getMinutes()).padStart(2, '0');
-    return `${y}/${m}/${day} — ${h}:${min}`;
+    const ampm = h >= 12 ? 'م' : 'ص';
+    h = h % 12;
+    h = h ? h : 12;
+    const formattedH = String(h).padStart(2, '0');
+    return `${y}/${m}/${day} — ${formattedH}:${min} ${ampm}`;
   })() : '-';
 
   return (
@@ -1491,7 +1495,7 @@ export default function InteractiveReport() {
       const primaryColor = inspection.color?.split(',')[0]?.trim() || 'غير محدد';
       const inspectionDate = inspection.createdAt ? new Date(inspection.createdAt) : new Date();
       const reportDate = inspectionDate.toLocaleDateString('ar-AE', { year: 'numeric', month: 'long', day: 'numeric' });
-      const reportTime = inspectionDate.toLocaleTimeString('ar-AE', { hour: '2-digit', minute: '2-digit', hour12: false });
+      const reportTime = inspectionDate.toLocaleTimeString('ar-AE', { hour: '2-digit', minute: '2-digit', hour12: true });
       const fullDateTime = `${reportDate} - الساعة ${reportTime}`;
       
       // Convert logo to base64
