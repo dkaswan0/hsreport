@@ -107,62 +107,84 @@ const ImageModal = ({ imageUrl, faultName, onClose }: { imageUrl: string; faultN
   );
 };
 
-// Company Header Component - Luxury Monochrome Brand Header with Logo
-const CompanyHeader = ({ inspection }: { inspection?: any }) => (
-  <div className="bg-zinc-950 text-white rounded-3xl overflow-hidden shadow-xl border border-zinc-800">
-    <div className="p-3.5 sm:p-4 md:p-5 flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4">
-      {/* Right: High-Res Logo & Center Titles */}
-      <div className="flex items-center gap-4 text-center md:text-right">
-        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800 flex items-center justify-center p-1.5 shrink-0 shadow-lg">
-          <img 
-            src={logoPath} 
-            alt="High Safety Logo" 
-            className="w-full h-full object-contain"
-          />
-        </div>
-        <div className="text-right">
-          <h1 className="text-sm sm:text-base md:text-lg font-black font-arabic text-white tracking-wide">
-            مركز الأمان العالي الدولي لفحص السيارات
-          </h1>
-          <p className="text-[11px] sm:text-xs md:text-sm font-mono text-zinc-400 font-semibold tracking-wider uppercase mt-1" dir="ltr">
-            HIGH SAFETY INTERNATIONAL VEHICLE INSPECTION CENTER
-          </p>
-        </div>
-      </div>
+export const formatInspectionDateTime = (dateStr?: string | Date | null) => {
+  if (!dateStr) return { date: '-', time: '-', full: '-' };
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return { date: '-', time: '-', full: '-' };
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  return {
+    date: `${year}/${month}/${day}`,
+    time: `${hours}:${minutes}`,
+    full: `${year}/${month}/${day} — ${hours}:${minutes}`
+  };
+};
 
-      {/* Left: Report Meta Info */}
-      <div className="flex flex-wrap items-center justify-center md:justify-end gap-2.5 sm:gap-3 text-xs">
-        <div className="bg-zinc-900 border border-zinc-800 px-3.5 py-1.5 rounded-lg text-center shadow-xs min-w-[95px]">
-          <div className="text-[10px] text-zinc-400 font-arabic">رقم التقرير | Report No</div>
-          <div className="font-mono font-black text-sm text-white">{inspection?.vin ? `HS-${inspection?.id}` : (inspection?.id ? `HS-${inspection.id}` : '-')}</div>
+// Company Header Component - Compact Balanced Luxury Monochrome Brand Header with Logo
+const CompanyHeader = ({ inspection }: { inspection?: any }) => {
+  const dateTime = useMemo(() => formatInspectionDateTime(inspection?.createdAt), [inspection?.createdAt]);
+
+  return (
+    <div className="bg-zinc-950 text-white rounded-2xl overflow-hidden shadow-sm border border-zinc-800" data-testid="company-header">
+      <div className="p-2.5 sm:p-3 md:p-3.5 flex flex-col md:flex-row items-center justify-between gap-2.5 sm:gap-3">
+        {/* Right: High-Res Logo & Center Titles */}
+        <div className="flex items-center gap-3 text-center md:text-right">
+          <div className="w-11 h-11 sm:w-12 sm:h-12 md:w-13 md:h-13 rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800 flex items-center justify-center p-1 shrink-0 shadow-inner">
+            <img 
+              src={logoPath} 
+              alt="High Safety Logo" 
+              className="w-full h-full object-contain"
+            />
+          </div>
+          <div className="text-right">
+            <h1 className="text-xs sm:text-sm md:text-base font-black font-arabic text-white tracking-wide leading-tight">
+              مركز الأمان العالي الدولي لفحص السيارات
+            </h1>
+            <p className="text-[9px] sm:text-[10px] font-mono text-zinc-400 font-semibold tracking-wider uppercase mt-0.5" dir="ltr">
+              HIGH SAFETY INTERNATIONAL VEHICLE INSPECTION
+            </p>
+          </div>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 px-3.5 py-1.5 rounded-lg text-center shadow-xs min-w-[95px]">
-          <div className="text-[10px] text-zinc-400 font-arabic">تاريخ الفحص | Date</div>
-          <div className="font-mono font-bold text-xs text-zinc-200">
-            {inspection?.createdAt ? new Date(inspection.createdAt).toLocaleDateString('ar-AE') : new Date().toLocaleDateString('ar-AE')}
+
+        {/* Left: Report Meta Info */}
+        <div className="flex flex-wrap items-center justify-center md:justify-end gap-2 text-xs">
+          <div className="bg-zinc-900 border border-zinc-800 px-2.5 py-1 rounded-lg text-center shadow-xs">
+            <div className="text-[9px] text-zinc-400 font-arabic leading-tight">رقم التقرير | Report No</div>
+            <div className="font-mono font-black text-xs sm:text-sm text-white">
+              {inspection?.id ? `HS-${inspection.id}` : '-'}
+            </div>
+          </div>
+          <div className="bg-zinc-900 border border-zinc-800 px-2.5 py-1 rounded-lg text-center shadow-xs">
+            <div className="text-[9px] text-zinc-400 font-arabic leading-tight">تاريخ ووقت الفحص | Date & Time</div>
+            <div className="font-mono font-bold text-[11px] sm:text-xs text-zinc-200" dir="ltr">
+              {dateTime.full}
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    {/* Contact Bar */}
-    <div className="bg-zinc-900 border-t border-zinc-800 px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-center md:justify-between gap-3 text-xs text-zinc-300">
-      <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
-        <div className="flex items-center gap-2">
-          <PhosphorIcon name="phone" weight="bold" size={14} className="text-zinc-400" />
-          <span className="font-mono font-bold text-white" dir="ltr">0542206000</span>
+      {/* Contact Bar (Clean - No Email) */}
+      <div className="bg-zinc-900/90 border-t border-zinc-800 px-3 sm:px-4 py-1.5 flex flex-wrap items-center justify-center md:justify-between gap-2 text-[10px] sm:text-[11px] text-zinc-300">
+        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-1.5">
+            <PhosphorIcon name="phone" weight="bold" size={12} className="text-zinc-400" />
+            <span className="font-mono font-bold text-white text-xs" dir="ltr">0542206000</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <PhosphorIcon name="map-pin" weight="bold" size={12} className="text-zinc-400" />
+            <span className="font-arabic">الشارقة الصناعية 13، طريق المدينة الجامعية</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <PhosphorIcon name="map-pin" weight="bold" size={14} className="text-zinc-400" />
-          <span className="font-arabic">الشارقة الصناعية 13، طريق المدينة الجامعية</span>
+        <div className="font-mono text-zinc-400 text-[9px] sm:text-[10px] hidden sm:block" dir="ltr">
+          SHARJAH, UNITED ARAB EMIRATES
         </div>
-      </div>
-      <div className="font-mono text-zinc-400 text-[11px] hidden sm:block" dir="ltr">
-        info@highsafetyint.com
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 
 const VehicleInfoCard = ({ inspection }: { inspection: any }) => {

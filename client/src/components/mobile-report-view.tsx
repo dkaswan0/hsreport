@@ -113,10 +113,10 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
   return (
     <div className="w-full space-y-2.5 font-arabic antialiased text-zinc-900 pb-6" dir="rtl">
       
-      {/* 1. Header Card - Luxury Monochrome with Logo */}
-      <div className="bg-zinc-950 rounded-2xl overflow-hidden shadow-lg border border-zinc-800 p-3 sm:p-3.5 text-white">
-        <div className="flex items-center gap-3.5">
-          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center p-1 shrink-0 shadow-inner">
+      {/* 1. Header Card - Compact Luxury Monochrome with Logo */}
+      <div className="bg-zinc-950 rounded-2xl overflow-hidden shadow-sm border border-zinc-800 p-2.5 sm:p-3 text-white">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center p-1 shrink-0 shadow-inner">
             <img
               src={logoPath}
               alt="High Safety Logo"
@@ -124,17 +124,27 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
             />
           </div>
           <div className="flex-1 min-w-0 text-right">
-            <h1 className="text-sm font-black text-white font-arabic leading-tight">
+            <h1 className="text-xs sm:text-sm font-black text-white font-arabic leading-tight">
               مركز الأمان العالي الدولي لفحص السيارات
             </h1>
-            <p className="text-[10px] text-zinc-400 font-mono tracking-wider uppercase mt-0.5" dir="ltr">
+            <p className="text-[9px] sm:text-[10px] text-zinc-400 font-mono tracking-wider uppercase mt-0.5" dir="ltr">
               HIGH SAFETY INTERNATIONAL
             </p>
-            <div className="flex items-center gap-2 mt-1.5 text-[10px] text-zinc-400">
-              <span className="font-mono bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded text-white font-bold" dir="ltr">
+            <div className="flex flex-wrap items-center gap-2 mt-1 text-[10px] text-zinc-300">
+              <span className="font-mono bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded text-white font-bold text-xs" dir="ltr">
                 HS-{inspection.id}
               </span>
-              <span>{inspection.createdAt ? new Date(inspection.createdAt).toLocaleDateString('ar-AE') : new Date().toLocaleDateString('ar-AE')}</span>
+              <span className="font-mono font-medium text-zinc-300" dir="ltr">
+                {inspection.createdAt ? (() => {
+                  const d = new Date(inspection.createdAt);
+                  const y = d.getFullYear();
+                  const m = String(d.getMonth() + 1).padStart(2, '0');
+                  const day = String(d.getDate()).padStart(2, '0');
+                  const h = String(d.getHours()).padStart(2, '0');
+                  const min = String(d.getMinutes()).padStart(2, '0');
+                  return `${y}/${m}/${day} — ${h}:${min}`;
+                })() : '-'}
+              </span>
             </div>
           </div>
         </div>

@@ -706,7 +706,7 @@ export const PdfFooterBar = ({ pageNum, totalPages }: { pageNum: number; totalPa
         📍 الشارقة الصناعية 13، طريق المدينة الجامعية
       </span>
       <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }} dir="ltr">
-        ✉️ info@highsafetyint.com
+        
       </span>
     </div>
     <span style={{ color: '#ffffff', fontWeight: 'bold', fontSize: '8.5px' }}>

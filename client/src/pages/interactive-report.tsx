@@ -612,92 +612,117 @@ const Car360Visualization = ({ items, onCategoryClick }: { items: any[], onCateg
 };
 
 // Company Header Component with Action Buttons
+// Company Header Component with Action Buttons - Compact Luxury Monochrome
 const CompanyHeader = ({ 
+  inspection,
   onShare, 
   onPrint, 
   onDownloadAr, 
   onDownloadEn 
 }: { 
+  inspection?: any;
   onShare?: () => void; 
   onPrint?: () => void; 
   onDownloadAr?: () => void; 
   onDownloadEn?: () => void; 
-}) => (
-  <div className="rounded-3xl overflow-hidden shadow-2xl border border-zinc-800 bg-zinc-950 text-white">
-    {/* Professional Luxury Header with Logo */}
-    <div className="p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 border-b border-zinc-800/80">
-      <div className="flex flex-col md:flex-row items-center gap-5 text-center md:text-right">
-        <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center p-2 shrink-0 shadow-inner">
-          <img 
-            src={logoPath} 
-            alt="High Safety International Center" 
-            className="w-full h-full object-contain"
-          />
-        </div>
-        <div>
-          <h1 className="text-xl md:text-2xl font-black text-white font-arabic tracking-tight">
-            مركز الأمان العالي الدولي لفحص السيارات
-          </h1>
-          <p className="text-xs md:text-sm text-zinc-400 font-mono tracking-widest uppercase mt-1" dir="ltr">
-            HIGH SAFETY INTERNATIONAL VEHICLE INSPECTION
-          </p>
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-2">
-            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300 font-arabic">
-              التقرير الفني الإلكتروني المعتمد
-            </span>
-            <span className="text-[11px] font-mono text-zinc-500" dir="ltr">
-              OFFICIAL CERTIFIED REPORT
-            </span>
+}) => {
+  const dateTimeStr = inspection?.createdAt ? (() => {
+    const d = new Date(inspection.createdAt);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const h = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    return `${y}/${m}/${day} — ${h}:${min}`;
+  })() : '-';
+
+  return (
+    <div className="rounded-2xl overflow-hidden shadow-sm border border-zinc-800 bg-zinc-950 text-white">
+      {/* Compact Header with Logo */}
+      <div className="p-2.5 sm:p-3 md:p-3.5 flex flex-col md:flex-row items-center justify-between gap-2.5 sm:gap-3 border-b border-zinc-800/80">
+        <div className="flex items-center gap-3 text-center md:text-right">
+          <div className="w-11 h-11 sm:w-12 sm:h-12 md:w-13 md:h-13 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center p-1 shrink-0 shadow-inner">
+            <img 
+              src={logoPath} 
+              alt="High Safety International Center" 
+              className="w-full h-full object-contain"
+            />
+          </div>
+          <div>
+            <h1 className="text-xs sm:text-sm md:text-base font-black text-white font-arabic tracking-tight leading-tight">
+              مركز الأمان العالي الدولي لفحص السيارات
+            </h1>
+            <p className="text-[9px] sm:text-[10px] text-zinc-400 font-mono tracking-wider uppercase mt-0.5" dir="ltr">
+              HIGH SAFETY INTERNATIONAL VEHICLE INSPECTION
+            </p>
           </div>
         </div>
+
+        {/* Report Meta Badges */}
+        <div className="flex flex-wrap items-center justify-center md:justify-end gap-2 text-xs">
+          {inspection?.id && (
+            <div className="bg-zinc-900 border border-zinc-800 px-2.5 py-1 rounded-lg text-center shadow-xs">
+              <div className="text-[9px] text-zinc-400 font-arabic leading-tight">رقم التقرير | Report No</div>
+              <div className="font-mono font-black text-xs sm:text-sm text-white">
+                HS-{inspection.id}
+              </div>
+            </div>
+          )}
+          <div className="bg-zinc-900 border border-zinc-800 px-2.5 py-1 rounded-lg text-center shadow-xs">
+            <div className="text-[9px] text-zinc-400 font-arabic leading-tight">تاريخ ووقت الفحص | Date & Time</div>
+            <div className="font-mono font-bold text-[11px] sm:text-xs text-zinc-200" dir="ltr">
+              {dateTimeStr}
+            </div>
+          </div>
+        </div>
+
+        {onDownloadAr && (
+          <div className="flex flex-wrap items-center justify-center gap-1.5 shrink-0">
+            {onShare && (
+              <Button variant="outline" size="sm" onClick={onShare} className="font-arabic text-xs px-2.5 h-8 bg-zinc-900 hover:bg-zinc-800 border-zinc-700 text-white shadow-xs flex items-center gap-1 cursor-pointer">
+                <PhosphorIcon name="share-network" weight="bold" size={13} className="text-white" />
+                <span>مشاركة</span>
+              </Button>
+            )}
+            {onPrint && (
+              <Button variant="outline" size="sm" onClick={onPrint} className="font-arabic text-xs px-2.5 h-8 bg-zinc-900 hover:bg-zinc-800 border-zinc-700 text-white shadow-xs flex items-center gap-1 cursor-pointer">
+                <PhosphorIcon name="printer" weight="bold" size={13} className="text-white" />
+                <span>طباعة</span>
+              </Button>
+            )}
+            <Button size="sm" onClick={onDownloadAr} className="font-arabic text-xs px-3 h-8 bg-white hover:bg-zinc-100 text-zinc-950 font-black shadow-sm border-0 flex items-center gap-1 cursor-pointer" data-testid="button-download-pdf-ar">
+              <PhosphorIcon name="file-pdf" weight="bold" size={14} />
+              <span>تحميل PDF</span>
+            </Button>
+            {onDownloadEn && (
+              <Button size="sm" onClick={onDownloadEn} className="text-xs px-2.5 h-8 bg-zinc-900 hover:bg-zinc-800 text-white font-bold shadow-xs border border-zinc-700 flex items-center gap-1 cursor-pointer" data-testid="button-download-pdf-en">
+                <PhosphorIcon name="file-pdf" weight="bold" size={13} className="text-white" />
+                <span>PDF (EN)</span>
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
-      {onDownloadAr && (
-        <div className="flex flex-wrap items-center justify-center gap-2 shrink-0">
-          {onShare && (
-            <Button variant="outline" size="sm" onClick={onShare} className="font-arabic text-xs px-3 h-9 bg-zinc-900 hover:bg-zinc-800 border-zinc-700 text-white shadow-xs flex items-center gap-1.5 cursor-pointer">
-              <PhosphorIcon name="share-network" weight="bold" size={15} className="text-white" />
-              <span>مشاركة</span>
-            </Button>
-          )}
-          {onPrint && (
-            <Button variant="outline" size="sm" onClick={onPrint} className="font-arabic text-xs px-3 h-9 bg-zinc-900 hover:bg-zinc-800 border-zinc-700 text-white shadow-xs flex items-center gap-1.5 cursor-pointer">
-              <PhosphorIcon name="printer" weight="bold" size={15} className="text-white" />
-              <span>طباعة</span>
-            </Button>
-          )}
-          <Button size="sm" onClick={onDownloadAr} className="font-arabic text-xs px-4 h-9 bg-white hover:bg-zinc-100 text-zinc-950 font-black shadow-md border-0 flex items-center gap-1.5 cursor-pointer" data-testid="button-download-pdf-ar">
-            <PhosphorIcon name="file-pdf" weight="bold" size={16} />
-            <span>تحميل PDF (عربي)</span>
-          </Button>
-          {onDownloadEn && (
-            <Button size="sm" onClick={onDownloadEn} className="text-xs px-3 h-9 bg-zinc-900 hover:bg-zinc-800 text-white font-bold shadow-xs border border-zinc-700 flex items-center gap-1.5 cursor-pointer" data-testid="button-download-pdf-en">
-              <PhosphorIcon name="file-pdf" weight="bold" size={15} className="text-white" />
-              <span>English PDF</span>
-            </Button>
-          )}
+      {/* Clean Contact Bar (No Email) */}
+      <div className="bg-zinc-900/90 px-3 sm:px-4 py-1.5 flex flex-wrap items-center justify-center md:justify-between gap-2 text-[10px] sm:text-[11px] text-zinc-300">
+        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-1.5">
+            <PhosphorIcon name="phone" weight="bold" size={12} className="text-zinc-400" />
+            <span className="font-mono font-bold text-white text-xs" dir="ltr">0542206000</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <PhosphorIcon name="map-pin" weight="bold" size={12} className="text-zinc-400" />
+            <span className="font-arabic">الشارقة الصناعية 13، طريق المدينة الجامعية</span>
+          </div>
         </div>
-      )}
-    </div>
-
-    {/* Contact Info Bar */}
-    <div className="bg-zinc-900/90 text-zinc-300 px-6 py-3 flex flex-wrap justify-center md:justify-between items-center gap-3 border-t border-zinc-800 text-xs">
-      <div className="flex flex-wrap items-center justify-center gap-4">
-        <div className="flex items-center gap-2 bg-zinc-950 border border-zinc-800 px-3.5 py-1.5 rounded-xl">
-          <Phone className="w-3.5 h-3.5 text-zinc-400" />
-          <span className="font-mono font-bold" dir="ltr">0542206000</span>
-        </div>
-        <div className="flex items-center gap-2 bg-zinc-950 border border-zinc-800 px-3.5 py-1.5 rounded-xl">
-          <MapPin className="w-3.5 h-3.5 text-zinc-400" />
-          <span>الشارقة الصناعية 13، طريق المدينة الجامعية</span>
+        <div className="font-mono text-zinc-400 text-[9px] sm:text-[10px] hidden sm:block" dir="ltr">
+          SHARJAH, UNITED ARAB EMIRATES
         </div>
       </div>
-      <div className="text-[11px] font-mono text-zinc-500" dir="ltr">
-        SHARJAH, UNITED ARAB EMIRATES
-      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
   const vehicleColor = useMemo(() => getVehicleColor(inspection.color), [inspection.color]);
@@ -1790,7 +1815,7 @@ export default function InteractiveReport() {
           { 
             columns: [
               { text: 'واتساب: 0542206000', style: 'footerContact', alignment: 'left' },
-              { text: 'highsafety2021@gmail.com', style: 'footerContact', alignment: 'center' },
+              
               { text: 'سيتي بلازا الدراري - الشارقة', style: 'footerContact', alignment: 'right' }
             ],
             margin: [0, 8, 0, 0]
@@ -2030,7 +2055,7 @@ export default function InteractiveReport() {
             ],
             margin: [0, 0, 0, 15]
           },
-          { text: 'واتساب: 0542206000 | highsafety2021@gmail.com | سيتي بلازا الدراري - الشارقة', style: 'contact', alignment: 'center' },
+          { text: 'واتساب: 0542206000 | الشارقة الصناعية 13، طريق المدينة الجامعية', style: 'contact', alignment: 'center' },
           { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#1e293b' }], margin: [0, 10, 0, 15] },
           
           // Report Title
@@ -2110,7 +2135,7 @@ export default function InteractiveReport() {
           
           // Footer
           { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, lineColor: '#94a3b8' }], margin: [0, 10, 0, 10] },
-          { text: 'للاستفسارات: واتساب 0542206000 | highsafety2021@gmail.com | سيتي بلازا الدراري - الشارقة', style: 'footer', alignment: 'center' }
+          { text: 'للاستفسارات: واتساب 0542206000 | الشارقة الصناعية 13، طريق المدينة الجامعية', style: 'footer', alignment: 'center' }
         ],
         styles: {
           header: { fontSize: 22, bold: true, color: '#1e293b' },
@@ -2234,6 +2259,7 @@ export default function InteractiveReport() {
       <div id="report-content" className="hidden md:block max-w-5xl mx-auto py-3 sm:py-4 px-3 sm:px-4 space-y-3 sm:space-y-3.5 print:py-0">
         {/* Company Header */}
         <CompanyHeader 
+          inspection={inspection}
           onShare={handleShareReport}
           onPrint={() => window.print()}
           onDownloadAr={() => handleNewPdfDownload('ar')}
