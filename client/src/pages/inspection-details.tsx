@@ -1,3 +1,4 @@
+import { api } from "@shared/routes";
 import { useQueryClient } from "@tanstack/react-query";
 import { useInspection, useCreateInspectionItem, useDeleteInspectionItem, useUpdateInspectionItem, useUpdateInspection, useFaultSuggestions, usePhotoAnalysis } from "@/hooks/use-inspections";
 import { useRoute } from "wouter";
@@ -1126,7 +1127,12 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
       });
 
       if (res.ok) {
-        queryClient.invalidateQueries({ queryKey: [`/api/inspections/${inspection.id}`] });
+        const data = await res.json();
+        if (data.inspection) {
+          queryClient.setQueryData([api.inspections.get.path, inspection.id], data.inspection);
+        }
+        queryClient.invalidateQueries({ queryKey: [api.inspections.get.path, inspection.id] });
+        queryClient.invalidateQueries({ queryKey: [api.inspections.list.path] });
         toast({
           title: "تم إنشاء طقم زوايا الاستوديو",
           description: "تم تجهيز كافة زوايا المركبة بالخلفية البيضاء النقية والظلال الاحترافية",
@@ -1167,7 +1173,11 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
 
       if (res.ok) {
         const data = await res.json();
-        queryClient.invalidateQueries({ queryKey: [`/api/inspections/${inspection.id}`] });
+        if (data.inspection) {
+          queryClient.setQueryData([api.inspections.get.path, inspection.id], data.inspection);
+        }
+        queryClient.invalidateQueries({ queryKey: [api.inspections.get.path, inspection.id] });
+        queryClient.invalidateQueries({ queryKey: [api.inspections.list.path] });
         if (data.activeMode === 'processed') {
           toast({
             title: "تم تحسين الصورة",
@@ -1285,7 +1295,12 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
       });
 
       if (res.ok) {
-        queryClient.invalidateQueries({ queryKey: [`/api/inspections/${inspection.id}`] });
+        const data = await res.json();
+        if (data.inspection) {
+          queryClient.setQueryData([api.inspections.get.path, inspection.id], data.inspection);
+        }
+        queryClient.invalidateQueries({ queryKey: [api.inspections.get.path, inspection.id] });
+        queryClient.invalidateQueries({ queryKey: [api.inspections.list.path] });
         toast({
           title: targetMode === 'original' ? "تمت استعادة الصورة الأصلية" : "تم اعتماد الصورة المعالجة",
           description: `تم تحديث وضع عرض ${labelAr} بالتقرير`,
@@ -1310,7 +1325,12 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
       });
 
       if (res.ok) {
-        queryClient.invalidateQueries({ queryKey: [`/api/inspections/${inspection.id}`] });
+        const data = await res.json();
+        if (data.inspection) {
+          queryClient.setQueryData([api.inspections.get.path, inspection.id], data.inspection);
+        }
+        queryClient.invalidateQueries({ queryKey: [api.inspections.get.path, inspection.id] });
+        queryClient.invalidateQueries({ queryKey: [api.inspections.list.path] });
         toast({ title: "تمت إعادة المعالجة", description: `تم تحديث المعالجة لـ ${labelAr}` });
       }
     } catch (err) {
