@@ -75,10 +75,12 @@ export class ImageAnalysisService {
   ): Promise<any> {
     const apiKey = this.getApiKey();
     const models = [
-      "gemini-2.0-flash",
-      "gemini-1.5-flash-latest",
+      "gemini-flash-latest",
+      "gemini-pro-latest",
+      "gemini-3.5-flash",
+      "gemini-flash-lite-latest",
+      "gemini-2.5-flash",
       "gemini-1.5-flash",
-      "gemini-2.0-flash-lite"
     ];
 
     let lastError: Error | null = null;
