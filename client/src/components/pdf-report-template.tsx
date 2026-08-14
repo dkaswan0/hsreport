@@ -254,70 +254,37 @@ export const PdfVehicleInfoSection = ({ inspection }: { inspection: Inspection }
           </div>
         </div>
 
-        {/* Right 7 Cols: Hero Car Photo + VIN Card & Odometer Card */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <div style={{ 
-            height: '105px', 
-            borderRadius: '6px', 
-            border: `1px solid ${BRAND.borderLight}`, 
-            overflow: 'hidden', 
-            backgroundColor: BRAND.bgLight, 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            padding: '3px',
-            boxSizing: 'border-box'
-          }}>
-            {resolveVehiclePhoto(inspection, "mainCarPhoto") ? (
-              <img 
-                src={resolveVehiclePhoto(inspection, "mainCarPhoto")} 
-                alt="Vehicle Main" 
-                style={{ 
-                  maxWidth: '100%', 
-                  maxHeight: '100%', 
-                  width: 'auto', 
-                  height: 'auto', 
-                  objectFit: 'contain' 
-                }} 
-              />
-            ) : (
-              <img 
-                src={hsCarBranding} 
-                alt="High Safety Branding" 
-                style={{ 
-                  maxWidth: '85%', 
-                  maxHeight: '85%', 
-                  width: 'auto', 
-                  height: 'auto', 
-                  objectFit: 'contain', 
-                  opacity: 0.3 
-                }} 
-              />
-            )}
+        {/* Right 7 Cols: Official Documentation (VIN & Odometer - No Duplicate Car Photo) */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+          <div style={{ border: `1px solid ${BRAND.borderLight}`, borderRadius: '6px', padding: '6px', textAlign: 'center', backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div style={{ fontSize: '8.5px', fontWeight: 'bold', marginBottom: '3px', color: BRAND.black, borderBottom: '1px solid #f1f5f9', paddingBottom: '2px' }}>
+              رقم الهيكل | VIN Plate
+            </div>
+            <div style={{ height: '70px', borderRadius: '4px', overflow: 'hidden', backgroundColor: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0', padding: '3px' }}>
+              {inspection.vinPhoto ? (
+                <img src={inspection.vinPhoto} alt="VIN" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+              ) : (
+                <span style={{ fontSize: '9px', fontFamily: 'monospace', fontWeight: 'bold', color: BRAND.black, wordBreak: 'break-all' }}>{inspection.vin || '-'}</span>
+              )}
+            </div>
+            <div style={{ fontSize: '7.5px', fontFamily: 'monospace', fontWeight: 'bold', color: '#475569', marginTop: '3px' }} dir="ltr">{inspection.vin || '-'}</div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-            <div style={{ border: `1px solid ${BRAND.borderLight}`, borderRadius: '6px', padding: '4px', textAlign: 'center', backgroundColor: BRAND.bgLight }}>
-              <div style={{ fontSize: '8px', fontWeight: 'bold', marginBottom: '2px', color: BRAND.black }}>رقم الهيكل (VIN)</div>
-              <div style={{ height: '42px', borderRadius: '4px', overflow: 'hidden', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e4e4e7', padding: '2px' }}>
-                {inspection.vinPhoto ? (
-                  <img src={inspection.vinPhoto} alt="VIN" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
-                ) : (
-                  <span style={{ fontSize: '9px', fontFamily: 'monospace', fontWeight: 'bold', color: BRAND.black }}>{inspection.vin}</span>
-                )}
-              </div>
+          <div style={{ border: `1px solid ${BRAND.borderLight}`, borderRadius: '6px', padding: '6px', textAlign: 'center', backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div style={{ fontSize: '8.5px', fontWeight: 'bold', marginBottom: '3px', color: BRAND.black, borderBottom: '1px solid #f1f5f9', paddingBottom: '2px' }}>
+              قراءة العداد | Odometer
             </div>
-
-            <div style={{ border: `1px solid ${BRAND.borderLight}`, borderRadius: '6px', padding: '4px', textAlign: 'center', backgroundColor: BRAND.bgLight }}>
-              <div style={{ fontSize: '8px', fontWeight: 'bold', marginBottom: '2px', color: BRAND.black }}>قراءة العداد | Odometer</div>
-              <div style={{ height: '42px', borderRadius: '4px', overflow: 'hidden', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e4e4e7', padding: '2px' }}>
-                {inspection.odometerPhoto ? (
-                  <img src={inspection.odometerPhoto} alt="Odometer" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
-                ) : (
-                  <span style={{ fontSize: '10px', fontFamily: 'monospace', fontWeight: 'bold', color: BRAND.black }}>{(inspection.odometer || 0).toLocaleString()} كم</span>
-                )}
-              </div>
+            <div style={{ height: '70px', borderRadius: '4px', overflow: 'hidden', backgroundColor: '#f8fafc', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0', padding: '3px' }}>
+              {inspection.odometerPhoto ? (
+                <img src={inspection.odometerPhoto} alt="Odometer" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+              ) : (
+                <>
+                  <span style={{ fontSize: '13px', fontFamily: 'monospace', fontWeight: 'bold', color: BRAND.black }}>{(inspection.odometer || 0).toLocaleString()}</span>
+                  <span style={{ fontSize: '7px', color: '#64748b' }}>KM / كم</span>
+                </>
+              )}
             </div>
+            <div style={{ fontSize: '7.5px', fontFamily: 'monospace', fontWeight: 'bold', color: '#475569', marginTop: '3px' }}>{(inspection.odometer || 0).toLocaleString()} KM</div>
           </div>
         </div>
       </div>

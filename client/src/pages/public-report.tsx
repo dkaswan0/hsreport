@@ -281,50 +281,60 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
           </div>
         </div>
 
-        {/* Right Side (7 Cols): Car 3D Photo + VIN Card & Odometer Card */}
-        <div className="lg:col-span-7 flex flex-col justify-between gap-3 sm:gap-4">
-          {/* Main Car Photo */}
-          <div className="w-full h-40 sm:h-48 md:h-52 lg:h-56 rounded-2xl overflow-hidden bg-white border border-zinc-200 flex items-center justify-center p-2 sm:p-3 relative group shadow-xs">
-            {resolveVehiclePhoto(inspection, "mainCarPhoto") ? (
-              <img 
-                src={resolveVehiclePhoto(inspection, "mainCarPhoto")} 
-                alt="Vehicle Main" 
-                className="w-full h-full max-h-full max-w-full object-contain drop-shadow-md" 
-              />
-            ) : (
-              <img 
-                src={hsCarBranding} 
-                alt="High Safety Vehicle" 
-                className="w-full h-full max-h-full max-w-full object-contain opacity-60" 
-              />
-            )}
+        {/* Right Side (7 Cols): Official Documentation & Verification Cards (No Duplicated Car Photo) */}
+        <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          {/* رقم الهيكل (VIN Card) */}
+          <div className="rounded-2xl border border-zinc-200 bg-zinc-50/70 p-3 sm:p-4 text-center flex flex-col justify-between shadow-xs">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <div className="text-xs sm:text-sm font-bold text-zinc-950 font-arabic flex items-center gap-1.5">
+                <PhosphorIcon name="barcode" weight="bold" size={18} className="text-zinc-700" />
+                <span>لوحة رقم الهيكل (VIN)</span>
+              </div>
+              <span className="text-[10px] text-zinc-400 font-mono" dir="ltr">Chassis ID</span>
+            </div>
+            <div className="h-32 sm:h-40 rounded-xl overflow-hidden bg-white border border-zinc-200 flex items-center justify-center p-2 shadow-inner">
+              {inspection.vinPhoto ? (
+                <img src={inspection.vinPhoto} alt="VIN Plate" className="max-h-full max-w-full object-contain rounded-lg" />
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-2 text-center p-2">
+                  <PhosphorIcon name="barcode" weight="bold" size={36} className="text-zinc-400" />
+                  <div className="font-mono font-black text-xs sm:text-sm md:text-base text-zinc-900 tracking-wider break-all bg-zinc-100 px-3 py-1.5 rounded-lg border border-zinc-200" dir="ltr">
+                    {inspection.vin || 'غير متوفر'}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="mt-2 text-[11px] font-mono font-bold text-zinc-600 bg-white py-1 px-2 rounded-lg border border-zinc-100 truncate" dir="ltr">
+              {inspection.vin || '-'}
+            </div>
           </div>
 
-          {/* Bottom 2 Sub-Cards: VIN Photo & Odometer Reading */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div className="rounded-xl border border-zinc-200 bg-zinc-50/60 p-2.5 sm:p-3 text-center flex flex-col justify-between">
-              <div className="text-xs font-bold text-zinc-800 font-arabic mb-1">رقم الهيكل (VIN)</div>
-              <div className="h-16 sm:h-20 rounded-lg overflow-hidden bg-white border border-zinc-200 flex items-center justify-center p-2 shadow-inner">
-                {inspection.vinPhoto ? (
-                  <img src={inspection.vinPhoto} alt="VIN Plate" className="max-h-full max-w-full object-contain rounded-lg" />
-                ) : (
-                  <div className="font-mono font-black text-xs sm:text-sm md:text-base text-zinc-800 tracking-wider break-all" dir="ltr">{inspection.vin}</div>
-                )}
+          {/* قراءة العداد (Odometer Card) */}
+          <div className="rounded-2xl border border-zinc-200 bg-zinc-50/70 p-3 sm:p-4 text-center flex flex-col justify-between shadow-xs">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <div className="text-xs sm:text-sm font-bold text-zinc-950 font-arabic flex items-center gap-1.5">
+                <PhosphorIcon name="gauge" weight="bold" size={18} className="text-zinc-700" />
+                <span>قراءة العداد المعتمدة</span>
               </div>
+              <span className="text-[10px] text-zinc-400 font-mono" dir="ltr">Odometer</span>
             </div>
-
-            <div className="rounded-xl border border-zinc-200 bg-zinc-50/60 p-2.5 sm:p-3 text-center flex flex-col justify-between">
-              <div className="text-xs font-bold text-zinc-800 font-arabic mb-1">قراءة العداد (Odometer)</div>
-              <div className="h-16 sm:h-20 rounded-lg overflow-hidden bg-white border border-zinc-200 flex flex-col items-center justify-center p-2 shadow-inner">
-                {inspection.odometerPhoto ? (
-                  <img src={inspection.odometerPhoto} alt="Odometer Photo" className="max-h-full max-w-full object-contain rounded-lg" />
-                ) : (
-                  <>
-                    <PhosphorIcon name="gauge" weight="bold" size={32} className="text-zinc-600 mb-1" />
-                    <div className="font-mono font-black text-zinc-950 text-base md:text-xl">{inspection.odometer?.toLocaleString() || '0'} KM</div>
-                  </>
-                )}
-              </div>
+            <div className="h-32 sm:h-40 rounded-xl overflow-hidden bg-white border border-zinc-200 flex flex-col items-center justify-center p-2 shadow-inner">
+              {inspection.odometerPhoto ? (
+                <img src={inspection.odometerPhoto} alt="Odometer Photo" className="max-h-full max-w-full object-contain rounded-lg" />
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-1 text-center p-2">
+                  <div className="w-12 h-12 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center mb-1">
+                    <PhosphorIcon name="gauge" weight="bold" size={26} className="text-zinc-700" />
+                  </div>
+                  <div className="font-mono font-black text-zinc-950 text-lg md:text-2xl">
+                    {(inspection.odometer || 0).toLocaleString()}
+                  </div>
+                  <div className="text-xs font-mono font-bold text-zinc-500">KM / كيلومتر</div>
+                </div>
+              )}
+            </div>
+            <div className="mt-2 text-xs font-mono font-bold text-zinc-900 bg-white py-1 px-2 rounded-lg border border-zinc-100 truncate">
+              {(inspection.odometer || 0).toLocaleString()} KM
             </div>
           </div>
         </div>
