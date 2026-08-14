@@ -945,7 +945,7 @@ export async function registerRoutes(
           enablePerspectiveCorrection: !!enablePerspectiveCorrection,
         });
 
-        const isSuccess = processResult.processedUrl && processResult.processedUrl.startsWith("data:image/");
+        const isSuccess = processResult.success && !!processResult.processedUrl && (processResult.processedUrl.startsWith("/uploads/") || processResult.processedUrl.startsWith("data:image/") || processResult.processedUrl.startsWith("http"));
         const finalProcessedUrl = isSuccess ? processResult.processedUrl : imageUrl;
         const finalStatus = isSuccess ? "processed" : "failed";
 
@@ -1118,10 +1118,14 @@ export async function registerRoutes(
         return res.status(400).json({ error: "لا توجد صور مرفوعة للمركبة لمعالجتها" });
       }
 
-      const { sheet, provider, version } = await VehiclePhotoProcessor.processVehiclePhotoSheet({
+      const { success, sheet, provider, version, error } = await VehiclePhotoProcessor.processVehiclePhotoSheet({
         inspectionId: id,
         images: imagesMap,
       });
+
+      if (!success || !sheet || Object.keys(sheet).length === 0) {
+        return res.status(500).json({ error: error || "تعذر إنشاء طقم صور الاستوديو" });
+      }
 
       let updatedInspection = existing;
       const now = new Date().toISOString();
@@ -1207,7 +1211,7 @@ export async function registerRoutes(
         enablePerspectiveCorrection: !!enablePerspectiveCorrection,
       });
 
-      const isSuccess = processResult.processedUrl && processResult.processedUrl.startsWith("data:image/");
+      const isSuccess = processResult.success && !!processResult.processedUrl && (processResult.processedUrl.startsWith("/uploads/") || processResult.processedUrl.startsWith("data:image/") || processResult.processedUrl.startsWith("http"));
       const finalProcessedUrl = isSuccess ? processResult.processedUrl : sourceUrl;
       const finalStatus = isSuccess ? "processed" : "failed";
 

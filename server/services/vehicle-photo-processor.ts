@@ -29,24 +29,12 @@ Use the uploaded image(s) as the highest-priority reference.
 The purpose is to create professional photographic views of the same vehicle as if it had been photographed inside a white automotive studio.
 
 Allowed presentation changes:
-- White studio background.
-- Natural studio lighting.
-- Natural shadows.
-- Professional framing.
-- Professional camera composition.
-- Mild lens correction.
-- Mild perspective correction.
-- Professional cropping.
-
-For additional camera angles, preserve the vehicle's identity and geometry as accurately as possible.
-
-Never use a generated detail to contradict a clearly visible detail in the original image.
-
-If a vehicle detail cannot be reliably determined from the source image(s), do not invent or modify it.
+- Pure solid white studio background (#FFFFFF).
+- Natural studio lighting and exposure balancing.
+- Multi-layer ground contact shadows beneath tires and chassis.
+- Professional framing and composition.
 
 Vehicle condition and visible damage have higher priority than visual beautification.
-
-The output must remain a faithful representation of the same inspected vehicle.
 
 Original Image = Permanent Inspection Evidence.
 Processed Images = Optional Presentation Views.`;
@@ -55,7 +43,11 @@ export class VehiclePhotoProcessor {
   private static processingCache = new Map<string, string>();
 
   private static getPythonCmd(): string {
-    return process.env.PYTHON_BIN || (process.platform === 'win32' ? 'C:\\Users\\1medo\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe' : 'python3');
+    if (process.env.PYTHON_BIN) return process.env.PYTHON_BIN;
+    if (process.platform === "win32") {
+      return "python";
+    }
+    return "python3";
   }
 
   public static calculateImageHash(imageInput: string): string {
@@ -63,9 +55,9 @@ export class VehiclePhotoProcessor {
   }
 
   /**
-   * Process a single vehicle photo using the high-performance studio presentation engine.
-   * Performs white background cleanup, lighting and exposure balancing, and ground contact shadow.
-   * 100% zero-alteration of vehicle body and damage evidence.
+   * Process a single vehicle photo using the real AI vehicle segmentation and studio backdrop engine.
+   * Isolates the exact vehicle down to pixels, placing it on pure #FFFFFF white studio with contact shadows.
+   * Preserves 100% of the vehicle body and damage evidence.
    */
   public static async processVehiclePhoto(params: {
     imageUrl: string;
@@ -73,23 +65,27 @@ export class VehiclePhotoProcessor {
     inspectionId: number;
     enablePerspectiveCorrection?: boolean;
   }): Promise<{
+    success: boolean;
     processedUrl: string;
     imageHash: string;
     provider: string;
     version: string;
     appliedPerspectiveCorrection: boolean;
+    error?: string;
   }> {
     const { imageUrl, slotKey, inspectionId, enablePerspectiveCorrection = false } = params;
-    const version = "v3.1-white-studio";
-    const provider = "hs-studio-processor";
+    const version = "v4.0-ai-studio";
+    const provider = "ai-u2net-studio-processor";
 
     if (!imageUrl || typeof imageUrl !== "string") {
       return {
-        processedUrl: imageUrl || "",
-        imageHash: this.calculateImageHash(imageUrl || ""),
+        success: false,
+        processedUrl: "",
+        imageHash: "",
         provider: "bypass",
         version,
         appliedPerspectiveCorrection: false,
+        error: "الصورة غير متوفرة للمعالجة",
       };
     }
 
@@ -98,6 +94,7 @@ export class VehiclePhotoProcessor {
 
     if (this.processingCache.has(cacheKey)) {
       return {
+        success: true,
         processedUrl: this.processingCache.get(cacheKey)!,
         imageHash,
         provider,
@@ -110,13 +107,17 @@ export class VehiclePhotoProcessor {
     const randId = Math.random().toString(36).substring(2, 9);
     const inFilePath = path.join(tmpDir, `hs_in_${Date.now()}_${randId}.json`);
     const outFilePath = path.join(tmpDir, `hs_out_${Date.now()}_${randId}.json`);
+    const uploadsDir = path.join(process.cwd(), "public", "uploads");
 
     try {
+      await fs.mkdir(uploadsDir, { recursive: true }).catch(() => {});
       await fs.writeFile(
         inFilePath,
         JSON.stringify({
           mode: "single",
           imageUrl,
+          slotKey,
+          uploadsDir,
           enablePerspective: enablePerspectiveCorrection,
         }),
         "utf-8"
@@ -126,7 +127,7 @@ export class VehiclePhotoProcessor {
       const pyBin = this.getPythonCmd();
 
       await new Promise<void>((resolve, reject) => {
-        execFile(pyBin, [scriptPath, inFilePath, outFilePath], { timeout: 15000 }, (err) => {
+        execFile(pyBin, [scriptPath, inFilePath, outFilePath], { timeout: 35000 }, (err) => {
           if (err) return reject(err);
           resolve();
         });
@@ -138,6 +139,7 @@ export class VehiclePhotoProcessor {
       if (res.success && res.processedUrl) {
         this.processingCache.set(cacheKey, res.processedUrl);
         return {
+          success: true,
           processedUrl: res.processedUrl,
           imageHash,
           provider,
@@ -147,20 +149,24 @@ export class VehiclePhotoProcessor {
       }
 
       return {
+        success: false,
         processedUrl: imageUrl,
         imageHash,
         provider,
         version,
         appliedPerspectiveCorrection: enablePerspectiveCorrection,
+        error: res.error || "فشلت المعالجة بالذكاء الاصطناعي",
       };
-    } catch (err) {
-      console.warn("[VehiclePhotoProcessor] Single photo process warning:", err);
+    } catch (err: any) {
+      console.error("[VehiclePhotoProcessor] Single photo process error:", err);
       return {
+        success: false,
         processedUrl: imageUrl,
         imageHash,
         provider,
         version,
         appliedPerspectiveCorrection: enablePerspectiveCorrection,
+        error: err?.message || "حدث خطأ أثناء معالجة صورة السيارة",
       };
     } finally {
       await fs.unlink(inFilePath).catch(() => {});
@@ -169,36 +175,41 @@ export class VehiclePhotoProcessor {
   }
 
   /**
-   * Generates a synchronized Professional Vehicle Photo Sheet across all available slots
-   * using multi-image reference consistency.
+   * Generates a synchronized Professional Vehicle Photo Sheet across all uploaded slots
+   * with real AI foreground segmentation and pure white studio backdrops.
    */
   public static async processVehiclePhotoSheet(params: {
     inspectionId: number;
     images: Record<string, string>;
   }): Promise<{
+    success: boolean;
     sheet: Record<string, string>;
     provider: string;
     version: string;
+    error?: string;
   }> {
     const { images } = params;
-    const version = "v3.1-white-studio";
-    const provider = "hs-studio-processor";
+    const version = "v4.0-ai-studio";
+    const provider = "ai-u2net-studio-processor";
 
     if (!images || Object.keys(images).length === 0) {
-      return { sheet: {}, provider, version };
+      return { success: false, sheet: {}, provider, version, error: "لا توجد صور متاحة للمعالجة" };
     }
 
     const tmpDir = os.tmpdir();
     const randId = Math.random().toString(36).substring(2, 9);
     const inFilePath = path.join(tmpDir, `hs_sheet_in_${Date.now()}_${randId}.json`);
     const outFilePath = path.join(tmpDir, `hs_sheet_out_${Date.now()}_${randId}.json`);
+    const uploadsDir = path.join(process.cwd(), "public", "uploads");
 
     try {
+      await fs.mkdir(uploadsDir, { recursive: true }).catch(() => {});
       await fs.writeFile(
         inFilePath,
         JSON.stringify({
           mode: "sheet",
           images,
+          uploadsDir,
         }),
         "utf-8"
       );
@@ -207,7 +218,7 @@ export class VehiclePhotoProcessor {
       const pyBin = this.getPythonCmd();
 
       await new Promise<void>((resolve, reject) => {
-        execFile(pyBin, [scriptPath, inFilePath, outFilePath], { timeout: 30000 }, (err) => {
+        execFile(pyBin, [scriptPath, inFilePath, outFilePath], { timeout: 60000 }, (err) => {
           if (err) return reject(err);
           resolve();
         });
@@ -216,8 +227,9 @@ export class VehiclePhotoProcessor {
       const outContent = await fs.readFile(outFilePath, "utf-8");
       const res = JSON.parse(outContent.trim());
 
-      if (res.success && res.sheet) {
+      if (res.success && res.sheet && Object.keys(res.sheet).length > 0) {
         return {
+          success: true,
           sheet: res.sheet,
           provider,
           version,
@@ -225,16 +237,20 @@ export class VehiclePhotoProcessor {
       }
 
       return {
+        success: false,
         sheet: images,
         provider,
         version,
+        error: res.error || "فشل توليد طقم صور الاستوديو",
       };
-    } catch (err) {
-      console.warn("[VehiclePhotoProcessor] Photo sheet warning:", err);
+    } catch (err: any) {
+      console.error("[VehiclePhotoProcessor] Photo sheet error:", err);
       return {
+        success: false,
         sheet: images,
         provider,
         version,
+        error: err?.message || "حدث خطأ أثناء معالجة طقم صور المركبة",
       };
     } finally {
       await fs.unlink(inFilePath).catch(() => {});

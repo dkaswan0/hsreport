@@ -1,3 +1,4 @@
+import path from "path";
 import express, { type Request, Response, NextFunction } from "express";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
@@ -18,6 +19,8 @@ import { seedGulfFaults } from "./seed-gulf-faults";
 seedGulfFaults().catch(() => {});
 
 const app = express();
+app.use("/uploads", express.static(path.join(process.cwd(), "public", "uploads")));
+app.use("/uploads", express.static(path.join(process.cwd(), "client", "public", "uploads")));
 const httpServer = createServer(app);
 const PgSession = connectPgSimple(session);
 
