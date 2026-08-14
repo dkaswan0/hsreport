@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Camera, Upload, X, Eye, Maximize2, Sparkles, RefreshCw, CheckCircle2 } from "lucide-react";
+import { Camera, Upload, X, Eye, Maximize2, Sparkles, RefreshCw } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   VEHICLE_PHOTO_SECTIONS,
@@ -93,45 +93,41 @@ export function VehiclePhotosGrid({
       <div
         key={key}
         className={cn(
-          "bg-white rounded-2xl border border-zinc-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col justify-between",
+          "bg-white rounded-2xl border-2 border-zinc-300 hover:border-zinc-500 shadow-xs transition-all duration-200 overflow-hidden relative flex flex-col justify-between group",
           cardType === "hero" && "w-full",
           cardType === "grid" && "w-full",
-          cardType === "center" && "w-full md:max-w-md mx-auto"
+          cardType === "center" && "w-full"
         )}
         data-testid={`card-vehicle-photo-${key}`}
       >
-        {/* Card Header with Label & Badges */}
-        <div className="p-3.5 border-b border-zinc-100 flex items-center justify-between gap-2 bg-zinc-50/70">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-zinc-950" />
-            <h4 className="font-bold text-sm text-zinc-900 font-arabic">{section.label}</h4>
+        {/* Sleek Top Title Pill (Matches Reference Image Exactly) */}
+        <div className="absolute top-2.5 right-2.5 z-20 pointer-events-none">
+          <div className="bg-zinc-950 text-white text-xs sm:text-sm font-bold px-3 sm:px-4 py-1 sm:py-1.5 rounded-xl font-arabic shadow-md flex items-center gap-1.5 border border-zinc-800">
+            <span>{section.label}</span>
+            {isStudioActive && <Sparkles className="w-3 h-3 text-white" />}
           </div>
+        </div>
 
-          <div className="flex items-center gap-1.5">
-            {photoUrl && isStudioActive && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-zinc-950 text-white flex items-center gap-1">
-                <Sparkles className="w-2.5 h-2.5" />
+        {/* Studio Status Pill (Left Top) */}
+        {photoUrl && (
+          <div className="absolute top-2.5 left-2.5 z-20">
+            {isStudioActive ? (
+              <span className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-zinc-900/90 text-white border border-zinc-700 shadow-xs font-arabic">
                 استوديو AI
               </span>
-            )}
-            {photoUrl && !isStudioActive && (
-              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-700 border border-zinc-200">
+            ) : (
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-lg bg-zinc-100/90 text-zinc-700 border border-zinc-200 font-arabic">
                 الأصلية
               </span>
             )}
-            {!photoUrl && isEditable && (
-              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-500">
-                مطلوب
-              </span>
-            )}
           </div>
-        </div>
+        )}
 
         {/* Photo Display / Upload Area */}
         <div
           className={cn(
-            "relative bg-white flex items-center justify-center p-2 group",
-            cardType === "hero" ? "h-64 sm:h-80 md:h-96" : "h-48 sm:h-56"
+            "relative w-full bg-white flex items-center justify-center p-3 pt-10 sm:pt-11",
+            cardType === "hero" ? "h-64 sm:h-80 md:h-[340px]" : "h-48 sm:h-60"
           )}
         >
           {photoUrl ? (
@@ -139,7 +135,7 @@ export function VehiclePhotosGrid({
               <img
                 src={photoUrl}
                 alt={section.label}
-                className="w-full h-full object-contain rounded-xl select-none"
+                className="w-full h-full object-contain select-none"
                 style={{ imageRendering: "auto" }}
                 loading="lazy"
               />
@@ -155,7 +151,7 @@ export function VehiclePhotosGrid({
                       description: section.description,
                     })
                   }
-                  className="p-2 bg-white/90 hover:bg-white text-zinc-900 rounded-xl shadow-lg transition-transform active:scale-95 cursor-pointer"
+                  className="p-2.5 bg-white hover:bg-zinc-100 text-zinc-900 rounded-xl shadow-lg transition-transform active:scale-95 cursor-pointer"
                   title="تكبير الصورة"
                   data-testid={`btn-zoom-${key}`}
                 >
@@ -166,7 +162,7 @@ export function VehiclePhotosGrid({
                   <button
                     type="button"
                     onClick={() => onTogglePhotoMode(key)}
-                    className="px-2.5 py-1.5 bg-zinc-950 text-white text-xs font-bold rounded-xl shadow-lg transition-transform active:scale-95 flex items-center gap-1 cursor-pointer font-arabic"
+                    className="px-3 py-2 bg-zinc-950 text-white text-xs font-bold rounded-xl shadow-lg transition-transform active:scale-95 flex items-center gap-1.5 cursor-pointer font-arabic"
                     title="التبديل بين الأصلية والمحسنة"
                   >
                     <Eye className="w-3.5 h-3.5" />
@@ -179,7 +175,7 @@ export function VehiclePhotosGrid({
                     type="button"
                     onClick={() => onReprocessPhoto(key)}
                     disabled={isProcessing}
-                    className="p-2 bg-white/90 hover:bg-white text-zinc-900 rounded-xl shadow-lg transition-transform active:scale-95 disabled:opacity-50 cursor-pointer"
+                    className="p-2.5 bg-white hover:bg-zinc-100 text-zinc-900 rounded-xl shadow-lg transition-transform active:scale-95 disabled:opacity-50 cursor-pointer"
                     title="إعادة معالجة الصورة بالذكاء الاصطناعي"
                   >
                     <RefreshCw className={cn("w-4 h-4", isProcessing && "animate-spin")} />
@@ -190,7 +186,7 @@ export function VehiclePhotosGrid({
                   <button
                     type="button"
                     onClick={() => onPhotoChange(key, null)}
-                    className="p-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-lg transition-transform active:scale-95 cursor-pointer"
+                    className="p-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-lg transition-transform active:scale-95 cursor-pointer"
                     title="حذف الصورة"
                     data-testid={`btn-delete-${key}`}
                   >
@@ -201,9 +197,9 @@ export function VehiclePhotosGrid({
             </div>
           ) : isEditable ? (
             /* Upload Buttons in Editable Mode */
-            <div className="w-full h-full flex items-center justify-center p-2">
+            <div className="w-full h-full flex items-center justify-center">
               <div className="flex gap-2 w-full max-w-xs">
-                <label className="flex-1 flex flex-col items-center justify-center h-32 border-2 border-dashed border-zinc-300 rounded-xl cursor-pointer bg-zinc-50 hover:bg-zinc-100 transition-colors p-2 text-center">
+                <label className="flex-1 flex flex-col items-center justify-center h-28 sm:h-32 border-2 border-dashed border-zinc-300 rounded-xl cursor-pointer bg-zinc-50 hover:bg-zinc-100 transition-colors p-2 text-center">
                   <Camera className="w-6 h-6 text-zinc-900 mb-1" />
                   <span className="text-xs font-bold text-zinc-900 font-arabic">كاميرا</span>
                   <input
@@ -215,7 +211,7 @@ export function VehiclePhotosGrid({
                     data-testid={`input-camera-${key}`}
                   />
                 </label>
-                <label className="flex-1 flex flex-col items-center justify-center h-32 border-2 border-dashed border-zinc-200 rounded-xl cursor-pointer bg-white hover:bg-zinc-50 transition-colors p-2 text-center">
+                <label className="flex-1 flex flex-col items-center justify-center h-28 sm:h-32 border-2 border-dashed border-zinc-200 rounded-xl cursor-pointer bg-white hover:bg-zinc-50 transition-colors p-2 text-center">
                   <Upload className="w-6 h-6 text-zinc-500 mb-1" />
                   <span className="text-xs font-medium text-zinc-700 font-arabic">معرض</span>
                   <input
@@ -231,24 +227,17 @@ export function VehiclePhotosGrid({
           ) : (
             /* Empty State in View Mode */
             <div className="text-center p-4 text-zinc-400">
-              <Camera className="w-8 h-8 mx-auto mb-1 opacity-40" />
+              <Camera className="w-8 h-8 mx-auto mb-1 opacity-30" />
               <p className="text-xs font-arabic">لا توجد صورة</p>
             </div>
           )}
-        </div>
-
-        {/* Card Footer Caption */}
-        <div className="p-2.5 bg-zinc-50/50 border-t border-zinc-100 text-center">
-          <p className="text-[11px] text-zinc-500 font-arabic truncate" title={section.description}>
-            {section.description}
-          </p>
         </div>
       </div>
     );
   };
 
   return (
-    <div className={cn("space-y-6 w-full", className)} dir="rtl">
+    <div className={cn("space-y-4 md:space-y-5 w-full", className)} dir="rtl">
       {/* ── ROW 1: Hero Main Vehicle View (Full Width) ── */}
       <div className="w-full">
         {renderPhotoCard("main_vehicle", "hero")}
@@ -256,7 +245,7 @@ export function VehiclePhotosGrid({
 
       {/* ── ROW 2: 3-Column Equal Grid ── */}
       {/* Visual RTL Order: Right Side (Rightmost) -> Front View (Center) -> Left Side (Leftmost) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 w-full">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 w-full">
         <div className="w-full">{renderPhotoCard("right_side", "grid")}</div>
         <div className="w-full">{renderPhotoCard("front_view", "grid")}</div>
         <div className="w-full">{renderPhotoCard("left_side", "grid")}</div>
