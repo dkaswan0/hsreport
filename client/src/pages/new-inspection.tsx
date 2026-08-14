@@ -9,6 +9,8 @@ import { PhosphorIcon } from "@/components/phosphor-icon";
 import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { VehiclePhotosGrid } from "@/components/vehicle-photos-grid";
+import { VehiclePhotoKey } from "@shared/vehicle-photos";
 import { SearchRouterModal } from "@/components/search-router-modal";
 
 const compressImage = (dataUrl: string, maxWidth = 1200, quality = 0.7): Promise<string> => {
@@ -64,24 +66,13 @@ export default function NewInspection() {
   const [inspectionType, setInspectionType] = useState('full');
   const [notes, setNotes] = useState("");
 
-  // Car section photos (exterior)
-  const [mainCarPhoto, setMainCarPhoto] = useState<string | null>(null);
-  const [carSectionPhotos, setCarSectionPhotos] = useState<{
-    rearLeftDoor: string | null;
-    rearRightDoor: string | null;
-    frontLeftDoor: string | null;
-    frontRightDoor: string | null;
-    hood: string | null;
-    trunk: string | null;
-    interior: string | null;
-  }>({
-    rearLeftDoor: null,
-    rearRightDoor: null,
-    frontLeftDoor: null,
-    frontRightDoor: null,
-    hood: null,
-    trunk: null,
-    interior: null,
+  // Standard 5 Core Vehicle Photos
+  const [vehiclePhotos, setVehiclePhotos] = useState<Record<VehiclePhotoKey, string | null>>({
+    main_vehicle: null,
+    right_side: null,
+    front_view: null,
+    left_side: null,
+    rear_view: null,
   });
 
   const form = useForm<FormValues>({
@@ -306,31 +297,7 @@ export default function NewInspection() {
     if (odometerPhotoRef.current) odometerPhotoRef.current.value = "";
   };
 
-  const handleMainCarPhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      const compressed = await compressImage(event.target?.result as string);
-      setMainCarPhoto(compressed);
-    };
-    reader.readAsDataURL(file);
-  };
 
-  const handleCarSectionPhotoChange = (section: keyof typeof carSectionPhotos, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      const compressed = await compressImage(event.target?.result as string);
-      setCarSectionPhotos(prev => ({ ...prev, [section]: compressed }));
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const removeCarSectionPhoto = (section: keyof typeof carSectionPhotos) => {
-    setCarSectionPhotos(prev => ({ ...prev, [section]: null }));
-  };
 
   const onSubmit = (data: FormValues) => {
     const inspectionTypeLabel = INSPECTION_TYPES.find(t => t.id === inspectionType)?.label || 'فحص شامل';
@@ -339,14 +306,19 @@ export default function NewInspection() {
       notes: notes.trim() || undefined,
       odometerPhoto: odometerPhoto || undefined,
       inspectionType: inspectionTypeLabel,
-      mainCarPhoto: mainCarPhoto || undefined,
-      rearLeftDoorPhoto: carSectionPhotos.rearLeftDoor || undefined,
-      rearRightDoorPhoto: carSectionPhotos.rearRightDoor || undefined,
-      frontLeftDoorPhoto: carSectionPhotos.frontLeftDoor || undefined,
-      frontRightDoorPhoto: carSectionPhotos.frontRightDoor || undefined,
-      hoodPhoto: carSectionPhotos.hood || undefined,
-      trunkPhoto: carSectionPhotos.trunk || undefined,
-      frontLeftDoorInteriorPhoto: carSectionPhotos.interior || undefined,
+      // Standard 5 Core Vehicle Photos
+      mainCarPhoto: vehiclePhotos.main_vehicle || undefined,
+      frontRightDoorPhoto: vehiclePhotos.right_side || undefined,
+      hoodPhoto: vehiclePhotos.front_view || undefined,
+      frontLeftDoorPhoto: vehiclePhotos.left_side || undefined,
+      trunkPhoto: vehiclePhotos.rear_view || undefined,
+      vehiclePhotosMeta: {
+        main_vehicle: vehiclePhotos.main_vehicle ? { originalUrl: vehiclePhotos.main_vehicle, activeMode: 'original', processingStatus: 'idle' } : undefined,
+        right_side: vehiclePhotos.right_side ? { originalUrl: vehiclePhotos.right_side, activeMode: 'original', processingStatus: 'idle' } : undefined,
+        front_view: vehiclePhotos.front_view ? { originalUrl: vehiclePhotos.front_view, activeMode: 'original', processingStatus: 'idle' } : undefined,
+        left_side: vehiclePhotos.left_side ? { originalUrl: vehiclePhotos.left_side, activeMode: 'original', processingStatus: 'idle' } : undefined,
+        rear_view: vehiclePhotos.rear_view ? { originalUrl: vehiclePhotos.rear_view, activeMode: 'original', processingStatus: 'idle' } : undefined,
+      },
     };
 
     mutate(submissionData as any, {
@@ -787,86 +759,24 @@ export default function NewInspection() {
             </div>
           </div>
 
-          {/* ── 4. صور المركبة والأجزاء الخارجية ── */}
+          {/* ── 4. صور فحص المركبة الأساسية (5 صور قياسية) ── */}
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-3 gap-2">
               <h3 className="text-lg font-bold flex items-center gap-2 text-zinc-950 font-arabic">
                 <span className="w-8 h-8 rounded-xl bg-zinc-950 text-white flex items-center justify-center text-sm font-bold shadow">4</span>
                 <Camera className="w-5 h-5 text-zinc-950" />
-                صور أجزاء المركبة الخارجية (كاميرا مباشر أو معرض)
+                صور فحص المركبة الأساسية (طقم الاستوديو 5 صور)
               </h3>
-              <span className="text-xs text-slate-500 font-arabic">تدعم المركبات ذات البابين دون ترك خانات فارغة بالتقرير</span>
+              <span className="text-xs text-slate-500 font-arabic">نظام موحد ومطابق لتقرير العميل والطباعة والمراجعة</span>
             </div>
 
-            {/* الصورة الرئيسية للمركبة */}
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 mb-6">
-              <label className="block text-sm font-bold text-slate-800 mb-2 font-arabic flex items-center gap-2">
-                <Car className="w-4 h-4 text-zinc-950" />
-                صورة السيارة الرئيسية (تظهر في غلاف تقرير الـ PDF)
-              </label>
-              {mainCarPhoto ? (
-                <div className="relative inline-block">
-                  <img src={mainCarPhoto} alt="صورة السيارة" className="w-full max-w-lg h-56 object-cover rounded-2xl border-4 border-zinc-300 shadow-lg" />
-                  <button type="button" onClick={() => setMainCarPhoto(null)} className="absolute -top-2 -right-2 p-1.5 bg-zinc-900 text-white rounded-full shadow hover:bg-black transition-colors" data-testid="button-remove-main-photo">
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ) : (
-                <div className="flex gap-3 max-w-lg">
-                  <label className="flex-1 flex flex-col items-center justify-center h-40 border-2 border-dashed border-zinc-300 rounded-2xl cursor-pointer bg-zinc-50 hover:bg-zinc-100 transition-colors shadow-sm">
-                    <Camera className="w-8 h-8 text-zinc-950 mb-2" />
-                    <p className="text-xs font-bold text-zinc-950 font-arabic">التقاط كاميرا الجوال</p>
-                    <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleMainCarPhotoChange} data-testid="input-main-car-camera" />
-                  </label>
-                  <label className="flex-1 flex flex-col items-center justify-center h-40 border-2 border-dashed border-slate-300 rounded-2xl cursor-pointer bg-white hover:bg-slate-100 transition-colors">
-                    <Upload className="w-8 h-8 text-slate-400 mb-2" />
-                    <p className="text-xs text-slate-600 font-arabic font-medium">رفع من الجهاز</p>
-                    <input type="file" accept="image/*" className="hidden" onChange={handleMainCarPhotoChange} data-testid="input-main-car-photo" />
-                  </label>
-                </div>
-              )}
-            </div>
-
-            {/* أقسام السيارة 6 جهات */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[
-                { key: 'frontLeftDoor', label: 'الباب الأمامي يسار / الواجهة' },
-                { key: 'frontRightDoor', label: 'الباب الأمامي يمين' },
-                { key: 'rearLeftDoor', label: 'الباب الخلفي يسار / الجانب' },
-                { key: 'rearRightDoor', label: 'الباب الخلفي يمين / الجانب' },
-                { key: 'hood', label: 'حجرة المحرك (الكبوت)' },
-                { key: 'interior', label: 'المقصورة والفرش الداخلي' },
-                { key: 'trunk', label: 'صندوق الأمتعة (الشنطة)' },
-              ].map((section) => {
-                const photo = carSectionPhotos[section.key as keyof typeof carSectionPhotos];
-                return (
-                  <div key={section.key} className="bg-slate-50 rounded-2xl p-3.5 border border-slate-200 shadow-sm flex flex-col justify-between">
-                    <p className="text-xs font-bold text-zinc-950 mb-2 font-arabic text-center">{section.label}</p>
-                    {photo ? (
-                      <div className="relative">
-                        <img src={photo} alt={section.label} className="w-full h-32 object-cover rounded-xl border border-slate-300 shadow-inner" />
-                        <button type="button" onClick={() => removeCarSectionPhoto(section.key as keyof typeof carSectionPhotos)} className="absolute -top-1.5 -right-1.5 p-1 bg-zinc-900 text-white rounded-full shadow hover:bg-black transition-colors" data-testid={`button-remove-${section.key}`}>
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex gap-2">
-                        <label className="flex-1 flex flex-col items-center justify-center h-28 border border-dashed border-zinc-300 rounded-xl cursor-pointer bg-zinc-50 hover:bg-zinc-100 transition-colors p-1 text-center">
-                          <Camera className="w-5 h-5 text-zinc-950 mb-1" />
-                          <span className="text-[11px] font-bold text-zinc-950 font-arabic">كاميرا</span>
-                          <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleCarSectionPhotoChange(section.key as keyof typeof carSectionPhotos, e)} data-testid={`input-camera-${section.key}`} />
-                        </label>
-                        <label className="flex-1 flex flex-col items-center justify-center h-28 border border-dashed border-slate-300 rounded-xl cursor-pointer bg-white hover:bg-slate-50 transition-colors p-1 text-center">
-                          <Upload className="w-5 h-5 text-slate-400 mb-1" />
-                          <span className="text-[11px] text-slate-600 font-arabic">معرض</span>
-                          <input type="file" accept="image/*" className="hidden" onChange={(e) => handleCarSectionPhotoChange(section.key as keyof typeof carSectionPhotos, e)} data-testid={`input-${section.key}`} />
-                        </label>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+            <VehiclePhotosGrid
+              photos={vehiclePhotos}
+              onPhotoChange={(key, dataUrl) => {
+                setVehiclePhotos((prev) => ({ ...prev, [key]: dataUrl }));
+              }}
+              isEditable={true}
+            />
           </div>
 
           {/* زر حفظ وبدء الفحص */}

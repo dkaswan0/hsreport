@@ -1,3 +1,4 @@
+import { VehiclePhotosGrid } from "@/components/vehicle-photos-grid";
 import { useInspection } from "@/hooks/use-inspections";
 import { useRoute } from "wouter";
 import { 
@@ -869,132 +870,27 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
   );
 };
 
-// Car Section Photos Component - Intelligent Visual Layout
+// Car Section Photos Component - Standard 5 Photo Core Layout
 const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
-  const [selectedPhoto, setSelectedPhoto] = useState<{ url: string; labelAr: string; labelEn: string } | null>(null);
-
-  const sections = [
-    { key: 'frontSide', labelAr: 'الواجهة الأمامية', labelEn: 'Front Side', photo: inspection.frontSidePhoto || inspection.frontLeftDoorPhoto },
-    { key: 'rearSide', labelAr: 'الواجهة الخلفية', labelEn: 'Rear Side', photo: inspection.rearSidePhoto || inspection.trunkPhoto },
-    { key: 'leftSide', labelAr: 'الجانب الأيسر', labelEn: 'Left Side', photo: inspection.rearLeftDoorPhoto || inspection.frontLeftDoorPhoto },
-    { key: 'rightSide', labelAr: 'الجانب الأيمن', labelEn: 'Right Side', photo: inspection.frontRightDoorPhoto || inspection.rearRightDoorPhoto },
-    { key: 'engineBay', labelAr: 'حجرة المحرك', labelEn: 'Engine Bay', photo: inspection.hoodPhoto },
-    { key: 'interior', labelAr: 'المقصورة الداخلية', labelEn: 'Interior', photo: inspection.interiorPhoto || inspection.frontLeftDoorInteriorPhoto },
-    { key: 'trunk', labelAr: 'صندوق الأمتعة', labelEn: 'Trunk', photo: inspection.trunkPhoto },
-  ].filter(s => s.photo);
-
-  const displaySections = sections.length > 0 ? sections : [
-    { key: 'frontSide', labelAr: 'الواجهة الأمامية', labelEn: 'Front Side', photo: null },
-    { key: 'rearSide', labelAr: 'الواجهة الخلفية', labelEn: 'Rear Side', photo: null },
-    { key: 'leftSide', labelAr: 'الجانب الأيسر', labelEn: 'Left Side', photo: null },
-    { key: 'rightSide', labelAr: 'الجانب الأيمن', labelEn: 'Right Side', photo: null },
-    { key: 'engineBay', labelAr: 'حجرة المحرك', labelEn: 'Engine Bay', photo: null },
-    { key: 'interior', labelAr: 'المقصورة الداخلية', labelEn: 'Interior', photo: null },
-    { key: 'trunk', labelAr: 'صندوق الأمتعة', labelEn: 'Trunk', photo: null },
-  ];
-
-  const count = displaySections.length;
-
   return (
-    <>
-      <div className="bg-white rounded-3xl shadow-sm border border-zinc-200 overflow-hidden" data-testid="car-section-photos-gallery">
-        {/* Section Header */}
-        <div className="bg-zinc-950 text-white px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800">
-          <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 shadow-inner">
-              <PhosphorIcon name="camera" weight="bold" size={18} className="text-white sm:text-[22px]" />
-            </div>
-            <div className="flex flex-wrap items-baseline gap-1.5 sm:gap-2">
-              <span className="font-mono text-zinc-400 font-black text-base sm:text-lg md:text-xl">2 |</span>
-              <span className="text-white font-black text-sm sm:text-base md:text-xl font-arabic">صور أقسام السيارة</span>
-              <span className="text-zinc-400 text-[11px] sm:text-xs md:text-sm font-mono font-semibold">| Vehicle Sections Photos ({count})</span>
-            </div>
+    <div className="bg-white rounded-3xl shadow-sm border border-zinc-200 overflow-hidden" data-testid="car-section-photos-gallery">
+      <div className="bg-zinc-950 text-white px-4 py-3 sm:px-6 sm:py-4 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800">
+        <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 shadow-inner">
+            <PhosphorIcon name="camera" weight="bold" size={18} className="text-white sm:text-[22px]" />
           </div>
-        </div>
-
-        {/* Intelligent Visual Grid Layout based on actual photo count */}
-        <div className="p-3 sm:p-4 md:p-6">
-          <div className={
-            count === 1 
-              ? "max-w-xl mx-auto" 
-              : count === 2 
-                ? "grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-4xl mx-auto" 
-                : count === 3 
-                  ? "grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4" 
-                  : count === 4 
-                    ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4" 
-                    : count === 5 
-                      ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 sm:gap-4" 
-                      : count === 6 
-                        ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4" 
-                        : count === 7 
-                          ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3 sm:gap-4" 
-                          : "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4"
-          }>
-            {displaySections.map((sec, idx) => {
-              // Custom span calculation for 5 photos (3 in row 1, 2 in row 2) and 7 photos (4 in row 1, 3 in row 2) on md+
-              const spanClass = 
-                count === 5 
-                  ? (idx < 3 ? "md:col-span-2" : "md:col-span-3") 
-                  : count === 7 
-                    ? (idx < 4 ? "md:col-span-3" : "md:col-span-4") 
-                    : "";
-
-              return (
-                <button
-                  key={sec.key || idx}
-                  type="button"
-                  onClick={() => sec.photo && setSelectedPhoto({ url: sec.photo, labelAr: sec.labelAr, labelEn: sec.labelEn })}
-                  disabled={!sec.photo}
-                  className={`group flex flex-col rounded-2xl border border-zinc-200 overflow-hidden bg-white hover:border-zinc-400 hover:shadow-md transition-all text-center cursor-pointer disabled:cursor-default ${spanClass}`}
-                >
-                  <div className="w-full aspect-[16/11] bg-zinc-100 flex items-center justify-center p-2 relative overflow-hidden">
-                    {sec.photo ? (
-                      <img 
-                        src={sec.photo} 
-                        alt={sec.labelAr} 
-                        className="max-w-full max-h-full w-auto h-auto object-contain group-hover:scale-105 transition-transform duration-300" 
-                      />
-                    ) : (
-                      <PhosphorIcon name="camera" weight="bold" size={28} className="text-zinc-300" />
-                    )}
-                    {sec.photo && (
-                      <div className="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                        <PhosphorIcon name="magnifying-glass-plus" weight="bold" size={24} className="text-white drop-shadow-md" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-2.5 sm:p-3 border-t border-zinc-100 bg-white flex items-center justify-between gap-2">
-                    <div className="text-xs md:text-sm font-bold text-zinc-950 font-arabic truncate">{sec.labelAr}</div>
-                    <div className="text-[11px] text-zinc-400 font-mono truncate" dir="ltr">{sec.labelEn}</div>
-                  </div>
-                </button>
-              );
-            })}
+          <div className="flex flex-wrap items-baseline gap-1.5 sm:gap-2">
+            <span className="font-mono text-zinc-400 font-black text-base sm:text-lg md:text-xl">2 |</span>
+            <span className="text-white font-black text-sm sm:text-base md:text-xl font-arabic">صور فحص المركبة الأساسية</span>
+            <span className="text-zinc-400 text-[11px] sm:text-xs md:text-sm font-mono font-semibold">| Vehicle Core Photos (5 Views)</span>
           </div>
         </div>
       </div>
 
-      {/* Full Photo Modal */}
-      {selectedPhoto && (
-        <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-[999999] flex items-center justify-center p-3 sm:p-4" onClick={() => setSelectedPhoto(null)}>
-          <div className="relative max-w-3xl w-full bg-zinc-900 rounded-2xl overflow-hidden shadow-2xl border border-zinc-700" onClick={e => e.stopPropagation()}>
-            <div className="bg-zinc-950 text-white px-4 py-3 sm:px-6 sm:py-4 flex items-center justify-between border-b border-zinc-800">
-              <div>
-                <h4 className="font-bold text-sm sm:text-base font-arabic text-white">{selectedPhoto.labelAr}</h4>
-                <p className="text-xs text-zinc-400 font-mono" dir="ltr">{selectedPhoto.labelEn}</p>
-              </div>
-              <button onClick={() => setSelectedPhoto(null)} className="w-8 h-8 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white flex items-center justify-center cursor-pointer">
-                <PhosphorIcon name="x" weight="bold" size={18} />
-              </button>
-            </div>
-            <div className="p-3 sm:p-4 bg-black flex items-center justify-center max-h-[75vh]">
-              <img src={selectedPhoto.url} alt={selectedPhoto.labelAr} className="max-w-full max-h-[70vh] object-contain rounded-lg" />
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+      <div className="p-4 sm:p-6 md:p-8">
+        <VehiclePhotosGrid inspection={inspection} isEditable={false} />
+      </div>
+    </div>
   );
 };
 

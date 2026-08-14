@@ -1084,15 +1084,18 @@ export async function registerRoutes(
         return res.status(404).json({ error: "الفحص غير موجود" });
       }
 
+      // 5 Standard Core Vehicle Photo Keys + legacy aliases
       const candidateSlots = [
+        'main_vehicle',
+        'right_side',
+        'front_view',
+        'left_side',
+        'rear_view',
         'mainCarPhoto',
-        'frontLeftDoorPhoto',
-        'trunkPhoto',
-        'rearLeftDoorPhoto',
         'frontRightDoorPhoto',
         'hoodPhoto',
-        'frontLeftDoorInteriorPhoto',
-        'trunkInteriorPhoto',
+        'frontLeftDoorPhoto',
+        'trunkPhoto',
       ];
 
       const currentMeta = (existing.vehiclePhotosMeta as Record<string, VehiclePhotoSlotMeta>) || {};
@@ -1142,6 +1145,19 @@ export async function registerRoutes(
           timestamp: now,
           details: "تم توليد وتجهيز زاوية الاستوديو ضمن طقم صور المركبة"
         };
+
+        // Map standard key to legacy column for maximum compatibility
+        const slotDbFieldMap: Record<string, string> = {
+          'main_vehicle': 'mainCarPhoto',
+          'right_side': 'frontRightDoorPhoto',
+          'front_view': 'hoodPhoto',
+          'left_side': 'frontLeftDoorPhoto',
+          'rear_view': 'trunkPhoto',
+        };
+        const mappedCol = slotDbFieldMap[slotKey];
+        if (mappedCol) {
+          await storage.updateInspection(id, { [mappedCol]: processedUrl });
+        }
 
         updatedInspection = await storage.updateInspectionPhotoMeta(id, slotKey, {
           originalUrl,

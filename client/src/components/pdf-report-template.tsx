@@ -1,4 +1,5 @@
 import { getVehicleColor, calculateInspectionStats, getHealthLabel, resolveVehiclePhoto } from "@/lib/vehicle-utils";
+import { VEHICLE_PHOTO_SECTIONS, resolveVehiclePhotoByKey } from "@shared/vehicle-photos";
 import React, { forwardRef } from 'react';
 import logoPath from '@assets/hs-logo.png';
 import hsCarBranding from '@assets/hs_car_branding.png';
@@ -325,18 +326,47 @@ export const PdfVehicleInfoSection = ({ inspection }: { inspection: Inspection }
 };
 
 // ----------------------------------------------------
-// 3. SECTION 2: VEHICLE SECTION PHOTOS ROW (7 FRAMES)
+// 3. SECTION 2: VEHICLE CORE PHOTOS (5 STANDARD VIEWS)
 // ----------------------------------------------------
 export const PdfVehicleSectionsPhotosRow = ({ inspection }: { inspection: Inspection }) => {
-  const allSections = [
-    { labelAr: 'الواجهة الأمامية', labelEn: 'Front Side', photo: inspection.frontSidePhoto },
-    { labelAr: 'الواجهة الخلفية', labelEn: 'Rear Side', photo: inspection.rearSidePhoto },
-    { labelAr: 'الجانب الأيسر', labelEn: 'Left Side', photo: inspection.rearLeftDoorPhoto || inspection.frontLeftDoorPhoto },
-    { labelAr: 'الجانب الأيمن', labelEn: 'Right Side', photo: inspection.frontRightDoorPhoto || inspection.rearRightDoorPhoto },
-    { labelAr: 'حجرة المحرك', labelEn: 'Engine Bay', photo: inspection.hoodPhoto },
-    { labelAr: 'المقصورة الداخلية', labelEn: 'Interior', photo: inspection.interiorPhoto || inspection.frontLeftDoorInteriorPhoto },
-    { labelAr: 'صندوق الأمتعة', labelEn: 'Trunk', photo: inspection.trunkPhoto },
-  ];
+  const mainPhoto = resolveVehiclePhotoByKey(inspection, 'main_vehicle');
+  const rightSidePhoto = resolveVehiclePhotoByKey(inspection, 'right_side');
+  const frontViewPhoto = resolveVehiclePhotoByKey(inspection, 'front_view');
+  const leftSidePhoto = resolveVehiclePhotoByKey(inspection, 'left_side');
+  const rearViewPhoto = resolveVehiclePhotoByKey(inspection, 'rear_view');
+
+  const renderPdfCard = (titleAr: string, titleEn: string, photoUrl: string | null, height: string = '54px') => (
+    <div style={{
+      border: `1px solid ${BRAND.borderLight}`,
+      borderRadius: '6px',
+      overflow: 'hidden',
+      textAlign: 'center',
+      backgroundColor: '#ffffff',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'space-between',
+    }}>
+      <div style={{
+        height,
+        backgroundColor: '#f8fafc',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        padding: '2px',
+      }}>
+        {photoUrl ? (
+          <img src={photoUrl} alt={titleEn} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+        ) : (
+          <PhosphorIcon name="camera" weight="bold" size={16} className="text-zinc-300" />
+        )}
+      </div>
+      <div style={{ padding: '2px 4px', backgroundColor: '#ffffff', borderTop: '1px solid #f1f5f9' }}>
+        <div style={{ fontSize: '7.5px', fontWeight: 'bold', color: BRAND.black, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{titleAr}</div>
+        <div style={{ fontSize: '6px', color: '#94a3b8', fontFamily: 'monospace' }} dir="ltr">{titleEn}</div>
+      </div>
+    </div>
+  );
 
   return (
     <div style={{ 
@@ -358,46 +388,31 @@ export const PdfVehicleSectionsPhotosRow = ({ inspection }: { inspection: Inspec
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <PhosphorIcon name="camera" weight="bold" size={16} className="text-white" />
-          <span style={{ fontWeight: 'bold', fontSize: '11.5px' }}>
-            <span style={{ color: '#a1a1aa', marginRight: '4px' }}>2 |</span> صور أقسام السيارة <span style={{ fontSize: '9px', color: '#a1a1aa', fontFamily: 'monospace' }}>| Vehicle Sections Photos</span>
+          <span style={{ fontWeight: 'bold', fontSize: '11px' }}>
+            <span style={{ color: '#a1a1aa', marginRight: '4px' }}>2 |</span> صور فحص المركبة الأساسية <span style={{ fontSize: '8.5px', color: '#a1a1aa', fontFamily: 'monospace' }}>| Vehicle Core Photos (5 Views)</span>
           </span>
         </div>
       </div>
 
-      <div style={{ 
-        padding: '6px 8px', 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(7, 1fr)', 
-        gap: '5px' 
-      }}>
-        {allSections.map((sec, idx) => (
-          <div key={idx} style={{ 
-            border: `1px solid ${BRAND.borderLight}`, 
-            borderRadius: '5px', 
-            overflow: 'hidden', 
-            textAlign: 'center', 
-            backgroundColor: BRAND.bgLight 
-          }}>
-            <div style={{ 
-              height: '52px', 
-              backgroundColor: '#f4f4f5', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              overflow: 'hidden' 
-            }}>
-              {sec.photo ? (
-                <img src={sec.photo} alt={sec.labelEn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              ) : (
-                <PhosphorIcon name="camera" weight="bold" size={18} className="text-zinc-400" />
-              )}
-            </div>
-            <div style={{ padding: '2px 1px', backgroundColor: '#ffffff', borderTop: '1px solid #e4e4e7' }}>
-              <div style={{ fontSize: '8px', fontWeight: 'bold', color: BRAND.black, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sec.labelAr}</div>
-              <div style={{ fontSize: '6.5px', color: '#a1a1aa', fontFamily: 'monospace' }} dir="ltr">{sec.labelEn}</div>
-            </div>
+      <div style={{ padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: '5px' }} dir="rtl">
+        {/* Row 1: Main Vehicle View */}
+        <div>
+          {renderPdfCard('السيارة الرئيسية', 'Main Vehicle View', mainPhoto, '70px')}
+        </div>
+
+        {/* Row 2: 3 Columns in RTL: Right Side -> Front View -> Left Side */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '5px' }}>
+          <div>{renderPdfCard('الجانب الأيمن', 'Right Side View', rightSidePhoto, '52px')}</div>
+          <div>{renderPdfCard('الواجهة الأمامية', 'Front View', frontViewPhoto, '52px')}</div>
+          <div>{renderPdfCard('الجانب الأيسر', 'Left Side View', leftSidePhoto, '52px')}</div>
+        </div>
+
+        {/* Row 3: Rear View Centered */}
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <div style={{ width: '33.33%' }}>
+            {renderPdfCard('الواجهة الخلفية', 'Rear View', rearViewPhoto, '52px')}
           </div>
-        ))}
+        </div>
       </div>
     </div>
   );

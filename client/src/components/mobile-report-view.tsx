@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { VehiclePhotosGrid } from "@/components/vehicle-photos-grid";
 import { PhosphorIcon } from "@/components/phosphor-icon";
 import { INSPECTION_CATEGORIES } from "@shared/categories";
 import { getVehicleColor, resolveVehiclePhoto } from "@/lib/vehicle-utils";
@@ -400,55 +401,19 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
         </div>
       </div>
 
-      {/* 3. Section 2: Vehicle Sections Photos Header */}
+      {/* 3. Section 2: Vehicle Sections Photos (5 Standard Photos) */}
       <div className="bg-zinc-950 rounded-xl px-4 py-2.5 flex items-center justify-between text-white shadow-sm border border-zinc-800">
         <div className="flex items-center gap-2">
           <PhosphorIcon name="camera" weight="bold" size={18} className="text-white" />
-          <h3 className="font-bold text-sm text-white font-arabic">صور أقسام السيارة</h3>
+          <h3 className="font-bold text-sm text-white font-arabic">صور فحص المركبة الأساسية</h3>
           <span className="text-zinc-400 font-mono font-bold text-sm">2</span>
         </div>
         <div className="text-zinc-400 font-mono text-[10px]" dir="ltr">
-          Vehicle Sections Photos ({sectionPhotos.length})
+          Vehicle Core Photos (5 Views)
         </div>
       </div>
 
-      {/* Vehicle Sections Photos Grid (Mobile Balanced 3-Col & 2-Col Grid) */}
-      <div className="bg-white rounded-2xl border border-zinc-200 p-2.5 sm:p-3 shadow-xs">
-        <div className="grid grid-cols-3 gap-2">
-          {sectionPhotos.map((sec, idx) => (
-            <div
-              key={sec.key || idx}
-              className="flex flex-col rounded-xl border border-zinc-200 overflow-hidden bg-white shadow-xs text-center cursor-pointer group hover:border-zinc-400 transition-colors"
-              onClick={() => sec.photo && setSelectedSectionPhoto({ url: sec.photo, labelAr: sec.labelAr, labelEn: sec.labelEn })}
-            >
-              <div className="w-full aspect-[4/3] bg-white flex items-center justify-center relative overflow-hidden p-1">
-                <div className="absolute top-1.5 right-1.5 z-10 bg-zinc-950/85 backdrop-blur-xs text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-xs">
-                  {sec.labelAr}
-                </div>
-                {sec.photo ? (
-                  <img
-                    src={sec.photo}
-                    alt={sec.labelAr}
-                    className="w-full h-full object-contain group-hover:scale-102 transition-transform"
-                  />
-                ) : (
-                  <div className="flex flex-col items-center justify-center text-zinc-300">
-                    <PhosphorIcon name="camera" weight="bold" size={20} />
-                  </div>
-                )}
-              </div>
-              <div className="p-1.5 bg-white border-t border-zinc-100">
-                <div className="text-[10px] sm:text-xs font-bold text-zinc-950 truncate leading-tight font-arabic">
-                  {sec.labelAr}
-                </div>
-                <div className="text-[8px] sm:text-[9px] text-zinc-400 font-mono truncate" dir="ltr">
-                  {sec.labelEn}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <VehiclePhotosGrid inspection={inspection} isEditable={false} />
 
       {/* 4. Section 3: Inspection Results Header */}
       <div className="bg-zinc-950 rounded-xl px-4 py-2.5 flex items-center justify-between text-white shadow-sm border border-zinc-800">

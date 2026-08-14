@@ -43,6 +43,8 @@ import { INSPECTION_CATEGORIES, CATEGORY_GROUPS, MAIN_SECTIONS, getCategoryLabel
 import { useInspectionStructure } from "@/hooks/use-inspection-structure";
 import { AddEditSectionModal, AddEditCategoryModal } from "@/components/section-category-manager-modal";
 import { queryClient } from "@/lib/queryClient";
+import { VehiclePhotosGrid } from "@/components/vehicle-photos-grid";
+import { VEHICLE_PHOTO_SECTIONS, VehiclePhotoKey, resolveVehiclePhotoByKey } from "@shared/vehicle-photos";
 
 export default function InspectionDetails() {
   const [, params] = useRoute("/inspections/:id");
@@ -1096,23 +1098,9 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
     });
   };
 
-  const photoSlots = [
-    { key: 'mainCarPhoto', labelAr: 'من الأمام اليسار', labelEn: 'Front 3/4 View', isHero: true, canProcess: true },
-    { key: 'rearLeftDoorPhoto', labelAr: 'الجانب الأيسر', labelEn: 'Left Side View', isHero: false, canProcess: true },
-    { key: 'frontRightDoorPhoto', labelAr: 'الجانب الأيمن', labelEn: 'Right Side View', isHero: false, canProcess: true },
-    { key: 'frontLeftDoorPhoto', labelAr: 'من الأمام', labelEn: 'Front View', isHero: false, canProcess: true },
-    { key: 'trunkPhoto', labelAr: 'من الخلف', labelEn: 'Rear View', isHero: false, canProcess: true },
-    { key: 'hoodPhoto', labelAr: 'حجرة المحرك', labelEn: 'Engine Bay', isHero: false, canProcess: false },
-    { key: 'frontLeftDoorInteriorPhoto', labelAr: 'المقصورة الداخلية', labelEn: 'Interior', isHero: false, canProcess: false },
-    { key: 'trunkInteriorPhoto', labelAr: 'صندوق الأمتعة', labelEn: 'Trunk', isHero: false, canProcess: false },
-    { key: 'vinPhoto', labelAr: 'رقم الهيكل (VIN)', labelEn: 'VIN Plate Photo', isHero: false, ocrType: 'vin', canProcess: false },
-    { key: 'odometerPhoto', labelAr: 'لوحة العداد (Odometer)', labelEn: 'Odometer Photo', isHero: false, ocrType: 'odometer', canProcess: false },
-  ];
-
   const uploadedCount = useMemo(() => {
-    return photoSlots.filter(slot => {
-      const meta = (inspection as any)?.vehiclePhotosMeta?.[slot.key];
-      return !!(meta?.originalUrl || meta?.processedUrl || (inspection as any)[slot.key]);
+    return VEHICLE_PHOTO_SECTIONS.filter((sec) => {
+      return !!resolveVehiclePhotoByKey(inspection, sec.key);
     }).length;
   }, [inspection]);
 
@@ -1213,15 +1201,15 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
         }
       }, {
         onSuccess: () => {
-          const s = photoSlots.find(slot => slot.key === slotKey);
+          const s = VEHICLE_PHOTO_SECTIONS.find((slot) => slot.key === slotKey);
           toast({
             title: "تم حفظ الصورة بنجاح",
-            description: `تم حفظ ${s?.labelAr || 'الصورة'} كأصل دائم`,
+            description: `تم حفظ ${s?.label || 'الصورة'} كأصل دائم`,
           });
 
           // Kick off background processing if eligible
           if (canProcess) {
-            triggerBackgroundProcessing(slotKey, compressed, s?.labelAr || 'الصورة');
+            triggerBackgroundProcessing(slotKey, compressed, s?.label || 'الصورة');
           }
         },
         onError: () => {
@@ -1393,7 +1381,7 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
           </button>
 
           <div className="bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-full text-xs font-bold font-mono text-zinc-200">
-            {uploadedCount} / {photoSlots.length} مرفوعة
+            {uploadedCount} / 5 مرفوعة
           </div>
           <button className="text-zinc-400 hover:text-white p-1">
             <PhosphorIcon name={isOpen ? "caret-down" : "caret-left"} weight="bold" size={16} />
@@ -1404,182 +1392,67 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
       {/* Content Grid */}
       {isOpen && (
         <div className="p-4 sm:p-5 bg-zinc-50/50 space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            {photoSlots.map((slot) => {
-              const meta = (inspection as any)?.vehiclePhotosMeta?.[slot.key];
-              const originalUrl = meta?.originalUrl || (inspection as any)[slot.key];
-              const processedUrl = meta?.processedUrl;
-              const activeMode = meta?.activeMode || 'original';
-              const isProcessedActive = activeMode === 'processed' && !!processedUrl;
-              const displayPhotoUrl = isProcessedActive ? processedUrl : originalUrl;
-              const hasPhoto = !!displayPhotoUrl;
-              const isUploading = uploadingSlot === slot.key;
-              const isScanning = scanningSlot === slot.key;
-              const isProcessing = processingSlots[slot.key] || meta?.processingStatus === 'processing';
+          <VehiclePhotosGrid
+            inspection={inspection}
+            isEditable={true}
+            showStudioControls={true}
+            isProcessing={isGeneratingSheet}
+            onPhotoChange={async (key, fileOrDataUrl) => {
+              const section = VEHICLE_PHOTO_SECTIONS.find((s) => s.key === key);
+              if (!fileOrDataUrl) {
+                handleRemovePhoto(section?.legacyDbField || key, section?.label || 'الصورة');
+              } else {
+                setUploadingSlot(key);
+                try {
+                  const compressed = fileOrDataUrl.length > 200000 
+                    ? await compressSlotImage(await (await fetch(fileOrDataUrl)).blob() as File, 1600, 0.85)
+                    : fileOrDataUrl;
 
-              return (
-                <div 
-                  key={slot.key}
-                  className={`bg-white rounded-xl border ${hasPhoto ? 'border-zinc-300 shadow-xs' : 'border-zinc-200'} p-3 flex flex-col justify-between relative group hover:border-zinc-950/60 transition-all ${slot.isHero ? 'sm:col-span-2' : ''}`}
-                >
-                  {/* Slot Title & Status Badge */}
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <span className="text-xs font-bold text-zinc-900 font-arabic truncate">{slot.labelAr}</span>
-                    </div>
-
-                    {isProcessing ? (
-                      <span className="text-[10px] font-bold text-zinc-700 bg-zinc-100 px-2 py-0.5 rounded-full border border-zinc-300 flex items-center gap-1 shrink-0 animate-pulse">
-                        <PhosphorIcon name="spinner-gap" className="animate-spin" size={11} />
-                        <span>جاري المعالجة...</span>
-                      </span>
-                    ) : isProcessedActive ? (
-                      <span className="text-[10px] font-bold text-zinc-950 bg-zinc-100 px-2 py-0.5 rounded-full border border-zinc-300 flex items-center gap-1 shrink-0">
-                        <PhosphorIcon name="check-circle" weight="bold" size={11} />
-                        <span>استوديو نقي</span>
-                      </span>
-                    ) : hasPhoto ? (
-                      <span className="text-[10px] font-bold text-zinc-700 bg-zinc-100 px-2 py-0.5 rounded-full border border-zinc-200 flex items-center gap-1 shrink-0">
-                        <PhosphorIcon name="image" weight="bold" size={11} />
-                        <span>الأصلية</span>
-                      </span>
-                    ) : (
-                      <span className="text-[10px] text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full shrink-0">
-                        فارغ
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Photo Preview / Container */}
-                  <div className={`w-full ${slot.isHero ? 'h-40 sm:h-44' : 'h-32'} rounded-lg overflow-hidden bg-white border border-zinc-200 relative flex items-center justify-center mb-3`}>
-                    {isUploading ? (
-                      <div className="flex flex-col items-center justify-center gap-2 text-zinc-500">
-                        <PhosphorIcon name="spinner-gap" className="animate-spin text-zinc-950" size={24} />
-                        <span className="text-xs font-arabic">جاري الحفظ...</span>
-                      </div>
-                    ) : isScanning ? (
-                      <div className="flex flex-col items-center justify-center gap-2 text-zinc-700">
-                        <PhosphorIcon name="sparkle" className="animate-spin text-zinc-950" size={24} />
-                        <span className="text-xs font-arabic">جاري القراءة الذكية...</span>
-                      </div>
-                    ) : hasPhoto ? (
-                      <>
-                        <img 
-                          src={displayPhotoUrl} 
-                          alt={slot.labelAr} 
-                          className="w-full h-full object-contain cursor-pointer group-hover:scale-105 transition-transform duration-300"
-                          onClick={() => setPreviewPhoto({ url: displayPhotoUrl, title: slot.labelAr, meta })}
-                        />
-
-                        {/* Top Action Overlay: Delete */}
-                        <button
-                          type="button"
-                          onClick={() => handleRemovePhoto(slot.key, slot.labelAr)}
-                          className="absolute top-1.5 right-1.5 w-7 h-7 bg-zinc-950/80 hover:bg-zinc-950 text-white rounded-full flex items-center justify-center shadow-md transition-colors backdrop-blur-xs cursor-pointer"
-                          title="حذف الصورة"
-                        >
-                          <PhosphorIcon name="trash" weight="bold" size={13} />
-                        </button>
-
-                        {/* Bottom Overlay Controls */}
-                        <div className="absolute bottom-1.5 inset-x-1.5 flex items-center justify-between gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          {/* Left: Quick Switch or Re-process */}
-                          <div className="flex items-center gap-1">
-                            {processedUrl && (
-                              <button
-                                type="button"
-                                onClick={() => handleToggleMode(slot.key, isProcessedActive ? 'original' : 'processed', slot.labelAr)}
-                                className="px-2 py-1 bg-zinc-950/80 hover:bg-zinc-950 text-white rounded-md text-[10px] font-arabic flex items-center gap-1 backdrop-blur-xs shadow-xs cursor-pointer"
-                                title={isProcessedActive ? "الرجوع للصورة الأصلية" : "عرض الصورة المحسنة"}
-                              >
-                                <PhosphorIcon name={isProcessedActive ? "arrow-counter-clockwise" : "magic-wand"} weight="bold" size={12} />
-                                <span>{isProcessedActive ? "للأصلية" : "للمحسنة"}</span>
-                              </button>
-                            )}
-
-                            {processedUrl && (
-                              <button
-                                type="button"
-                                onClick={() => setCompareSlot({
-                                  slotKey: slot.key,
-                                  labelAr: slot.labelAr,
-                                  originalUrl,
-                                  processedUrl,
-                                  activeMode,
-                                })}
-                                className="p-1 bg-zinc-950/80 hover:bg-zinc-950 text-white rounded-md text-[10px] backdrop-blur-xs shadow-xs cursor-pointer"
-                                title="مقارنة الصورتين"
-                              >
-                                <PhosphorIcon name="git-compare" weight="bold" size={13} />
-                              </button>
-                            )}
-
-                            {slot.canProcess && !isProcessing && (
-                              <button
-                                type="button"
-                                onClick={() => handleReprocess(slot.key, slot.labelAr)}
-                                className="p-1 bg-zinc-950/80 hover:bg-zinc-950 text-white rounded-md text-[10px] backdrop-blur-xs shadow-xs cursor-pointer"
-                                title="إعادة المعالجة بالذكاء الاصطناعي"
-                              >
-                                <PhosphorIcon name="arrows-clockwise" weight="bold" size={13} />
-                              </button>
-                            )}
-                          </div>
-
-                          {/* Right: Zoom Preview */}
-                          <button
-                            type="button"
-                            onClick={() => setPreviewPhoto({ url: displayPhotoUrl, title: slot.labelAr, meta })}
-                            className="px-2 py-1 bg-zinc-950/80 hover:bg-zinc-950 text-white rounded-md text-[10px] font-arabic flex items-center gap-1 backdrop-blur-xs shadow-xs cursor-pointer"
-                          >
-                            <PhosphorIcon name="magnifying-glass-plus" weight="bold" size={12} />
-                            <span>تكبير</span>
-                          </button>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center text-zinc-300 gap-1 p-2 text-center">
-                        <PhosphorIcon name="camera" weight="light" size={28} className="text-zinc-300" />
-                        <span className="text-[10px] text-zinc-400 font-arabic">{slot.labelEn}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Actions Buttons: Camera / Gallery */}
-                  <div className="flex gap-2">
-                    <label className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 bg-zinc-950 hover:bg-zinc-900 text-white rounded-lg text-xs font-bold font-arabic cursor-pointer transition-colors shadow-xs">
-                      <PhosphorIcon name="camera" weight="bold" size={14} />
-                      <span>كاميرا</span>
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        capture="environment" 
-                        className="hidden" 
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleSlotUpload(slot.key, file, slot.ocrType, slot.canProcess);
-                        }} 
-                      />
-                    </label>
-
-                    <label className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 rounded-lg text-xs font-semibold font-arabic cursor-pointer transition-colors border border-zinc-200">
-                      <PhosphorIcon name="upload-simple" weight="bold" size={14} className="text-zinc-600" />
-                      <span>معرض</span>
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        className="hidden" 
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleSlotUpload(slot.key, file, slot.ocrType, slot.canProcess);
-                        }} 
-                      />
-                    </label>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                  updateInspection.mutate({
+                    id: inspection.id,
+                    [section?.legacyDbField || key]: compressed,
+                    vehiclePhotosMeta: {
+                      ...((inspection as any).vehiclePhotosMeta || {}),
+                      [key]: {
+                        originalUrl: compressed,
+                        activeMode: 'original',
+                        processingStatus: 'processing',
+                        processedAt: new Date().toISOString(),
+                      },
+                    },
+                  }, {
+                    onSuccess: () => {
+                      toast({
+                        title: "تم حفظ الصورة بنجاح",
+                        description: `تم حفظ ${section?.label || 'الصورة'} كأصل دائم`,
+                      });
+                      triggerBackgroundProcessing(key, compressed, section?.label || 'الصورة');
+                    },
+                    onError: () => {
+                      toast({ title: "خطأ في الحفظ", variant: "destructive" });
+                    },
+                  });
+                } catch {
+                  updateInspection.mutate({
+                    id: inspection.id,
+                    [section?.legacyDbField || key]: fileOrDataUrl,
+                  });
+                } finally {
+                  setUploadingSlot(null);
+                }
+              }
+            }}
+            onReprocessPhoto={(key) => {
+              const section = VEHICLE_PHOTO_SECTIONS.find((s) => s.key === key);
+              handleReprocess(key, section?.label || 'الصورة');
+            }}
+            onTogglePhotoMode={(key) => {
+              const section = VEHICLE_PHOTO_SECTIONS.find((s) => s.key === key);
+              const meta = (inspection as any)?.vehiclePhotosMeta?.[key];
+              const isProcessedActive = meta?.activeMode === 'processed';
+              handleToggleMode(key, isProcessedActive ? 'original' : 'processed', section?.label || 'الصورة');
+            }}
+          />
         </div>
       )}
 
