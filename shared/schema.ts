@@ -156,7 +156,27 @@ export const inspectionItemsRelations = relations(inspectionItems, ({ one }) => 
 // === BASE SCHEMAS ===
 
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
-export const insertInspectionSchema = createInsertSchema(inspections).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertInspectionSchema = createInsertSchema(inspections, {
+  vin: z.string().optional().or(z.literal("")),
+  make: z.string().optional().nullable(),
+  model: z.string().optional().nullable(),
+  year: z.coerce.number().optional().nullable(),
+  color: z.string().optional().nullable(),
+  odometer: z.coerce.number().optional().nullable(),
+  customerName: z.string().optional().nullable(),
+  customerPhone: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+  inspectionType: z.string().optional().nullable(),
+  mainCarPhoto: z.string().optional().nullable(),
+  rearLeftDoorPhoto: z.string().optional().nullable(),
+  rearRightDoorPhoto: z.string().optional().nullable(),
+  frontLeftDoorPhoto: z.string().optional().nullable(),
+  frontRightDoorPhoto: z.string().optional().nullable(),
+  hoodPhoto: z.string().optional().nullable(),
+  trunkPhoto: z.string().optional().nullable(),
+  vinPhoto: z.string().optional().nullable(),
+  odometerPhoto: z.string().optional().nullable(),
+}).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertInspectionItemSchema = createInsertSchema(inspectionItems).omit({ id: true, createdAt: true });
 export const insertInspectionSectionSchema = createInsertSchema(inspectionSections).omit({ createdAt: true });
 export const insertInspectionCategorySchema = createInsertSchema(inspectionCategories).omit({ createdAt: true });

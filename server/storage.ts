@@ -142,7 +142,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createInspection(inspection: InsertInspection): Promise<Inspection> {
-    const [newInspection] = await db.insert(inspections).values(inspection).returning();
+    const cleanVin = (inspection.vin || "").trim() || `DRAFT-${Date.now()}`;
+    const cleanData = {
+      ...inspection,
+      vin: cleanVin,
+      make: inspection.make || "غير محدد",
+      model: inspection.model || "غير محدد",
+      year: inspection.year || new Date().getFullYear(),
+      status: inspection.status || "draft",
+    };
+    const [newInspection] = await db.insert(inspections).values(cleanData).returning();
     return newInspection;
   }
 

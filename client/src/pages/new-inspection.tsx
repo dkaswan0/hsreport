@@ -49,8 +49,8 @@ const INSPECTION_TYPES = [
 
 const formSchema = insertInspectionSchema.extend({
   vin: z.string().max(17).optional().or(z.literal("")),
-  odometer: z.coerce.number().min(0, "يجب أن تكون المسافة المقطوعة رقمًا موجبًا"),
-  year: z.coerce.number().min(1900).max(new Date().getFullYear() + 1),
+  odometer: z.coerce.number().min(0, "يجب أن تكون المسافة المقطوعة رقمًا موجبًا").optional().or(z.literal(0)),
+  year: z.coerce.number().min(1900).max(new Date().getFullYear() + 1).optional().nullable(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -309,8 +309,13 @@ export default function NewInspection() {
 
   const onSubmit = (data: FormValues) => {
     const inspectionTypeLabel = INSPECTION_TYPES.find(t => t.id === inspectionType)?.label || 'فحص شامل';
+    const cleanVin = data.vin && data.vin.trim() ? data.vin.trim() : `DRAFT-${Date.now()}`;
     const submissionData = {
       ...data,
+      vin: cleanVin,
+      make: data.make || "غير محدد",
+      model: data.model || "غير محدد",
+      year: data.year || new Date().getFullYear(),
       notes: notes.trim() || undefined,
       odometerPhoto: odometerPhoto || undefined,
       inspectionType: inspectionTypeLabel,

@@ -208,30 +208,12 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
       <div className="bg-zinc-950 rounded-xl px-4 py-2.5 flex items-center justify-between text-white shadow-sm border border-zinc-800">
         <div className="flex items-center gap-2">
           <PhosphorIcon name="car" weight="bold" size={18} className="text-white" />
-          <h3 className="font-bold text-sm text-white font-arabic">معلومات السيارة</h3>
+          <h3 className="font-bold text-sm text-white font-arabic">معلومات وبيانات المركبة</h3>
           <span className="text-zinc-400 font-mono font-bold text-sm">1</span>
         </div>
         <div className="text-zinc-400 font-mono text-[10px]" dir="ltr">
           Vehicle Information
         </div>
-      </div>
-
-      {/* Main Car Photo (Large Hero Card with Crisp Aspect Ratio) */}
-      <div className="bg-white rounded-2xl border border-zinc-200 p-2 sm:p-3 shadow-xs overflow-hidden flex items-center justify-center min-h-[160px] sm:min-h-[190px] bg-zinc-100/70">
-        {inspection.mainCarPhoto ? (
-          <img
-            src={inspection.mainCarPhoto}
-            alt={`${inspection.make} ${inspection.model}`}
-            className="w-full max-h-[180px] sm:max-h-[210px] object-contain rounded-xl drop-shadow-md cursor-pointer hover:scale-[1.02] transition-transform"
-            onClick={() => onImageClick?.(inspection.mainCarPhoto, `${inspection.make} ${inspection.model}`)}
-          />
-        ) : (
-          <img
-            src={hsCarBranding}
-            alt="High Safety Vehicle"
-            className="w-full max-h-[190px] object-contain rounded-xl opacity-60"
-          />
-        )}
       </div>
 
       {/* Vehicle Data Key-Value Specs Card */}
