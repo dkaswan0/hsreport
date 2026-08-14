@@ -1097,16 +1097,16 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
   };
 
   const photoSlots = [
-    { key: 'mainCarPhoto', labelAr: 'صورة السيارة الرئيسية (Front 3/4)', labelEn: 'Main Vehicle Photo', isHero: true, canProcess: true },
-    { key: 'vinPhoto', labelAr: 'صورة رقم الهيكل (VIN)', labelEn: 'VIN Plate Photo', isHero: false, ocrType: 'vin', canProcess: false },
-    { key: 'odometerPhoto', labelAr: 'صورة العداد (Odometer)', labelEn: 'Odometer Photo', isHero: false, ocrType: 'odometer', canProcess: false },
-    { key: 'frontLeftDoorPhoto', labelAr: 'الواجهة الأمامية (Front View)', labelEn: 'Front Side Photo', isHero: false, canProcess: true },
-    { key: 'trunkPhoto', labelAr: 'الواجهة الخلفية (Rear View)', labelEn: 'Rear Side Photo', isHero: false, canProcess: true },
-    { key: 'rearLeftDoorPhoto', labelAr: 'الجانب الأيسر (Left Side View)', labelEn: 'Left Side Photo', isHero: false, canProcess: true },
-    { key: 'frontRightDoorPhoto', labelAr: 'الجانب الأيمن (Right Side View)', labelEn: 'Right Side Photo', isHero: false, canProcess: true },
-    { key: 'hoodPhoto', labelAr: 'حجرة المحرك (Engine Bay)', labelEn: 'Engine Bay Photo', isHero: false, canProcess: false },
-    { key: 'frontLeftDoorInteriorPhoto', labelAr: 'المقصورة الداخلية (Interior)', labelEn: 'Interior Photo', isHero: false, canProcess: false },
-    { key: 'trunkInteriorPhoto', labelAr: 'صندوق الأمتعة (Trunk)', labelEn: 'Trunk Photo', isHero: false, canProcess: false },
+    { key: 'mainCarPhoto', labelAr: 'من الأمام اليسار', labelEn: 'Front 3/4 View', isHero: true, canProcess: true },
+    { key: 'rearLeftDoorPhoto', labelAr: 'الجانب الأيسر', labelEn: 'Left Side View', isHero: false, canProcess: true },
+    { key: 'frontRightDoorPhoto', labelAr: 'الجانب الأيمن', labelEn: 'Right Side View', isHero: false, canProcess: true },
+    { key: 'frontLeftDoorPhoto', labelAr: 'من الأمام', labelEn: 'Front View', isHero: false, canProcess: true },
+    { key: 'trunkPhoto', labelAr: 'من الخلف', labelEn: 'Rear View', isHero: false, canProcess: true },
+    { key: 'hoodPhoto', labelAr: 'حجرة المحرك', labelEn: 'Engine Bay', isHero: false, canProcess: false },
+    { key: 'frontLeftDoorInteriorPhoto', labelAr: 'المقصورة الداخلية', labelEn: 'Interior', isHero: false, canProcess: false },
+    { key: 'trunkInteriorPhoto', labelAr: 'صندوق الأمتعة', labelEn: 'Trunk', isHero: false, canProcess: false },
+    { key: 'vinPhoto', labelAr: 'رقم الهيكل (VIN)', labelEn: 'VIN Plate Photo', isHero: false, ocrType: 'vin', canProcess: false },
+    { key: 'odometerPhoto', labelAr: 'لوحة العداد (Odometer)', labelEn: 'Odometer Photo', isHero: false, ocrType: 'odometer', canProcess: false },
   ];
 
   const uploadedCount = useMemo(() => {

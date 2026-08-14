@@ -421,12 +421,15 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
               className="flex flex-col rounded-xl border border-zinc-200 overflow-hidden bg-white shadow-xs text-center cursor-pointer group hover:border-zinc-400 transition-colors"
               onClick={() => sec.photo && setSelectedSectionPhoto({ url: sec.photo, labelAr: sec.labelAr, labelEn: sec.labelEn })}
             >
-              <div className="w-full aspect-[4/3] bg-zinc-100 flex items-center justify-center relative overflow-hidden">
+              <div className="w-full aspect-[4/3] bg-white flex items-center justify-center relative overflow-hidden p-1">
+                <div className="absolute top-1.5 right-1.5 z-10 bg-zinc-950/85 backdrop-blur-xs text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-xs">
+                  {sec.labelAr}
+                </div>
                 {sec.photo ? (
                   <img
                     src={sec.photo}
                     alt={sec.labelAr}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    className="w-full h-full object-contain group-hover:scale-102 transition-transform"
                   />
                 ) : (
                   <div className="flex flex-col items-center justify-center text-zinc-300">

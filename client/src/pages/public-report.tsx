@@ -283,7 +283,7 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
         {/* Right Side (7 Cols): Car 3D Photo + VIN Card & Odometer Card */}
         <div className="lg:col-span-7 flex flex-col justify-between gap-3 sm:gap-4">
           {/* Main Car Photo */}
-          <div className="w-full h-40 sm:h-48 md:h-52 lg:h-56 rounded-2xl overflow-hidden bg-zinc-100/80 border border-zinc-200 flex items-center justify-center p-3 sm:p-4 relative group shadow-xs">
+          <div className="w-full h-40 sm:h-48 md:h-52 lg:h-56 rounded-2xl overflow-hidden bg-white border border-zinc-200 flex items-center justify-center p-2 sm:p-3 relative group shadow-xs">
             {resolveVehiclePhoto(inspection, "mainCarPhoto") ? (
               <img 
                 src={resolveVehiclePhoto(inspection, "mainCarPhoto")} 
