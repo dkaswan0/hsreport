@@ -167,7 +167,7 @@ export default function Dashboard() {
                     data-testid="button-select-all"
                   >
                     {allSel
-                      ? <XSquare className="w-4 h-4 text-[#18181b]" />
+                      ? <XSquare className="w-4 h-4 text-zinc-950" />
                       : <CheckSquare className="w-4 h-4" />}
                   </button>
                 </th>
@@ -221,7 +221,7 @@ export default function Dashboard() {
                           data-testid={`checkbox-select-${ins.id}`}
                         >
                           {sel
-                            ? <CheckSquare className="w-4 h-4 text-[#18181b]" />
+                            ? <CheckSquare className="w-4 h-4 text-zinc-950" />
                             : <Square className="w-4 h-4" />}
                         </button>
                       </td>
@@ -251,7 +251,7 @@ export default function Dashboard() {
                         <div className="flex items-center justify-end gap-3">
                           <Link
                             href={`/inspections/${ins.id}`}
-                            className="text-[11px] font-semibold text-zinc-600 hover:text-[#18181b] transition-colors"
+                            className="text-[11px] font-semibold text-zinc-600 hover:text-zinc-950 transition-colors"
                             data-testid={`link-view-${ins.id}`}
                           >
                             {ar ? "عرض" : "View"}

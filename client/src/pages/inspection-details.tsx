@@ -964,12 +964,12 @@ export default function InspectionDetails() {
         {/* OBD Button */}
         <button
           onClick={() => setIsObdOpen(true)}
-          className="w-full flex items-center justify-between p-4 md:p-5 bg-white rounded-2xl shadow-sm border border-slate-200 hover:border-[#18181b] hover:shadow-md transition-all group mt-2"
+          className="w-full flex items-center justify-between p-4 md:p-5 bg-white rounded-2xl shadow-sm border border-slate-200 hover:border-zinc-800 hover:shadow-md transition-all group mt-2"
           data-testid="btn-open-obd-section"
         >
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center shadow-inner group-hover:bg-[#18181b]/10 transition-colors">
-              <PhosphorIcon name="cpu" weight="duotone" size={28} className="text-[#09090b] group-hover:text-[#18181b] transition-colors" />
+            <div className="w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center shadow-inner group-hover:bg-zinc-100 transition-colors">
+              <PhosphorIcon name="cpu" weight="duotone" size={28} className="text-zinc-950 group-hover:text-zinc-800 transition-colors" />
             </div>
             <div className="text-right">
               <div className="font-bold text-slate-900 text-sm">فحص كمبيوتر السيارة OBD</div>
@@ -2958,11 +2958,11 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
-                <PhosphorIcon name="cpu" weight="duotone" size={24} className="text-[#18181b]" />
+                <PhosphorIcon name="cpu" weight="duotone" size={24} className="text-white" />
               </div>
               <div>
                 <h2 className="text-lg font-black font-arabic">فحص كمبيوتر السيارة</h2>
-                <p className="text-[#18181b] text-xs font-mono" dir="ltr">OBD-II Diagnostic Scanner</p>
+                <p className="text-zinc-400 text-xs font-mono" dir="ltr">OBD-II Diagnostic Scanner</p>
               </div>
             </div>
             <button onClick={onClose} className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center hover:bg-white/20 transition-colors" data-testid="btn-close-obd">
@@ -3043,7 +3043,7 @@ function ObdCodesSection({ inspection, inspectionId, onClose }: { inspection: In
                 className="w-full px-4 py-2.5 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-900 transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98] shadow-sm font-arabic border border-slate-700"
                 data-testid="btn-upload-autel-pdf"
               >
-                <PhosphorIcon name="file-pdf" weight="duotone" size={18} className="text-[#18181b]" />
+                <PhosphorIcon name="file-pdf" weight="duotone" size={18} className="text-white" />
                 رفع تقرير PDF من الجهاز
               </button>
             </div>

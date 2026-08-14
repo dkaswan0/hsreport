@@ -106,7 +106,19 @@
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    @apply tracking-tight font-bold text-zinc-950 dark:text-zinc-100;
+    @apply tracking-tight font-bold;
+    color: inherit;
+  }
+
+  /* Universal high-contrast inputs & readable placeholders */
+  input::placeholder, textarea::placeholder {
+    color: #71717a !important;
+    opacity: 1 !important;
+  }
+
+  /* Ensure dark background containers always cascade high-contrast white text */
+  .bg-zinc-950, .bg-zinc-900, .bg-black, [class*="from-zinc-950"], [class*="from-[#09090b]"] {
+    --tw-text-opacity: 1;
   }
 
   /* RTL Support Helper */

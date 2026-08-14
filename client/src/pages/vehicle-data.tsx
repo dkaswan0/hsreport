@@ -144,12 +144,12 @@ export default function VehicleData() {
         
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-zinc-950 text-white text-zinc-950 flex items-center justify-center font-black shadow-lg">
+            <div className="w-14 h-14 rounded-2xl bg-zinc-950 text-white flex items-center justify-center font-black shadow-lg">
               <Car className="w-8 h-8" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="bg-zinc-950 text-white text-zinc-950 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider">
+                <span className="bg-zinc-950 text-white text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider">
                   نظام فحص الشاصي العالمي والخليجي
                 </span>
                 <span className="bg-zinc-800 text-zinc-200 border border-zinc-700 text-xs px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
@@ -166,7 +166,7 @@ export default function VehicleData() {
 
           <button
             onClick={() => setLocation("/new-inspection")}
-            className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-zinc-950 text-white text-zinc-950 font-bold hover:bg-black transition-all shadow-lg text-sm"
+            className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-zinc-950 text-white font-bold hover:bg-black transition-all shadow-lg text-sm"
           >
             <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
             إنشاء فحص جديد
@@ -280,7 +280,7 @@ export default function VehicleData() {
                     {result.make} {result.model || ""}
                   </span>
                   {result.year && (
-                    <span className="bg-zinc-950 text-white text-zinc-950 text-xs font-black px-3 py-1 rounded-lg shadow">
+                    <span className="bg-zinc-950 text-white text-xs font-black px-3 py-1 rounded-lg shadow">
                       {result.year}
                     </span>
                   )}
@@ -304,7 +304,7 @@ export default function VehicleData() {
 
               <button
                 onClick={handleStartInspection}
-                className="bg-zinc-950 text-white hover:bg-black text-zinc-950 px-5 py-2.5 rounded-xl text-sm font-black flex items-center gap-2 shadow-lg transition-all"
+                className="bg-zinc-950 text-white hover:bg-zinc-900 px-5 py-2.5 rounded-xl text-sm font-black flex items-center gap-2 shadow-lg transition-all"
               >
                 <span>إنشاء فحص بهذه السيارة</span>
                 <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
