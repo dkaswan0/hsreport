@@ -176,9 +176,14 @@ export default function NewInspection() {
           const data = await response.json();
           if (data.vin) {
             form.setValue("vin", data.vin);
+            if (data.make || data.makeAr) form.setValue("make", data.makeAr || data.make);
+            if (data.model || data.modelAr) form.setValue("model", data.modelAr || data.model);
+            if (data.year) form.setValue("year", data.year);
+            if (data.color) form.setValue("color", data.color);
+
             toast({
-              title: "تم استخراج رقم الشاصي بنجاح",
-              description: `رقم الشاصي: ${data.vin}`
+              title: "✨ تم استخراج بيانات الشاصي والمركبة",
+              description: `${data.makeAr || data.make || "شاصي"}: ${data.vin} ${data.color ? `(اللون: ${data.color})` : ""}`
             });
             await decodeVin(data.vin);
           } else {
@@ -223,15 +228,18 @@ export default function NewInspection() {
         throw new Error(errData.message || "فشل التعرف على رقم الهيكل");
       }
       const data = await response.json();
-      if (data.success && data.make) {
+      if (data.success && (data.make || data.makeAr)) {
         setDecodedVinInfo(data);
-        form.setValue("make", data.make);
-        if (data.model) form.setValue("model", data.model);
+        const resolvedMake = data.makeAr || data.make;
+        const resolvedModel = data.modelAr || data.model || "";
+        form.setValue("make", resolvedMake);
+        if (resolvedModel) form.setValue("model", resolvedModel);
         if (data.year) form.setValue("year", data.year);
+        if (data.color && !form.getValues("color")) form.setValue("color", data.color);
 
         toast({
           title: "✨ تم استخراج بيانات المركبة بنجاح",
-          description: `${data.make} ${data.model || ""} (${data.year || ""}) - ${data.country || ""}`,
+          description: `${resolvedMake} ${resolvedModel} (${data.year || ""}) ${data.color ? `| اللون: ${data.color}` : ""}`,
         });
       } else {
         setDecodedVinInfo(null);

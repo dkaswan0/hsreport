@@ -1349,11 +1349,11 @@ export async function registerRoutes(
       if (!imageBase64) {
         return res.status(400).json({ error: true, message: "لم يتم تقديم صورة" });
       }
-      const vin = await ImageAnalysisService.extractVin(imageBase64);
-      if (!vin) {
+      const data = await ImageAnalysisService.extractVin(imageBase64);
+      if (!data || !data.vin) {
         return res.status(404).json({ error: true, message: "لم يتم العثور على رقم شاصي (VIN) في الصورة. يرجى التأكد من وضوح الملصق أو الباركود وتكرار المحاولة." });
       }
-      res.json({ vin });
+      res.json(data);
     } catch (error: any) {
       console.error("VIN Extract Error:", error?.message || error);
       res.status(500).json({ error: true, message: error?.message || "فشل الاتصال بخدمة الذكاء الاصطناعي لاستخراج رقم الشاصي" });

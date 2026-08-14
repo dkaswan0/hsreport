@@ -16,11 +16,14 @@
 export interface DecodedVehicle {
   success: boolean;
   provider: string;
-  source: 'manufacturer-rule' | 'gcc-database' | 'nhtsa-verified' | 'carapi' | 'wmi-registry' | 'manual-fallback';
+  source: 'manufacturer-rule' | 'gcc-database' | 'nhtsa-verified' | 'carapi' | 'wmi-registry' | 'manual-fallback' | 'gemini-ai';
   confidence: 'high' | 'medium' | 'low';
   make: string;
+  makeAr?: string;
   model: string;
+  modelAr?: string;
   year: number | null;
+  color?: string;
   vehicleType?: string; // e.g. "SUV", "Sedan", "Pickup / Truck", "Coupe", "Van", "Hatchback"
   bodyStyle?: string;   // e.g. "4-Door SUV", "4-Door Sedan", "Double Cab", "2-Door Coupe"
   country?: string;     // e.g. "Japan", "Germany", "United States", "China", "United Kingdom", "South Korea"
@@ -1086,7 +1089,349 @@ export class VinSanitizer {
 // 5. Main VinDecoderService Engine
 // Multi-tier resolution with reliability scoring and non-guessing policy
 // ------------------------------------------------------------------------------
+
+export const MAKE_ARABIC_DICTIONARY: Record<string, string> = {
+  "Toyota": "تويوتا",
+  "Lexus": "لكزس",
+  "Hyundai": "هيونداي",
+  "Kia": "كيا",
+  "Genesis": "جينيسيس",
+  "Nissan": "نيسان",
+  "Infiniti": "إنفينيتي",
+  "Ford": "فورد",
+  "Lincoln": "لينكون",
+  "Chevrolet": "شفروليه",
+  "GMC": "جي إم سي",
+  "Cadillac": "كاديلاك",
+  "Mercedes-Benz": "مرسيدس بنز",
+  "Mercedes": "مرسيدس",
+  "BMW": "بي إم دبليو",
+  "Audi": "أودي",
+  "Volkswagen": "فولكس واجن",
+  "Porsche": "بورش",
+  "Land Rover": "لاند روفر",
+  "Range Rover": "رينج روفر",
+  "Jaguar": "جاكوار",
+  "Jeep": "جيب",
+  "Dodge": "دوج",
+  "Chrysler": "كرايسلر",
+  "RAM": "رام",
+  "Honda": "هوندا",
+  "Mazda": "مازدا",
+  "Mitsubishi": "ميتسوبيشي",
+  "Suzuki": "سوزوكي",
+  "Isuzu": "إيسوزو",
+  "Subaru": "سوبارو",
+  "Geely": "جيلي",
+  "Changan": "شانجان",
+  "Haval": "هافال",
+  "Great Wall": "جريت وول",
+  "Tank": "تانك",
+  "MG": "إم جي",
+  "Chery": "شيري",
+  "Exeed": "إكسيد",
+  "Jetour": "جيتور",
+  "GAC": "جي إيه سي",
+  "BYD": "بي واي دي",
+  "Hongqi": "هونغ تشي",
+  "Bestune": "بيستون",
+  "BAIC": "بايك",
+  "JAC": "جاك",
+  "Dongfeng": "دونغ فينغ",
+  "Foton": "فوتون",
+  "Tesla": "تيسلا",
+  "Lucid": "لوسيد",
+  "Volvo": "فولفو",
+  "Peugeot": "بيجو",
+  "Renault": "رينو",
+  "Citroen": "ستروين",
+  "Fiat": "فيات",
+  "Alfa Romeo": "ألفا روميو",
+  "Maserati": "مازيراتي",
+  "Ferrari": "فيراري",
+  "Lamborghini": "لامبورغيني",
+  "Bentley": "بنتلي",
+  "Rolls-Royce": "رولز رويس",
+  "Aston Martin": "أستون مارتن",
+  "McLaren": "ماكلارين",
+};
+
+export const MODEL_ARABIC_DICTIONARY: Record<string, string> = {
+  "Land Cruiser": "لاندكروزر",
+  "Land Cruiser Prado": "برادو",
+  "Prado": "برادو",
+  "Camry": "كامري",
+  "Corolla": "كورولا",
+  "Corolla Cross": "كورولا كروس",
+  "Hilux": "هايلاكس",
+  "Fortuner": "فورتشنر",
+  "Yaris": "يارس",
+  "Avalon": "أفالون",
+  "RAV4": "راف فور",
+  "Highlander": "هايلايندر",
+  "Innova": "إنوفا",
+  "Rush": "راش",
+  "Raize": "رايز",
+  "Veloz": "فيلوز",
+  "Crown": "كراون",
+  "FJ Cruiser": "إف جي كروزر",
+  "Patrol": "باترول",
+  "Patrol Safari": "باترول سفاري",
+  "Sunny": "صني",
+  "Altima": "ألتيما",
+  "Maxima": "مكسيما",
+  "Sentra": "سنترا",
+  "Kicks": "كيكس",
+  "X-Trail": "إكس تريل",
+  "Pathfinder": "باثفايندر",
+  "Navara": "نافارا",
+  "Sonata": "سوناتا",
+  "Elantra": "إلنترا",
+  "Accent": "أكسنت",
+  "Tucson": "توسان",
+  "Santa Fe": "سنتافي",
+  "Palisade": "باليسيد",
+  "Creta": "كريتا",
+  "Creta Grand": "كريتا جراند",
+  "Kona": "كونا",
+  "Venue": "فينيو",
+  "Azera": "أزيرا",
+  "Staria": "ستاريا",
+  "Optima": "أوبتيما",
+  "K5": "كيه 5",
+  "Cerato": "سيراتو",
+  "K3": "كيه 3",
+  "Pegas": "بيجاس",
+  "Rio": "ريو",
+  "Sportage": "سبورتاج",
+  "Sorento": "سورينتو",
+  "Telluride": "تيلورايد",
+  "Seltos": "سيلتوس",
+  "Sonet": "سونيت",
+  "Carens": "كارنز",
+  "Carnival": "كارنيفال",
+  "F-150": "إف-150",
+  "Expedition": "إكسبديشن",
+  "Explorer": "إكسبلورر",
+  "Taurus": "تورس",
+  "Mustang": "موستانج",
+  "Edge": "إيدج",
+  "Territory": "تيريتوري",
+  "Tahoe": "تاهو",
+  "Suburban": "سوبربان",
+  "Yukon": "يوكن",
+  "Yukon XL": "يوكن إكس إل",
+  "Sierra": "سييرا",
+  "Silverado": "سلفرادو",
+  "Caprice": "كابريس",
+  "Lumina": "لومينا",
+  "Malibu": "ماليبو",
+  "Traverse": "ترافيرس",
+  "Acadia": "أكاديا",
+  "Terrain": "تيرين",
+  "Escalade": "إسكاليد",
+  "Charger": "تشارجر",
+  "Challenger": "تشالنجر",
+  "Durango": "دورانجو",
+  "Wrangler": "رانجلر",
+  "Grand Cherokee": "جراند شيروكي",
+  "Compass": "كومباس",
+  "Renegade": "رينيجيد",
+  "Coolray": "كولراي",
+  "Tugella": "توجيلا",
+  "Monjaro": "مونجارو",
+  "Emgrand": "إمجراند",
+  "Azkarra": "أزكارا",
+  "Okavango": "أوكافانجو",
+  "Starray": "ستاراي",
+  "Geometry C": "جيومتري سي",
+  "CS95": "سي إس 95",
+  "CS85": "سي إس 85",
+  "CS75": "سي إس 75",
+  "CS75 Plus": "سي إس 75 بلس",
+  "CS35": "سي إس 35",
+  "CS35 Plus": "سي إس 35 بلس",
+  "Eado": "إيدو",
+  "Eado Plus": "إيدو بلس",
+  "Alsvin": "ألسفن",
+  "UNI-K": "يوني كي",
+  "UNI-T": "يوني تي",
+  "UNI-V": "يوني في",
+  "Hunter": "هانتر",
+  "H6": "إتش 6",
+  "H9": "إتش 9",
+  "Dargo": "دارجو",
+  "Jolion": "جوليان",
+  "Poer": "باور",
+  "Tank 300": "تانك 300",
+  "Tank 500": "تانك 500",
+  "MG GT": "إم جي جي تي",
+  "MG 5": "إم جي 5",
+  "MG 6": "إم جي 6",
+  "MG RX5": "إم جي آر إكس 5",
+  "MG RX8": "إم جي آر إكس 8",
+  "MG ZS": "إم جي زد إس",
+  "MG HS": "إم جي إتش إس",
+  "MG ONE": "إم جي ون",
+  "MG Whale": "إم جي ويل",
+  "Tiggo 8": "تيجو 8",
+  "Tiggo 8 Pro": "تيجو 8 برو",
+  "Tiggo 7": "تيجو 7",
+  "Tiggo 7 Pro": "تيجو 7 برو",
+  "Tiggo 4 Pro": "تيجو 4 برو",
+  "Tiggo 2 Pro": "تيجو 2 برو",
+  "Arrizo 6": "أريزو 6",
+  "Arrizo 6 Pro": "أريزو 6 برو",
+  "Arrizo 8": "أريزو 8",
+  "Dashing": "داشينج",
+  "X70": "إكس 70",
+  "X70 Plus": "إكس 70 بلس",
+  "X90": "إكس 90",
+  "X90 Plus": "إكس 90 بلس",
+  "Traveller": "ترافيلر",
+  "GS8": "جي إس 8",
+  "GS4": "جي إس 4",
+  "GS3": "جي إس 3",
+  "EMPOW": "إمباو",
+  "EMKOO": "إمكو",
+  "M8": "إم 8",
+  "Song Plus": "سونج بلس",
+  "Han": "هان",
+  "Tang": "تانج",
+  "Seal": "سيل",
+  "Atto 3": "أتو 3",
+  "Qin Plus": "تشين بلس",
+  "Model 3": "موديل 3",
+  "Model Y": "موديل واي",
+  "Model S": "موديل إس",
+  "Model X": "موديل إكس",
+  "3 Series": "الفئة الثالثة",
+  "5 Series": "الفئة الخامسة",
+  "7 Series": "الفئة السابعة",
+  "X5": "إكس 5",
+  "X6": "إكس 6",
+  "X7": "إكس 7",
+  "C-Class": "سي كلاس",
+  "E-Class": "إي كلاس",
+  "S-Class": "إس كلاس",
+  "G-Class": "جي كلاس",
+  "GLE": "جي إل إي",
+  "GLS": "جي إل إس",
+  "GLC": "جي إل سي",
+  "Defender": "ديفندر",
+  "Range Rover Vogue": "رينج روفر فوج",
+  "Range Rover Sport": "رينج روفر سبورت",
+  "Range Rover Velar": "رينج روفر فيلار",
+  "Range Rover Evoque": "رينج روفر إيفوك",
+  "Cayenne": "كايين",
+  "Macan": "ماكان",
+  "Panamera": "باناميرا",
+  "911": "911",
+  "A3": "إيه 3",
+  "A4": "إيه 4",
+  "A6": "إيه 6",
+  "A8": "إيه 8",
+  "Q5": "كيو 5",
+  "Q7": "كيو 7",
+  "Q8": "كيو 8",
+  "Touareg": "طوارق",
+  "Tiguan": "تيجوان",
+  "Teramont": "تيرامونت",
+  "Passat": "باسات",
+  "Golf": "جولف",
+  "Accord": "أكورد",
+  "Civic": "سيفيك",
+  "CR-V": "سي آر في",
+  "Pilot": "بايلوت",
+  "City": "سيتي",
+  "HR-V": "إتش آر في",
+  "Mazda 6": "مازدا 6",
+  "Mazda 3": "مازدا 3",
+  "CX-9": "سي إكس 9",
+  "CX-5": "سي إكس 5",
+  "CX-60": "سي إكس 60",
+  "CX-90": "سي إكس 90",
+  "Pajero": "باجيرو",
+  "Montero Sport": "مونتيرو سبورت",
+  "Outlander": "أوتلاندر",
+  "ASX": "إيه إس إكس",
+  "L200": "إل 200",
+  "Attrage": "أتراج",
+  "Space Star": "سبيس ستار",
+  "D-Max": "دي ماكس",
+  "mu-X": "إم يو إكس",
+  "Jimny": "جيمني",
+  "Grand Vitara": "جراند فيتارا",
+  "Swift": "سويفت",
+  "Dzire": "ديزاير",
+  "Baleno": "بالينو",
+  "Ertiga": "إرتيجا",
+};
+
+export function getArabicMake(make: string): string {
+  if (!make) return "";
+  return MAKE_ARABIC_DICTIONARY[make] || make;
+}
+
+export function getArabicModel(model: string): string {
+  if (!model) return "";
+  return MODEL_ARABIC_DICTIONARY[model] || model;
+}
+
 export class VinDecoderService {
+  private static async decodeWithGemini(vin: string, decodedYear: number | null): Promise<Partial<DecodedVehicle> | null> {
+    try {
+      const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_STUDIO_API_KEY;
+      if (!apiKey) return null;
+
+      const prompt = `You are a certified automotive VIN specialist.
+Decode this 17-character VIN code: "${vin}".
+Provide accurate vehicle details in JSON format:
+{
+  "make": "Manufacturer in English (e.g. Toyota, Hyundai, Ford, Mercedes-Benz)",
+  "makeAr": "الماركة بالعربية (مثل: تويوتا، هيونداي، فورد، مرسيدس بنز)",
+  "model": "Model name in English (e.g. Camry, Elantra, F-150, C-Class)",
+  "modelAr": "اسم الموديل بالعربية (مثل: كامري، إلنترا، إف-150، سي كلاس)",
+  "year": 2023,
+  "bodyType": "نوع الهيكل بالعربية (مثل: سيدان / دفع رباعي SUV / بيك آب)",
+  "country": "بلد الصنع بالعربية (مثل: اليابان، كوريا الجنوبية، أمريكا)",
+  "color": "لون المركبة بالعربية إذا كان معلوماً من مواصفات الـ VIN وإلا فارغ"
+}`;
+
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { responseMimeType: 'application/json' }
+        }),
+        signal: AbortSignal.timeout(4000)
+      });
+
+      if (!res.ok) return null;
+      const data = await res.json();
+      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!rawText) return null;
+
+      const parsed = JSON.parse(rawText);
+      if (parsed && parsed.make && parsed.make !== "Unknown") {
+        return {
+          make: parsed.make,
+          makeAr: parsed.makeAr || getArabicMake(parsed.make),
+          model: parsed.model || "",
+          modelAr: parsed.modelAr || getArabicModel(parsed.model || ""),
+          year: parsed.year ? Number(parsed.year) : decodedYear,
+          vehicleType: parsed.bodyType,
+          country: parsed.country,
+          color: parsed.color || undefined,
+        };
+      }
+    } catch {
+      // Fallback silently if offline or rate limited
+    }
+    return null;
+  }
+
   /**
    * Decodes any 17-digit global / GCC VIN
    */
@@ -1383,6 +1728,37 @@ export class VinDecoderService {
     // TIER 4: Global WMI Registry Match (Medium Confidence)
     // Non-guessing policy: Returns known Make & Country, leaves Model unconfirmed
     // --------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
+    // TIER 4: AI Gemini Automotive Intelligence Layer
+    // --------------------------------------------------------------------------
+    try {
+      const aiResult = await this.decodeWithGemini(normVin, decodedYear);
+      if (aiResult && aiResult.make) {
+        return {
+          success: true,
+          provider: "gemini-ai-studio",
+          source: "gemini-ai",
+          confidence: aiResult.model ? "high" : "medium",
+          make: aiResult.make,
+          makeAr: aiResult.makeAr || getArabicMake(aiResult.make),
+          model: aiResult.model || "",
+          modelAr: aiResult.modelAr || getArabicModel(aiResult.model || ""),
+          year: aiResult.year || decodedYear,
+          vehicleType: aiResult.vehicleType || wmiMeta?.defaultVehicleType,
+          country: aiResult.country || wmiMeta?.country,
+          continent: wmiMeta?.continent,
+          market: wmiMeta?.market || "GCC / Global",
+          manufacturer: wmiMeta?.manufacturer,
+          color: aiResult.color,
+          wmi,
+          vds,
+          vis,
+        };
+      }
+    } catch {
+      // Proceed to WMI
+    }
+
     if (wmiMeta) {
       return {
         success: true,
@@ -1390,7 +1766,9 @@ export class VinDecoderService {
         source: "wmi-registry",
         confidence: "medium",
         make: wmiMeta.make,
-        model: "", // Intentionally unconfirmed to prevent hallucination
+        makeAr: getArabicMake(wmiMeta.make),
+        model: "",
+        modelAr: "",
         year: decodedYear,
         vehicleType: wmiMeta.defaultVehicleType,
         country: wmiMeta.country,
