@@ -448,7 +448,7 @@ export default function NewInspection() {
                       await decodeVin(val);
                     }
                   }}
-                  className="w-full px-4 py-3.5 rounded-xl bg-white border border-slate-300 focus:border-zinc-800 focus:ring-4 focus:ring-[#18181b]/20 transition-all font-mono text-lg tracking-widest uppercase pl-48 shadow-inner"
+                  className="w-full px-4 py-3.5 rounded-xl bg-white border border-slate-300 focus:border-zinc-950 focus:ring-4 focus:ring-zinc-950/20 transition-all font-mono text-lg tracking-widest uppercase pl-48 shadow-inner"
                   placeholder="WBA3A5C50DF..."
                   maxLength={17}
                   data-testid="input-vin"
@@ -546,7 +546,7 @@ export default function NewInspection() {
                 <input
                   list="car-makes-list"
                   {...form.register("make")}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-zinc-800 focus:ring-4 focus:ring-[#18181b]/10 transition-all font-arabic font-bold text-slate-900"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-zinc-950 focus:ring-4 focus:ring-zinc-950/10 transition-all font-arabic font-bold text-slate-900"
                   placeholder="Bestune, Toyota, BMW, Nissan, Changan, Geely..."
                   data-testid="input-make"
                 />
@@ -575,7 +575,7 @@ export default function NewInspection() {
                 <input
                   list="car-models-list"
                   {...form.register("model")}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-zinc-800 focus:ring-4 focus:ring-[#18181b]/10 transition-all font-arabic font-bold text-slate-900"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-zinc-950 focus:ring-4 focus:ring-zinc-950/10 transition-all font-arabic font-bold text-slate-900"
                   placeholder="B70, T77, T99, Land Cruiser, Patrol, Camry, X5..."
                   data-testid="input-model"
                 />
@@ -605,7 +605,7 @@ export default function NewInspection() {
                 <input
                   type="number"
                   {...form.register("year")}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-zinc-800 focus:ring-4 focus:ring-[#18181b]/10 transition-all font-arabic"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-zinc-950 focus:ring-4 focus:ring-zinc-950/10 transition-all font-arabic"
                   data-testid="input-year"
                 />
               </div>
@@ -616,7 +616,7 @@ export default function NewInspection() {
                 <input
                   list="car-colors-list"
                   {...form.register("color")}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-zinc-800 focus:ring-4 focus:ring-[#18181b]/10 transition-all font-arabic"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-zinc-950 focus:ring-4 focus:ring-zinc-950/10 transition-all font-arabic"
                   placeholder="اختر لوناً أو اكتب لون جديد..."
                   data-testid="input-color"
                 />
@@ -652,7 +652,7 @@ export default function NewInspection() {
                 <input
                   type="number"
                   {...form.register("odometer")}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-zinc-800 focus:ring-4 focus:ring-[#18181b]/10 transition-all font-arabic text-lg font-bold"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-zinc-950 focus:ring-4 focus:ring-zinc-950/10 transition-all font-arabic text-lg font-bold"
                   data-testid="input-odometer"
                 />
               </div>
@@ -684,7 +684,7 @@ export default function NewInspection() {
                   </div>
                 ) : (
                   <div className="flex gap-3">
-                    <label className="flex-1 flex flex-col items-center justify-center h-36 border-2 border-dashed border-[#09090b]/40 rounded-2xl cursor-pointer bg-zinc-950/5 hover:bg-zinc-950/10 transition-colors shadow-sm">
+                    <label className="flex-1 flex flex-col items-center justify-center h-36 border-2 border-dashed border-zinc-300 rounded-2xl cursor-pointer bg-zinc-50 hover:bg-zinc-100 transition-colors shadow-sm">
                       <Camera className="w-7 h-7 text-zinc-950 mb-2" />
                       <p className="text-xs md:text-sm text-zinc-950 font-arabic font-bold">التقاط بالكاميرا مباشرة</p>
                       <span className="text-[10px] text-slate-500 font-arabic">يقوم بقراءة العداد تلقائياً</span>
@@ -718,7 +718,7 @@ export default function NewInspection() {
                 <label className="block text-sm font-medium text-slate-700 mb-2 font-arabic">اسم العميل</label>
                 <input
                   {...form.register("customerName")}
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-zinc-800 focus:ring-4 focus:ring-[#18181b]/10 transition-all font-arabic"
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-zinc-950 focus:ring-4 focus:ring-zinc-950/10 transition-all font-arabic"
                   placeholder="الاسم الكامل"
                   data-testid="input-customer-name"
                 />
@@ -727,7 +727,7 @@ export default function NewInspection() {
                 <label className="block text-sm font-medium text-slate-700 mb-2 font-arabic">رقم الهاتف</label>
                 <input
                   {...form.register("customerPhone")}
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-zinc-800 focus:ring-4 focus:ring-[#18181b]/10 transition-all font-arabic"
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-zinc-950 focus:ring-4 focus:ring-zinc-950/10 transition-all font-arabic"
                   placeholder="05xxxxxxxx"
                   data-testid="input-customer-phone"
                 />
@@ -737,7 +737,7 @@ export default function NewInspection() {
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-zinc-800 focus:ring-4 focus:ring-[#18181b]/10 transition-all min-h-[80px] font-arabic text-sm"
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-zinc-950 focus:ring-4 focus:ring-zinc-950/10 transition-all min-h-[80px] font-arabic text-sm"
                   placeholder="معلومات إضافية أو طلبات خاصة من العميل..."
                 />
               </div>
@@ -806,14 +806,14 @@ export default function NewInspection() {
               </label>
               {mainCarPhoto ? (
                 <div className="relative inline-block">
-                  <img src={mainCarPhoto} alt="صورة السيارة" className="w-full max-w-lg h-56 object-cover rounded-2xl border-4 border-[#09090b]/30 shadow-lg" />
+                  <img src={mainCarPhoto} alt="صورة السيارة" className="w-full max-w-lg h-56 object-cover rounded-2xl border-4 border-zinc-300 shadow-lg" />
                   <button type="button" onClick={() => setMainCarPhoto(null)} className="absolute -top-2 -right-2 p-1.5 bg-zinc-900 text-white rounded-full shadow hover:bg-black transition-colors" data-testid="button-remove-main-photo">
                     <X className="w-4 h-4" />
                   </button>
                 </div>
               ) : (
                 <div className="flex gap-3 max-w-lg">
-                  <label className="flex-1 flex flex-col items-center justify-center h-40 border-2 border-dashed border-[#09090b]/40 rounded-2xl cursor-pointer bg-zinc-950/5 hover:bg-zinc-950/10 transition-colors shadow-sm">
+                  <label className="flex-1 flex flex-col items-center justify-center h-40 border-2 border-dashed border-zinc-300 rounded-2xl cursor-pointer bg-zinc-50 hover:bg-zinc-100 transition-colors shadow-sm">
                     <Camera className="w-8 h-8 text-zinc-950 mb-2" />
                     <p className="text-xs font-bold text-zinc-950 font-arabic">التقاط كاميرا الجوال</p>
                     <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleMainCarPhotoChange} data-testid="input-main-car-camera" />
@@ -851,7 +851,7 @@ export default function NewInspection() {
                       </div>
                     ) : (
                       <div className="flex gap-2">
-                        <label className="flex-1 flex flex-col items-center justify-center h-28 border border-dashed border-[#09090b]/40 rounded-xl cursor-pointer bg-zinc-950/5 hover:bg-zinc-950/10 transition-colors p-1 text-center">
+                        <label className="flex-1 flex flex-col items-center justify-center h-28 border border-dashed border-zinc-300 rounded-xl cursor-pointer bg-zinc-50 hover:bg-zinc-100 transition-colors p-1 text-center">
                           <Camera className="w-5 h-5 text-zinc-950 mb-1" />
                           <span className="text-[11px] font-bold text-zinc-950 font-arabic">كاميرا</span>
                           <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleCarSectionPhotoChange(section.key as keyof typeof carSectionPhotos, e)} data-testid={`input-camera-${section.key}`} />
@@ -890,12 +890,12 @@ export default function NewInspection() {
                   toast({ title: "يرجى التحقق من البيانات", description: msgs.join('\n') || "بعض الحقول المطلوبة غير مكتملة", variant: "destructive" });
                 })();
               }}
-              className="w-full sm:w-auto px-10 py-4 rounded-2xl font-bold text-base bg-gradient-to-r from-[#18181b] to-[#27272a] text-zinc-950 shadow-lg shadow-[#18181b]/30 hover:shadow-xl hover:shadow-[#18181b]/40 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed transition-all touch-manipulation font-arabic flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-10 py-4 rounded-2xl font-bold text-base bg-zinc-950 hover:bg-black text-white shadow-lg hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed transition-all touch-manipulation font-arabic flex items-center justify-center gap-2 cursor-pointer"
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               {isPending ? (
                 <span className="flex items-center gap-2">
-                  <Loader2 className="w-5 h-5 animate-spin text-zinc-950" /> جارٍ الحفظ وبدء الفحص...
+                  <Loader2 className="w-5 h-5 animate-spin text-white" /> جارٍ الحفظ وبدء الفحص...
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
