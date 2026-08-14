@@ -6,8 +6,53 @@ import base64
 import math
 from PIL import Image, ImageEnhance, ImageFilter, ImageOps, ImageDraw
 
+def load_image_from_source(src: str) -> Image.Image:
+    """Loads a PIL image from Data URL, local file path, or URL"""
+    if not src or not isinstance(src, str):
+        raise ValueError("Invalid image source")
+        
+    src = src.strip()
+    if src.startswith('data:image/'):
+        if ',' in src:
+            _, b64_str = src.split(',', 1)
+        else:
+            b64_str = src
+        img_bytes = base64.b64decode(b64_str)
+        return Image.open(io.BytesIO(img_bytes)).convert('RGB')
+    
+    # Check if local file path
+    potential_paths = [
+        src,
+        os.path.join(os.getcwd(), src.lstrip('/\\')),
+        os.path.join(os.getcwd(), 'public', src.lstrip('/\\')),
+        os.path.join(os.getcwd(), 'client', 'public', src.lstrip('/\\')),
+    ]
+    for p in potential_paths:
+        if os.path.exists(p) and os.path.isfile(p):
+            return Image.open(p).convert('RGB')
+
+    # If it's a plain base64 without data: prefix
+    try:
+        img_bytes = base64.b64decode(src)
+        return Image.open(io.BytesIO(img_bytes)).convert('RGB')
+    except Exception:
+        pass
+
+    raise ValueError(f"Could not load image from source: {src[:50]}...")
+
 def enhance_single_studio_view(img: Image.Image, target_angle: str = 'main') -> Image.Image:
+    # Resize if extremely large to maintain sub-second speed
+    max_dim = 1600
     w, h = img.size
+    if w > max_dim or h > max_dim:
+        if w > h:
+            new_w = max_dim
+            new_h = int(h * max_dim / w)
+        else:
+            new_h = max_dim
+            new_w = int(w * max_dim / h)
+        img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+        w, h = img.size
 
     # 1. Lighting & Exposure Normalization
     enh_bri = ImageEnhance.Brightness(img)
@@ -29,20 +74,20 @@ def enhance_single_studio_view(img: Image.Image, target_angle: str = 'main') -> 
     wall_height = int(h * 0.72)
     floor_height = h - wall_height
 
-    # Studio wall: Pristine pure white to soft light pearl (#ffffff to #fafafa)
+    # Studio wall: Pristine pure white (#ffffff to #fcfcfc)
     for y in range(wall_height):
         ratio = y / max(1, wall_height)
-        c = int(255 - ratio * 5)
+        c = int(255 - ratio * 4)
         draw_bg.line([(0, y), (w, y)], fill=(c, c, c))
 
-    # Studio floor: Soft light studio floor (#fafafa down to #f1f3f5)
+    # Studio floor: Soft light studio floor (#fcfcfc down to #f4f5f6)
     for y in range(wall_height, h):
         ratio = (y - wall_height) / max(1, floor_height)
-        c = int(250 - ratio * 10)
+        c = int(252 - ratio * 8)
         draw_bg.line([(0, y), (w, y)], fill=(c, c, c))
 
     # 3. Soft Oval Studio Spotlight on Floor
-    spot_w = int(w * 0.85)
+    spot_w = int(w * 0.86)
     spot_h = int(h * 0.30)
     spot_x1 = (w - spot_w) // 2
     spot_y1 = wall_height - int(spot_h * 0.2)
@@ -90,55 +135,58 @@ def enhance_single_studio_view(img: Image.Image, target_angle: str = 'main') -> 
 
     return studio_result
 
-def process_vehicle_photo_sheet(images_map: dict) -> dict:
-    """
-    Takes a dictionary of slot photos and generates a synchronized Professional Vehicle Photo Sheet.
-    Preserves all physical damage, color, model details, and produces clean white studio views.
-    """
+def process_images_dict(images_map: dict) -> dict:
     results = {}
-    
-    for slot_key, data_url in images_map.items():
-        if not data_url or not isinstance(data_url, str) or not data_url.startswith('data:image/'):
+    for slot_key, src in images_map.items():
+        if not src:
             continue
         try:
-            if ',' in data_url:
-                _, b64_str = data_url.split(',', 1)
-            else:
-                b64_str = data_url
-            
-            img_bytes = base64.b64decode(b64_str)
-            img = Image.open(io.BytesIO(img_bytes)).convert('RGB')
-            enhanced_img = enhance_single_studio_view(img, target_angle=slot_key)
-            
+            img = load_image_from_source(src)
+            enhanced = enhance_single_studio_view(img, target_angle=slot_key)
             out_buf = io.BytesIO()
-            enhanced_img.save(out_buf, format='JPEG', quality=90, optimize=True)
+            enhanced.save(out_buf, format='JPEG', quality=88, optimize=True)
             out_b64 = base64.b64encode(out_buf.getvalue()).decode('utf-8')
             results[slot_key] = f"data:image/jpeg;base64,{out_b64}"
         except Exception as e:
-            # Fallback safely to original
-            results[slot_key] = data_url
-
+            print(f"Error processing {slot_key}: {e}", file=sys.stderr)
+            results[slot_key] = src
     return results
 
-if __name__ == '__main__':
-    try:
-        input_json = sys.stdin.read()
-        if input_json:
-            data = json.loads(input_json)
-            mode = data.get('mode', 'single')
-            
-            if mode == 'sheet':
-                images_map = data.get('images', {})
-                sheet_results = process_vehicle_photo_sheet(images_map)
-                print(json.dumps({'success': True, 'sheet': sheet_results}))
-            else:
-                image_url = data.get('imageUrl', '')
-                if image_url:
-                    sheet_results = process_vehicle_photo_sheet({'main': image_url})
-                    print(json.dumps({'success': True, 'processedUrl': sheet_results.get('main', image_url)}))
-                else:
-                    print(json.dumps({'success': False, 'error': 'No imageUrl provided'}))
+def main():
+    if len(sys.argv) >= 3:
+        input_file = sys.argv[1]
+        output_file = sys.argv[2]
+        with open(input_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    else:
+        raw_input = sys.stdin.read()
+        if not raw_input:
+            print(json.dumps({'success': False, 'error': 'No input provided'}))
+            return
+        data = json.loads(raw_input)
+        output_file = None
+
+    mode = data.get('mode', 'single')
+    out_data = {'success': True}
+
+    if mode == 'sheet':
+        images_map = data.get('images', {})
+        out_data['sheet'] = process_images_dict(images_map)
+    else:
+        image_url = data.get('imageUrl', '')
+        if image_url:
+            res_dict = process_images_dict({'main': image_url})
+            out_data['processedUrl'] = res_dict.get('main', image_url)
         else:
-            print(json.dumps({'success': False, 'error': 'Empty input'}))
-    except Exception as e:
-        print(json.dumps({'success': False, 'error': str(e)}))
+            out_data['success'] = False
+            out_data['error'] = 'No imageUrl provided'
+
+    if output_file:
+        with open(output_file, 'w', encoding='utf-8') as f:
+            json.dump(out_data, f)
+        print("OK")
+    else:
+        print(json.dumps(out_data))
+
+if __name__ == '__main__':
+    main()

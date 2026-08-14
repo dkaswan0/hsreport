@@ -1132,9 +1132,10 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
           description: "تم تجهيز كافة زوايا المركبة بالخلفية البيضاء النقية والظلال الاحترافية",
         });
       } else {
+        const errorData = await res.json().catch(() => ({}));
         toast({
           title: "تنبيه",
-          description: "تعذر توليد طقم الاستوديو، يرجى التأكد من رفع صور للمركبة أولاً",
+          description: errorData.error || "تعذر توليد طقم الاستوديو، يرجى التأكد من رفع صور للمركبة أولاً",
           variant: "destructive",
         });
       }

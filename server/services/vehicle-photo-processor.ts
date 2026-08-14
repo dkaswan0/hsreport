@@ -1,6 +1,8 @@
 import crypto from "crypto";
-import { spawn } from "child_process";
+import { execFile } from "child_process";
 import path from "path";
+import fs from "fs/promises";
+import os from "os";
 
 export const VEHICLE_INSPECTION_PHOTO_PROMPT = `This is a vehicle inspection evidence image.
 
@@ -51,7 +53,6 @@ Processed Images = Optional Presentation Views.`;
 
 export class VehiclePhotoProcessor {
   private static processingCache = new Map<string, string>();
-  private static inFlightRequests = new Map<string, Promise<string>>();
 
   private static getPythonCmd(): string {
     return process.env.PYTHON_BIN || (process.platform === 'win32' ? 'C:\\Users\\1medo\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe' : 'python3');
@@ -79,12 +80,12 @@ export class VehiclePhotoProcessor {
     appliedPerspectiveCorrection: boolean;
   }> {
     const { imageUrl, slotKey, inspectionId, enablePerspectiveCorrection = false } = params;
-    const version = "v3.0-white-studio-sheet";
-    const provider = "hs-studio-sheet-processor";
+    const version = "v3.1-white-studio";
+    const provider = "hs-studio-processor";
 
-    if (!imageUrl || !imageUrl.startsWith("data:image/")) {
+    if (!imageUrl || typeof imageUrl !== "string") {
       return {
-        processedUrl: imageUrl,
+        processedUrl: imageUrl || "",
         imageHash: this.calculateImageHash(imageUrl || ""),
         provider: "bypass",
         version,
@@ -105,94 +106,66 @@ export class VehiclePhotoProcessor {
       };
     }
 
-    if (this.inFlightRequests.has(cacheKey)) {
-      const existingPromise = this.inFlightRequests.get(cacheKey)!;
-      const processedUrl = await existingPromise;
+    const tmpDir = os.tmpdir();
+    const randId = Math.random().toString(36).substring(2, 9);
+    const inFilePath = path.join(tmpDir, `hs_in_${Date.now()}_${randId}.json`);
+    const outFilePath = path.join(tmpDir, `hs_out_${Date.now()}_${randId}.json`);
+
+    try {
+      await fs.writeFile(
+        inFilePath,
+        JSON.stringify({
+          mode: "single",
+          imageUrl,
+          enablePerspective: enablePerspectiveCorrection,
+        }),
+        "utf-8"
+      );
+
+      const scriptPath = path.join(process.cwd(), "server", "services", "studio_enhancer.py");
+      const pyBin = this.getPythonCmd();
+
+      await new Promise<void>((resolve, reject) => {
+        execFile(pyBin, [scriptPath, inFilePath, outFilePath], { timeout: 15000 }, (err) => {
+          if (err) return reject(err);
+          resolve();
+        });
+      });
+
+      const outContent = await fs.readFile(outFilePath, "utf-8");
+      const res = JSON.parse(outContent.trim());
+
+      if (res.success && res.processedUrl) {
+        this.processingCache.set(cacheKey, res.processedUrl);
+        return {
+          processedUrl: res.processedUrl,
+          imageHash,
+          provider,
+          version,
+          appliedPerspectiveCorrection: enablePerspectiveCorrection,
+        };
+      }
+
       return {
-        processedUrl,
+        processedUrl: imageUrl,
         imageHash,
         provider,
         version,
         appliedPerspectiveCorrection: enablePerspectiveCorrection,
       };
+    } catch (err) {
+      console.warn("[VehiclePhotoProcessor] Single photo process warning:", err);
+      return {
+        processedUrl: imageUrl,
+        imageHash,
+        provider,
+        version,
+        appliedPerspectiveCorrection: enablePerspectiveCorrection,
+      };
+    } finally {
+      await fs.unlink(inFilePath).catch(() => {});
+      await fs.unlink(outFilePath).catch(() => {});
     }
-
-    const processPromise = (async () => {
-      return new Promise<string>((resolve) => {
-        try {
-          const scriptPath = path.join(process.cwd(), "server", "services", "studio_enhancer.py");
-          const pyBin = this.getPythonCmd();
-          const pyProc = spawn(pyBin, [scriptPath], { stdio: ['pipe', 'pipe', 'pipe'] });
-
-          let stdoutData = "";
-          let stderrData = "";
-
-          pyProc.stdout.on("data", (chunk) => {
-            stdoutData += chunk.toString("utf-8");
-          });
-
-          pyProc.stderr.on("data", (chunk) => {
-            stderrData += chunk.toString("utf-8");
-          });
-
-          pyProc.on("close", (code) => {
-            if (code === 0 && stdoutData) {
-              try {
-                const res = JSON.parse(stdoutData.trim());
-                if (res.success && res.processedUrl) {
-                  this.processingCache.set(cacheKey, res.processedUrl);
-                  return resolve(res.processedUrl);
-                }
-              } catch (e) {
-                console.warn("[VehiclePhotoProcessor] JSON parse error:", e);
-              }
-            }
-            if (stderrData) {
-              console.warn("[VehiclePhotoProcessor] Python stderr:", stderrData);
-            }
-            this.processingCache.set(cacheKey, imageUrl);
-            resolve(imageUrl);
-          });
-
-          pyProc.on("error", (err) => {
-            console.warn("[VehiclePhotoProcessor] Process spawn error:", err);
-            resolve(imageUrl);
-          });
-
-          pyProc.stdin.write(
-            JSON.stringify({
-              mode: 'single',
-              imageUrl,
-              enablePerspective: enablePerspectiveCorrection,
-            })
-          );
-          pyProc.stdin.end();
-
-          setTimeout(() => {
-            if (!pyProc.killed) {
-              pyProc.kill();
-              resolve(imageUrl);
-            }
-          }, 12000);
-        } catch (err) {
-          console.warn("[VehiclePhotoProcessor] Execution error:", err);
-          resolve(imageUrl);
-        } finally {
-          this.inFlightRequests.delete(cacheKey);
-        }
-      });
-    })();
-
-    this.inFlightRequests.set(cacheKey, processPromise);
-    const processedUrl = await processPromise;
-
-    return {
-      processedUrl,
-      imageHash,
-      provider,
-      version,
-      appliedPerspectiveCorrection: enablePerspectiveCorrection,
-    };
   }
 
   /**
@@ -208,86 +181,64 @@ export class VehiclePhotoProcessor {
     version: string;
   }> {
     const { images } = params;
-    const version = "v3.0-white-studio-sheet";
-    const provider = "hs-studio-sheet-processor";
+    const version = "v3.1-white-studio";
+    const provider = "hs-studio-processor";
 
-    return new Promise((resolve) => {
-      try {
-        const scriptPath = path.join(process.cwd(), "server", "services", "studio_enhancer.py");
-        const pyBin = this.getPythonCmd();
-        const pyProc = spawn(pyBin, [scriptPath], { stdio: ['pipe', 'pipe', 'pipe'] });
+    if (!images || Object.keys(images).length === 0) {
+      return { sheet: {}, provider, version };
+    }
 
-        let stdoutData = "";
-        let stderrData = "";
+    const tmpDir = os.tmpdir();
+    const randId = Math.random().toString(36).substring(2, 9);
+    const inFilePath = path.join(tmpDir, `hs_sheet_in_${Date.now()}_${randId}.json`);
+    const outFilePath = path.join(tmpDir, `hs_sheet_out_${Date.now()}_${randId}.json`);
 
-        pyProc.stdout.on("data", (chunk) => {
-          stdoutData += chunk.toString("utf-8");
+    try {
+      await fs.writeFile(
+        inFilePath,
+        JSON.stringify({
+          mode: "sheet",
+          images,
+        }),
+        "utf-8"
+      );
+
+      const scriptPath = path.join(process.cwd(), "server", "services", "studio_enhancer.py");
+      const pyBin = this.getPythonCmd();
+
+      await new Promise<void>((resolve, reject) => {
+        execFile(pyBin, [scriptPath, inFilePath, outFilePath], { timeout: 30000 }, (err) => {
+          if (err) return reject(err);
+          resolve();
         });
+      });
 
-        pyProc.stderr.on("data", (chunk) => {
-          stderrData += chunk.toString("utf-8");
-        });
+      const outContent = await fs.readFile(outFilePath, "utf-8");
+      const res = JSON.parse(outContent.trim());
 
-        pyProc.on("close", (code) => {
-          if (code === 0 && stdoutData) {
-            try {
-              const res = JSON.parse(stdoutData.trim());
-              if (res.success && res.sheet) {
-                return resolve({
-                  sheet: res.sheet,
-                  provider,
-                  version,
-                });
-              }
-            } catch (e) {
-              console.warn("[VehiclePhotoProcessor] Photo Sheet JSON parse error:", e);
-            }
-          }
-          if (stderrData) {
-            console.warn("[VehiclePhotoProcessor] Python stderr:", stderrData);
-          }
-          resolve({
-            sheet: images,
-            provider,
-            version,
-          });
-        });
-
-        pyProc.on("error", (err) => {
-          console.warn("[VehiclePhotoProcessor] Process spawn error:", err);
-          resolve({
-            sheet: images,
-            provider,
-            version,
-          });
-        });
-
-        pyProc.stdin.write(
-          JSON.stringify({
-            mode: 'sheet',
-            images,
-          })
-        );
-        pyProc.stdin.end();
-
-        setTimeout(() => {
-          if (!pyProc.killed) {
-            pyProc.kill();
-            resolve({
-              sheet: images,
-              provider,
-              version,
-            });
-          }
-        }, 15000);
-      } catch (err) {
-        console.warn("[VehiclePhotoProcessor] Photo sheet error:", err);
-        resolve({
-          sheet: images,
+      if (res.success && res.sheet) {
+        return {
+          sheet: res.sheet,
           provider,
           version,
-        });
+        };
       }
-    });
+
+      return {
+        sheet: images,
+        provider,
+        version,
+      };
+    } catch (err) {
+      console.warn("[VehiclePhotoProcessor] Photo sheet warning:", err);
+      return {
+        sheet: images,
+        provider,
+        version,
+      };
+    } finally {
+      await fs.unlink(inFilePath).catch(() => {});
+      await fs.unlink(outFilePath).catch(() => {});
+    }
   }
 }

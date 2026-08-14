@@ -1099,9 +1099,18 @@ export async function registerRoutes(
       const imagesMap: Record<string, string> = {};
 
       for (const slot of candidateSlots) {
-        const url = currentMeta[slot]?.originalUrl || (existing as any)[slot];
-        if (url && typeof url === 'string' && url.startsWith('data:image/')) {
+        const url = currentMeta[slot]?.originalUrl || currentMeta[slot]?.processedUrl || (existing as any)[slot];
+        if (url && typeof url === 'string' && url.length > 10) {
           imagesMap[slot] = url;
+        }
+      }
+
+      // If candidate slots were empty, check all keys for any uploaded photo
+      if (Object.keys(imagesMap).length === 0) {
+        for (const [k, v] of Object.entries(existing)) {
+          if (k.toLowerCase().includes('photo') && typeof v === 'string' && v.length > 10) {
+            imagesMap[k] = v;
+          }
         }
       }
 
@@ -1118,7 +1127,7 @@ export async function registerRoutes(
       const now = new Date().toISOString();
 
       for (const [slotKey, processedUrl] of Object.entries(sheet)) {
-        const originalUrl = imagesMap[slotKey] || processedUrl;
+        const originalUrl = currentMeta[slotKey]?.originalUrl || imagesMap[slotKey] || processedUrl;
         const audit: VehiclePhotoAuditEntry = {
           id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
           action: "processing_completed",
