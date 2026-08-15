@@ -25,7 +25,6 @@ import {
   ExternalLink,
   Stethoscope,
   Wrench,
-  Sparkles,
   Search,
   X,
 } from "lucide-react";
