@@ -48,6 +48,7 @@ import { queryClient } from "@/lib/queryClient";
 import { VehiclePhotosGrid } from "@/components/vehicle-photos-grid";
 import { VEHICLE_PHOTO_SECTIONS, VehiclePhotoKey, resolveVehiclePhotoByKey } from "@shared/vehicle-photos";
 import { FaultCameraModal } from "@/components/fault-camera-modal";
+import { ReportMediaManager } from "@/components/report-media-manager";
 
 export default function InspectionDetails() {
   const [, params] = useRoute("/inspections/:id");
@@ -822,7 +823,10 @@ export default function InspectionDetails() {
           )}
         </div>
 
-        {/* Vehicle & Section Photos Manager */}
+        {/* Dedicated Report Media & Video Manager for Unified Gallery */}
+        {inspection && <ReportMediaManager inspection={inspection} />}
+
+        {/* Vehicle & Section Photos Studio */}
         {inspection && <VehiclePhotosManager inspection={inspection} />}
 
         {/* Category Items */}
