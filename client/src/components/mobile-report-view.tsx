@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from "react";
-import { VehiclePhotosGrid } from "@/components/vehicle-photos-grid";
 import { UnifiedMediaGallery } from "@/components/unified-media-gallery";
 import { PhosphorIcon } from "@/components/phosphor-icon";
 import { INSPECTION_CATEGORIES } from "@shared/categories";

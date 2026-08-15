@@ -791,9 +791,9 @@ export default function NewInspection() {
               <h3 className="text-lg font-bold flex items-center gap-2 text-zinc-950 font-arabic">
                 <span className="w-8 h-8 rounded-xl bg-zinc-950 text-white flex items-center justify-center text-sm font-bold shadow">4</span>
                 <Camera className="w-5 h-5 text-zinc-950" />
-                صور فحص المركبة الأساسية (طقم الاستوديو 5 صور)
+                صور فحص المركبة الأساسية
               </h3>
-              <span className="text-xs text-slate-500 font-arabic">نظام موحد ومطابق لتقرير العميل والطباعة والمراجعة</span>
+              <span className="text-xs text-slate-500 font-arabic">صور زوايا المركبة الأساسية</span>
             </div>
 
             <VehiclePhotosGrid

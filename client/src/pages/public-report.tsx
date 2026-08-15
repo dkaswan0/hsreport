@@ -28,7 +28,6 @@ import { VinPlate } from "@/components/vin-plate";
 import type { Inspection, InspectionItem } from "@shared/schema";
 import { INSPECTION_CATEGORIES } from "@shared/categories";
 import { IntroAnimation } from "@/components/intro-animation";
-import { VehiclePhotosGrid } from "@/components/vehicle-photos-grid";
 import { MobileReportView } from "@/components/mobile-report-view";
 import { UnifiedMediaGallery } from "@/components/unified-media-gallery";
 
@@ -339,30 +338,6 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  );
-};
-
-// Section 2: Car Section Photos Component - Standard 5 Photo Core Layout
-const CarSectionPhotosGallery = ({ inspection }: { inspection: any }) => {
-  return (
-    <div className="bg-white rounded-2xl shadow-xs border border-zinc-200 overflow-hidden" data-testid="car-section-photos-gallery">
-      <div className="bg-zinc-950 text-white px-3.5 py-2.5 sm:px-4 sm:py-2.5 flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800">
-        <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
-          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 shadow-inner">
-            <PhosphorIcon name="camera" weight="bold" size={18} className="text-white sm:text-[22px]" />
-          </div>
-          <div className="flex flex-wrap items-baseline gap-1.5 sm:gap-2">
-            <span className="font-mono text-zinc-400 font-black text-base sm:text-lg md:text-xl">2 |</span>
-            <span className="text-white font-black text-sm sm:text-base md:text-xl font-arabic">صور فحص المركبة الأساسية</span>
-            <span className="text-zinc-400 text-[11px] sm:text-xs md:text-sm font-mono font-semibold">| Vehicle Core Photos (5 Views)</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="p-3 sm:p-4 md:p-6">
-        <VehiclePhotosGrid inspection={inspection} isEditable={false} />
       </div>
     </div>
   );

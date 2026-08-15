@@ -33,23 +33,7 @@ const allowlist = [
   "zod-validation-error",
 ];
 
-async function installPythonDeps() {
-  return new Promise<void>((resolve) => {
-    console.log("Checking Python studio enhancer dependencies...");
-    exec("pip3 install -r requirements.txt --break-system-packages || pip install -r requirements.txt", (err) => {
-      if (err) {
-        console.log("Notice: Python package installation skipped (resilient native fallback is active).");
-      } else {
-        console.log("Python studio dependencies successfully installed.");
-      }
-      resolve();
-    });
-  });
-}
-
 async function buildAll() {
-  await installPythonDeps();
-
   await rm("dist", { recursive: true, force: true });
 
   console.log("building client...");

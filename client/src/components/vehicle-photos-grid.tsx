@@ -15,11 +15,7 @@ export interface VehiclePhotosGridProps {
   photos?: Record<VehiclePhotoKey, string | null>;
   onPhotoChange?: (key: VehiclePhotoKey, fileOrDataUrl: string | null) => void;
   isEditable?: boolean;
-  onReprocessPhoto?: (key: VehiclePhotoKey) => void;
-  onTogglePhotoMode?: (key: VehiclePhotoKey) => void;
-  isProcessing?: boolean;
   className?: string;
-  showStudioControls?: boolean;
   layoutMode?: "stacked" | "grid";
 }
 
@@ -35,11 +31,7 @@ export function VehiclePhotosGrid({
   photos,
   onPhotoChange,
   isEditable = false,
-  onReprocessPhoto,
-  onTogglePhotoMode,
-  isProcessing = false,
   className,
-  showStudioControls = false,
   layoutMode = "stacked",
 }: VehiclePhotosGridProps) {
   const [activeCameraSlot, setActiveCameraSlot] = useState<VehiclePhotoKey | null>(null);
@@ -71,12 +63,6 @@ export function VehiclePhotosGrid({
       return resolveVehiclePhotoByKey(inspection, key, true);
     }
     return null;
-  };
-
-  const isProcessed = (key: VehiclePhotoKey): boolean => {
-    if (!inspection?.vehiclePhotosMeta) return false;
-    const meta = inspection.vehiclePhotosMeta[key];
-    return meta?.activeMode === "processed" && Boolean(meta?.processedUrl);
   };
 
   // Smart natural dimension handler
@@ -124,7 +110,6 @@ export function VehiclePhotosGrid({
     const section = getSectionDef(key);
     const photoUrl = getPhotoUrl(key);
     const originalUrl = getOriginalUrl(key);
-    const isStudioActive = isProcessed(key);
     const dim = imageDimensions[key];
     const orientation = dim?.orientation || "landscape";
 
@@ -134,41 +119,14 @@ export function VehiclePhotosGrid({
         className="w-full bg-white rounded-2xl sm:rounded-3xl border border-zinc-200 shadow-xs hover:shadow-md transition-all duration-300 overflow-hidden relative flex flex-col group select-none"
         data-testid={`card-vehicle-photo-${key}`}
       >
-        {/* ── 1. Clean Title Badge (Top-Right Pill, strictly NO stars/sparkles) ── */}
+        {/* ── 1. Clean Title Badge ── */}
         <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 pointer-events-none">
           <div className="bg-zinc-950/95 backdrop-blur-md text-white text-xs sm:text-sm font-black px-3.5 sm:px-4 py-1.5 rounded-xl sm:rounded-2xl font-arabic shadow-lg border border-zinc-800 tracking-wide">
             <span>{section.label}</span>
           </div>
         </div>
 
-        {/* ── 2. Studio Controls (ONLY in Examiner Studio Editing Mode, NEVER in Public Report) ── */}
-        {isEditable && showStudioControls && photoUrl && (
-          <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5">
-            {onTogglePhotoMode && originalUrl && originalUrl !== photoUrl && (
-              <button
-                type="button"
-                onClick={() => onTogglePhotoMode(key)}
-                className="px-2.5 py-1 bg-zinc-950/90 text-white text-[11px] font-bold rounded-xl shadow-md border border-zinc-700 font-arabic hover:bg-black transition-colors"
-                title="التبديل بين الأصلية والمحسنة"
-              >
-                <span>{isStudioActive ? "للأصلية" : "للمحسنة"}</span>
-              </button>
-            )}
-            {onReprocessPhoto && (
-              <button
-                type="button"
-                onClick={() => onReprocessPhoto(key)}
-                disabled={isProcessing}
-                className="p-1.5 bg-zinc-950/90 text-white rounded-xl shadow-md border border-zinc-700 hover:bg-black disabled:opacity-50 transition-colors"
-                title="إعادة المعالجة"
-              >
-                <RefreshCw className={cn("w-3.5 h-3.5", isProcessing && "animate-spin")} />
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* ── 3. Smart Responsive Image Display Container (No Rotation, No Stretching, No Distortion) ── */}
+        {/* ── 2. Smart Responsive Image Display Container (No Rotation, No Stretching, No Distortion) ── */}
         <div
           className={cn(
             "relative w-full bg-zinc-900/5 overflow-hidden flex items-center justify-center transition-all duration-300",
