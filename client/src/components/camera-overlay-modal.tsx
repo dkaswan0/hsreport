@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { Camera, X, RotateCcw, Zap, ZapOff, Grid, Check } from 'lucide-react';
+import { Camera, X, RotateCcw, Zap, ZapOff, Grid, Check, Smartphone, Info } from 'lucide-react';
 import { VehiclePhotoKey, VEHICLE_PHOTO_SECTIONS } from '@shared/vehicle-photos';
 
 interface CameraOverlayModalProps {
@@ -22,6 +22,7 @@ export const CameraOverlayModal: React.FC<CameraOverlayModalProps> = ({
   const [showGrid, setShowGrid] = useState(true);
   const [capturedPreview, setCapturedPreview] = useState<string | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [showOrientationTip, setShowOrientationTip] = useState(true);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -67,6 +68,15 @@ export const CameraOverlayModal: React.FC<CameraOverlayModalProps> = ({
       }
     };
   }, [isOpen, facingMode, capturedPreview]);
+
+  // Auto hide orientation tip after 6 seconds
+  useEffect(() => {
+    if (isOpen) {
+      setShowOrientationTip(true);
+      const timer = setTimeout(() => setShowOrientationTip(false), 7000);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, photoKey]);
 
   // Toggle Torch/Flashlight
   const toggleFlash = async () => {
@@ -138,11 +148,17 @@ export const CameraOverlayModal: React.FC<CameraOverlayModalProps> = ({
 
     return (
       <svg
-        className="absolute inset-0 w-full h-full pointer-events-none stroke-white/70 drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]"
+        className="absolute inset-0 w-full h-full pointer-events-none stroke-white/80 drop-shadow-[0_0_10px_rgba(0,0,0,0.9)]"
         viewBox="0 0 1000 600"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
+        {/* Corner alignment brackets */}
+        <path d="M 120 180 L 120 120 L 180 120" strokeWidth="4" stroke="rgba(251, 191, 36, 0.9)" fill="none" />
+        <path d="M 880 180 L 880 120 L 820 120" strokeWidth="4" stroke="rgba(251, 191, 36, 0.9)" fill="none" />
+        <path d="M 120 420 L 120 480 L 180 480" strokeWidth="4" stroke="rgba(251, 191, 36, 0.9)" fill="none" />
+        <path d="M 880 420 L 880 480 L 820 480" strokeWidth="4" stroke="rgba(251, 191, 36, 0.9)" fill="none" />
+
         {photoKey === 'main_vehicle' && (
           // Perspective 3/4 Outline
           <g strokeWidth="3" strokeDasharray="8 6" className="animate-pulse">
@@ -195,15 +211,16 @@ export const CameraOverlayModal: React.FC<CameraOverlayModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="max-w-4xl p-0 bg-black border-zinc-800 text-white overflow-hidden h-[90vh] max-h-[850px] flex flex-col font-arabic">
+      <DialogContent className="max-w-4xl p-0 bg-black border-zinc-800 text-white overflow-hidden h-[92vh] max-h-[880px] flex flex-col font-arabic">
         <DialogTitle className="sr-only">كاميرا دليل الإطار الشفاف للسيارة</DialogTitle>
+        
         {/* Top Floating Control Bar */}
-        <div className="absolute top-0 inset-x-0 z-30 p-3 bg-gradient-to-b from-black/80 to-transparent flex items-center justify-between">
+        <div className="absolute top-0 inset-x-0 z-30 p-3 bg-gradient-to-b from-black/90 via-black/50 to-transparent flex items-center justify-between">
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={handleClose}
-              className="p-2 rounded-full bg-zinc-900/80 hover:bg-zinc-800 text-white transition-colors"
+              className="p-2 rounded-full bg-zinc-900/90 hover:bg-zinc-800 text-white transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -211,7 +228,7 @@ export const CameraOverlayModal: React.FC<CameraOverlayModalProps> = ({
               <h3 className="text-sm font-bold text-white font-arabic">
                 {meta ? meta.label : 'كاميرا تصوير المركبة'}
               </h3>
-              <p className="text-[10px] text-zinc-300 font-mono">Framing Silhouette Overlay</p>
+              <p className="text-[10px] text-amber-300 font-mono">Landscape Framing Mode</p>
             </div>
           </div>
 
@@ -219,7 +236,7 @@ export const CameraOverlayModal: React.FC<CameraOverlayModalProps> = ({
             <button
               type="button"
               onClick={() => setShowGrid(!showGrid)}
-              className={`p-2 rounded-full transition-colors ${showGrid ? 'bg-amber-500 text-black' : 'bg-zinc-900/80 text-white'}`}
+              className={`p-2 rounded-full transition-colors ${showGrid ? 'bg-amber-500 text-black' : 'bg-zinc-900/90 text-white'}`}
               title="شبكة المحاذاة"
             >
               <Grid className="w-4 h-4" />
@@ -228,7 +245,7 @@ export const CameraOverlayModal: React.FC<CameraOverlayModalProps> = ({
             <button
               type="button"
               onClick={toggleFlash}
-              className={`p-2 rounded-full transition-colors ${isFlashOn ? 'bg-amber-500 text-black' : 'bg-zinc-900/80 text-white'}`}
+              className={`p-2 rounded-full transition-colors ${isFlashOn ? 'bg-amber-500 text-black' : 'bg-zinc-900/90 text-white'}`}
               title="الكشاف / الفلاش"
             >
               {isFlashOn ? <Zap className="w-4 h-4" /> : <ZapOff className="w-4 h-4" />}
@@ -237,7 +254,7 @@ export const CameraOverlayModal: React.FC<CameraOverlayModalProps> = ({
             <button
               type="button"
               onClick={() => setFacingMode(prev => prev === 'environment' ? 'user' : 'environment')}
-              className="p-2 rounded-full bg-zinc-900/80 hover:bg-zinc-800 text-white transition-colors"
+              className="p-2 rounded-full bg-zinc-900/90 hover:bg-zinc-800 text-white transition-colors"
               title="تبديل الكاميرا"
             >
               <RotateCcw className="w-4 h-4" />
@@ -260,11 +277,11 @@ export const CameraOverlayModal: React.FC<CameraOverlayModalProps> = ({
             </div>
           ) : capturedPreview ? (
             /* Review Captured Photo */
-            <div className="w-full h-full relative flex items-center justify-center">
+            <div className="w-full h-full relative flex items-center justify-center p-2">
               <img
                 src={capturedPreview}
                 alt="Captured Vehicle"
-                className="max-h-full max-w-full object-contain"
+                className="max-h-full max-w-full object-contain rounded-2xl"
               />
             </div>
           ) : (
@@ -280,15 +297,15 @@ export const CameraOverlayModal: React.FC<CameraOverlayModalProps> = ({
 
               {/* Composition Grid */}
               {showGrid && (
-                <div className="absolute inset-0 pointer-events-none grid grid-cols-3 grid-rows-3 opacity-20 border border-white/40">
+                <div className="absolute inset-0 pointer-events-none grid grid-cols-3 grid-rows-3 opacity-25 border border-white/40">
                   <div className="border-r border-b border-white" />
                   <div className="border-r border-b border-white" />
                   <div className="border-b border-white" />
                   <div className="border-r border-b border-white" />
                   <div className="border-r border-b border-white" />
                   <div className="border-b border-white" />
-                  <div className="border-r border-white" />
-                  <div className="border-r border-white" />
+                  <div className="border-r border-b border-white" />
+                  <div className="border-r border-b border-white" />
                   <div />
                 </div>
               )}
@@ -296,10 +313,21 @@ export const CameraOverlayModal: React.FC<CameraOverlayModalProps> = ({
               {/* Silhouette Overlay */}
               {renderSilhouette()}
 
-              {/* Centering Instruction Badge */}
+              {/* Orientation Recommended Tip Banner (Top Overlay) */}
+              {showOrientationTip && (
+                <div className="absolute top-16 inset-x-4 flex justify-center pointer-events-none animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="bg-zinc-950/90 backdrop-blur-md border border-amber-400/50 text-amber-300 px-4 py-2 rounded-2xl text-xs font-bold font-arabic flex items-center gap-2 shadow-2xl">
+                    <Info className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span>يفضل تصوير السيارة بالعرض (Landscape) للحصول على أفضل نتيجة في التقرير</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Centering Instruction Badge (Bottom Overlay) */}
               <div className="absolute bottom-4 inset-x-0 flex justify-center pointer-events-none">
-                <div className="bg-black/75 backdrop-blur-md border border-white/20 px-4 py-1.5 rounded-full text-xs font-bold text-amber-300 font-arabic flex items-center gap-1.5 shadow-lg">
-                  <span>طابق أبعاد السيارة مع الإطار الأبيض المضيء</span>
+                <div className="bg-black/80 backdrop-blur-md border border-white/20 px-4 py-1.5 rounded-full text-xs font-bold text-white font-arabic flex items-center gap-1.5 shadow-lg">
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                  <span>طابق أبعاد السيارة داخل الإطار الإرشادي</span>
                 </div>
               </div>
             </div>
@@ -315,7 +343,7 @@ export const CameraOverlayModal: React.FC<CameraOverlayModalProps> = ({
               <button
                 type="button"
                 onClick={handleRetake}
-                className="flex-1 py-3 px-4 bg-zinc-800 hover:bg-zinc-700 text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all"
+                className="flex-1 py-3 px-4 bg-zinc-800 hover:bg-zinc-700 text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
                 <RotateCcw className="w-4 h-4" />
                 <span>إعادة الالتقاط</span>
@@ -323,7 +351,7 @@ export const CameraOverlayModal: React.FC<CameraOverlayModalProps> = ({
               <button
                 type="button"
                 onClick={handleConfirm}
-                className="flex-1 py-3 px-4 bg-amber-500 hover:bg-amber-400 text-black rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg transition-all"
+                className="flex-1 py-3 px-4 bg-amber-500 hover:bg-amber-400 text-black rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer"
               >
                 <Check className="w-4 h-4" />
                 <span>اعتماد الصورة</span>
@@ -334,7 +362,8 @@ export const CameraOverlayModal: React.FC<CameraOverlayModalProps> = ({
             <button
               type="button"
               onClick={handleCapture}
-              className="w-18 h-18 rounded-full border-4 border-white flex items-center justify-center p-1.5 transition-transform active:scale-90 hover:scale-105"
+              className="w-18 h-18 rounded-full border-4 border-white flex items-center justify-center p-1.5 transition-transform active:scale-90 hover:scale-105 cursor-pointer shadow-2xl"
+              title="التقاط الصورة"
             >
               <div className="w-full h-full rounded-full bg-white flex items-center justify-center shadow-lg">
                 <Camera className="w-6 h-6 text-black" />

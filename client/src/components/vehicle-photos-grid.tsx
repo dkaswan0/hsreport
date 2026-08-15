@@ -23,6 +23,13 @@ export interface VehiclePhotosGridProps {
   layoutMode?: "stacked" | "grid";
 }
 
+interface ImageDimension {
+  width: number;
+  height: number;
+  aspectRatio: number;
+  orientation: "landscape" | "portrait" | "square" | "panoramic";
+}
+
 export function VehiclePhotosGrid({
   inspection,
   photos,
@@ -42,7 +49,8 @@ export function VehiclePhotosGrid({
     description: string;
   } | null>(null);
 
-  const [imageOrientations, setImageOrientations] = useState<Record<string, "landscape" | "portrait" | "square">>({});
+  // Store smart detected dimensions for each photo key
+  const [imageDimensions, setImageDimensions] = useState<Record<string, ImageDimension>>({});
 
   const getSectionDef = (key: VehiclePhotoKey): VehiclePhotoSectionDef => {
     return VEHICLE_PHOTO_SECTIONS.find((s) => s.key === key)!;
@@ -71,19 +79,29 @@ export function VehiclePhotosGrid({
     return meta?.activeMode === "processed" && Boolean(meta?.processedUrl);
   };
 
+  // Smart natural dimension handler
   const handleImageLoad = (key: string, e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
     if (img.naturalWidth && img.naturalHeight) {
-      const ratio = img.naturalWidth / img.naturalHeight;
-      let orientation: "landscape" | "portrait" | "square" = "landscape";
-      if (ratio < 0.88) {
-        orientation = "portrait";
-      } else if (ratio >= 0.88 && ratio <= 1.12) {
-        orientation = "square";
-      } else {
+      const width = img.naturalWidth;
+      const height = img.naturalHeight;
+      const aspectRatio = width / height;
+
+      let orientation: "landscape" | "portrait" | "square" | "panoramic" = "landscape";
+      if (aspectRatio > 1.8) {
+        orientation = "panoramic";
+      } else if (aspectRatio >= 1.15) {
         orientation = "landscape";
+      } else if (aspectRatio <= 0.85) {
+        orientation = "portrait";
+      } else {
+        orientation = "square";
       }
-      setImageOrientations((prev) => ({ ...prev, [key]: orientation }));
+
+      setImageDimensions((prev) => ({
+        ...prev,
+        [key]: { width, height, aspectRatio, orientation },
+      }));
     }
   };
 
@@ -107,17 +125,18 @@ export function VehiclePhotosGrid({
     const photoUrl = getPhotoUrl(key);
     const originalUrl = getOriginalUrl(key);
     const isStudioActive = isProcessed(key);
-    const orientation = imageOrientations[key] || "landscape";
+    const dim = imageDimensions[key];
+    const orientation = dim?.orientation || "landscape";
 
     return (
       <div
         key={key}
-        className="w-full bg-white rounded-2xl sm:rounded-3xl border border-zinc-200/90 shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden relative flex flex-col group select-none"
+        className="w-full bg-white rounded-2xl sm:rounded-3xl border border-zinc-200 shadow-xs hover:shadow-md transition-all duration-300 overflow-hidden relative flex flex-col group select-none"
         data-testid={`card-vehicle-photo-${key}`}
       >
         {/* ── 1. Clean Title Badge (Top-Right Pill, strictly NO stars/sparkles) ── */}
         <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 pointer-events-none">
-          <div className="bg-zinc-950/95 backdrop-blur-sm text-white text-xs sm:text-sm font-black px-3.5 sm:px-4 py-1.5 rounded-xl sm:rounded-2xl font-arabic shadow-lg border border-zinc-800 tracking-wide">
+          <div className="bg-zinc-950/95 backdrop-blur-md text-white text-xs sm:text-sm font-black px-3.5 sm:px-4 py-1.5 rounded-xl sm:rounded-2xl font-arabic shadow-lg border border-zinc-800 tracking-wide">
             <span>{section.label}</span>
           </div>
         </div>
@@ -149,15 +168,18 @@ export function VehiclePhotosGrid({
           </div>
         )}
 
-        {/* ── 3. Edge-to-Edge Smart Photo Frame ── */}
+        {/* ── 3. Smart Responsive Image Display Container (No Rotation, No Stretching, No Distortion) ── */}
         <div
           className={cn(
-            "relative w-full bg-zinc-100/70 overflow-hidden flex items-center justify-center transition-all",
-            orientation === "landscape"
-              ? "aspect-[16/10] sm:aspect-[16/9] min-h-[220px] sm:min-h-[280px] md:min-h-[340px]"
-              : orientation === "portrait"
-              ? "aspect-[4/5] sm:aspect-[3/4] max-h-[480px]"
-              : "aspect-square max-h-[380px]"
+            "relative w-full bg-zinc-900/5 overflow-hidden flex items-center justify-center transition-all duration-300",
+            // For landscape photos (preferred): wide natural aspect ratio filling mobile width
+            orientation === "landscape" && "aspect-[16/10] sm:aspect-[16/9] min-h-[220px] sm:min-h-[280px] md:min-h-[340px]",
+            // For panoramic/super wide: 21:9 ratio
+            orientation === "panoramic" && "aspect-[21/9] min-h-[200px] sm:min-h-[260px]",
+            // For portrait: elegant containment without huge white gaps, natural height up to 500px
+            orientation === "portrait" && "aspect-[3/4] sm:aspect-[4/5] max-h-[520px]",
+            // For square: balanced 1:1 ratio
+            orientation === "square" && "aspect-square max-h-[400px]"
           )}
         >
           {photoUrl ? (
@@ -171,28 +193,28 @@ export function VehiclePhotosGrid({
                 })
               }
             >
-              {/* Background ambient fill for non-standard aspect ratios to eliminate harsh white borders */}
+              {/* Subtle ambient blurred background fill for non-standard image aspect ratios */}
               <div
                 className="absolute inset-0 bg-cover bg-center blur-2xl opacity-20 scale-110 pointer-events-none"
                 style={{ backgroundImage: `url(${photoUrl})` }}
               />
 
-              {/* Main Crisp Image */}
+              {/* Main Vehicle Image (Clean Natural Proportions) */}
               <img
                 src={photoUrl}
                 alt={section.label}
                 onLoad={(e) => handleImageLoad(key, e)}
                 className={cn(
                   "relative z-10 w-full h-full select-none transition-transform duration-300 group-hover:scale-[1.015]",
-                  orientation === "landscape"
+                  orientation === "landscape" || orientation === "panoramic"
                     ? "object-cover sm:object-contain object-center"
-                    : "object-contain"
+                    : "object-contain object-center"
                 )}
                 loading="lazy"
               />
 
-              {/* Hover Zoom Indicator */}
-              <div className="absolute inset-0 z-20 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+              {/* Hover Zoom Hint */}
+              <div className="absolute inset-0 z-20 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
                 <div className="bg-white/95 text-zinc-950 px-3.5 py-1.5 rounded-full text-xs font-bold font-arabic shadow-xl flex items-center gap-1.5">
                   <Maximize2 className="w-3.5 h-3.5 text-zinc-900" />
                   <span>تكبير الصورة</span>
@@ -255,12 +277,12 @@ export function VehiclePhotosGrid({
     );
   };
 
-  // Order matching Reference Image exactly:
-  // 1. السيارة الرئيسية (Hero)
-  // 2. الجانب الأيمن
-  // 3. الجانب الأيسر
-  // 4. الواجهة الأمامية
-  // 5. الواجهة الخلفية
+  // Order matching Reference Image:
+  // 1. السيارة الرئيسية (Hero / 3/4 Perspective)
+  // 2. الجانب الأيمن (Right Side)
+  // 3. الجانب الأيسر (Left Side)
+  // 4. الواجهة الأمامية (Front View)
+  // 5. الواجهة الخلفية (Rear View)
   const photoKeysOrder: VehiclePhotoKey[] = [
     "main_vehicle",
     "right_side",
@@ -270,7 +292,7 @@ export function VehiclePhotosGrid({
   ];
 
   return (
-    <div className={cn("w-full space-y-3.5 sm:space-y-4 md:space-y-5", className)} dir="rtl">
+    <div className={cn("w-full space-y-3 sm:space-y-4 md:space-y-5", className)} dir="rtl">
       {photoKeysOrder.map((key) => renderPhotoCard(key))}
 
       {/* High-Resolution Zoom Modal */}
