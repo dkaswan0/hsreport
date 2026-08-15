@@ -1207,7 +1207,7 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
           [slotKey]: {
             originalUrl: compressed,
             activeMode: 'original',
-            processingStatus: canProcess ? 'processing' : 'idle',
+            processingStatus: 'idle',
             processedAt: new Date().toISOString(),
           }
         }
@@ -1216,13 +1216,8 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
           const s = VEHICLE_PHOTO_SECTIONS.find((slot) => slot.key === slotKey);
           toast({
             title: "تم حفظ الصورة بنجاح",
-            description: `تم حفظ ${s?.label || 'الصورة'} كأصل دائم`,
+            description: `تم حفظ ${s?.label || 'الصورة'} كأصل دائم ومحفوظ`,
           });
-
-          // Kick off background processing if eligible
-          if (canProcess) {
-            triggerBackgroundProcessing(slotKey, compressed, s?.label || 'الصورة');
-          }
         },
         onError: () => {
           toast({
@@ -1428,7 +1423,7 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
                       [key]: {
                         originalUrl: compressed,
                         activeMode: 'original',
-                        processingStatus: 'processing',
+                        processingStatus: 'idle',
                         processedAt: new Date().toISOString(),
                       },
                     },
@@ -1436,9 +1431,8 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
                     onSuccess: () => {
                       toast({
                         title: "تم حفظ الصورة بنجاح",
-                        description: `تم حفظ ${section?.label || 'الصورة'} كأصل دائم`,
+                        description: `تم حفظ ${section?.label || 'الصورة'} كأصل دائم ومحفوظ`,
                       });
-                      triggerBackgroundProcessing(key, compressed, section?.label || 'الصورة');
                     },
                     onError: () => {
                       toast({ title: "خطأ في الحفظ", variant: "destructive" });

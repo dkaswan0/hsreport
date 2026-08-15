@@ -130,19 +130,30 @@ export function getInspectionTypeLabel(type?: string | null): { ar: string; en: 
 }
 
 /**
- * Resolves the currently active photo URL for a vehicle slot based on vehiclePhotosMeta.
- * Automatically falls back to originalUrl or the root slot column if processed is unavailable.
+ * Resolves the vehicle photo safely from the inspection record.
+ * Guarantees that the real, permanent photo is ALWAYS returned.
  */
 export function resolveVehiclePhoto(inspection: any, slotKey: string): string {
   if (!inspection) return '';
-  const meta = inspection.vehiclePhotosMeta?.[slotKey];
-  if (meta) {
-    if (meta.activeMode === 'processed' && meta.processedUrl) {
-      return meta.processedUrl;
-    }
-    if (meta.originalUrl) {
-      return meta.originalUrl;
+  
+  // 1. Direct DB column check
+  if (inspection[slotKey] && typeof inspection[slotKey] === 'string' && inspection[slotKey].trim()) {
+    const val = inspection[slotKey].trim();
+    if (val.startsWith('data:image/') || val.startsWith('http') || val.startsWith('/uploads/')) {
+      return val;
     }
   }
-  return inspection[slotKey] || '';
+
+  // 2. vehiclePhotosMeta check
+  const meta = inspection.vehiclePhotosMeta?.[slotKey];
+  if (meta) {
+    if (meta.originalUrl && typeof meta.originalUrl === 'string' && meta.originalUrl.trim()) {
+      return meta.originalUrl.trim();
+    }
+    if (meta.processedUrl && typeof meta.processedUrl === 'string' && meta.processedUrl.trim()) {
+      return meta.processedUrl.trim();
+    }
+  }
+
+  return '';
 }
