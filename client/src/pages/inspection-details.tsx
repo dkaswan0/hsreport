@@ -1773,8 +1773,8 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
       }
 
       toast({
-        title: result.hasDefect ? "تم رصد الملاحظة والتعرف على القطعة ⚡" : "تم الفحص البصري - القطعة سليمة ✅",
-        description: result.conditionSummary || result.defectStatusText || `تم التعرف على: ${part}`,
+        title: result.defectStatusText || "تم فحص الصورة بالذكاء الاصطناعي ⚡",
+        description: result.conditionSummary || result.detectedPartArabic || part,
       });
     } catch (err: any) {
       toast({ title: "تنبيه", description: "تعذر التحليل التلقائي، يمكنك اختيار العطل يدوياً" });
@@ -2071,21 +2071,14 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
             <div className="p-3.5 rounded-2xl bg-zinc-900 text-white border border-zinc-800 shadow-md space-y-2.5 font-arabic">
               <div className="flex items-center justify-between gap-2 border-b border-zinc-800 pb-2 flex-wrap">
                 <div className="flex items-center gap-2">
-                  {aiAnalysisResult?.hasDefect === false ? (
-                    <div className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>القطعة سليمة ومطابقة للمواصفات</span>
-                    </div>
-                  ) : (
-                    <div className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40 text-xs font-bold flex items-center gap-1">
-                      <AlertTriangle className="w-3.5 h-3.5" />
-                      <span>{aiAnalysisResult?.defectStatusText || "تم رصد ملاحظة فنية"}</span>
-                    </div>
-                  )}
+                  <div className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                    <span>{aiAnalysisResult?.defectStatusText || aiSuggestions[0]?.faultName || "ملاحظة فنية"}</span>
+                  </div>
                 </div>
 
                 {aiDetectedPart && (
-                  <div className="text-xs font-bold text-amber-400">
+                  <div className="text-xs font-bold text-amber-400 bg-zinc-800 px-2 py-0.5 rounded-md border border-zinc-700">
                     {aiDetectedPart}
                   </div>
                 )}
@@ -2392,8 +2385,8 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
       }
 
       toast({
-        title: result.hasDefect ? "تم رصد الملاحظة وتشخيص القطعة ⚡" : "تم الفحص البصري - القطعة سليمة ✅",
-        description: result.conditionSummary || result.defectStatusText || `تم التعرف على: ${part}`,
+        title: result.defectStatusText || "تم فحص الصورة بالذكاء الاصطناعي ⚡",
+        description: result.conditionSummary || result.detectedPartArabic || part,
       });
     } catch (err: any) {
       console.warn("AI Analysis error:", err);
@@ -2743,17 +2736,10 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
                   {/* Status Banner */}
                   <div className="flex items-center justify-between gap-2 border-b border-zinc-800 pb-2.5 flex-wrap">
                     <div className="flex items-center gap-2">
-                      {aiAnalysisResult?.hasDefect === false ? (
-                        <div className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold flex items-center gap-1.5">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>القطعة سليمة ومطابقة للمواصفات</span>
-                        </div>
-                      ) : (
-                        <div className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5">
-                          <AlertTriangle className="w-3.5 h-3.5" />
-                          <span>{aiAnalysisResult?.defectStatusText || "تم رصد ملاحظة فنية"}</span>
-                        </div>
-                      )}
+                      <div className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5">
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                        <span>{aiAnalysisResult?.defectStatusText || aiSuggestions[0]?.faultName || "ملاحظة فنية"}</span>
+                      </div>
                     </div>
 
                     {detectedPart && (

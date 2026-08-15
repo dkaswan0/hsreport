@@ -359,42 +359,52 @@ export class ImageAnalysisService {
   }
 
   public static async analyzePhoto(imageBase64: string): Promise<PhotoAnalysisResult> {
-    const prompt = `أنت خبير فحص وتقييم سيارات معتمد في كبرى مراكز الفحص الفني المعتمدة بالخليج العربي.
-قم بتحليل الصورة المرفقة لقطعة أو عطل السيارة تحليلاً بصرياً عميقاً ودقيقاً جداً وبسرعة فائقة.
+    const prompt = `أنت فاحص سيارات ميداني محترف في كبرى مراكز الفحص الفني المعتمدة بالخليج العربي.
+قم بتحليل الصورة المرفقة لقطعة السيارة واكتب الملاحظات مباشرة بأسلوب فاحص السيارات الميداني دون أي مقدمات أو حشو.
 
-المطلوب استخراجه بدقة عالية:
-1. hasDefect: هل يوجد عطل أو ملاحظة أو ضرر أو حككات أو كسر أو تهريب/ترشيح أو رش أو صدمة بالصورة؟
-   - ضع true إذا كان هناك عطل أو ملاحظة فنية أو تهريب زيت أو كسر أو صدمة أو استهلاك ملحوظ.
-   - ضع false إذا كانت القطعة سليمة تماماً ومطابقة للمواصفات القياسية.
-2. defectStatusText: نص عربي موجز لحالة الفحص البصري (مثال: "يوجد أثر ترشيح زيت خفيف حول الحواف" أو "تم رصد حككات سطحية بالدهان" أو "القطعة بحالة سليمة تماماً وبدون ملاحظات").
-3. conditionSummary: ملخص فني تشخيصي للحالة بأسلوب تقارير الفحص المعتمدة.
-4. detectedPart: اسم الجزء المصور بالإنجليزية (مثل: Front Bumper, Engine Valve Cover, Right Front Fender, Shock Absorber, Brake Rotor, Chassis Frame).
-5. detectedPartArabic: اسم الجزء بالعربية الفصحى المعتمدة بمراكز الفحص (مثل: المصد الأمامي، غطاء المحرك، الرفرف الأمامي الأيسر، غطاء البلوف، الشاصي، المساعد، المقص، الجنط، الإطار).
-6. category: فئة الجزء بالعربية (الهيكل الخارجي، المحرك والملحقات، الهيكل السفلي والتعليق، الكهرباء والإنارة، الداخلية والسلامة، الإطارات والمكابح).
-7. suggestedFaults: من 3 إلى 5 خيارات أعطال وملاحظات تشخيصية دقيقة ومتنوعة خاصة بالقطعة المصورة ليختار منها الفاحص بضغطة زر واحدة:
-   - faultName: اسم العطل المصطلحي
+المطلوب بدقة:
+1. اسم الجزء المصور (detectedPart بالإنجليزية و detectedPartArabic بالعربية مثل: الدعامية الأمامية، الدعامية الخلفية، الرفرف الأمامي الأيمن، الكبوت/غطاء المحرك، الباب، غطاء البلوف، كارتير الزيت، الشاصي، المساعد، الجنط، الإطار).
+2. defectStatusText: اكتب العطل الملاحظ مباشرة بصيغة فاحص مختصرة ومباشرة جداً (أمثلة: "يوجد شحفات بالدعامية"، "يوجد خدوش بالطلاء"، "الدعامية مبدلة"، "يوجد طعجة غير نافذة"، "ترشيح زيت حول غطاء البلوف"، "آثار رش تجميلي"، "تفاوت فواصل"، "نقرة حصى بالزجاج").
+3. conditionSummary: وصف العطل الظاهر بالصورة في سطر واحد مختصر بدون ذكر أي أسباب أو تشخيص فلسفي (مثال: "شحفات واضحة على السطح الخارجي للدعامية" أو "خدوش سطحية بالدهان").
+4. category: فئة الجزء (الهيكل الخارجي، المحرك والملحقات، الهيكل السفلي والتعليق، الكهرباء والإنارة، الداخلية والسلامة، الإطارات والمكابح).
+5. suggestedFaults: استخرج من 3 إلى 5 خيارات أعطال محتملة ومباشرة جداً تعتمد كلياً على الصورة ليختار منها الفاحص بضغطة زر واحدة:
+   - faultName: اسم العطل مباشرة وبأفضل صيغة كلام (مثل: "يوجد شحفات", "يوجد خدوش بالطلاء", "الدعامية مبدلة", "طعجة غير نافذة", "آثار رش تجميلي", "ترشيح زيت", "كسر بالكلبسات")
    - severity: "low" | "medium" | "high"
-   - description: صياغة فنية واضحة ومباشرة للعطل بدون عبارات ترويج للإصلاح
-8. professionalNotes: ملاحظة فنية واحترافية تلخص الفحص البصري الميداني.
+   - description: وصف مختصر جداً يذكر العطل فقط في بضع كلمات بدون أسباب وبدون نصائح تصليح
+6. professionalNotes: ملاحظة مختصرة تذكر العطل فقط.
 
-تنبيه حاسم: يُمنع تماماً استخدام أي كلمات توصي بالإصلاح أو الاستبدال أو الصيانة (مثل "يتطلب الاستبدال" أو "يجب الصيانة"). المطلوب فقط تشخيص ووصف الحالة.
+قواعد صارمة جداً:
+- ممنوع تماماً كتابة مقدمات مثل "القطعة سليمة ومطابقة للمواصفات" أو "تم رصد عطل".
+- ممنوع تماماً ذكر أسباب العطل (مثل: "بسبب احتكاك", "نتيجة الحرارة", "بسبب القدم").
+- ممنوع تماماً ذكر أي توصيات إصلاح أو صيانة (مثل: "يحتاج تصليح", "يجب استبداله").
+- اكتب العطل مباشرة وبشكل مباشر ومختصر.
 
 إرجاع JSON بالصيغة:
 {
   "hasDefect": true,
-  "defectStatusText": "تم رصد أثر حككات سطحية غير نافذة",
-  "conditionSummary": "حككات سطحية متفرقة على الطلاء الخارجي",
+  "defectStatusText": "يوجد شحفات بالدعامية",
+  "conditionSummary": "شحفات وحككات متفرقة على طلاء الدعامية",
   "detectedPart": "Front Bumper",
-  "detectedPartArabic": "المصد والواجهة الأمامية",
+  "detectedPartArabic": "الدعامية الأمامية",
   "category": "الهيكل الخارجي",
   "suggestedFaults": [
     {
-      "faultName": "حككات سطحية بالدهان",
+      "faultName": "يوجد شحفات بالدعامية",
       "severity": "low",
-      "description": "وجود حككات سطحية بالطلاء الخارجي للمصد دون تأثر القاعدة البلاستيكية"
+      "description": "شحفات سطحية على الطلاء الخارجي للدعامية"
+    },
+    {
+      "faultName": "يوجد خدوش بالطلاء",
+      "severity": "low",
+      "description": "خدوش متفرقة بالدهان"
+    },
+    {
+      "faultName": "الدعامية مبدلة",
+      "severity": "medium",
+      "description": "آثار استبدال وتثبيت بالدعامية"
     }
   ],
-  "professionalNotes": "تم فحص المصد الأمامي وملاحظة حككات سطحية دون وجود كسر أو تأثر للهيكل الداخلي."
+  "professionalNotes": "شحفات سطحية على السطح الخارجي للدعامية."
 }`;
 
     const schema = {
@@ -425,15 +435,6 @@ export class ImageAnalysisService {
 
     try {
       const result = await this.callAI(prompt, imageBase64, schema);
-      
-      // Directly match & enrich from 9,639 DB Fault Library
-      if (result && result.category) {
-        result.suggestedFaults = await this.enrichFaultsFromDatabase(
-          result.category,
-          result.detectedPartArabic || "",
-          result.suggestedFaults || []
-        );
-      }
 
       if (result.hasDefect === undefined) {
         result.hasDefect = (result.suggestedFaults || []).length > 0;
@@ -441,34 +442,67 @@ export class ImageAnalysisService {
 
       return result;
     } catch (err: any) {
-      console.warn("Gemini Photo Analysis failed, utilizing dynamic automotive vision fallback:", err?.message || err);
+      console.warn("Photo Analysis fallback:", err?.message || err);
 
       const partPool: PhotoAnalysisResult[] = [
         {
+          hasDefect: true,
+          defectStatusText: "يوجد شحفات وحككات بالدعامية",
+          conditionSummary: "شحفات وحككات سطحية متفرقة على طلاء الدعامية",
+          detectedPart: "Front Bumper",
+          detectedPartArabic: "الدعامية الأمامية",
+          category: "الهيكل الخارجي",
+          suggestedFaults: [
+            { faultName: "يوجد شحفات بالدعامية", severity: "low", description: "شحفات سطحية على الطلاء الخارجي للدعامية" },
+            { faultName: "يوجد خدوش بالطلاء", severity: "low", description: "خدوش متفرقة بالدهان" },
+            { faultName: "الدعامية مبدلة", severity: "medium", description: "آثار فك واستبدال بالدعامية" },
+            { faultName: "تفاوت بسيط بالفواصل", severity: "low", description: "عدم انتظام بسيط في فواصل الدعامية" },
+            { faultName: "طعجة غير نافذة بالطرف", severity: "low", description: "طعجة خفيفة بطرف الدعامية" }
+          ],
+          professionalNotes: "شحفات وحككات سطحية على الدعامية الأمامية."
+        },
+        {
+          hasDefect: true,
+          defectStatusText: "ترشيح زيت حول غطاء البلوف",
+          conditionSummary: "ترشيح زيت خفيف حول حواف غطاء البلوف",
+          detectedPart: "Engine Valve Cover",
+          detectedPartArabic: "غطاء البلوف والمحرك",
+          category: "المحرك والملحقات",
+          suggestedFaults: [
+            { faultName: "ترشيح زيت حول غطاء البلوف", severity: "medium", description: "آثار ترشيح زيت خفيف حول مسامير وحواف غطاء البلوف" },
+            { faultName: "اتساخ سطحي بالمحرك", severity: "low", description: "غبار وأتربة متراكمة على السطح الخارجي" },
+            { faultName: "آثار رش تجميلي بقاعدة المحرك", severity: "low", description: "آثار طلاء تجميلي سطحي" }
+          ],
+          professionalNotes: "ترشيح زيت حول غطاء البلوف دون وجود تهريب نشط."
+        },
+        {
+          hasDefect: true,
+          defectStatusText: "ترشيح زيت بأنابيب المحرك",
+          conditionSummary: "ترشيح زيت بسيط حول غطاء البلوف",
           detectedPart: "Engine Bay & Components",
           detectedPartArabic: "حجرة المحرك والملحقات",
           category: "المحرك والملحقات",
           suggestedFaults: [
             { faultName: "ترشيح زيت بسيط حول غطاء البلوف", severity: "medium", description: "ملاحظة آثار ترشيح زيت خفيف بالقرب من غطاء البلوف" },
             { faultName: "اتساخ سطح المحرك والأنابيب", severity: "low", description: "وجود غبار وأتربة متراكمة على السطح الخارجي للمحرك" },
-            { faultName: "آثار قدم طبيعي على الخراطيم المطاطية", severity: "low", description: "ملاحظة تشققات سطحية خفيفة نتيجة الحرارة والقدم" },
-            { faultName: "ترشيح خفيف بأنابيب التبريد", severity: "medium", description: "رطوبة زيتية جافة حول توصيلات التبريد" },
-            { faultName: "صوت صفير طفيف بسير المحرك", severity: "low", description: "ارتخاء بسيط بسير الملحقات الخارجية" }
+            { faultName: "ترشيح خفيف بأنابيب التبريد", severity: "medium", description: "رطوبة زيتية جافة حول توصيلات التبريد" }
           ],
-          professionalNotes: "تم فحص حجرة المحرك ظاهرياً وملاحظة ترشيح زيت خفيف دون وجود تهريب نشط."
+          professionalNotes: "ترشيح زيت خفيف دون وجود تهريب نشط."
         },
         {
+          hasDefect: true,
+          defectStatusText: "يوجد شحفات وتفاوت بالدعامية",
+          conditionSummary: "حككات متفرقة وتفاوت بالفواصل",
           detectedPart: "Front Bumper Assembly",
-          detectedPartArabic: "المصد والواجهة الأمامية",
+          detectedPartArabic: "المصد والدعامية الأمامية",
           category: "الهيكل الخارجي",
           suggestedFaults: [
-            { faultName: "حككات متفرقة أسفل المصد", severity: "low", description: "وجود حككات سطحية على الجزء السفلي للمصد الأمامي" },
-            { faultName: "تفاوت بسيط في الفواصل", severity: "low", description: "ملاحظة عدم انتظام بسيط في الفواصل مع الرفرف" },
-            { faultName: "ترميل طفيف بالطلاء الأمامي", severity: "low", description: "وجود آثار ترميل خفيف نتيجة العوامل الجوية" },
-            { faultName: "نقرة حصى بالطلاء السفلي", severity: "low", description: "آثار تطاير حصى صغيرة بالطلاء" },
-            { faultName: "كسر طفيف بكليبث تثبيت المصد", severity: "medium", description: "ارتخاء بسيط في طرف المصد الأيمن" }
+            { faultName: "يوجد شحفات بالدعامية", severity: "low", description: "شحفات سطحية على الطلاء الخارجي للدعامية" },
+            { faultName: "يوجد خدوش بالطلاء", severity: "low", description: "خدوش متفرقة بالدهان" },
+            { faultName: "الدعامية مبدلة", severity: "medium", description: "آثار فك واستبدال بالدعامية" },
+            { faultName: "تفاوت بسيط في الفواصل", severity: "low", description: "ملاحظة عدم انتظام بسيط في الفواصل مع الرفرف" }
           ],
-          professionalNotes: "تم فحص الواجهة الأمامية والمصد وملاحظة حككات سطحية بسيطة دون تأثير على هيكل السيارة."
+          professionalNotes: "شحفات سطحية بسيطة على الدعامية الأمامية."
         },
         {
           detectedPart: "Underbody & Suspension System",
