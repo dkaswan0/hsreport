@@ -1,0 +1,27 @@
+{
+  "appId": "com.highsafety.report",
+  "appName": "الأمان العالي - HS Report",
+  "webDir": "dist/public",
+  "bundledWebRuntime": false,
+  "server": {
+    "url": "https://hsreport.onrender.com",
+    "cleartext": true,
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": true,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": true
+  },
+  "plugins": {
+    "Camera": {
+      "permissions": ["camera", "photos"]
+    },
+    "Haptics": {
+      "enabled": true
+    },
+    "Network": {
+      "enabled": true
+    }
+  }
+}

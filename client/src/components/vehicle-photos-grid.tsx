@@ -1,3 +1,4 @@
+import { CameraOverlayModal } from "@/components/camera-overlay-modal";
 import React, { useState } from "react";
 import { Camera, Upload, X, Eye, Maximize2, Sparkles, RefreshCw } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -32,6 +33,7 @@ export function VehiclePhotosGrid({
   className,
   showStudioControls = false,
 }: VehiclePhotosGridProps) {
+  const [activeCameraSlot, setActiveCameraSlot] = useState<VehiclePhotoKey | null>(null);
   const [selectedZoomPhoto, setSelectedZoomPhoto] = useState<{
     url: string;
     label: string;
@@ -197,23 +199,22 @@ export function VehiclePhotosGrid({
             </div>
           ) : isEditable ? (
             /* Upload Buttons in Editable Mode */
-            <div className="w-full h-full flex items-center justify-center">
+            <div className="w-full h-full flex items-center justify-center p-2">
               <div className="flex gap-2 w-full max-w-xs">
-                <label className="flex-1 flex flex-col items-center justify-center h-28 sm:h-32 border-2 border-dashed border-zinc-300 rounded-xl cursor-pointer bg-zinc-50 hover:bg-zinc-100 transition-colors p-2 text-center">
-                  <Camera className="w-6 h-6 text-zinc-900 mb-1" />
-                  <span className="text-xs font-bold text-zinc-900 font-arabic">كاميرا</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    className="hidden"
-                    onChange={(e) => handleFileInput(key, e)}
-                    data-testid={`input-camera-${key}`}
-                  />
-                </label>
-                <label className="flex-1 flex flex-col items-center justify-center h-28 sm:h-32 border-2 border-dashed border-zinc-200 rounded-xl cursor-pointer bg-white hover:bg-zinc-50 transition-colors p-2 text-center">
-                  <Upload className="w-6 h-6 text-zinc-500 mb-1" />
-                  <span className="text-xs font-medium text-zinc-700 font-arabic">معرض</span>
+                <button
+                  type="button"
+                  onClick={() => setActiveCameraSlot(key)}
+                  className="flex-1 flex flex-col items-center justify-center h-24 sm:h-28 border-2 border-dashed border-zinc-800 rounded-2xl cursor-pointer bg-zinc-950 text-white hover:bg-black transition-all p-2 text-center shadow-md active:scale-95"
+                  title="فتح الكاميرا مع دليل الإطار الشفاف"
+                  data-testid={`btn-camera-overlay-${key}`}
+                >
+                  <Camera className="w-5 h-5 text-amber-400 mb-1 animate-pulse" />
+                  <span className="text-[11px] font-bold font-arabic">كاميرا مع إطار</span>
+                </button>
+
+                <label className="flex-1 flex flex-col items-center justify-center h-24 sm:h-28 border-2 border-dashed border-zinc-300 rounded-2xl cursor-pointer bg-white hover:bg-zinc-50 text-zinc-800 transition-all p-2 text-center shadow-xs active:scale-95">
+                  <Upload className="w-5 h-5 text-zinc-600 mb-1" />
+                  <span className="text-[11px] font-bold font-arabic">من المعرض</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -283,6 +284,18 @@ export function VehiclePhotosGrid({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Live Camera Silhouette Framing Overlay */}
+      <CameraOverlayModal
+        isOpen={Boolean(activeCameraSlot)}
+        onClose={() => setActiveCameraSlot(null)}
+        photoKey={activeCameraSlot}
+        onCapture={(key, dataUrl) => {
+          if (onPhotoChange) {
+            onPhotoChange(key, dataUrl);
+          }
+        }}
+      />
     </div>
   );
 }

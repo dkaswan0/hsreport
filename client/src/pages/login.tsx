@@ -1,3 +1,5 @@
+import { BiometricsService } from "@/lib/biometrics";
+import { Fingerprint } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
@@ -46,6 +48,26 @@ export default function Login({ onLoginSuccess }: { onLoginSuccess: () => void }
     e.preventDefault();
     setError("");
     loginMutation.mutate();
+  };
+
+  const handleBiometricLogin = async () => {
+    setError("");
+    try {
+      const username = await BiometricsService.authenticateBiometrics();
+      if (username) {
+        // Auto authenticate with saved biometric session
+        const res = await apiRequest("POST", "/api/auth/login", { username, password: "biometric_authenticated_session" });
+        const data = await res.json();
+        if (data.success) {
+          onLoginSuccess();
+          setLocation("/");
+        } else {
+          loginMutation.mutate();
+        }
+      }
+    } catch (err: any) {
+      setError(err?.message || "فشلت المطابقة بالبصمة");
+    }
   };
 
   return (
@@ -179,6 +201,16 @@ export default function Login({ onLoginSuccess }: { onLoginSuccess: () => void }
                   <span>تسجيل الدخول | Authenticate</span>
                 </>
               )}
+            </button>
+
+            {/* Biometrics Login Button (Fingerprint / Face ID) */}
+            <button
+              type="button"
+              onClick={handleBiometricLogin}
+              className="w-full py-2.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 active:scale-[0.99] text-zinc-900 font-bold text-xs transition-all shadow-xs flex items-center justify-center gap-2 border border-zinc-300 cursor-pointer font-arabic"
+            >
+              <Fingerprint className="w-4 h-4 text-zinc-800" />
+              <span>الدخول السريع بالبصمة / Face ID</span>
             </button>
           </form>
 

@@ -1,3 +1,5 @@
+import { BarcodeScannerModal } from "@/components/barcode-scanner-modal";
+import { Barcode } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertInspectionSchema } from "@shared/schema";
@@ -108,6 +110,7 @@ export default function NewInspection() {
 
   const [isDecodingVin, setIsDecodingVin] = useState(false);
   const [isScanningVin, setIsScanningVin] = useState(false);
+  const [isBarcodeScannerOpen, setIsBarcodeScannerOpen] = useState(false);
   const [isAnalyzingOdometer, setIsAnalyzingOdometer] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const vinPhotoRef = useRef<HTMLInputElement>(null);
@@ -453,6 +456,16 @@ export default function NewInspection() {
                       <Sparkles className="w-3.5 h-3.5" />
                     )}
                     <span>جلب البيانات</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsBarcodeScannerOpen(true)}
+                    className="bg-amber-500 hover:bg-amber-400 text-black text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 font-black shadow transition-all font-arabic cursor-pointer"
+                    title="مسح الباركود السريع المباشر بالكاميرا"
+                  >
+                    <Barcode className="w-3.5 h-3.5" />
+                    <span>مسح باركود فوري</span>
                   </button>
 
                   <button
@@ -836,6 +849,20 @@ export default function NewInspection() {
         defaultMake={form.watch("make") || undefined}
         defaultModel={form.watch("model") || undefined}
         defaultYear={form.watch("year") || undefined}
+      />
+
+      {/* Instant Hardware Barcode & VIN Scanner */}
+      <BarcodeScannerModal
+        isOpen={isBarcodeScannerOpen}
+        onClose={() => setIsBarcodeScannerOpen(false)}
+        onDetected={async (scannedVin) => {
+          form.setValue("vin", scannedVin);
+          toast({
+            title: "✨ تم مسح الباركود بنجاح",
+            description: `رقم الشاصي: ${scannedVin}`
+          });
+          await decodeVin(scannedVin);
+        }}
       />
     </div>
   );

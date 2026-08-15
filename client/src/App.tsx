@@ -100,11 +100,14 @@ function AppContent() {
   );
 }
 
+import { OfflineStatusBanner } from "@/components/offline-status-banner";
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
         <Toaster />
+        <OfflineStatusBanner />
         <AppContent />
       </LanguageProvider>
     </QueryClientProvider>
