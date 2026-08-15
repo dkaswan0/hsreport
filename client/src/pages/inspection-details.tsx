@@ -47,6 +47,7 @@ import { AddEditSectionModal, AddEditCategoryModal } from "@/components/section-
 import { queryClient } from "@/lib/queryClient";
 import { VehiclePhotosGrid } from "@/components/vehicle-photos-grid";
 import { VEHICLE_PHOTO_SECTIONS, VehiclePhotoKey, resolveVehiclePhotoByKey } from "@shared/vehicle-photos";
+import { FaultCameraModal } from "@/components/fault-camera-modal";
 
 export default function InspectionDetails() {
   const [, params] = useRoute("/inspections/:id");
@@ -1649,6 +1650,7 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
     category: item.category,
   });
   const [editPhoto, setEditPhoto] = useState<string | null>(null);
+  const [isEditCameraOpen, setIsEditCameraOpen] = useState(false);
   const editFileRef = useRef<HTMLInputElement>(null);
   const editAiFileRef = useRef<HTMLInputElement>(null);
   const [categorySearch, setCategorySearch] = useState('');
@@ -1968,37 +1970,58 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-500 mb-1 block">الصورة</label>
+            <label className="text-xs font-semibold text-slate-500 mb-1.5 block">صورة العطل</label>
             <div className="flex items-center gap-2 flex-wrap">
               {(editPhoto || item.imageUrl) && (
-                <img src={editPhoto || item.imageUrl!} alt="" className="w-20 h-14 rounded-lg object-cover border border-slate-200" />
+                <div className="relative">
+                  <img src={editPhoto || item.imageUrl!} alt="" className="w-20 h-14 rounded-xl object-cover border border-slate-200 shadow-xs" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditPhoto(null);
+                      setEditData(prev => ({ ...prev, imageUrl: null }));
+                    }}
+                    className="absolute -top-1.5 -right-1.5 p-1 bg-rose-600 hover:bg-rose-700 text-white rounded-full transition-colors shadow-md cursor-pointer"
+                    title="حذف الصورة"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
               )}
               <input type="file" accept="image/*" ref={editFileRef} className="hidden" onChange={handleEditPhotoSimple} />
-              <input type="file" accept="image/*" ref={editAiFileRef} className="hidden" onChange={handleEditPhotoWithAI} />
-              <button
-                onClick={() => editFileRef.current?.click()}
-                className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 hover:bg-slate-100 transition-colors flex items-center gap-1.5"
-                data-testid={`btn-edit-photo-${item.id}`}
-              >
-                <Camera className="w-3.5 h-3.5" />
-                تغيير الصورة
-              </button>
+              
               <button
                 type="button"
-                onClick={() => {
-                  toast({
-                    title: "تنبيه من الإدارة",
-                    description: "تم القفل من قبل الإدارة",
-                    variant: "default"
-                  });
-                }}
-                className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors flex items-center gap-1.5"
-                data-testid={`btn-edit-photo-ai-${item.id}`}
+                onClick={() => setIsEditCameraOpen(true)}
+                className="px-3 py-2 text-xs font-bold rounded-xl bg-zinc-950 text-white hover:bg-black transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                data-testid={`btn-edit-camera-${item.id}`}
               >
-                <Lock className="w-3.5 h-3.5 text-zinc-700" />
-                <span>تم القفل من قبل الإدارة</span>
+                <Camera className="w-3.5 h-3.5 text-amber-400" />
+                <span>التقاط بالكاميرا 📸</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => editFileRef.current?.click()}
+                className="px-3 py-2 text-xs font-medium rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                data-testid={`btn-edit-photo-${item.id}`}
+              >
+                <Upload className="w-3.5 h-3.5 text-slate-500" />
+                <span>من المعرض 🖼️</span>
               </button>
             </div>
+
+            {/* Direct Edit Fault Camera Modal */}
+            <FaultCameraModal
+              isOpen={isEditCameraOpen}
+              onClose={() => setIsEditCameraOpen(false)}
+              onCapture={(dataUrl) => {
+                setEditPhoto(dataUrl);
+                setEditData(prev => ({ ...prev, imageUrl: dataUrl }));
+                toast({ title: "تم التقاط صورة العطل بنجاح" });
+              }}
+              title={`تصوير عطل: ${item.faultName || 'الملاحظة الفنية'}`}
+            />
           </div>
 
           {aiAnalyzing && (
@@ -2155,7 +2178,9 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
   });
 
   const [photo, setPhoto] = useState<string | null>(null);
+  const [isFaultCameraOpen, setIsFaultCameraOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const simplePhotoInputRef = useRef<HTMLInputElement>(null);
   const [aiSuggestions, setAiSuggestions] = useState<Array<{faultName: string, severity: string, cause?: string, description?: string}>>([]);
   const [detectedPart, setDetectedPart] = useState<string>("");
   const [searchOpen, setSearchOpen] = useState(false);
@@ -2298,8 +2323,6 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
       e.target.value = '';
     }
   };
-
-  const simplePhotoInputRef = useRef<HTMLInputElement>(null);
 
   const createMutation = useCreateInspectionItem();
   const { data: fetchedLibrary = [] } = useQuery<FaultLibrary[]>({ 
@@ -2527,81 +2550,76 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
-                <Camera className="w-4 h-4 text-primary" />
-                صورة العطل
+              <label className="block text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
+                <Camera className="w-4 h-4 text-zinc-950" />
+                <span>صورة العطل أو الملاحظة</span>
               </label>
               
-              {/* Hidden inputs for both photo types */}
+              {/* Hidden file input for gallery */}
               <input
                 type="file"
                 ref={simplePhotoInputRef}
                 onChange={handleSimplePhotoUpload}
                 accept="image/*"
-                capture="environment"
                 className="hidden"
                 data-testid="input-simple-photo"
               />
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handlePhotoUpload}
-                accept="image/*"
-                capture="environment"
-                className="hidden"
-                data-testid="input-ai-photo"
-              />
               
-              {/* Two buttons: Simple photo (left) and AI analysis (right) */}
-              <div className="grid grid-cols-2 gap-2">
+              {/* Two prominent buttons: Direct Live Camera & Gallery */}
+              <div className="grid grid-cols-2 gap-2.5">
                 <button 
                   type="button"
-                  className={cn(
-                    "border-2 border-dashed rounded-xl py-3 transition-colors flex flex-col items-center justify-center gap-1",
-                    photo && !detectedPart ? "border-primary text-primary bg-primary/5" : "border-slate-300 text-slate-600 bg-slate-50 hover:border-slate-400 hover:bg-slate-100"
-                  )}
-                  onClick={() => simplePhotoInputRef.current?.click()}
-                  data-testid="button-simple-photo"
+                  onClick={() => setIsFaultCameraOpen(true)}
+                  className="py-3 px-3 bg-zinc-950 hover:bg-black text-white rounded-2xl shadow-md flex flex-col items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer border border-zinc-800"
+                  data-testid="button-live-camera"
                 >
-                  <Camera className="w-5 h-5" />
-                  <span className="text-xs font-medium">صورة بس</span>
-                  <span className="text-[10px] text-slate-400">بدون تحليل</span>
-                </button>
-                
-                <button 
-                  type="button"
-                  className="border-2 border-dashed border-slate-300 rounded-xl py-3 transition-colors flex flex-col items-center justify-center gap-1 bg-slate-100/70 text-slate-500 hover:bg-slate-100"
-                  onClick={() => {
-                    toast({
-                      title: "تنبيه من الإدارة",
-                      description: "تم القفل من قبل الإدارة",
-                      variant: "default"
-                    });
-                  }}
-                  data-testid="button-ai-photo"
-                >
-                  <div className="flex items-center gap-1.5 text-slate-500">
-                    <Lock className="w-4 h-4 text-zinc-700" />
-                    <span className="text-xs font-bold text-slate-700">التعرف التلقائي</span>
+                  <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                    <Camera className="w-4 h-4 text-amber-400" />
                   </div>
-                  <span className="text-[10px] text-zinc-900 font-semibold bg-zinc-200 px-2 py-0.5 rounded-full border border-zinc-400 text-zinc-900">
-                    تم القفل من قبل الإدارة 🔒
-                  </span>
+                  <span className="text-xs font-bold font-arabic">التقاط بالكاميرا 📸</span>
+                  <span className="text-[10px] text-zinc-400 font-arabic">فتح الكاميرا المباشرة</span>
+                </button>
+
+                <button 
+                  type="button"
+                  onClick={() => simplePhotoInputRef.current?.click()}
+                  className="py-3 px-3 bg-white hover:bg-slate-50 text-slate-800 rounded-2xl border border-slate-300 shadow-xs flex flex-col items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                  data-testid="button-gallery-photo"
+                >
+                  <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                    <Upload className="w-4 h-4 text-slate-600" />
+                  </div>
+                  <span className="text-xs font-bold font-arabic">من المعرض / المجلد 🖼️</span>
+                  <span className="text-[10px] text-slate-400 font-arabic">اختيار صورة محفوظة</span>
                 </button>
               </div>
 
+              {/* Photo preview */}
               {photo && (
-                <div className="mt-2 relative w-full h-32 md:h-40 rounded-xl overflow-hidden border border-slate-200">
-                  <img src={photo} alt="Preview" className="w-full h-full object-cover" />
+                <div className="mt-3 relative w-full h-36 md:h-44 rounded-2xl overflow-hidden border border-slate-300 shadow-sm bg-zinc-950 flex items-center justify-center">
+                  <img src={photo} alt="Preview" className="max-h-full max-w-full object-contain" />
                   <button 
                     type="button"
                     onClick={() => { setPhoto(null); setFormData(prev => ({ ...prev, imageUrl: undefined })); setAiSuggestions([]); setDetectedPart(""); }}
-                    className="absolute top-2 right-2 p-1 bg-zinc-900 text-white rounded-full hover:bg-black transition-colors"
+                    className="absolute top-2.5 right-2.5 p-2 bg-rose-600 hover:bg-rose-700 text-white rounded-full transition-colors shadow-lg cursor-pointer"
+                    title="حذف الصورة"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               )}
+
+              {/* Direct Fault Live Camera Modal */}
+              <FaultCameraModal
+                isOpen={isFaultCameraOpen}
+                onClose={() => setIsFaultCameraOpen(false)}
+                onCapture={(dataUrl) => {
+                  setPhoto(dataUrl);
+                  setFormData(prev => ({ ...prev, imageUrl: dataUrl }));
+                  toast({ title: "تم التقاط صورة العطل بنجاح 📸" });
+                }}
+                title={`تصوير عطل: ${formData.faultName || 'الملاحظة الفنية'}`}
+              />
               
               {/* AI Analysis Results */}
               {photoAnalysis.isPending && (
