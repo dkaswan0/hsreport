@@ -1651,6 +1651,7 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
   });
   const [editPhoto, setEditPhoto] = useState<string | null>(null);
   const [isEditCameraOpen, setIsEditCameraOpen] = useState(false);
+  const [aiAnalysisResult, setAiAnalysisResult] = useState<any>(null);
   const editFileRef = useRef<HTMLInputElement>(null);
   const editAiFileRef = useRef<HTMLInputElement>(null);
   const [categorySearch, setCategorySearch] = useState('');
@@ -1745,26 +1746,41 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
     });
   };
 
-  const handleEditPhotoWithAI = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const runAiAnalysisForEdit = async (imgData: string) => {
+    if (!imgData) return;
+    setEditPhoto(imgData);
+    setEditData(prev => ({ ...prev, imageUrl: imgData }));
+    setAiAnalyzing(true);
     try {
-      const compressed = await compressImage(file);
-      setEditPhoto(compressed);
-      setAiAnalyzing(true);
-      try {
-        const result = await photoAnalysis.mutateAsync(compressed);
-        setAiDetectedPart(result.detectedPartArabic || result.detectedPart || '');
-        setAiSuggestions(result.suggestedFaults || []);
-      } catch {
-        toast({ title: "تنبيه", description: "تعذر تحليل الصورة، لكن تم حفظ الصورة" });
+      const result = await photoAnalysis.mutateAsync(imgData);
+      setAiAnalysisResult(result);
+      const part = result.detectedPartArabic || result.detectedPart || '';
+      setAiDetectedPart(part);
+      setAiSuggestions(result.suggestedFaults || []);
+
+      if (result.category && !editData.category) {
+        setEditData(prev => ({ ...prev, category: result.category }));
       }
-      setAiAnalyzing(false);
-    } catch {
-      toast({ title: "خطأ", description: "تعذر تحميل الصورة", variant: "destructive" });
+
+      if (result.suggestedFaults && result.suggestedFaults.length > 0 && !editData.faultName) {
+        const top = result.suggestedFaults[0];
+        setEditData(prev => ({
+          ...prev,
+          faultName: top.faultName,
+          description: top.description || '',
+          severity: (top.severity as any) || 'medium'
+        }));
+      }
+
+      toast({
+        title: result.hasDefect ? "تم رصد الملاحظة والتعرف على القطعة ⚡" : "تم الفحص البصري - القطعة سليمة ✅",
+        description: result.conditionSummary || result.defectStatusText || `تم التعرف على: ${part}`,
+      });
+    } catch (err: any) {
+      toast({ title: "تنبيه", description: "تعذر التحليل التلقائي، يمكنك اختيار العطل يدوياً" });
+    } finally {
       setAiAnalyzing(false);
     }
-    e.target.value = '';
   };
 
   const handleEditPhotoSimple = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1772,7 +1788,7 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
     if (!file) return;
     try {
       const compressed = await compressImage(file);
-      setEditPhoto(compressed);
+      await runAiAnalysisForEdit(compressed);
     } catch {
       toast({ title: "خطأ", description: "تعذر تحميل الصورة", variant: "destructive" });
     }
@@ -1791,6 +1807,7 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
         setEditPhoto(null);
         setAiSuggestions([]);
         setAiDetectedPart('');
+        setAiAnalysisResult(null);
         toast({ title: "تم تحديث البند بنجاح" });
       }
     });
@@ -1815,7 +1832,7 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
               <span>تحسين الصياغة ✨</span>
             </button>
           </div>
-          <button onClick={() => { setIsEditing(false); setEditPhoto(null); setAiSuggestions([]); setAiDetectedPart(''); }} className="p-1.5 rounded-lg hover:bg-slate-200 transition-colors" data-testid={`btn-cancel-edit-${item.id}`}>
+          <button onClick={() => { setIsEditing(false); setEditPhoto(null); setAiSuggestions([]); setAiDetectedPart(''); setAiAnalysisResult(null); }} className="p-1.5 rounded-lg hover:bg-slate-200 transition-colors" data-testid={`btn-cancel-edit-${item.id}`}>
             <X className="w-4 h-4 text-slate-500" />
           </button>
         </div>
@@ -1980,6 +1997,9 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
                     onClick={() => {
                       setEditPhoto(null);
                       setEditData(prev => ({ ...prev, imageUrl: null }));
+                      setAiAnalysisResult(null);
+                      setAiDetectedPart('');
+                      setAiSuggestions([]);
                     }}
                     className="absolute -top-1.5 -right-1.5 p-1 bg-rose-600 hover:bg-rose-700 text-white rounded-full transition-colors shadow-md cursor-pointer"
                     title="حذف الصورة"
@@ -2009,6 +2029,19 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
                 <Upload className="w-3.5 h-3.5 text-slate-500" />
                 <span>من المعرض 🖼️</span>
               </button>
+
+              {(editPhoto || item.imageUrl) && (
+                <button
+                  type="button"
+                  onClick={() => runAiAnalysisForEdit(editPhoto || item.imageUrl!)}
+                  disabled={aiAnalyzing}
+                  className="px-3 py-2 text-xs font-bold rounded-xl bg-amber-500/10 text-amber-900 border border-amber-500/30 hover:bg-amber-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
+                  title="إعادة فحص وتحليل الصورة بالذكاء الاصطناعي"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                  <span>تحليل عميق ⚡</span>
+                </button>
+              )}
             </div>
 
             {/* Direct Edit Fault Camera Modal */}
@@ -2016,65 +2049,112 @@ function InspectionItemCard({ item, inspectionId }: { item: InspectionItem, insp
               isOpen={isEditCameraOpen}
               onClose={() => setIsEditCameraOpen(false)}
               onCapture={(dataUrl) => {
-                setEditPhoto(dataUrl);
-                setEditData(prev => ({ ...prev, imageUrl: dataUrl }));
-                toast({ title: "تم التقاط صورة العطل بنجاح" });
+                runAiAnalysisForEdit(dataUrl);
               }}
               title={`تصوير عطل: ${item.faultName || 'الملاحظة الفنية'}`}
             />
           </div>
 
+          {/* AI Analysis Loading State */}
           {aiAnalyzing && (
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-zinc-100 border border-zinc-300">
-              <Loader2 className="w-4 h-4 animate-spin text-zinc-700" />
-              <span className="text-sm text-zinc-900">جارٍ تحليل وفحص الصورة...</span>
-            </div>
-          )}
-
-          {aiDetectedPart && (
-            <div className="p-3 rounded-xl bg-zinc-100 border border-zinc-300">
-              <div className="text-xs font-semibold text-zinc-700 mb-1">الجزء المكتشف:</div>
-              <div className="text-sm font-bold text-zinc-950">{aiDetectedPart}</div>
-            </div>
-          )}
-
-          {aiSuggestions.length > 0 && (
-            <div className="space-y-2">
-              <div className="text-xs font-semibold text-zinc-700 flex items-center gap-1">
-                <PhosphorIcon name="sparkle" weight="duotone" size={16} className="text-zinc-700" />
-                اقتراحات الفحص:
+            <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 flex items-center gap-2.5">
+              <Loader2 className="w-4 h-4 animate-spin text-amber-700 shrink-0" />
+              <div className="text-xs">
+                <span className="font-bold block">جارٍ الفحص البصري العميق للقطعة والكشف عن الأعطال... ⚡</span>
+                <span className="text-[10px] text-amber-700/80">يتم تحديد حالة القطعة واستخراج خيارات التشخيص الفوري</span>
               </div>
-              {aiSuggestions.map((suggestion, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => {
-                    setEditData(d => ({
-                      ...d,
-                      faultName: suggestion.faultName,
-                      severity: suggestion.severity || d.severity,
-                      description: suggestion.description || d.description,
-                    }));
-                    toast({ title: "تم تطبيق الاقتراح" });
-                  }}
-                  className="w-full text-right p-3 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-100 hover:border-zinc-400 transition-all"
-                  data-testid={`btn-ai-suggestion-${item.id}-${idx}`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className={cn(
-                      "text-xs px-2 py-0.5 rounded-full font-medium",
-                      suggestion.severity === 'high' ? 'bg-zinc-900 text-white' :
-                      suggestion.severity === 'medium' ? 'bg-zinc-200 text-zinc-900' :
-                      'bg-zinc-100 text-zinc-900'
-                    )}>
-                      {suggestion.severity === 'high' ? 'مرتفعة' : suggestion.severity === 'medium' ? 'متوسطة' : 'منخفضة'}
-                    </span>
-                    <span className="text-sm font-semibold text-slate-800">{suggestion.faultName}</span>
-                  </div>
-                  {suggestion.description && (
-                    <p className="text-xs text-slate-500 mt-1">{suggestion.description}</p>
+            </div>
+          )}
+
+          {/* AI Visual Diagnosis Card */}
+          {!aiAnalyzing && (aiAnalysisResult || aiDetectedPart || aiSuggestions.length > 0) && (
+            <div className="p-3.5 rounded-2xl bg-zinc-900 text-white border border-zinc-800 shadow-md space-y-2.5 font-arabic">
+              <div className="flex items-center justify-between gap-2 border-b border-zinc-800 pb-2 flex-wrap">
+                <div className="flex items-center gap-2">
+                  {aiAnalysisResult?.hasDefect === false ? (
+                    <div className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>القطعة سليمة ومطابقة للمواصفات</span>
+                    </div>
+                  ) : (
+                    <div className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40 text-xs font-bold flex items-center gap-1">
+                      <AlertTriangle className="w-3.5 h-3.5" />
+                      <span>{aiAnalysisResult?.defectStatusText || "تم رصد ملاحظة فنية"}</span>
+                    </div>
                   )}
-                </button>
-              ))}
+                </div>
+
+                {aiDetectedPart && (
+                  <div className="text-xs font-bold text-amber-400">
+                    {aiDetectedPart}
+                  </div>
+                )}
+              </div>
+
+              {aiSuggestions.length > 0 && (
+                <div className="space-y-1.5">
+                  <div className="text-[11px] text-zinc-400 font-semibold flex items-center justify-between">
+                    <span>اختر العطل لتطبيقه فوراً بضغطة زر:</span>
+                    <span className="text-amber-400 font-mono text-[10px]">{aiSuggestions.length} خيارات</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-1.5 max-h-[160px] overflow-y-auto pr-1">
+                    {aiSuggestions.map((suggestion, idx) => {
+                      const isSelected = editData.faultName === suggestion.faultName;
+                      const severityColor = suggestion.severity === 'high' 
+                        ? 'border-rose-500/50 bg-rose-500/10 text-rose-300' 
+                        : suggestion.severity === 'low' 
+                        ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300' 
+                        : 'border-amber-500/50 bg-amber-500/10 text-amber-300';
+                      const severityLabel = suggestion.severity === 'high' ? 'عالي' : suggestion.severity === 'low' ? 'خفيف' : 'متوسط';
+
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            setEditData(d => ({
+                              ...d,
+                              faultName: suggestion.faultName,
+                              severity: (suggestion.severity as any) || d.severity,
+                              description: suggestion.description || d.description,
+                            }));
+                            toast({ title: "تم اختيار وتعبئة العطل ⚡", description: suggestion.faultName });
+                          }}
+                          className={cn(
+                            "w-full text-right p-2 rounded-xl border transition-all flex items-center justify-between gap-2 cursor-pointer",
+                            isSelected
+                              ? "bg-amber-500 text-black border-amber-400 font-bold"
+                              : "bg-zinc-800/80 hover:bg-zinc-800 text-zinc-200 border-zinc-700/80"
+                          )}
+                          data-testid={`btn-ai-suggestion-${item.id}-${idx}`}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold truncate">{suggestion.faultName}</span>
+                              <span className={cn("text-[10px] px-1.5 py-0.5 rounded-md font-mono shrink-0", isSelected ? "bg-black text-amber-400" : severityColor)}>
+                                {severityLabel}
+                              </span>
+                            </div>
+                            {suggestion.description && (
+                              <p className={cn("text-[11px] truncate mt-0.5", isSelected ? "text-black/80" : "text-zinc-400")}>
+                                {suggestion.description}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className={cn(
+                            "w-4 h-4 rounded-full flex items-center justify-center shrink-0 border",
+                            isSelected ? "bg-black text-amber-400 border-black" : "border-zinc-600 text-transparent"
+                          )}>
+                            <Check className="w-2.5 h-2.5" />
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -2179,6 +2259,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
 
   const [photo, setPhoto] = useState<string | null>(null);
   const [isFaultCameraOpen, setIsFaultCameraOpen] = useState(false);
+  const [aiAnalysisResult, setAiAnalysisResult] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const simplePhotoInputRef = useRef<HTMLInputElement>(null);
   const [aiSuggestions, setAiSuggestions] = useState<Array<{faultName: string, severity: string, cause?: string, description?: string}>>([]);
@@ -2249,6 +2330,7 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
       setAiSuggestions([]);
       setDetectedPart("");
       setSearchQuery("");
+      setAiAnalysisResult(null);
     }
   }, [isOpen, category, prefilledFault]);
 
@@ -2280,46 +2362,55 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
     });
   };
 
-  // Simple photo upload without AI analysis
+  // Deep AI Photo Analysis & Diagnosis
+  const handleProcessPhotoWithAi = async (dataUrl: string) => {
+    if (!dataUrl) return;
+    setPhoto(dataUrl);
+    setFormData(prev => ({ ...prev, imageUrl: dataUrl }));
+    try {
+      const result = await photoAnalysis.mutateAsync(dataUrl);
+      setAiAnalysisResult(result);
+      const part = result.detectedPartArabic || result.detectedPart || "";
+      setDetectedPart(part);
+      setAiSuggestions(result.suggestedFaults || []);
+
+      if (result.category && !formData.category) {
+        setFormData(prev => ({
+          ...prev,
+          category: result.category
+        }));
+      }
+
+      if (result.suggestedFaults && result.suggestedFaults.length > 0 && !formData.faultName) {
+        const top = result.suggestedFaults[0];
+        setFormData(prev => ({
+          ...prev,
+          faultName: top.faultName,
+          description: top.description || '',
+          severity: (top.severity as any) || 'medium'
+        }));
+      }
+
+      toast({
+        title: result.hasDefect ? "تم رصد الملاحظة وتشخيص القطعة ⚡" : "تم الفحص البصري - القطعة سليمة ✅",
+        description: result.conditionSummary || result.defectStatusText || `تم التعرف على: ${part}`,
+      });
+    } catch (err: any) {
+      console.warn("AI Analysis error:", err);
+      toast({ title: "تنبيه", description: "تعذر التحليل التلقائي، يمكنك اختيار العطل يدوياً" });
+    }
+  };
+
   const handleSimplePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       try {
         const compressed = await compressImage(file);
-        setPhoto(compressed);
-        setFormData(prev => ({ ...prev, imageUrl: compressed }));
+        await handleProcessPhotoWithAi(compressed);
       } catch (err) {
         console.error("Photo compression failed:", err);
         toast({ title: "خطأ", description: "تعذر تحميل الصورة، يرجى المحاولة مرة أخرى", variant: "destructive" });
       }
-      // Reset input to allow re-selection
-      e.target.value = '';
-    }
-  };
-
-  // Photo upload with AI analysis
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      try {
-        const compressed = await compressImage(file);
-        setPhoto(compressed);
-        setFormData(prev => ({ ...prev, imageUrl: compressed }));
-        
-        // Trigger AI analysis
-        try {
-          const result = await photoAnalysis.mutateAsync(compressed);
-          setDetectedPart(result.detectedPartArabic || result.detectedPart);
-          setAiSuggestions(result.suggestedFaults || []);
-        } catch (err) {
-          console.error("AI analysis failed:", err);
-          toast({ title: "تنبيه", description: "تعذر تحليل الصورة، لكن تم حفظ الصورة", variant: "default" });
-        }
-      } catch (err) {
-        console.error("Photo compression failed:", err);
-        toast({ title: "خطأ", description: "تعذر تحميل الصورة، يرجى المحاولة مرة أخرى", variant: "destructive" });
-      }
-      // Reset input to allow re-selection
       e.target.value = '';
     }
   };
@@ -2600,11 +2691,27 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
                   <img src={photo} alt="Preview" className="max-h-full max-w-full object-contain" />
                   <button 
                     type="button"
-                    onClick={() => { setPhoto(null); setFormData(prev => ({ ...prev, imageUrl: undefined })); setAiSuggestions([]); setDetectedPart(""); }}
+                    onClick={() => {
+                      setPhoto(null);
+                      setFormData(prev => ({ ...prev, imageUrl: undefined }));
+                      setAiSuggestions([]);
+                      setDetectedPart("");
+                      setAiAnalysisResult(null);
+                    }}
                     className="absolute top-2.5 right-2.5 p-2 bg-rose-600 hover:bg-rose-700 text-white rounded-full transition-colors shadow-lg cursor-pointer"
                     title="حذف الصورة"
                   >
                     <Trash2 className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleProcessPhotoWithAi(photo)}
+                    disabled={photoAnalysis.isPending}
+                    className="absolute bottom-2.5 left-2.5 px-3 py-1.5 bg-black/80 hover:bg-black text-amber-400 border border-amber-400/50 rounded-xl text-xs font-bold font-arabic flex items-center gap-1.5 shadow-lg backdrop-blur-md cursor-pointer transition-all"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>إعادة التحليل الذكي ⚡</span>
                   </button>
                 </div>
               )}
@@ -2614,46 +2721,119 @@ function AddItemDialog({ isOpen, onClose, category, inspectionId, prefilledFault
                 isOpen={isFaultCameraOpen}
                 onClose={() => setIsFaultCameraOpen(false)}
                 onCapture={(dataUrl) => {
-                  setPhoto(dataUrl);
-                  setFormData(prev => ({ ...prev, imageUrl: dataUrl }));
-                  toast({ title: "تم التقاط صورة العطل بنجاح 📸" });
+                  handleProcessPhotoWithAi(dataUrl);
                 }}
                 title={`تصوير عطل: ${formData.faultName || 'الملاحظة الفنية'}`}
               />
               
-              {/* AI Analysis Results */}
+              {/* AI Analysis Loading State */}
               {photoAnalysis.isPending && (
-                <div className="mt-2 p-3 bg-zinc-100 rounded-xl border border-zinc-300 flex items-center gap-2 text-zinc-800">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="text-sm font-arabic">يحلل الصورة... لحظة</span>
+                <div className="mt-3 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 flex items-center gap-2.5">
+                  <Loader2 className="w-4 h-4 animate-spin text-amber-700 shrink-0" />
+                  <div className="text-xs">
+                    <span className="font-bold block">جارٍ الفحص البصري العميق للقطعة والكشف عن الأعطال والخدوش... ⚡</span>
+                    <span className="text-[10px] text-amber-700/80">يتم تحديد حالة القطعة ومطابقتها مع مكتبة الفحص المعتمدة</span>
+                  </div>
                 </div>
               )}
               
-              {detectedPart && !photoAnalysis.isPending && (
-                <div className="mt-2 p-2 bg-zinc-100 rounded-xl border border-zinc-300">
-                  <div className="flex items-center gap-2 text-zinc-900">
-                    <Sparkles className="w-4 h-4" />
-                    <span className="text-sm font-bold font-arabic">تم التعرف على: {detectedPart}</span>
+              {/* AI Visual Diagnosis Card */}
+              {!photoAnalysis.isPending && (aiAnalysisResult || detectedPart || aiSuggestions.length > 0) && (
+                <div className="mt-3 p-3.5 rounded-2xl bg-zinc-900 text-white border border-zinc-800 shadow-md space-y-3 font-arabic">
+                  {/* Status Banner */}
+                  <div className="flex items-center justify-between gap-2 border-b border-zinc-800 pb-2.5 flex-wrap">
+                    <div className="flex items-center gap-2">
+                      {aiAnalysisResult?.hasDefect === false ? (
+                        <div className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>القطعة سليمة ومطابقة للمواصفات</span>
+                        </div>
+                      ) : (
+                        <div className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5">
+                          <AlertTriangle className="w-3.5 h-3.5" />
+                          <span>{aiAnalysisResult?.defectStatusText || "تم رصد ملاحظة فنية"}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {detectedPart && (
+                      <div className="text-xs font-bold text-amber-400 bg-zinc-800/80 px-2.5 py-1 rounded-lg border border-zinc-700">
+                        {detectedPart}
+                      </div>
+                    )}
                   </div>
+
+                  {aiAnalysisResult?.conditionSummary && (
+                    <p className="text-xs text-zinc-300 font-arabic">
+                      {aiAnalysisResult.conditionSummary}
+                    </p>
+                  )}
+
+                  {/* 1-Click Interactive Defect Choices */}
                   {aiSuggestions.length > 0 && (
-                    <div className="mt-2 space-y-1 max-h-[120px] overflow-y-auto">
-                      {aiSuggestions.slice(0, 3).map((suggestion, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => {
-                            setFormData(prev => ({
-                              ...prev,
-                              faultName: suggestion.faultName,
-                              description: suggestion.cause || suggestion.description || '',
-                              severity: suggestion.severity
-                            }));
-                          }}
-                          className="w-full text-right p-2 bg-white rounded-lg border border-zinc-200 hover:border-zinc-400 transition-all text-sm"
-                        >
-                          <div className="font-medium text-slate-800 font-arabic text-xs">{suggestion.faultName}</div>
-                        </button>
-                      ))}
+                    <div className="space-y-1.5 pt-1">
+                      <div className="text-[11px] text-zinc-400 font-semibold flex items-center justify-between">
+                        <span>اختر العطل المناسب بضغطة زر واحدة (تعبئة فورية):</span>
+                        <span className="text-amber-400 font-mono text-[10px]">{aiSuggestions.length} خيارات متاحة</span>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-1.5 max-h-[190px] overflow-y-auto pr-1">
+                        {aiSuggestions.map((suggestion, idx) => {
+                          const isSelected = formData.faultName === suggestion.faultName;
+                          const severityColor = suggestion.severity === 'high' 
+                            ? 'border-rose-500/50 bg-rose-500/10 text-rose-300' 
+                            : suggestion.severity === 'low' 
+                            ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300' 
+                            : 'border-amber-500/50 bg-amber-500/10 text-amber-300';
+                          const severityLabel = suggestion.severity === 'high' ? 'عالي' : suggestion.severity === 'low' ? 'خفيف' : 'متوسط';
+
+                          return (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  faultName: suggestion.faultName,
+                                  description: suggestion.description || suggestion.cause || '',
+                                  severity: (suggestion.severity as any) || 'medium'
+                                }));
+                                toast({
+                                  title: "تم اختيار وتعبئة العطل ⚡",
+                                  description: suggestion.faultName
+                                });
+                              }}
+                              className={cn(
+                                "w-full text-right p-2.5 rounded-xl border transition-all flex items-center justify-between gap-2 cursor-pointer",
+                                isSelected
+                                  ? "bg-amber-500 text-black border-amber-400 shadow-md font-bold"
+                                  : "bg-zinc-800/80 hover:bg-zinc-800 text-zinc-200 border-zinc-700/80"
+                              )}
+                            >
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-bold truncate">{suggestion.faultName}</span>
+                                  <span className={cn("text-[10px] px-1.5 py-0.5 rounded-md font-mono shrink-0", isSelected ? "bg-black text-amber-400" : severityColor)}>
+                                    {severityLabel}
+                                  </span>
+                                </div>
+                                {suggestion.description && (
+                                  <p className={cn("text-[11px] truncate mt-0.5", isSelected ? "text-black/80" : "text-zinc-400")}>
+                                    {suggestion.description}
+                                  </p>
+                                )}
+                              </div>
+
+                              <div className={cn(
+                                "w-5 h-5 rounded-full flex items-center justify-center shrink-0 border",
+                                isSelected ? "bg-black text-amber-400 border-black" : "border-zinc-600 text-transparent"
+                              )}>
+                                <Check className="w-3 h-3" />
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
                 </div>

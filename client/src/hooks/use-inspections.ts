@@ -230,6 +230,9 @@ export function usePhotoAnalysis() {
       });
       if (!res.ok) throw new Error('Failed to analyze photo');
       return res.json() as Promise<{
+        hasDefect?: boolean;
+        defectStatusText?: string;
+        conditionSummary?: string;
         detectedPart: string;
         detectedPartArabic: string;
         category: string;
@@ -238,6 +241,7 @@ export function usePhotoAnalysis() {
           severity: string;
           description: string;
         }>;
+        professionalNotes?: string;
       }>;
     }
   });
