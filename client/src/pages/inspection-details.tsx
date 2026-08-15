@@ -1335,17 +1335,39 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
     }
   };
 
-  const handleRemovePhoto = (slotKey: string, labelAr: string) => {
-    updateInspection.mutate({
-      id: inspection.id,
-      [slotKey]: null,
-      vehiclePhotosMeta: {
-        ...((inspection as any).vehiclePhotosMeta || {}),
-        [slotKey]: undefined,
+  const handleRemovePhoto = (photoKey: string, labelAr: string) => {
+    const section = VEHICLE_PHOTO_SECTIONS.find((s) => s.key === photoKey || s.legacyDbField === photoKey);
+    const key = section?.key || photoKey;
+    const legacyField = section?.legacyDbField || photoKey;
+
+    const currentMeta = { ...((inspection as any).vehiclePhotosMeta || {}) };
+    delete currentMeta[key];
+    delete currentMeta[legacyField];
+    if (section) {
+      for (const alias of section.legacyAliases) {
+        delete currentMeta[alias];
       }
-    }, {
+    }
+
+    const payload: Record<string, any> = {
+      id: inspection.id,
+      [legacyField]: null,
+      [key]: null,
+      vehiclePhotosMeta: currentMeta,
+    };
+
+    if (section) {
+      for (const alias of section.legacyAliases) {
+        payload[alias] = null;
+      }
+    }
+
+    updateInspection.mutate(payload as any, {
       onSuccess: () => {
-        toast({ title: "تم حذف الصورة", description: `تم مسح ${labelAr}` });
+        toast({ title: "تم حذف الصورة بنجاح", description: `تم مسح ${labelAr || 'الصورة'} بالكامل` });
+      },
+      onError: (err) => {
+        toast({ title: "خطأ في الحذف", description: err.message || "تعذر مسح الصورة", variant: "destructive" });
       }
     });
   };
@@ -1407,7 +1429,7 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
             onPhotoChange={async (key, fileOrDataUrl) => {
               const section = VEHICLE_PHOTO_SECTIONS.find((s) => s.key === key);
               if (!fileOrDataUrl) {
-                handleRemovePhoto(section?.legacyDbField || key, section?.label || 'الصورة');
+                handleRemovePhoto(key, section?.label || 'الصورة');
               } else {
                 setUploadingSlot(key);
                 try {
@@ -1415,33 +1437,50 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
                     ? await compressSlotImage(await (await fetch(fileOrDataUrl)).blob() as File, 1600, 0.85)
                     : fileOrDataUrl;
 
-                  updateInspection.mutate({
+                  const currentMeta = { ...((inspection as any).vehiclePhotosMeta || {}) };
+                  currentMeta[key] = {
+                    originalUrl: compressed,
+                    activeMode: 'original',
+                    processingStatus: 'idle',
+                    processedAt: new Date().toISOString(),
+                  };
+                  if (section?.legacyDbField) {
+                    currentMeta[section.legacyDbField] = currentMeta[key];
+                  }
+
+                  const payload: Record<string, any> = {
                     id: inspection.id,
                     [section?.legacyDbField || key]: compressed,
-                    vehiclePhotosMeta: {
-                      ...((inspection as any).vehiclePhotosMeta || {}),
-                      [key]: {
-                        originalUrl: compressed,
-                        activeMode: 'original',
-                        processingStatus: 'idle',
-                        processedAt: new Date().toISOString(),
-                      },
-                    },
-                  }, {
+                    [key]: compressed,
+                    vehiclePhotosMeta: currentMeta,
+                  };
+
+                  updateInspection.mutate(payload as any, {
                     onSuccess: () => {
                       toast({
                         title: "تم حفظ الصورة بنجاح",
                         description: `تم حفظ ${section?.label || 'الصورة'} كأصل دائم ومحفوظ`,
                       });
                     },
-                    onError: () => {
-                      toast({ title: "خطأ في الحفظ", variant: "destructive" });
+                    onError: (err) => {
+                      toast({ title: "خطأ في الحفظ", description: err.message || "تعذر حفظ الصورة", variant: "destructive" });
                     },
                   });
-                } catch {
+                } catch (err: any) {
                   updateInspection.mutate({
                     id: inspection.id,
                     [section?.legacyDbField || key]: fileOrDataUrl,
+                    [key]: fileOrDataUrl,
+                  } as any, {
+                    onSuccess: () => {
+                      toast({
+                        title: "تم حفظ الصورة بنجاح",
+                        description: `تم حفظ ${section?.label || 'الصورة'} كأصل دائم ومحفوظ`,
+                      });
+                    },
+                    onError: (err) => {
+                      toast({ title: "خطأ في الحفظ", description: err.message || "تعذر حفظ الصورة", variant: "destructive" });
+                    },
                   });
                 } finally {
                   setUploadingSlot(null);

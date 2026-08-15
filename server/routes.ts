@@ -419,8 +419,17 @@ export async function registerRoutes(
   });
 
   app.put(api.inspections.update.path, async (req, res) => {
-    const updated = await storage.updateInspection(Number(req.params.id), req.body);
-    res.json(updated);
+    try {
+      const id = Number(req.params.id);
+      if (!id || isNaN(id)) {
+        return res.status(400).json({ message: "معرف الفحص غير صحيح" });
+      }
+      const updated = await storage.updateInspection(id, req.body);
+      res.json(updated);
+    } catch (err: any) {
+      console.error(`Update inspection #${req.params.id} error:`, err);
+      res.status(500).json({ message: err?.message || "فشل تحديث بيانات الفحص" });
+    }
   });
 
   app.delete(api.inspections.delete.path, async (req, res) => {

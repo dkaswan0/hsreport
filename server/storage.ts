@@ -155,9 +155,54 @@ export class DatabaseStorage implements IStorage {
     return newInspection;
   }
 
-  async updateInspection(id: number, updates: UpdateInspectionRequest): Promise<Inspection> {
+  async updateInspection(id: number, rawUpdates: any): Promise<Inspection> {
+    const updates = { ...rawUpdates };
+    
+    // Map standard photo keys to DB columns if present
+    if (updates.main_vehicle !== undefined) {
+      if (updates.mainCarPhoto === undefined) updates.mainCarPhoto = updates.main_vehicle;
+      delete updates.main_vehicle;
+    }
+    if (updates.right_side !== undefined) {
+      if (updates.frontRightDoorPhoto === undefined) updates.frontRightDoorPhoto = updates.right_side;
+      delete updates.right_side;
+    }
+    if (updates.front_view !== undefined) {
+      if (updates.hoodPhoto === undefined) updates.hoodPhoto = updates.front_view;
+      delete updates.front_view;
+    }
+    if (updates.left_side !== undefined) {
+      if (updates.frontLeftDoorPhoto === undefined) updates.frontLeftDoorPhoto = updates.left_side;
+      delete updates.left_side;
+    }
+    if (updates.rear_view !== undefined) {
+      if (updates.trunkPhoto === undefined) updates.trunkPhoto = updates.rear_view;
+      delete updates.rear_view;
+    }
+
+    // Filter to only columns that exist on the inspections table
+    const allowedColumns = new Set([
+      'vin', 'vinPhoto', 'make', 'model', 'year', 'color', 'odometer', 'odometerPhoto',
+      'customerName', 'customerPhone', 'inspectionType', 'customerSignature', 'status',
+      'notes', 'shareToken', 'mainCarPhoto', 'rearLeftDoorPhoto', 'rearRightDoorPhoto',
+      'frontLeftDoorPhoto', 'frontRightDoorPhoto', 'hoodPhoto', 'trunkPhoto',
+      'rearLeftDoorInteriorPhoto', 'rearRightDoorInteriorPhoto', 'frontLeftDoorInteriorPhoto',
+      'frontRightDoorInteriorPhoto', 'hoodInteriorPhoto', 'trunkInteriorPhoto',
+      'obdCodes', 'autelReportPdf', 'autelReportName', 'mojazRecord', 'mojazAnalysis',
+      'vehiclePhotosMeta', 'vehiclePhotosAudit'
+    ]);
+
+    const sanitizedUpdates: Record<string, any> = {};
+    for (const [key, value] of Object.entries(updates)) {
+      if (allowedColumns.has(key)) {
+        sanitizedUpdates[key] = value;
+      }
+    }
+
+    sanitizedUpdates.updatedAt = new Date();
+
     const [updated] = await db.update(inspections)
-      .set({ ...updates, updatedAt: new Date() })
+      .set(sanitizedUpdates)
       .where(eq(inspections.id, id))
       .returning();
     return updated;

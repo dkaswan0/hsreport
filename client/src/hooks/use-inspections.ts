@@ -63,20 +63,50 @@ export function useUpdateInspection() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...updates }: { id: number } & UpdateInspectionRequest) => {
-      const validated = api.inspections.update.input.parse(updates);
+      let payload = updates;
+      try {
+        const parsed = api.inspections.update.input.safeParse(updates);
+        if (parsed.success) {
+          payload = parsed.data as any;
+        }
+      } catch {
+        payload = updates;
+      }
+
       const url = buildUrl(api.inspections.update.path, { id });
       const res = await fetch(url, {
         method: api.inspections.update.method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(validated),
+        body: JSON.stringify(payload),
         credentials: "include",
       });
-      if (!res.ok) throw new Error('Failed to update inspection');
-      return api.inspections.update.responses[200].parse(await res.json());
+
+      if (!res.ok) {
+        const errText = await res.text().catch(() => '');
+        let errMsg = 'فشل حفظ الفحص';
+        try {
+          const parsed = JSON.parse(errText);
+          errMsg = parsed.message || parsed.error || errMsg;
+        } catch {
+          if (errText) errMsg = errText;
+        }
+        throw new Error(errMsg);
+      }
+
+      const json = await res.json();
+      return json;
     },
     onSuccess: (data) => {
+      if (data && data.id) {
+        queryClient.setQueryData([api.inspections.get.path, data.id], (prev: any) => {
+          if (!prev) return data;
+          return { ...prev, ...data, items: prev.items || data.items || [] };
+        });
+      }
       queryClient.invalidateQueries({ queryKey: [api.inspections.list.path] });
-      queryClient.invalidateQueries({ queryKey: [api.inspections.get.path, data.id] });
+      if (data?.id) {
+        queryClient.invalidateQueries({ queryKey: [api.inspections.get.path, data.id] });
+      }
     },
   });
 }

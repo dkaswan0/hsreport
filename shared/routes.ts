@@ -52,7 +52,7 @@ export const api = {
     update: {
       method: 'PUT' as const,
       path: '/api/inspections/:id',
-      input: insertInspectionSchema.partial(),
+      input: insertInspectionSchema.partial().passthrough(),
       responses: {
         200: z.custom<typeof inspections.$inferSelect>(),
         404: errorSchemas.notFound,
