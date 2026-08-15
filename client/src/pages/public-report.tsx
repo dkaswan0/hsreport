@@ -30,6 +30,7 @@ import { INSPECTION_CATEGORIES } from "@shared/categories";
 import { IntroAnimation } from "@/components/intro-animation";
 import { VehiclePhotosGrid } from "@/components/vehicle-photos-grid";
 import { MobileReportView } from "@/components/mobile-report-view";
+import { UnifiedMediaGallery } from "@/components/unified-media-gallery";
 
 
 
@@ -638,13 +639,13 @@ export default function PublicReport() {
         {/* Company Header with Logo */}
         <CompanyHeader inspection={inspection} />
 
+        {/* Unified Top Media Gallery (Video & All Images) */}
+        <UnifiedMediaGallery inspection={inspection} />
+
         {/* Section 1: Vehicle Info Card */}
         <VehicleInfoCard inspection={inspection} />
 
-        {/* Section 2: Car Section Photos Gallery */}
-        <CarSectionPhotosGallery inspection={inspection} />
-
-        {/* Section 3: Inspection Results */}
+        {/* Section 2: Inspection Results & Defects (Fault photos stay isolated in their defect cards) */}
         <InspectionResults 
           inspection={inspection} 
           onImageClick={(url, name) => setSelectedImage({ url, name })}

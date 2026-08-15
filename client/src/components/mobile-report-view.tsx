@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { VehiclePhotosGrid } from "@/components/vehicle-photos-grid";
+import { UnifiedMediaGallery } from "@/components/unified-media-gallery";
 import { PhosphorIcon } from "@/components/phosphor-icon";
 import { INSPECTION_CATEGORIES } from "@shared/categories";
 import { getVehicleColor, resolveVehiclePhoto } from "@/lib/vehicle-utils";
@@ -204,6 +205,9 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
         )}
       </div>
 
+      {/* Unified Top Media Gallery (Video & All Images) */}
+      <UnifiedMediaGallery inspection={inspection} />
+
       {/* 2. Section 1: Vehicle Information Header */}
       <div className="bg-zinc-950 rounded-xl px-4 py-2.5 flex items-center justify-between text-white shadow-sm border border-zinc-800">
         <div className="flex items-center gap-2">
@@ -383,26 +387,12 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
         </div>
       </div>
 
-      {/* 3. Section 2: Vehicle Sections Photos (5 Standard Photos) */}
-      <div className="bg-zinc-950 rounded-xl px-4 py-2.5 flex items-center justify-between text-white shadow-sm border border-zinc-800">
-        <div className="flex items-center gap-2">
-          <PhosphorIcon name="camera" weight="bold" size={18} className="text-white" />
-          <h3 className="font-bold text-sm text-white font-arabic">صور فحص المركبة الأساسية</h3>
-          <span className="text-zinc-400 font-mono font-bold text-sm">2</span>
-        </div>
-        <div className="text-zinc-400 font-mono text-[10px]" dir="ltr">
-          Vehicle Core Photos (5 Views)
-        </div>
-      </div>
-
-      <VehiclePhotosGrid inspection={inspection} isEditable={false} />
-
-      {/* 4. Section 3: Inspection Results Header */}
+      {/* 3. Section 2: Inspection Results Header */}
       <div className="bg-zinc-950 rounded-xl px-4 py-2.5 flex items-center justify-between text-white shadow-sm border border-zinc-800">
         <div className="flex items-center gap-2">
           <PhosphorIcon name="clipboard-text" weight="bold" size={18} className="text-white" />
-          <h3 className="font-bold text-sm text-white font-arabic">الأعطال المسجلة</h3>
-          <span className="text-zinc-400 font-mono font-bold text-sm">3</span>
+          <h3 className="font-bold text-sm text-white font-arabic">الأعطال والنتائج المسجلة</h3>
+          <span className="text-zinc-400 font-mono font-bold text-sm">2</span>
         </div>
         <div className="text-zinc-400 font-mono text-[10px]" dir="ltr">
           Inspection Results ({items.length})

@@ -86,6 +86,8 @@ export const inspections = pgTable("inspections", {
   autelReportName: text("autel_report_name"), // Original filename of Autel report
   mojazRecord: text("mojaz_record"), // سجل حوادث موجز المكتوب/الملصق
   mojazAnalysis: jsonb("mojaz_analysis").$type<any>(), // تحليل تطابق الحوادث بالذكاء الاصطناعي
+  videoUrl: text("video_url"), // رابط فيديو الفحص الشامل للمركبة
+  mediaGallery: jsonb("media_gallery").$type<any[]>(), // معرض الفيديو والصور الموحد للفحص
   vehiclePhotosMeta: jsonb("vehicle_photos_meta").$type<Record<string, VehiclePhotoSlotMeta>>(), // إدارة صور السيارة المحسنة والأصلية
   vehiclePhotosAudit: jsonb("vehicle_photos_audit").$type<VehiclePhotoAuditEntry[]>(), // سجل تدقيق وتتبع تعديلات صور المركبة
   createdAt: timestamp("created_at").defaultNow(),
@@ -176,6 +178,8 @@ export const insertInspectionSchema = createInsertSchema(inspections, {
   trunkPhoto: z.string().optional().nullable(),
   vinPhoto: z.string().optional().nullable(),
   odometerPhoto: z.string().optional().nullable(),
+  videoUrl: z.string().optional().nullable(),
+  mediaGallery: z.array(z.any()).optional().nullable(),
 }).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertInspectionItemSchema = createInsertSchema(inspectionItems).omit({ id: true, createdAt: true });
 export const insertInspectionSectionSchema = createInsertSchema(inspectionSections).omit({ createdAt: true });

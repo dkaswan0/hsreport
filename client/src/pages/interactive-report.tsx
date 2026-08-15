@@ -49,6 +49,7 @@ import { getVehicleColor, calculateInspectionStats, resolveVehiclePhoto } from "
 import { VinPlate } from "@/components/vin-plate";
 import hsCarBranding from "@assets/hs_car_branding.png";
 import { MobileReportView } from "@/components/mobile-report-view";
+import { UnifiedMediaGallery } from "@/components/unified-media-gallery";
 
 // Car views configuration
 type ViewAngle = 'front' | 'right' | 'rear' | 'left';
@@ -2175,6 +2176,9 @@ export default function InteractiveReport() {
           onDownloadEn={() => handleNewPdfDownload('en')}
         />
 
+        {/* Unified Top Media Gallery (Video & All Images) */}
+        <UnifiedMediaGallery inspection={inspection} />
+
         {/* 360 Car Visualization */}
         <Car360Visualization 
           items={inspection.items || []} 
@@ -2188,9 +2192,6 @@ export default function InteractiveReport() {
           </div>
           <CustomerInfoCard inspection={inspection} />
         </div>
-
-        {/* Car Section Photos Gallery */}
-        <CarSectionPhotosGallery inspection={inspection} />
 
         {/* Inspection Results */}
         <InspectionResults 
