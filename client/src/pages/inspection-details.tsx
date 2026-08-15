@@ -1373,6 +1373,120 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
     });
   };
 
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const bulkPhotosInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [isUploadingBulkPhotos, setIsUploadingBulkPhotos] = useState(false);
+
+  const handleVideoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 80 * 1024 * 1024) {
+      toast({
+        title: "حجم الفيديو كبير",
+        description: "يرجى اختيار فيديو لا يتجاوز 80 ميغابايت للحفاظ على سرعة التقرير",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsUploadingVideo(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const videoData = event.target?.result as string;
+        updateInspection.mutate({
+          id: inspection.id,
+          videoUrl: videoData,
+        } as any, {
+          onSuccess: () => {
+            toast({ title: "تم حفظ فيديو الفحص بنجاح", description: "سيظهر الفيديو كأول عنصر في تقرير الفحص" });
+            setIsUploadingVideo(false);
+          },
+          onError: (err) => {
+            toast({ title: "تعذر حفظ الفيديو", description: err.message || "حدث خطأ أثناء الرفع", variant: "destructive" });
+            setIsUploadingVideo(false);
+          }
+        });
+      };
+      reader.readAsDataURL(file);
+    } catch (err: any) {
+      toast({ title: "خطأ في قراءة الفيديو", description: err?.message, variant: "destructive" });
+      setIsUploadingVideo(false);
+    }
+  };
+
+  const handleRemoveVideo = () => {
+    updateInspection.mutate({
+      id: inspection.id,
+      videoUrl: null,
+    } as any, {
+      onSuccess: () => {
+        toast({ title: "تم حذف الفيديو بنجاح" });
+      }
+    });
+  };
+
+  const handleBulkPhotosChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploadingBulkPhotos(true);
+    try {
+      const currentGallery: any[] = Array.isArray((inspection as any).mediaGallery) ? [...(inspection as any).mediaGallery] : [];
+      const newItems: any[] = [];
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const compressed = await compressSlotImage(file, 1600, 0.85);
+        newItems.push({
+          id: `media-gallery-${Date.now()}-${i}`,
+          type: "image",
+          url: compressed,
+          name: `صورة فحص ${currentGallery.length + newItems.length + 1}`,
+          sortOrder: currentGallery.length + newItems.length + 1,
+        });
+      }
+
+      const updatedGallery = [...currentGallery, ...newItems];
+
+      updateInspection.mutate({
+        id: inspection.id,
+        mediaGallery: updatedGallery,
+      } as any, {
+        onSuccess: () => {
+          toast({
+            title: "تمت إضافة الصور بنجاح",
+            description: `تمت إضافة ${newItems.length} صورة إلى معرض الفحص الموحد`,
+          });
+          setIsUploadingBulkPhotos(false);
+        },
+        onError: (err) => {
+          toast({ title: "خطأ في حفظ الصور", description: err.message, variant: "destructive" });
+          setIsUploadingBulkPhotos(false);
+        }
+      });
+    } catch (err: any) {
+      toast({ title: "خطأ في معالجة الصور", description: err?.message, variant: "destructive" });
+      setIsUploadingBulkPhotos(false);
+    }
+  };
+
+  const handleRemoveGalleryItem = (itemId: string) => {
+    const currentGallery: any[] = Array.isArray((inspection as any).mediaGallery) ? [...(inspection as any).mediaGallery] : [];
+    const updated = currentGallery.filter(item => item.id !== itemId);
+
+    updateInspection.mutate({
+      id: inspection.id,
+      mediaGallery: updated,
+    } as any, {
+      onSuccess: () => {
+        toast({ title: "تم حذف الصورة من المعرض" });
+      }
+    });
+  };
+
   return (
     <div className="bg-white rounded-2xl border border-zinc-200 overflow-hidden shadow-xs mb-4" data-testid="vehicle-photos-manager">
       {/* Header Bar */}
@@ -1499,6 +1613,115 @@ function VehiclePhotosManager({ inspection }: { inspection: Inspection }) {
               handleToggleMode(key, isProcessedActive ? 'original' : 'processed', section?.label || 'الصورة');
             }}
           />
+
+          {/* Video & Bulk Media Gallery Management for Unified Top Media Gallery */}
+          <div className="pt-4 border-t border-zinc-200/80 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-zinc-950 text-white flex items-center justify-center">
+                  <PhosphorIcon name="film-strip" weight="bold" size={15} />
+                </div>
+                <div>
+                  <h4 className="font-bold text-xs sm:text-sm text-zinc-950 font-arabic">فيديو وصور المعرض الموحد</h4>
+                  <p className="text-[11px] text-zinc-500 font-arabic">إضافة فيديو الفحص الشامل وصور غير محدودة (70-100+ صورة) للمعرض بأعلى التقرير</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {/* Video Upload Button */}
+                <input
+                  ref={videoInputRef}
+                  type="file"
+                  accept="video/*"
+                  className="hidden"
+                  onChange={handleVideoFileChange}
+                />
+                <button
+                  type="button"
+                  onClick={() => videoInputRef.current?.click()}
+                  disabled={isUploadingVideo}
+                  className="px-3 py-1.5 bg-zinc-900 hover:bg-black text-white text-xs font-bold font-arabic rounded-xl flex items-center gap-1.5 shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                  data-testid="btn-upload-inspection-video"
+                >
+                  <PhosphorIcon name={isUploadingVideo ? "spinner-gap" : "video-camera"} className={isUploadingVideo ? "animate-spin" : ""} weight="bold" size={14} />
+                  <span>{isUploadingVideo ? "جاري رفع الفيديو..." : (inspection as any).videoUrl ? "تغيير الفيديو" : "رفع فيديو الفحص"}</span>
+                </button>
+
+                {/* Bulk Photos Upload Button */}
+                <input
+                  ref={bulkPhotosInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={handleBulkPhotosChange}
+                />
+                <button
+                  type="button"
+                  onClick={() => bulkPhotosInputRef.current?.click()}
+                  disabled={isUploadingBulkPhotos}
+                  className="px-3 py-1.5 bg-white border border-zinc-300 hover:bg-zinc-100 text-zinc-950 text-xs font-bold font-arabic rounded-xl flex items-center gap-1.5 shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                  data-testid="btn-upload-bulk-photos"
+                >
+                  <PhosphorIcon name={isUploadingBulkPhotos ? "spinner-gap" : "plus-circle"} className={isUploadingBulkPhotos ? "animate-spin" : ""} weight="bold" size={14} />
+                  <span>{isUploadingBulkPhotos ? "جاري إضافة الصور..." : "إضافة صور للمعرض (+)"}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Video Preview if exists */}
+            {(inspection as any).videoUrl && (
+              <div className="p-3 bg-zinc-900 rounded-2xl border border-zinc-800 text-white flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center shrink-0">
+                    <PhosphorIcon name="play" weight="fill" size={14} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold font-arabic truncate">فيديو الفحص الشامل المعتمد</div>
+                    <div className="text-[10px] text-zinc-400 font-mono" dir="ltr">Video Element #0 (First in Gallery)</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={handleRemoveVideo}
+                    className="p-1.5 bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white rounded-lg transition-colors cursor-pointer"
+                    title="حذف الفيديو"
+                  >
+                    <PhosphorIcon name="trash" weight="bold" size={14} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Additional Gallery Items Grid (if any items uploaded via bulk) */}
+            {Array.isArray((inspection as any).mediaGallery) && (inspection as any).mediaGallery.length > 0 && (
+              <div className="space-y-2">
+                <div className="text-xs font-bold text-zinc-700 font-arabic flex items-center justify-between">
+                  <span>الصور الإضافية في المعرض ({(inspection as any).mediaGallery.length} صورة)</span>
+                </div>
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                  {(inspection as any).mediaGallery.map((gItem: any, gIdx: number) => (
+                    <div key={gItem.id || gIdx} className="relative aspect-video rounded-xl bg-zinc-900 overflow-hidden border border-zinc-200 group">
+                      <img src={gItem.thumbnailUrl || gItem.url} alt="" className="w-full h-full object-cover" />
+                      <span className="absolute bottom-1 right-1 bg-black/80 text-white font-mono text-[9px] px-1 rounded">
+                        #{gIdx + 1}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveGalleryItem(gItem.id)}
+                        className="absolute top-1 left-1 p-1 bg-red-600/90 hover:bg-red-700 text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow-md"
+                        title="حذف الصورة"
+                      >
+                        <PhosphorIcon name="trash" weight="bold" size={11} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 

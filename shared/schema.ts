@@ -38,6 +38,24 @@ export interface VehiclePhotoAuditEntry {
   details?: string;
 }
 
+export interface InspectionMediaItem {
+  id: string;
+  type: 'video' | 'image';
+  url: string;
+  thumbnailUrl?: string | null;
+  name: string;
+  sortOrder: number;
+}
+
+export const inspectionMediaItemSchema = z.object({
+  id: z.string(),
+  type: z.enum(['video', 'image']),
+  url: z.string(),
+  thumbnailUrl: z.string().optional().nullable(),
+  name: z.string(),
+  sortOrder: z.number(),
+});
+
 // === TABLE DEFINITIONS ===
 
 export const users = pgTable("users", {
@@ -87,7 +105,7 @@ export const inspections = pgTable("inspections", {
   mojazRecord: text("mojaz_record"), // سجل حوادث موجز المكتوب/الملصق
   mojazAnalysis: jsonb("mojaz_analysis").$type<any>(), // تحليل تطابق الحوادث بالذكاء الاصطناعي
   videoUrl: text("video_url"), // رابط فيديو الفحص الشامل للمركبة
-  mediaGallery: jsonb("media_gallery").$type<any[]>(), // معرض الفيديو والصور الموحد للفحص
+  mediaGallery: jsonb("media_gallery").$type<InspectionMediaItem[]>(), // معرض الفيديو والصور الموحد للفحص
   vehiclePhotosMeta: jsonb("vehicle_photos_meta").$type<Record<string, VehiclePhotoSlotMeta>>(), // إدارة صور السيارة المحسنة والأصلية
   vehiclePhotosAudit: jsonb("vehicle_photos_audit").$type<VehiclePhotoAuditEntry[]>(), // سجل تدقيق وتتبع تعديلات صور المركبة
   createdAt: timestamp("created_at").defaultNow(),
@@ -179,7 +197,7 @@ export const insertInspectionSchema = createInsertSchema(inspections, {
   vinPhoto: z.string().optional().nullable(),
   odometerPhoto: z.string().optional().nullable(),
   videoUrl: z.string().optional().nullable(),
-  mediaGallery: z.array(z.any()).optional().nullable(),
+  mediaGallery: z.array(inspectionMediaItemSchema).optional().nullable(),
 }).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertInspectionItemSchema = createInsertSchema(inspectionItems).omit({ id: true, createdAt: true });
 export const insertInspectionSectionSchema = createInsertSchema(inspectionSections).omit({ createdAt: true });
