@@ -1,12 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.HighSafety" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
-        <item name="colorPrimary">#09090b</item>
-        <item name="colorPrimaryVariant">#000000</item>
-        <item name="colorOnPrimary">#ffffff</item>
-        <item name="android:statusBarColor">#09090b</item>
-    </style>
-
-    <style name="Theme.HighSafety.NoActionBar" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.HighSafety" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:colorPrimary">#09090b</item>
+        <item name="android:colorPrimaryDark">#000000</item>
+        <item name="android:colorAccent">#F59E0B</item>
+        <item name="android:windowBackground">#09090b</item>
         <item name="android:statusBarColor">#09090b</item>
         <item name="android:navigationBarColor">#09090b</item>
     </style>
