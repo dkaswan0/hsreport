@@ -59,10 +59,10 @@ def build():
     compiled_res_zip = os.path.join(TEMP_DIR, 'compiled_res', 'resources.zip')
     run_cmd(f'"{AAPT2}" compile --dir "{res_dir}" -o "{compiled_res_zip}"', cwd=TEMP_DIR)
 
-    # Step 2: AAPT2 Link Resources & Generate R.java + base APK
-    print("--- 2. Linking Resources and generating R.java ---")
+    # Step 2: AAPT2 Link Resources & Generate R.java + base APK with modern Android 14 target (API 34)
+    print("--- 2. Linking Resources for Modern Android 14+ (targetSdk 34) ---")
     base_apk = os.path.join(TEMP_DIR, 'base.apk')
-    run_cmd(f'"{AAPT2}" link -I "{ANDROID_JAR}" --manifest "{manifest_xml}" --java "{os.path.join(TEMP_DIR, "gen")}" -o "{base_apk}" --auto-add-overlay "{compiled_res_zip}"', cwd=TEMP_DIR)
+    run_cmd(f'"{AAPT2}" link -I "{ANDROID_JAR}" --min-sdk-version 26 --target-sdk-version 34 --version-code 2 --version-name "2.0.0" --manifest "{manifest_xml}" --java "{os.path.join(TEMP_DIR, "gen")}" -o "{base_apk}" --auto-add-overlay "{compiled_res_zip}"', cwd=TEMP_DIR)
 
     # Step 3: Compile Java source code
     print("--- 3. Compiling Java Source Files with javac ---")
@@ -81,7 +81,7 @@ def build():
     run_cmd(f'javac -encoding UTF-8 -cp "{ANDROID_JAR}" -d "{obj_dir}" {java_files_str}', cwd=TEMP_DIR)
 
     # Step 4: Convert Java bytecode to Dalvik Executable (classes.dex) with D8
-    print("--- 4. Generating classes.dex with D8 ---")
+    print("--- 4. Generating classes.dex with D8 (min-api 26) ---")
     class_files = []
     for root, _, files in os.walk(obj_dir):
         for f in files:
@@ -89,7 +89,7 @@ def build():
                 class_files.append(os.path.join(root, f))
     class_files_str = " ".join([f'"{f}"' for f in class_files])
     dex_dir = os.path.join(TEMP_DIR, 'dex')
-    run_cmd(f'"{D8}" --min-api 24 --lib "{ANDROID_JAR}" --output "{dex_dir}" {class_files_str}', cwd=TEMP_DIR)
+    run_cmd(f'"{D8}" --min-api 26 --lib "{ANDROID_JAR}" --output "{dex_dir}" {class_files_str}', cwd=TEMP_DIR)
 
     # Step 5: Merge classes.dex into base APK
     print("--- 5. Packaging classes.dex into APK ---")
@@ -110,18 +110,25 @@ def build():
     print("--- 7. Generating Debug Keystore ---")
     run_cmd(f'keytool -genkey -v -keystore "{keystore_path}" -alias androiddebugkey -storepass android -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=HighSafety, OU=Mobile, O=HighSafety, L=Riyadh, ST=Riyadh, C=SA"')
 
-    # Step 8: Sign APK with apksigner inside TEMP_DIR
-    print("--- 8. Signing APK with apksigner ---")
+    # Step 8: Sign APK with apksigner (v1, v2, v3, v4 signature schemes)
+    print("--- 8. Signing APK with apksigner (v1, v2, v3 schemes) ---")
     temp_signed_apk = os.path.join(TEMP_DIR, 'HighSafetyReport.apk')
-    run_cmd(f'"{APKSIGNER}" sign --ks "{keystore_path}" --ks-pass pass:android --ks-key-alias androiddebugkey --key-pass pass:android --out "{temp_signed_apk}" "{aligned_apk}"', cwd=TEMP_DIR)
+    run_cmd(f'"{APKSIGNER}" sign --ks "{keystore_path}" --ks-pass pass:android --ks-key-alias androiddebugkey --key-pass pass:android --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true --out "{temp_signed_apk}" "{aligned_apk}"', cwd=TEMP_DIR)
 
-    # Copy signed APK to project root
+    # Copy signed APK to project root & public web folders
     shutil.copy(temp_signed_apk, FINAL_OUTPUT_APK)
+    for dest in [
+        os.path.join(PROJECT_ROOT, 'client', 'public', 'HighSafetyReport.apk'),
+        os.path.join(PROJECT_ROOT, 'dist', 'public', 'HighSafetyReport.apk')
+    ]:
+        os.makedirs(os.path.dirname(dest), exist_ok=True)
+        shutil.copy(temp_signed_apk, dest)
 
     print("\n=======================================================")
-    print("🎉 SUCCESS! APK BUILT & SIGNED SUCCESSFULLY:")
+    print("🎉 SUCCESS! MODERN ANDROID 14/15 APK BUILT & SIGNED:")
     print(f"📦 File: {FINAL_OUTPUT_APK}")
     print(f"📊 Size: {os.path.getsize(FINAL_OUTPUT_APK):,} bytes")
+    print(f"🎯 Target Android: API 34 (Android 14 / 15 / 16)")
     print("=======================================================\n")
 
 if __name__ == '__main__':
