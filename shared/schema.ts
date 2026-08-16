@@ -162,6 +162,15 @@ export const faultLibrary = pgTable("fault_library", {
   severity: text("severity"),
 });
 
+export const uploadedMediaBlobs = pgTable("uploaded_media_blobs", {
+  id: text("id").primaryKey(),
+  filename: text("filename").notNull(),
+  mimeType: text("mime_type").notNull(),
+  byteSize: integer("byte_size").notNull(),
+  dataBase64: text("data_base64").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // === RELATIONS ===
 
 export const inspectionsRelations = relations(inspections, ({ many }) => ({

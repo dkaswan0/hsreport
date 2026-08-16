@@ -46,6 +46,16 @@ pool.query(`
     "created_at" timestamp DEFAULT now()
   );
 
+  CREATE TABLE IF NOT EXISTS "uploaded_media_blobs" (
+    "id" text PRIMARY KEY,
+    "filename" text NOT NULL,
+    "mime_type" text NOT NULL,
+    "byte_size" integer NOT NULL,
+    "data_base64" text NOT NULL,
+    "created_at" timestamp DEFAULT now()
+  );
+  CREATE INDEX IF NOT EXISTS "IDX_uploaded_media_blobs_created" ON "uploaded_media_blobs" ("created_at");
+
   ALTER TABLE "inspections" ADD COLUMN IF NOT EXISTS "vehicle_photos_meta" jsonb;
   ALTER TABLE "inspections" ADD COLUMN IF NOT EXISTS "vehicle_photos_audit" jsonb;
   ALTER TABLE "inspections" ADD COLUMN IF NOT EXISTS "video_url" text;

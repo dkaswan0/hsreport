@@ -10,6 +10,7 @@ import { openai } from "./replit_integrations/image/client";
 import { ImageAnalysisService } from "./services/image-analysis";
 import { VehiclePhotoSlotMeta, VehiclePhotoAuditEntry } from "@shared/schema";
 import { SearchRouterService } from "./services/search-router";
+import { savePersistentMedia, getPersistentMedia } from "./services/media-storage";
 
 // ── API Key helpers ───────────────────────────────────────────────────────────
 function hashApiKey(raw: string): string {
@@ -427,68 +428,37 @@ export async function registerRoutes(
         return res.status(400).json({ error: "بيانات الوسائط غير صالحة" });
       }
 
-      // If already a hosted /uploads/ URL, return immediately
-      if (base64.startsWith("/uploads/") || (base64.startsWith("http") && !base64.startsWith("data:"))) {
-        return res.json({
-          success: true,
-          url: base64,
-          thumbnailUrl: base64,
-          filename: filename || "media-file",
-          type,
-        });
-      }
-
-      let ext = type === "video" ? "mp4" : "jpg";
-      let cleanData = base64;
-
-      if (base64.startsWith("data:")) {
-        const matches = base64.match(/^data:([A-Za-z0-9+/]+);base64,(.+)$/);
-        if (matches && matches.length === 3) {
-          const mime = matches[1].toLowerCase();
-          if (mime.includes("video/mp4") || mime.includes("video/quicktime") || mime.includes("video/webm")) {
-            ext = mime.includes("webm") ? "webm" : "mp4";
-          } else if (mime.includes("image/png")) {
-            ext = "png";
-          } else if (mime.includes("image/webp")) {
-            ext = "webp";
-          } else {
-            ext = "jpg";
-          }
-          cleanData = matches[2];
-        }
-      }
-
-      const buffer = Buffer.from(cleanData, "base64");
-      const namePrefix = type === "video" ? "video" : "media";
-      const generatedName = `${namePrefix}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
-
-      const uploadDirPrimary = path.join(process.cwd(), "public", "uploads");
-      const uploadDirSecondary = path.join(process.cwd(), "client", "public", "uploads");
-
-      await fs.promises.mkdir(uploadDirPrimary, { recursive: true });
-      await fs.promises.mkdir(uploadDirSecondary, { recursive: true });
-
-      const filePathPrimary = path.join(uploadDirPrimary, generatedName);
-      const filePathSecondary = path.join(uploadDirSecondary, generatedName);
-
-      await fs.promises.writeFile(filePathPrimary, buffer);
-      fs.promises.writeFile(filePathSecondary, buffer).catch(() => {});
-
-      const publicUrl = `/uploads/${generatedName}`;
-
-      res.json({
-        success: true,
-        url: publicUrl,
-        thumbnailUrl: publicUrl,
-        filename: filename || generatedName,
-        type,
-        size: buffer.length,
-      });
+      const result = await savePersistentMedia(base64, type, filename);
+      res.json(result);
     } catch (err: any) {
       console.error("Upload media error:", err);
       res.status(500).json({ error: err?.message || "فشل رفع وحفظ ملف الوسائط" });
     }
   });
+
+  // ═══ Resilient Media Streaming (Survives Render Restart/Redeploy) ═══
+  const handleMediaStream = async (req: Request, res: Response) => {
+    try {
+      const { filename } = req.params;
+      if (!filename) return res.status(404).send("File not found");
+
+      const media = await getPersistentMedia(filename);
+      if (!media || !media.buffer) {
+        return res.status(404).send("Media file not found");
+      }
+
+      res.setHeader("Content-Type", media.mimeType);
+      res.setHeader("Content-Length", media.buffer.length);
+      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+      res.end(media.buffer);
+    } catch (err: any) {
+      console.error("Media stream error:", err);
+      res.status(500).send("Error streaming media");
+    }
+  };
+
+  app.get("/uploads/:filename", handleMediaStream);
+  app.get("/api/media/:filename", handleMediaStream);
 
   app.put(api.inspections.update.path, async (req, res) => {
     try {
