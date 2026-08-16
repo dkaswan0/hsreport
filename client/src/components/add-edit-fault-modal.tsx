@@ -1,8 +1,15 @@
 // ==============================================================================
 // Add / Edit Fault Modal - High Safety Inspection System
-// Visual Theme: Strictly BLACK, WHITE & GRAY (Monochrome Luxury Aesthetic)
-// Section is Fixed (NO Section Switcher inside Modal)
-// Features: 9000+ Deep Library Search, Live Camera, Upload, Multi-Suggestion AI
+// Visual Theme: Strict Black, White & Gray Monochrome Luxury Standard
+// Features:
+// 1. Search Fault Library (9,000+ faults with instant click-to-select)
+// 2. Comfortable Description Textarea
+// 3. 3 Independent Photo Options:
+//    - [ 📸 التقاط صورة ] -> Direct Fullscreen Camera -> No AI
+//    - [ 📸 تصوير + تحليل AI ] -> Direct Fullscreen Camera -> Auto AI Analysis on Capture
+//    - [ 🖼️ رفع صورة ] -> Device File Picker -> Optional AI Analysis
+// 4. Standalone Camera UX (Modal hides completely when camera opens)
+// 5. Zero Severity / Priority fields
 // ==============================================================================
 
 import React, { useState, useEffect, useRef } from "react";
@@ -11,14 +18,14 @@ import { PhosphorIcon } from "@/components/phosphor-icon";
 import { getMainSectionById, mapLegacyCategoryToMainSection } from "@shared/categories";
 import { FaultCameraModal } from "@/components/fault-camera-modal";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Sparkles, Check, X, Camera, Upload, Trash2, RotateCcw, Search, Plus } from "lucide-react";
+import { Loader2, Sparkles, Check, X, Camera, Upload, Trash2, RotateCcw, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 interface AddEditFaultModalProps {
   isOpen: boolean;
   onClose: () => void;
-  sectionId: string; // The active section is fixed from caller
+  sectionId: string;
   editItem?: {
     id?: number;
     faultName: string;
@@ -57,13 +64,14 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
 
   // Camera & AI Vision state
   const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [cameraMode, setCameraMode] = useState<"normal" | "ai">("normal");
   const [isAnalyzingAi, setIsAnalyzingAi] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Reset/Initialize state
+  // Reset / Initialize state
   useEffect(() => {
     if (isOpen) {
       if (editItem) {
@@ -77,6 +85,7 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
       setDebouncedSearch("");
       setAiSuggestions([]);
       setIsSubmitting(false);
+      setIsCameraOpen(false);
     }
   }, [isOpen, editItem]);
 
@@ -102,23 +111,9 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
     enabled: debouncedSearch.length >= 2,
   });
 
-  // Handle Photo Selection from File Input
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      setImageUrl(dataUrl);
-      setAiSuggestions([]);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  // Handle AI Vision Analysis (Optional)
-  const handleAnalyzeWithAi = async () => {
-    if (!imageUrl) return;
+  // AI Vision Analysis Function
+  const runAiAnalysis = async (targetImage: string) => {
+    if (!targetImage) return;
 
     setIsAnalyzingAi(true);
     try {
@@ -126,7 +121,7 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          image: imageUrl,
+          image: targetImage,
           section: canonicalSectionId,
           prompt: "حلل صورة العطل الفني للمركبة واقترح وصفاً دقيقاً ومختصراً للعطل باللغة العربية.",
         }),
@@ -153,9 +148,17 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
 
       setAiSuggestions(list);
 
+      // Auto-set the first suggestion into the text field if currently empty
+      setFaultText((current) => {
+        if (!current.trim() && list[0]) {
+          return list[0];
+        }
+        return current;
+      });
+
       toast({
-        title: "✨ تم تحليل الصورة",
-        description: `تم استخراج ${list.length} اقتراحات فنية، اختر الأنسب منها.`,
+        title: "✨ تم تحليل الصورة بالذكاء الاصطناعي",
+        description: `تم استخراج ${list.length} اقتراحات فنية، يمكنك اختيار أو تعديل النص.`,
       });
     } catch (err: any) {
       console.warn("AI analysis error:", err);
@@ -165,6 +168,43 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
       });
     } finally {
       setIsAnalyzingAi(false);
+    }
+  };
+
+  // Option 1: Open Live Camera (Normal / No AI)
+  const handleOpenNormalCamera = () => {
+    setCameraMode("normal");
+    setIsCameraOpen(true);
+  };
+
+  // Option 2: Open Live Camera (With Automatic AI Vision Analysis on Capture)
+  const handleOpenAiCamera = () => {
+    setCameraMode("ai");
+    setIsCameraOpen(true);
+  };
+
+  // Option 3: Handle File Upload from Device
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      setImageUrl(dataUrl);
+      setAiSuggestions([]);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Callback when photo is captured in Fullscreen Camera
+  const handleCameraCaptured = (dataUrl: string) => {
+    setImageUrl(dataUrl);
+    setIsCameraOpen(false);
+
+    if (cameraMode === "ai") {
+      // Auto-run AI analysis immediately
+      runAiAnalysis(dataUrl);
     }
   };
 
@@ -209,14 +249,15 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      {/* The Dialog is OPEN only when NOT in Fullscreen Camera mode (Fixes modal-behind-camera bug) */}
+      <Dialog open={isOpen && !isCameraOpen} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className="max-w-2xl w-[95vw] sm:w-full bg-zinc-950 text-white p-4 sm:p-6 rounded-3xl border border-zinc-800 shadow-2xl font-arabic max-h-[92vh] overflow-y-auto z-[99990]">
           <DialogTitle className="sr-only">
             {editItem ? `تعديل عطل — ${sectionDef.label}` : `إضافة عطل — ${sectionDef.label}`}
           </DialogTitle>
 
           {/* ── Modal Header (Strict Monochrome) ── */}
-          <div className="flex items-center justify-between border-b border-zinc-800 pb-3.5">
+          <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl bg-zinc-900 border border-zinc-700 flex items-center justify-center text-white shadow-inner">
                 <PhosphorIcon name={sectionDef.iconName as any} weight="bold" size={22} className="text-white" />
@@ -283,7 +324,7 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
 
               {/* Live Search Suggestions Dropdown */}
               {debouncedSearch.length >= 2 && (
-                <div className="max-h-52 overflow-y-auto space-y-1.5 pt-1 scrollbar-thin scrollbar-thumb-zinc-700">
+                <div className="max-h-48 overflow-y-auto space-y-1.5 pt-1 scrollbar-thin scrollbar-thumb-zinc-700">
                   {searchResults && searchResults.length > 0 ? (
                     searchResults.map((item: any, idx: number) => (
                       <button
@@ -339,13 +380,13 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
                 value={faultText}
                 onChange={(e) => setFaultText(e.target.value)}
                 placeholder="اكتب العطل أو الملاحظة الفنية هنا بكل وضوح..."
-                rows={4}
+                rows={3}
                 className="w-full bg-zinc-900 border border-zinc-700 focus:border-white rounded-2xl p-3.5 text-sm text-white placeholder-zinc-500 focus:outline-none transition-all resize-y leading-relaxed shadow-inner"
                 required
               />
             </div>
 
-            {/* ── 3. Photo Capture & Upload (Camera / Upload / AI) ── */}
+            {/* ── 3. The 3 Independent Photo Options ── */}
             <div className="bg-zinc-900/90 border border-zinc-800 p-3.5 rounded-2xl space-y-3">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-zinc-200 flex items-center gap-1.5">
@@ -360,24 +401,39 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
               </div>
 
               {!imageUrl ? (
-                /* Capture & Upload Buttons */
-                <div className="grid grid-cols-2 gap-2">
+                /* The 3 Distinct Capture & Upload Buttons */
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {/* Option 1: Live Camera (Normal) */}
                   <button
                     type="button"
-                    onClick={() => setIsCameraOpen(true)}
-                    className="py-3 px-3 bg-zinc-900 hover:bg-zinc-800 active:scale-95 border border-zinc-700 rounded-2xl flex items-center justify-center gap-2 text-xs sm:text-sm font-bold text-white transition-all cursor-pointer shadow-sm"
+                    onClick={handleOpenNormalCamera}
+                    className="py-3 px-2.5 bg-zinc-900 hover:bg-zinc-800 active:scale-95 border border-zinc-700 rounded-2xl flex flex-col items-center justify-center gap-1 text-xs font-bold text-white transition-all cursor-pointer shadow-sm text-center"
                   >
                     <Camera className="w-4 h-4 text-zinc-300" />
                     <span>📸 التقاط صورة</span>
+                    <span className="text-[9px] text-zinc-400 font-normal">بدون تحليل تلقائي</span>
                   </button>
 
+                  {/* Option 2: Live Camera (With AI Analysis) */}
+                  <button
+                    type="button"
+                    onClick={handleOpenAiCamera}
+                    className="py-3 px-2.5 bg-white hover:bg-zinc-200 active:scale-95 text-black rounded-2xl flex flex-col items-center justify-center gap-1 text-xs font-black transition-all cursor-pointer shadow-md text-center"
+                  >
+                    <Sparkles className="w-4 h-4 text-black" />
+                    <span>📸 تصوير + تحليل AI</span>
+                    <span className="text-[9px] text-zinc-700 font-normal">اقتراح الوصف فوراً</span>
+                  </button>
+
+                  {/* Option 3: Upload from Device */}
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="py-3 px-3 bg-zinc-900 hover:bg-zinc-800 active:scale-95 border border-zinc-700 rounded-2xl flex items-center justify-center gap-2 text-xs sm:text-sm font-bold text-white transition-all cursor-pointer shadow-sm"
+                    className="py-3 px-2.5 bg-zinc-900 hover:bg-zinc-800 active:scale-95 border border-zinc-700 rounded-2xl flex flex-col items-center justify-center gap-1 text-xs font-bold text-white transition-all cursor-pointer shadow-sm text-center"
                   >
                     <Upload className="w-4 h-4 text-zinc-300" />
                     <span>🖼️ رفع صورة</span>
+                    <span className="text-[9px] text-zinc-400 font-normal">من الاستوديو</span>
                   </button>
 
                   <input
@@ -389,9 +445,9 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
                   />
                 </div>
               ) : (
-                /* Photo Preview & Actions */
+                /* Photo Preview & Controls */
                 <div className="space-y-3">
-                  <div className="relative w-full aspect-video max-h-56 bg-black rounded-2xl overflow-hidden border border-zinc-700 shadow-md flex items-center justify-center">
+                  <div className="relative w-full aspect-video max-h-48 bg-black rounded-2xl overflow-hidden border border-zinc-700 shadow-md flex items-center justify-center">
                     <img
                       src={imageUrl}
                       alt="معاينة صورة العطل"
@@ -399,12 +455,12 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
                     />
                   </div>
 
-                  {/* Photo Actions Row (Strict Monochrome) */}
+                  {/* Photo Actions Row */}
                   <div className="flex flex-wrap items-center gap-2">
                     <button
                       type="button"
                       disabled={isAnalyzingAi}
-                      onClick={handleAnalyzeWithAi}
+                      onClick={() => runAiAnalysis(imageUrl)}
                       className="flex-1 py-2.5 px-3 bg-white hover:bg-zinc-200 disabled:opacity-50 text-black font-black rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer"
                     >
                       {isAnalyzingAi ? (
@@ -422,11 +478,11 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
 
                     <button
                       type="button"
-                      onClick={() => setIsCameraOpen(true)}
+                      onClick={handleOpenNormalCamera}
                       className="py-2.5 px-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl text-xs font-bold flex items-center gap-1 border border-zinc-700 transition-colors cursor-pointer"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
-                      <span>إعادة التقاط</span>
+                      <span>إعادة تصوير</span>
                     </button>
 
                     <button
@@ -442,9 +498,9 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
                     </button>
                   </div>
 
-                  {/* Multiple AI Vision Suggestions (Optional Helper) */}
+                  {/* Multiple AI Vision Suggestions */}
                   {aiSuggestions.length > 0 && (
-                    <div className="bg-zinc-900 border border-zinc-700 p-3.5 rounded-2xl space-y-2.5 animate-in fade-in duration-200">
+                    <div className="bg-zinc-900 border border-zinc-700 p-3 rounded-2xl space-y-2 animate-in fade-in duration-200">
                       <div className="flex items-center justify-between text-xs font-bold text-white border-b border-zinc-800 pb-1.5">
                         <span className="flex items-center gap-1.5">
                           <Sparkles className="w-4 h-4 text-zinc-300" />
@@ -463,7 +519,7 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
                         {aiSuggestions.map((suggestion, sIdx) => (
                           <div
                             key={sIdx}
-                            className="p-2.5 bg-zinc-950 border border-zinc-800 rounded-xl flex items-center justify-between gap-2 text-xs"
+                            className="p-2 bg-zinc-950 border border-zinc-800 rounded-xl flex items-center justify-between gap-2 text-xs"
                           >
                             <p className="text-zinc-200 leading-relaxed min-w-0 flex-1">
                               <span className="font-bold text-zinc-400 ml-1">#{sIdx + 1}</span>
@@ -501,7 +557,7 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
             </div>
 
             {/* ── 4. Modal Footer Actions (Save Fault) ── */}
-            <div className="pt-3 flex gap-2.5 border-t border-zinc-800">
+            <div className="pt-2 flex gap-2.5 border-t border-zinc-800">
               <button
                 type="button"
                 onClick={onClose}
@@ -533,16 +589,16 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* Live Camera Stream Modal */}
+      {/* Standalone Fullscreen Live Camera (Modal unmounts/hides completely while camera is open) */}
       <FaultCameraModal
         isOpen={isCameraOpen}
         onClose={() => setIsCameraOpen(false)}
-        onCapture={(dataUrl) => {
-          setImageUrl(dataUrl);
-          setIsCameraOpen(false);
-          setAiSuggestions([]);
-        }}
-        title={`تصوير عطل في قسم: ${sectionDef.label}`}
+        onCapture={handleCameraCaptured}
+        title={
+          cameraMode === "ai"
+            ? `تصوير وتحليل AI — ${sectionDef.label}`
+            : `تصوير عطل في قسم: ${sectionDef.label}`
+        }
       />
     </>
   );
