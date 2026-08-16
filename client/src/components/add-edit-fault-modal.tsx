@@ -1,7 +1,12 @@
 // ==============================================================================
 // Add / Edit Fault Modal - High Safety Inspection System
-// Supports: Manual Entry, Fault Library Search, Live Camera, AI Vision, Severity
-// Responsive: Desktop (Spacious), Tablet (Touch Grid), Mobile (Mobile-First)
+// Focused ONLY on:
+// 1. وصف العطل (Fault Description)
+// 2. البحث في مكتبة الأعطال (Search Fault Library)
+// 3. التصوير (Live Camera)
+// 4. رفع الصورة (Upload Photo)
+// 5. تحليل AI بشكل اختياري (Optional AI Analysis)
+// 6. حفظ العطل (Save Fault)
 // ==============================================================================
 
 import React, { useState, useEffect, useRef } from "react";
@@ -10,7 +15,7 @@ import { PhosphorIcon } from "@/components/phosphor-icon";
 import { MAIN_SECTIONS, getMainSectionById, mapLegacyCategoryToMainSection } from "@shared/categories";
 import { FaultCameraModal } from "@/components/fault-camera-modal";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Sparkles, Check, X, Camera, Upload, Trash2, RotateCcw, AlertTriangle, Search } from "lucide-react";
+import { Loader2, Sparkles, Check, X, Camera, Upload, Trash2, RotateCcw, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -29,7 +34,7 @@ interface AddEditFaultModalProps {
   onSave: (faultData: {
     faultName: string;
     sectionId: string;
-    severity: "low" | "medium" | "high" | "critical";
+    severity?: "low" | "medium" | "high" | "critical";
     notes?: string;
     imageUrl?: string | null;
   }) => Promise<void> | void;
@@ -48,22 +53,17 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
     mapLegacyCategoryToMainSection(editItem?.category || initialSectionId)
   );
   const [faultText, setFaultText] = useState("");
-  const [severity, setSeverity] = useState<"low" | "medium" | "high" | "critical">("medium");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Camera & AI Vision state
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isAnalyzingAi, setIsAnalyzingAi] = useState(false);
-  const [aiSuggestion, setAiSuggestion] = useState<{
-    text: string;
-    severity?: "low" | "medium" | "high" | "critical";
-  } | null>(null);
+  const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -74,12 +74,10 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
       if (editItem) {
         setSelectedSection(mapLegacyCategoryToMainSection(editItem.category || initialSectionId));
         setFaultText(editItem.faultName || editItem.notes || "");
-        setSeverity((editItem.severity as any) || "medium");
         setImageUrl(editItem.imageUrl || null);
       } else {
         setSelectedSection(mapLegacyCategoryToMainSection(initialSectionId));
         setFaultText("");
-        setSeverity("medium");
         setImageUrl(null);
       }
       setSearchQuery("");
@@ -89,7 +87,7 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
     }
   }, [isOpen, editItem, initialSectionId]);
 
-  // Debounce search query (300ms)
+  // Debounce search query (280ms)
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery.trim());
@@ -97,7 +95,7 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Search Fault Library Query
+  // Search Fault Library Query (9,000+ faults)
   const { data: searchResults, isLoading: isSearchLoading } = useQuery({
     queryKey: ["/api/fault-library", debouncedSearch],
     queryFn: async () => {
@@ -125,7 +123,7 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
     reader.readAsDataURL(file);
   };
 
-  // Handle AI Vision Image Analysis
+  // Handle AI Vision Image Analysis (Optional)
   const handleAnalyzeWithAi = async () => {
     if (!imageUrl) return;
 
@@ -137,7 +135,7 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
         body: JSON.stringify({
           image: imageUrl,
           section: selectedSection,
-          prompt: "حلل صورة العطل الفني للمركبة واقترح وصفاً دقيقاً ومختصراً للعطل باللغة العربية مع تحديد درجة خطورته (منخفض، متوسط، عالي، حرج).",
+          prompt: "حلل صورة العطل الفني للمركبة واقترح وصفاً فنياً دقيقاً ومختصراً للعطل باللغة العربية.",
         }),
       });
 
@@ -146,15 +144,9 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
       }
 
       const data = await res.json();
-      const suggestedText = data.description || data.text || data.faultName || "يوجد ملاحظة فنية تحتاج للمعاينة";
-      const suggestedSeverity = data.severity || "medium";
+      const suggestedText = data.description || data.text || data.faultName || "ملاحظة فنية تحتاج للمعاينة";
 
-      setAiSuggestion({
-        text: suggestedText,
-        severity: ["low", "medium", "high", "critical"].includes(suggestedSeverity)
-          ? suggestedSeverity
-          : "medium",
-      });
+      setAiSuggestion(suggestedText);
 
       toast({
         title: "✨ تم تحليل الصورة بالذكاء الاصطناعي",
@@ -191,14 +183,14 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
       await onSave({
         faultName: cleanText,
         sectionId: selectedSection,
-        severity,
+        severity: (editItem?.severity as any) || "medium",
         notes: cleanText,
         imageUrl,
       });
 
       toast({
         title: editItem ? "تم تعديل العطل بنجاح" : "✨ تم إضافة العطل بنجاح",
-        description: `تم ربط العطل بقسم: ${sectionDef.label}`,
+        description: `تم حفظ العطل في قسم: ${sectionDef.label}`,
       });
       onClose();
     } catch (err: any) {
@@ -261,10 +253,10 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4 pt-3 text-right" dir="rtl">
-            {/* ── 1. Section Selector Pill Tabs (Quick Switcher) ── */}
+            {/* ── 1. Section Selector (Quick Switcher) ── */}
             <div>
               <label className="block text-xs font-bold text-zinc-400 mb-1.5">
-                تحديد القسم الرئيسي التابع له العطل:
+                تحديد القسم التابع له العطل:
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                 {MAIN_SECTIONS.map((sec) => {
@@ -294,7 +286,7 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
               </div>
             </div>
 
-            {/* ── 2. Fault Library Search Box (Search-First) ── */}
+            {/* ── 2. Fault Library Search (Search-First) ── */}
             <div className="bg-zinc-900/90 border border-zinc-800 p-3 rounded-2xl space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-bold text-zinc-300 flex items-center gap-1.5">
@@ -318,7 +310,7 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="ابحث مثل: تهريب زيت، رش تجميلي، كود، صوت..."
+                  placeholder="ابحث مثل: تهريب زيت، رش تجميلي، كود، صوت، تهريب..."
                   className="w-full bg-zinc-950 border border-zinc-800 focus:border-amber-500 rounded-xl py-2 px-3 text-xs sm:text-sm text-white placeholder-zinc-500 focus:outline-none transition-colors"
                 />
                 {isSearchLoading && (
@@ -338,9 +330,6 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
                         type="button"
                         onClick={() => {
                           setFaultText(item.faultName || item.description || "");
-                          if (item.severity && ["low", "medium", "high", "critical"].includes(item.severity)) {
-                            setSeverity(item.severity);
-                          }
                           setSearchQuery("");
                         }}
                         className="w-full p-2 text-right bg-zinc-950/80 hover:bg-zinc-800/90 border border-zinc-800/60 hover:border-zinc-700 rounded-xl transition-all flex items-center justify-between gap-2 cursor-pointer group"
@@ -369,7 +358,7 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
               )}
             </div>
 
-            {/* ── 3. Fault Description & Notes (Spacious Textarea) ── */}
+            {/* ── 3. Fault Description / Notes (Manual Comfortable Textarea) ── */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-bold text-zinc-300">
@@ -388,14 +377,14 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
               <textarea
                 value={faultText}
                 onChange={(e) => setFaultText(e.target.value)}
-                placeholder="اكتب العطل أو الملاحظة الفنية هنا بكل تفصيل ووضوح..."
+                placeholder="اكتب العطل أو الملاحظة الفنية هنا بكل وضوح..."
                 rows={4}
                 className="w-full bg-zinc-900 border border-zinc-800 focus:border-white rounded-2xl p-3.5 text-sm text-white placeholder-zinc-500 focus:outline-none transition-all resize-y leading-relaxed shadow-inner"
                 required
               />
             </div>
 
-            {/* ── 4. Photo Capture & Upload Section ── */}
+            {/* ── 4. Photo Capture & Upload (Camera / Upload / Optional AI) ── */}
             <div className="bg-zinc-900/90 border border-zinc-800 p-3.5 rounded-2xl space-y-3">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-zinc-300 flex items-center gap-1.5">
@@ -500,14 +489,13 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
                         <span>اقتراح الذكاء الاصطناعي:</span>
                       </div>
                       <p className="text-xs sm:text-sm text-zinc-200 leading-relaxed bg-black/40 p-2.5 rounded-xl border border-white/5">
-                        {aiSuggestion.text}
+                        {aiSuggestion}
                       </p>
                       <div className="flex items-center gap-2 pt-1">
                         <button
                           type="button"
                           onClick={() => {
-                            setFaultText(aiSuggestion.text);
-                            if (aiSuggestion.severity) setSeverity(aiSuggestion.severity);
+                            setFaultText(aiSuggestion);
                             setAiSuggestion(null);
                           }}
                           className="py-1.5 px-3 bg-amber-500 hover:bg-amber-400 text-black text-xs font-black rounded-lg transition-all cursor-pointer"
@@ -517,7 +505,7 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
                         <button
                           type="button"
                           onClick={() => {
-                            setFaultText((prev) => (prev ? `${prev} - ${aiSuggestion.text}` : aiSuggestion.text));
+                            setFaultText((prev) => (prev ? `${prev} - ${aiSuggestion}` : aiSuggestion));
                             setAiSuggestion(null);
                           }}
                           className="py-1.5 px-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold rounded-lg transition-all cursor-pointer"
@@ -538,39 +526,7 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
               )}
             </div>
 
-            {/* ── 5. Severity Selector ── */}
-            <div>
-              <label className="block text-xs font-bold text-zinc-300 mb-1.5">
-                درجة / شدة العطل:
-              </label>
-              <div className="grid grid-cols-4 gap-1.5">
-                {[
-                  { id: "low", label: "منخفض", color: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30" },
-                  { id: "medium", label: "متوسط", color: "bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30" },
-                  { id: "high", label: "عالي", color: "bg-orange-500/20 text-orange-300 border-orange-500/40 hover:bg-orange-500/30" },
-                  { id: "critical", label: "حرج", color: "bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30" },
-                ].map((sev) => {
-                  const isSelected = severity === sev.id;
-                  return (
-                    <button
-                      key={sev.id}
-                      type="button"
-                      onClick={() => setSeverity(sev.id as any)}
-                      className={cn(
-                        "py-2 rounded-xl border text-xs font-bold transition-all text-center cursor-pointer",
-                        isSelected
-                          ? cn(sev.color, "ring-2 ring-white/60 shadow-lg scale-[1.02] font-black")
-                          : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"
-                      )}
-                    >
-                      {sev.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* ── 6. Modal Footer Actions ── */}
+            {/* ── 5. Modal Footer Action (Save Fault) ── */}
             <div className="pt-3 flex gap-2.5 border-t border-zinc-800/80">
               <button
                 type="button"

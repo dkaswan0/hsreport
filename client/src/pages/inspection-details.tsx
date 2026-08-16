@@ -135,11 +135,13 @@ export default function InspectionDetails() {
   const handleSaveFault = async (faultData: {
     faultName: string;
     sectionId: string;
-    severity: "low" | "medium" | "high" | "critical";
+    severity?: "low" | "medium" | "high" | "critical";
     notes?: string;
     imageUrl?: string | null;
   }) => {
     if (!inspection) return;
+
+    const safeSeverity = faultData.severity || "medium";
 
     if (editingFaultItem && editingFaultItem.id) {
       // Update existing item
@@ -148,7 +150,7 @@ export default function InspectionDetails() {
         inspectionId: inspection.id,
         category: faultData.sectionId, // Authoritative section
         faultName: faultData.faultName,
-        severity: faultData.severity,
+        severity: safeSeverity,
         notes: faultData.notes || faultData.faultName,
         imageUrl: faultData.imageUrl || null,
       });
@@ -159,7 +161,7 @@ export default function InspectionDetails() {
         category: faultData.sectionId, // Authoritative section
         faultName: faultData.faultName,
         status: "fail",
-        severity: faultData.severity,
+        severity: safeSeverity,
         notes: faultData.notes || faultData.faultName,
         imageUrl: faultData.imageUrl || null,
       });
@@ -668,16 +670,6 @@ export default function InspectionDetails() {
               /* Fault Cards Grid */
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {activeSectionItems.map((item: InspectionItem) => {
-                  const severityConfig = {
-                    low: { label: "منخفض", bg: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30" },
-                    medium: { label: "متوسط", bg: "bg-amber-500/20 text-amber-300 border-amber-500/30" },
-                    high: { label: "عالي", bg: "bg-orange-500/20 text-orange-300 border-orange-500/30" },
-                    critical: { label: "حرج", bg: "bg-rose-500/20 text-rose-300 border-rose-500/30" },
-                  }[item.severity || "medium"] || {
-                    label: "متوسط",
-                    bg: "bg-amber-500/20 text-amber-300 border-amber-500/30",
-                  };
-
                   return (
                     <div
                       key={item.id}
@@ -686,16 +678,11 @@ export default function InspectionDetails() {
                       {/* Fault Header & Name */}
                       <div className="space-y-1.5">
                         <div className="flex items-center justify-between gap-2">
-                          <span
-                            className={cn(
-                              "text-[10px] font-bold px-2 py-0.5 rounded-full border",
-                              severityConfig.bg
-                            )}
-                          >
-                            {severityConfig.label}
-                          </span>
+                          <h4 className="font-black text-sm sm:text-base text-white leading-snug">
+                            {item.faultName}
+                          </h4>
 
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1 shrink-0">
                             <button
                               type="button"
                               onClick={() => handleOpenEditFault(item)}
@@ -715,9 +702,6 @@ export default function InspectionDetails() {
                           </div>
                         </div>
 
-                        <h4 className="font-black text-sm sm:text-base text-white leading-snug">
-                          {item.faultName}
-                        </h4>
                         {item.notes && item.notes !== item.faultName && (
                           <p className="text-xs text-zinc-400 leading-relaxed font-arabic">
                             {item.notes}
