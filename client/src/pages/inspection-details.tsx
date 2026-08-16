@@ -14,6 +14,7 @@ import { useInspection, useCreateInspectionItem, useDeleteInspectionItem, useUpd
 import { MAIN_SECTIONS, getMainSectionById, mapLegacyCategoryToMainSection } from "@shared/categories";
 import { AddEditFaultModal } from "@/components/add-edit-fault-modal";
 import { VinSectionCard } from "@/components/vin-section-card";
+import { ReportMediaManager } from "@/components/report-media-manager";
 import { PhosphorIcon } from "@/components/phosphor-icon";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useToast } from "@/hooks/use-toast";
@@ -383,6 +384,11 @@ export default function InspectionDetails() {
               });
             }}
           />
+
+          {/* General Report Media Manager (Video & General Vehicle Photos) */}
+          <div className="bg-zinc-950 rounded-3xl p-4 sm:p-5 border border-zinc-800 shadow-xl space-y-3">
+            <ReportMediaManager inspection={inspection} />
+          </div>
         </section>
 
         {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

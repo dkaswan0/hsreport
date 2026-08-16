@@ -144,9 +144,11 @@ export class DatabaseStorage implements IStorage {
 
   async createInspection(inspection: InsertInspection): Promise<Inspection> {
     const cleanVin = (inspection.vin || "").trim() || `DRAFT-${Date.now()}`;
+    const token = crypto.randomUUID().replace(/-/g, '');
     const cleanData = {
       ...inspection,
       vin: cleanVin,
+      shareToken: inspection.shareToken || token,
       make: inspection.make || "غير محدد",
       model: inspection.model || "غير محدد",
       year: inspection.year || new Date().getFullYear(),
@@ -197,6 +199,14 @@ export class DatabaseStorage implements IStorage {
     for (const [key, value] of Object.entries(updates)) {
       if (allowedColumns.has(key)) {
         sanitizedUpdates[key] = value;
+      }
+    }
+
+    // If status is completed and no shareToken yet, ensure one is generated
+    if (sanitizedUpdates.status === 'completed' && !sanitizedUpdates.shareToken) {
+      const existing = await this.getInspection(id);
+      if (existing && !existing.shareToken) {
+        sanitizedUpdates.shareToken = crypto.randomUUID().replace(/-/g, '');
       }
     }
 
