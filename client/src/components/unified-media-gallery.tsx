@@ -1,7 +1,13 @@
 // ==============================================================================
-// Unified Media Gallery Component (Interactive Main Viewer & Lightbox)
-// High Safety International Center - Inspection Report Media System
-// Supports: Pinch-to-Zoom, Double Tap, Pan on Zoom, Touch Swipe Navigation, Video
+// Unified Media Gallery Component - Clean Automotive Viewer for Customer Report
+// Visual Standard: Pure, Unobstructed Content (ZERO Overlays on Image or Video)
+// Features:
+// - Video #1 with Native HTML5 Controls (No custom overlays)
+// - Pure Image View with object-fit: contain (No cropping, No filters)
+// - Touch: Natural Swipe Left (Next) / Swipe Right (Prev), 2-Finger Pinch Zoom, Double Tap, Pan on Zoom
+// - Desktop: Mouse Wheel Zoom, Mouse Drag Pan/Swipe, Keyboard Arrow Keys
+// - Clean Thumbnails Strip Below Viewer (Scrollable on Mobile/Tablet/Desktop)
+// - NO Arrows, NO Black Circles, NO Floating Badges, NO Counters Over The Car Image
 // ==============================================================================
 
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
@@ -22,7 +28,7 @@ export interface MediaGalleryItem {
  * Normalizes media list from inspection object:
  * 1. Checks `inspection.mediaGallery` array
  * 2. Checks top-level `inspection.videoUrl`
- * 3. Checks legacy slot fields (`mainCarPhoto`, `exterior...`)
+ * 3. Checks legacy slot fields (`mainCarPhoto`, `vinPhoto`, etc.)
  * 4. Ensures strict sorting: Video always at index #0, photos ascending
  */
 export function extractInspectionMedia(inspection: any): MediaGalleryItem[] {
@@ -97,7 +103,7 @@ export function extractInspectionMedia(inspection: any): MediaGalleryItem[] {
     }
   });
 
-  // Sort strictly: Video at index 0, followed by photos in ascending sortOrder
+  // Sort strictly: Video at index 0, followed by photos in ascending order
   return mediaList.sort((a, b) => {
     if (a.type === "video" && b.type !== "video") return -1;
     if (b.type === "video" && a.type !== "video") return 1;
@@ -106,7 +112,7 @@ export function extractInspectionMedia(inspection: any): MediaGalleryItem[] {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Interactive Image Display Component with Zoom, Pinch, Double-Tap, Pan & Swipe
+// Interactive Image Display Component (Pure Clean View — ZERO Overlays)
 // ─────────────────────────────────────────────────────────────────────────────
 interface InteractiveImageViewerProps {
   src: string;
@@ -114,7 +120,6 @@ interface InteractiveImageViewerProps {
   onNext?: () => void;
   onPrev?: () => void;
   onOpenLightbox?: () => void;
-  isLightboxMode?: boolean;
 }
 
 const InteractiveImageViewer: React.FC<InteractiveImageViewerProps> = ({
@@ -123,7 +128,6 @@ const InteractiveImageViewer: React.FC<InteractiveImageViewerProps> = ({
   onNext,
   onPrev,
   onOpenLightbox,
-  isLightboxMode = false,
 }) => {
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -135,9 +139,9 @@ const InteractiveImageViewer: React.FC<InteractiveImageViewerProps> = ({
   const touchDistRef = useRef<number | null>(null);
   const isPinchingRef = useRef(false);
   const lastTapTimeRef = useRef<number>(0);
-  const mouseDragStartRef = useRef<{ x: number; y: number } | null>(null);
+  const mouseDragStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
 
-  // Reset transform when image source changes
+  // Reset transform when image changes
   useEffect(() => {
     setScale(1);
     setPosition({ x: 0, y: 0 });
@@ -174,7 +178,7 @@ const InteractiveImageViewer: React.FC<InteractiveImageViewerProps> = ({
       isPinchingRef.current = true;
       setIsPanning(false);
     } else if (e.touches.length === 1) {
-      // Single touch (could be swipe or pan or double-tap)
+      // Single touch (swipe or pan or double-tap)
       const touch = e.touches[0];
       touchStartRef.current = {
         x: touch.clientX,
@@ -193,7 +197,7 @@ const InteractiveImageViewer: React.FC<InteractiveImageViewerProps> = ({
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (e.touches.length === 2 && isPinchingRef.current) {
-      // Pinch to zoom in/out
+      // Pinching in / out
       const dist = Math.hypot(
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY
@@ -242,11 +246,11 @@ const InteractiveImageViewer: React.FC<InteractiveImageViewerProps> = ({
       const deltaY = touchEnd.clientY - touchStart.y;
       const distance = Math.hypot(deltaX, deltaY);
 
-      // Check for Double Tap (Quick 2 taps with minimal movement)
+      // Check for Double Tap (Quick 2 taps -> zoom in to 2.5x or reset to 1x)
       if (distance < 20 && touchDuration < 250) {
         const timeSinceLastTap = now - lastTapTimeRef.current;
         if (timeSinceLastTap < 300) {
-          // Double Tap Triggered!
+          // Double Tap Triggered
           if (scale > 1.05) {
             setScale(1);
             setPosition({ x: 0, y: 0 });
@@ -263,10 +267,10 @@ const InteractiveImageViewer: React.FC<InteractiveImageViewerProps> = ({
       // Check for Swipe Navigation (ONLY when NOT zoomed in)
       if (scale <= 1.05 && Math.abs(deltaX) > 40 && Math.abs(deltaX) > Math.abs(deltaY) && touchDuration < 600) {
         if (deltaX < 0) {
-          // Swiped Left -> Next Image
+          // Swiped Left -> Next Image (الصورة التالية)
           if (onNext) onNext();
         } else {
-          // Swiped Right -> Previous Image
+          // Swiped Right -> Previous Image (الصورة السابقة)
           if (onPrev) onPrev();
         }
       }
@@ -275,7 +279,7 @@ const InteractiveImageViewer: React.FC<InteractiveImageViewerProps> = ({
     touchStartRef.current = null;
   };
 
-  // ── Desktop Mouse Gestures (Wheel Zoom & Drag Pan) ──
+  // ── Desktop Mouse Gestures (Wheel Zoom, Drag Pan / Drag Swipe) ──
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -292,28 +296,50 @@ const InteractiveImageViewer: React.FC<InteractiveImageViewerProps> = ({
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    mouseDragStartRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      time: Date.now(),
+    };
+    dragStartRef.current = {
+      x: e.clientX - position.x,
+      y: e.clientY - position.y,
+    };
     if (scale > 1.05) {
-      e.preventDefault();
-      mouseDragStartRef.current = {
-        x: e.clientX - position.x,
-        y: e.clientY - position.y,
-      };
       setIsPanning(true);
     }
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (scale > 1.05 && mouseDragStartRef.current && isPanning) {
+    if (scale > 1.05 && isPanning) {
       e.preventDefault();
-      const newX = e.clientX - mouseDragStartRef.current.x;
-      const newY = e.clientY - mouseDragStartRef.current.y;
+      const newX = e.clientX - dragStartRef.current.x;
+      const newY = e.clientY - dragStartRef.current.y;
       setPosition(clampPosition(newX, newY, scale));
     }
   };
 
-  const handleMouseUp = () => {
+  const handleMouseUp = (e: React.MouseEvent) => {
+    const mouseStart = mouseDragStartRef.current;
     mouseDragStartRef.current = null;
     setIsPanning(false);
+
+    if (mouseStart && scale <= 1.05) {
+      const deltaX = e.clientX - mouseStart.x;
+      const deltaY = e.clientY - mouseStart.y;
+      const duration = Date.now() - mouseStart.time;
+
+      if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY) && duration < 500) {
+        if (deltaX < 0) {
+          // Dragged Left -> Next
+          if (onNext) onNext();
+        } else {
+          // Dragged Right -> Previous
+          if (onPrev) onPrev();
+        }
+      }
+    }
   };
 
   const handleDoubleClick = () => {
@@ -330,7 +356,7 @@ const InteractiveImageViewer: React.FC<InteractiveImageViewerProps> = ({
     <div
       ref={containerRef}
       className={cn(
-        "relative w-full h-full flex items-center justify-center overflow-hidden select-none touch-none",
+        "relative w-full h-full flex items-center justify-center overflow-hidden select-none touch-none bg-black",
         scale > 1.05 ? (isPanning ? "cursor-grabbing" : "cursor-grab") : "cursor-pointer"
       )}
       onTouchStart={handleTouchStart}
@@ -344,7 +370,7 @@ const InteractiveImageViewer: React.FC<InteractiveImageViewerProps> = ({
       onDoubleClick={handleDoubleClick}
       data-testid="interactive-image-viewer"
     >
-      {/* Zoomed / Panned Image */}
+      {/* Pure Image — object-fit: contain, ZERO cropped edges, ZERO overlays */}
       <img
         src={src}
         alt={alt}
@@ -357,74 +383,12 @@ const InteractiveImageViewer: React.FC<InteractiveImageViewerProps> = ({
         className="w-full h-full max-h-full max-w-full object-contain pointer-events-none"
         loading="eager"
       />
-
-      {/* Floating Interactive Zoom Toolbar */}
-      <div
-        className="absolute bottom-3 left-3 flex items-center gap-1.5 bg-black/75 backdrop-blur-md px-2 py-1 rounded-xl border border-white/10 shadow-xl z-20"
-        onClick={(e) => e.stopPropagation()}
-        onMouseDown={(e) => e.stopPropagation()}
-        onTouchStart={(e) => e.stopPropagation()}
-      >
-        <button
-          type="button"
-          onClick={() => {
-            setScale((prev) => {
-              const next = Math.max(prev - 0.5, 1);
-              if (next <= 1.05) setPosition({ x: 0, y: 0 });
-              return next;
-            });
-          }}
-          disabled={scale <= 1.05}
-          className="p-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-all cursor-pointer active:scale-95"
-          title="تصغير (-)"
-        >
-          <PhosphorIcon name="magnifying-glass-minus" weight="bold" size={14} />
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            setScale(1);
-            setPosition({ x: 0, y: 0 });
-          }}
-          className="px-2 py-0.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 font-mono text-[11px] font-bold text-white transition-all cursor-pointer active:scale-95"
-          title="إعادة ضبط الحجم (100%)"
-        >
-          {Math.round(scale * 100)}%
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            setScale((prev) => {
-              const next = Math.min(prev + 0.5, 4);
-              return next;
-            });
-          }}
-          disabled={scale >= 4}
-          className="p-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-all cursor-pointer active:scale-95"
-          title="تكبير (+)"
-        >
-          <PhosphorIcon name="magnifying-glass-plus" weight="bold" size={14} />
-        </button>
-
-        {!isLightboxMode && onOpenLightbox && (
-          <button
-            type="button"
-            onClick={onOpenLightbox}
-            className="p-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white transition-all cursor-pointer active:scale-95 border-r border-zinc-700 mr-0.5 pr-1.5"
-            title="عرض بالحجم الكامل"
-          >
-            <PhosphorIcon name="arrows-out" weight="bold" size={14} />
-          </button>
-        )}
-      </div>
     </div>
   );
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Unified Media Gallery Component
+// Unified Media Gallery Main Component (Strict Customer Luxury Standard)
 // ─────────────────────────────────────────────────────────────────────────────
 interface UnifiedMediaGalleryProps {
   inspection: any;
@@ -444,7 +408,7 @@ export const UnifiedMediaGallery: React.FC<UnifiedMediaGalleryProps> = ({
   const activeThumbnailRef = useRef<HTMLButtonElement>(null);
   const videoPlayerRef = useRef<HTMLVideoElement>(null);
 
-  // Stats calculation
+  // Stats calculation (Clean outside the viewer area)
   const videoCount = useMemo(() => mediaList.filter((m) => m.type === "video").length, [mediaList]);
   const photoCount = useMemo(() => mediaList.filter((m) => m.type === "image").length, [mediaList]);
 
@@ -476,15 +440,7 @@ export const UnifiedMediaGallery: React.FC<UnifiedMediaGalleryProps> = ({
     setActiveIndex((prev) => (prev - 1 + mediaList.length) % mediaList.length);
   }, [mediaList.length]);
 
-  // Scroll thumbnails horizontally
-  const handleScrollThumbnails = (direction: "left" | "right") => {
-    if (thumbnailsContainerRef.current) {
-      const scrollAmount = direction === "left" ? -280 : 280;
-      thumbnailsContainerRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
-    }
-  };
-
-  // Keyboard navigation
+  // Keyboard navigation (ArrowLeft, ArrowRight, Escape)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -508,57 +464,65 @@ export const UnifiedMediaGallery: React.FC<UnifiedMediaGalleryProps> = ({
 
   return (
     <div
-      className={cn("bg-white rounded-2xl shadow-xs border border-zinc-200 overflow-hidden", className)}
+      className={cn("bg-zinc-950 rounded-3xl shadow-xl border border-zinc-800 overflow-hidden font-arabic", className)}
       data-testid="unified-media-gallery"
       dir="rtl"
     >
-      {/* ── Section Header ── */}
-      <div className="bg-zinc-950 text-white px-3.5 py-2.5 sm:px-4 sm:py-2.5 flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800">
-        <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
-          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 shadow-inner">
-            <PhosphorIcon name="video-camera" weight="bold" size={18} className="text-white sm:text-[22px]" />
+      {/* ── Section Header (Completely OUTSIDE Viewer Area) ── */}
+      <div className="bg-zinc-950 text-white px-4 py-3 sm:px-5 sm:py-3.5 flex items-center justify-between gap-2 border-b border-zinc-800">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-zinc-900 border border-zinc-700 flex items-center justify-center text-white shadow-inner">
+            <PhosphorIcon name="video-camera" weight="bold" size={18} />
           </div>
-          <div className="flex flex-wrap items-baseline gap-1.5 sm:gap-2">
-            <span className="text-white font-black text-sm sm:text-base md:text-xl font-arabic">
-              معرض الصور والفيديو
-            </span>
-            <span className="text-zinc-400 text-[11px] sm:text-xs md:text-sm font-mono font-semibold">
-              | Vehicle Media Gallery
-            </span>
+          <div>
+            <h3 className="font-bold text-sm sm:text-base text-white">معرض الصور والفيديو</h3>
+            <p className="text-[10px] sm:text-xs text-zinc-400 font-mono" dir="ltr">
+              Vehicle Media Gallery
+            </p>
           </div>
         </div>
 
-        {/* Count Badges */}
-        <div className="flex items-center gap-1.5 font-mono text-xs">
-          {videoCount > 0 && (
-            <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full text-[11px] font-bold flex items-center gap-1">
-              <PhosphorIcon name="play" weight="fill" size={10} />
-              <span>{videoCount} فيديو</span>
+        {/* Media Counts & Fullscreen trigger (Outside Viewer) */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 font-mono text-xs">
+            {videoCount > 0 && (
+              <span className="bg-zinc-900 text-zinc-200 border border-zinc-700 px-2.5 py-0.5 rounded-full text-[11px] font-bold">
+                {videoCount} فيديو
+              </span>
+            )}
+            <span className="bg-zinc-900 text-zinc-200 border border-zinc-700 px-2.5 py-0.5 rounded-full text-[11px] font-bold">
+              {photoCount} صورة
             </span>
-          )}
-          <span className="bg-zinc-900 border border-zinc-800 text-zinc-300 px-2.5 py-0.5 rounded-full text-[11px] font-bold">
-            {photoCount} صورة
-          </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsLightboxOpen(true)}
+            className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-white transition-colors cursor-pointer"
+            title="عرض بالحجم الكامل"
+            data-testid="btn-open-fullscreen-gallery"
+          >
+            <PhosphorIcon name="arrows-out" weight="bold" size={16} />
+          </button>
         </div>
       </div>
 
-      {/* ── Main Media Display Container ── */}
-      <div className="p-3 sm:p-4 md:p-5 bg-zinc-900 space-y-3">
-        {/* Main 16:9 Responsive Viewer with Object Contain */}
-        <div className="relative w-full aspect-video max-h-[520px] bg-black rounded-2xl overflow-hidden border border-zinc-800 shadow-2xl flex items-center justify-center select-none group">
+      {/* ── Main Media Display Container (Pure View — ZERO Overlays Over Content) ── */}
+      <div className="p-2 sm:p-4 bg-black space-y-3">
+        {/* Main 16:9 Responsive Viewer Area */}
+        <div className="relative w-full aspect-[16/10] sm:aspect-video max-h-[540px] bg-black rounded-2xl overflow-hidden border border-zinc-800 shadow-2xl flex items-center justify-center select-none">
           {activeMedia?.type === "video" ? (
-            <div className="relative w-full h-full flex items-center justify-center bg-black">
-              <video
-                ref={videoPlayerRef}
-                key={activeMedia.url}
-                src={activeMedia.url}
-                controls
-                playsInline
-                preload="metadata"
-                className="w-full h-full max-h-full max-w-full object-contain"
-                data-testid="main-gallery-video"
-              />
-            </div>
+            <video
+              ref={videoPlayerRef}
+              key={activeMedia.url}
+              src={activeMedia.url}
+              controls
+              playsInline
+              preload="metadata"
+              autoPlay={false}
+              className="w-full h-full max-h-full max-w-full object-contain bg-black"
+              data-testid="main-gallery-video"
+            />
           ) : (
             <InteractiveImageViewer
               key={activeMedia.url}
@@ -569,183 +533,77 @@ export const UnifiedMediaGallery: React.FC<UnifiedMediaGalleryProps> = ({
               onOpenLightbox={() => setIsLightboxOpen(true)}
             />
           )}
-
-          {/* Top Overlays */}
-          <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none z-10">
-            {/* Top Right: Media Name */}
-            <div className="bg-black/75 backdrop-blur-md text-white text-xs sm:text-sm font-bold font-arabic px-3 py-1.5 rounded-xl border border-white/10 shadow-lg flex items-center gap-2 max-w-[65%] truncate">
-              {activeMedia?.type === "video" ? (
-                <PhosphorIcon name="video-camera" weight="bold" size={14} className="text-amber-400 shrink-0" />
-              ) : (
-                <PhosphorIcon name="camera" weight="bold" size={14} className="text-zinc-300 shrink-0" />
-              )}
-              <span className="truncate">{activeMedia?.name || `صورة ${activeIndex + 1}`}</span>
-            </div>
-
-            {/* Top Left: Counter & Fullscreen trigger */}
-            <div className="flex items-center gap-1.5 pointer-events-auto">
-              <span className="bg-black/75 backdrop-blur-md text-white font-mono text-xs font-black px-2.5 py-1.5 rounded-xl border border-white/10 shadow-lg">
-                {activeIndex + 1} / {mediaList.length}
-              </span>
-              {activeMedia?.type === "image" && (
-                <button
-                  type="button"
-                  onClick={() => setIsLightboxOpen(true)}
-                  className="p-1.5 bg-black/75 hover:bg-black text-white rounded-xl border border-white/10 shadow-lg transition-all cursor-pointer hover:scale-105 active:scale-95"
-                  title="تكبير الصورة بالحجم الكامل"
-                  data-testid="btn-open-lightbox"
-                >
-                  <PhosphorIcon name="arrows-out" weight="bold" size={16} />
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Overlay Navigation Arrows for Main Viewer */}
-          {mediaList.length > 1 && (
-            <>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handlePrev();
-                }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center border border-white/10 shadow-xl backdrop-blur-sm transition-all cursor-pointer active:scale-95 hover:scale-105 opacity-80 group-hover:opacity-100 z-10"
-                title="السابق"
-                data-testid="btn-main-gallery-prev"
-              >
-                <PhosphorIcon name="caret-right" weight="bold" size={20} />
-              </button>
-
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleNext();
-                }}
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center border border-white/10 shadow-xl backdrop-blur-sm transition-all cursor-pointer active:scale-95 hover:scale-105 opacity-80 group-hover:opacity-100 z-10"
-                title="التالي"
-                data-testid="btn-main-gallery-next"
-              >
-                <PhosphorIcon name="caret-left" weight="bold" size={20} />
-              </button>
-            </>
-          )}
         </div>
 
-        {/* ── Horizontal Scrollable Thumbnails Strip ── */}
-        <div className="relative flex items-center gap-1.5 pt-1">
-          {/* Scroll Left Button */}
-          <button
-            type="button"
-            onClick={() => handleScrollThumbnails("left")}
-            className="hidden sm:flex w-8 h-14 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white items-center justify-center border border-zinc-700 shrink-0 transition-colors shadow-sm cursor-pointer"
-            title="تمرير لليمين"
-          >
-            <PhosphorIcon name="caret-right" weight="bold" size={18} />
-          </button>
+        {/* ── Horizontal Thumbnails Strip (Strictly BELOW Viewer) ── */}
+        <div
+          ref={thumbnailsContainerRef}
+          className="flex items-center gap-2 overflow-x-auto py-1 px-1 scrollbar-thin scrollbar-thumb-zinc-700 select-none scroll-smooth"
+          style={{ WebkitOverflowScrolling: "touch" }}
+          data-testid="gallery-thumbnails-strip"
+        >
+          {mediaList.map((item, idx) => {
+            const isActive = idx === activeIndex;
 
-          {/* Thumbnails Container */}
-          <div
-            ref={thumbnailsContainerRef}
-            className="flex-1 flex items-center gap-2 overflow-x-auto py-1.5 px-0.5 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-zinc-900 select-none scroll-smooth"
-            style={{ WebkitOverflowScrolling: "touch" }}
-            data-testid="gallery-thumbnails-strip"
-          >
-            {mediaList.map((item, idx) => {
-              const isActive = idx === activeIndex;
-
-              return (
-                <button
-                  key={item.id || idx}
-                  ref={isActive ? activeThumbnailRef : null}
-                  type="button"
-                  onClick={() => setActiveIndex(idx)}
-                  className={cn(
-                    "relative shrink-0 w-20 h-14 sm:w-24 sm:h-16 rounded-xl overflow-hidden border-2 transition-all cursor-pointer bg-zinc-950 flex items-center justify-center group",
-                    isActive
-                      ? "border-white ring-2 ring-white/50 scale-105 shadow-xl opacity-100"
-                      : "border-zinc-800 hover:border-zinc-500 opacity-60 hover:opacity-100"
-                  )}
-                  title={item.name || `عنصر ${idx + 1}`}
-                  data-testid={`gallery-thumb-${idx}`}
-                >
-                  {item.type === "video" ? (
-                    <div className="relative w-full h-full bg-zinc-900 flex flex-col items-center justify-center text-white p-1">
-                      <div className="w-6 h-6 rounded-full bg-amber-500/90 text-black flex items-center justify-center shadow-md">
-                        <PhosphorIcon name="play" weight="fill" size={12} />
-                      </div>
-                      <span className="text-[9px] font-bold font-arabic mt-0.5 truncate max-w-full">
-                        فيديو
-                      </span>
+            return (
+              <button
+                key={item.id || idx}
+                ref={isActive ? activeThumbnailRef : null}
+                type="button"
+                onClick={() => setActiveIndex(idx)}
+                className={cn(
+                  "relative shrink-0 w-16 h-12 sm:w-20 sm:h-14 rounded-xl overflow-hidden border-2 transition-all cursor-pointer bg-zinc-950 flex items-center justify-center",
+                  isActive
+                    ? "border-white ring-2 ring-white/60 scale-105 opacity-100 shadow-md"
+                    : "border-zinc-800 hover:border-zinc-600 opacity-60 hover:opacity-100"
+                )}
+                title={item.name || `عنصر ${idx + 1}`}
+                data-testid={`gallery-thumb-${idx}`}
+              >
+                {item.type === "video" ? (
+                  <div className="relative w-full h-full bg-zinc-900 flex flex-col items-center justify-center text-white p-1">
+                    <div className="w-5 h-5 rounded-full bg-white text-black flex items-center justify-center shadow-sm">
+                      <PhosphorIcon name="play" weight="fill" size={10} />
                     </div>
-                  ) : (
-                    <img
-                      src={item.thumbnailUrl || item.url}
-                      alt={item.name || `مصغرة ${idx + 1}`}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                  )}
-
-                  {/* Index badge */}
-                  <span className="absolute bottom-0.5 right-0.5 bg-black/80 font-mono text-[9px] font-bold text-white px-1 rounded-sm leading-tight">
-                    {idx + 1}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Scroll Right Button */}
-          <button
-            type="button"
-            onClick={() => handleScrollThumbnails("right")}
-            className="hidden sm:flex w-8 h-14 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white items-center justify-center border border-zinc-700 shrink-0 transition-colors shadow-sm cursor-pointer"
-            title="تمرير لليسار"
-          >
-            <PhosphorIcon name="caret-left" weight="bold" size={18} />
-          </button>
+                    <span className="text-[8px] font-bold font-arabic mt-0.5 truncate">
+                      فيديو
+                    </span>
+                  </div>
+                ) : (
+                  <img
+                    src={item.thumbnailUrl || item.url}
+                    alt={item.name || `مصغرة ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* ── Fullscreen Lightbox Modal ── */}
+      {/* ── Fullscreen Lightbox Modal (Pure Clean View — ZERO Overlays Over Content) ── */}
       {isLightboxOpen && (
         <div
-          className="fixed inset-0 bg-black/95 z-[999999] flex flex-col items-center justify-between p-2 sm:p-4 select-none animate-in fade-in duration-200"
+          className="fixed inset-0 bg-black/98 z-[999999] flex flex-col items-center justify-between p-2 sm:p-4 select-none animate-in fade-in duration-200"
           onClick={() => setIsLightboxOpen(false)}
           data-testid="fullscreen-media-lightbox"
           dir="rtl"
         >
-          {/* Top Floating Control Bar */}
+          {/* Top Bar: Close Button Only (Completely Outside the Viewer) */}
           <div
-            className="w-full max-w-5xl px-3 py-2.5 bg-black/80 backdrop-blur-md rounded-2xl border border-zinc-800 flex items-center justify-between gap-3 text-white z-20"
+            className="w-full max-w-6xl px-3 py-2 flex items-center justify-between text-white z-20"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Title & Counter */}
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-zinc-900 border border-zinc-700 flex items-center justify-center shrink-0">
-                {activeMedia?.type === "video" ? (
-                  <PhosphorIcon name="video-camera" weight="bold" size={16} className="text-amber-400" />
-                ) : (
-                  <PhosphorIcon name="camera" weight="bold" size={16} className="text-zinc-300" />
-                )}
-              </div>
-              <div className="min-w-0">
-                <h3 className="font-bold text-sm sm:text-base font-arabic truncate">
-                  {activeMedia?.name || `صورة ${activeIndex + 1}`}
-                </h3>
-                <p className="text-zinc-400 font-mono text-xs">
-                  {activeIndex + 1} / {mediaList.length}
-                </p>
-              </div>
+            <div className="text-xs sm:text-sm font-bold text-zinc-400 font-mono">
+              {activeIndex + 1} / {mediaList.length}
             </div>
 
-            {/* Close Button */}
             <button
               type="button"
               onClick={() => setIsLightboxOpen(false)}
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-zinc-800 hover:bg-zinc-700 text-white flex items-center justify-center border border-zinc-600 transition-all cursor-pointer shadow-lg active:scale-95"
+              className="p-2 rounded-full bg-zinc-900 hover:bg-zinc-800 text-white border border-zinc-700 transition-all cursor-pointer shadow-lg active:scale-95"
               title="إغلاق (ESC)"
               data-testid="btn-close-lightbox"
             >
@@ -753,9 +611,9 @@ export const UnifiedMediaGallery: React.FC<UnifiedMediaGalleryProps> = ({
             </button>
           </div>
 
-          {/* Lightbox Center Content */}
+          {/* Lightbox Center Content (Pure Media) */}
           <div
-            className="relative flex-1 w-full max-w-6xl flex items-center justify-center p-2 overflow-hidden my-auto"
+            className="relative flex-1 w-full max-w-6xl flex items-center justify-center p-1 overflow-hidden my-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {activeMedia?.type === "video" ? (
@@ -764,7 +622,8 @@ export const UnifiedMediaGallery: React.FC<UnifiedMediaGalleryProps> = ({
                 src={activeMedia.url}
                 controls
                 playsInline
-                className="max-w-[95vw] max-h-[75vh] object-contain rounded-2xl shadow-2xl border border-zinc-800"
+                autoPlay={false}
+                className="max-w-[95vw] max-h-[80vh] object-contain rounded-2xl shadow-2xl bg-black"
               />
             ) : (
               <InteractiveImageViewer
@@ -773,37 +632,13 @@ export const UnifiedMediaGallery: React.FC<UnifiedMediaGalleryProps> = ({
                 alt={activeMedia.name || `صورة ${activeIndex + 1}`}
                 onNext={handleNext}
                 onPrev={handlePrev}
-                isLightboxMode={true}
               />
-            )}
-
-            {/* Left & Right Navigation Floating Buttons */}
-            {mediaList.length > 1 && (
-              <>
-                <button
-                  type="button"
-                  onClick={handlePrev}
-                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center border border-white/20 shadow-2xl backdrop-blur-md transition-all cursor-pointer active:scale-95 z-20"
-                  title="السابق (السهم الأيمن)"
-                >
-                  <PhosphorIcon name="caret-right" weight="bold" size={24} />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center border border-white/20 shadow-2xl backdrop-blur-md transition-all cursor-pointer active:scale-95 z-20"
-                  title="التالي (السهم الأيسر)"
-                >
-                  <PhosphorIcon name="caret-left" weight="bold" size={24} />
-                </button>
-              </>
             )}
           </div>
 
-          {/* Lightbox Bottom Quick Strip */}
+          {/* Lightbox Bottom Thumbnails Strip (Outside Image Area) */}
           <div
-            className="w-full max-w-3xl flex items-center justify-center gap-1.5 overflow-x-auto py-2 px-3 bg-black/60 backdrop-blur-md rounded-2xl border border-zinc-800/80 z-20"
+            className="w-full max-w-4xl flex items-center justify-center gap-1.5 overflow-x-auto py-2 px-3 bg-zinc-950/80 backdrop-blur-md rounded-2xl border border-zinc-800 z-20"
             onClick={(e) => e.stopPropagation()}
           >
             {mediaList.map((item, idx) => (
@@ -815,11 +650,11 @@ export const UnifiedMediaGallery: React.FC<UnifiedMediaGalleryProps> = ({
                   "relative w-12 h-9 rounded-lg overflow-hidden border transition-all shrink-0 cursor-pointer",
                   idx === activeIndex
                     ? "border-white ring-2 ring-white scale-110 opacity-100"
-                    : "border-zinc-700 opacity-50 hover:opacity-100"
+                    : "border-zinc-800 opacity-50 hover:opacity-100"
                 )}
               >
                 {item.type === "video" ? (
-                  <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-amber-400">
+                  <div className="w-full h-full bg-zinc-900 flex items-center justify-center text-white">
                     <PhosphorIcon name="play" weight="fill" size={10} />
                   </div>
                 ) : (
