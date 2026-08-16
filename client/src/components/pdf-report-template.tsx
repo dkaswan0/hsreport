@@ -452,17 +452,6 @@ export const PdfFindingCard = ({
           <span style={{ fontSize: isFullWidth ? '10px' : '8.5px', fontWeight: 'bold', color: BRAND.black }}>
             {item.category || 'فحص عام'}
           </span>
-          <span style={{ 
-            fontSize: '7.5px', 
-            fontWeight: 'bold', 
-            backgroundColor: badge.bg, 
-            color: badge.text, 
-            border: `1px solid ${badge.border}`, 
-            padding: '1px 5px', 
-            borderRadius: '4px' 
-          }}>
-            {badge.labelAr}
-          </span>
         </div>
 
         <h4 style={{ 

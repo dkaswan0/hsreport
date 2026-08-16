@@ -1065,11 +1065,6 @@ const InspectionResults = ({
                             <h4 className="font-bold text-zinc-950 font-arabic text-sm sm:text-base md:text-lg leading-snug">
                               {titleAr}
                             </h4>
-                            {item.severity && (
-                              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-md border shrink-0 bg-zinc-100 text-zinc-900 border-zinc-300">
-                                {item.severity}
-                              </span>
-                            )}
                           </div>
 
                           {item.description && (

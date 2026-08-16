@@ -433,11 +433,6 @@ export const MobileReportView: React.FC<MobileReportViewProps> = ({
                           <h4 className="text-xs sm:text-sm font-bold text-zinc-950 font-arabic leading-snug">
                             {titleAr}
                           </h4>
-                          {item.severity && (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-zinc-100 text-zinc-900 border border-zinc-300 shrink-0">
-                              {item.severity}
-                            </span>
-                          )}
                         </div>
                         {item.description && (
                           <p className="text-xs text-zinc-800 font-arabic leading-relaxed">
