@@ -26,7 +26,7 @@ import logoPath from "@assets/hs-logo.png";
 import hsCarBranding from "@assets/hs_car_branding.png";
 import { VinPlate } from "@/components/vin-plate";
 import type { Inspection, InspectionItem } from "@shared/schema";
-import { INSPECTION_CATEGORIES } from "@shared/categories";
+import { MAIN_SECTIONS, getMainSectionById, mapLegacyCategoryToMainSection } from "@shared/categories";
 import { IntroAnimation } from "@/components/intro-animation";
 import { MobileReportView } from "@/components/mobile-report-view";
 import { UnifiedMediaGallery } from "@/components/unified-media-gallery";
@@ -343,64 +343,49 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
   );
 };
 
-// Helper to group findings by category
+// Helper to group findings strictly under the 6 Canonical Main Sections
 interface CategoryGroup {
   id: string;
   labelAr: string;
   labelEn: string;
   iconName: string;
+  color?: string;
   items: any[];
 }
 
 function groupInspectionItemsByCategory(items: any[]): CategoryGroup[] {
   const groupsMap = new Map<string, CategoryGroup>();
 
-  const getGroupMeta = (category: string) => {
-    const c = (category || '').toLowerCase();
-    if (c.includes('door') || c.includes('hood') || c.includes('trunk') || c.includes('fender') || c.includes('bumper') || c.includes('roof') || c.includes('pillar') || c.includes('chest') || c.includes('body') || c.includes('هيكل') || c.includes('صدام') || c.includes('باب') || c.includes('رفرف') || c.includes('كبوت') || c.includes('دعامية')) {
-      return { id: 'body', labelAr: 'الهيكل الخارجي', labelEn: 'Body & Exterior', iconName: 'car-profile' };
-    }
-    if (c.includes('brake') || c.includes('suspension') || c.includes('steering') || c.includes('engine') || c.includes('mechanic') || c.includes('fuel') || c.includes('exhaust') || c.includes('cooling') || c.includes('محرك') || c.includes('فرامل') || c.includes('ميكانيك') || c.includes('سير') || c.includes('بلوف') || c.includes('زيت')) {
-      return { id: 'mechanic', labelAr: 'الميكانيكا', labelEn: 'Mechanics & Powertrain', iconName: 'gear-six' };
-    }
-    if (c.includes('tire') || c.includes('wheel') || c.includes('rim') || c.includes('إطار') || c.includes('جنط') || c.includes('كفر') || c.includes('عجلات')) {
-      return { id: 'tires', labelAr: 'الإطارات والعجلات', labelEn: 'Tires & Wheels', iconName: 'circle-dashed' };
-    }
-    if (c.includes('electric') || c.includes('battery') || c.includes('light') || c.includes('sensor') || c.includes('كهرباء') || c.includes('بطارية') || c.includes('إضاءة') || c.includes('حساس')) {
-      return { id: 'electric', labelAr: 'الكهرباء والإلكترونيات', labelEn: 'Electrical & Electronics', iconName: 'lightning' };
-    }
-    if (c.includes('transmission') || c.includes('gear') || c.includes('قير')) {
-      return { id: 'transmission', labelAr: 'ناقل الحركة', labelEn: 'Transmission', iconName: 'arrows-left-right' };
-    }
-    if (c.includes('interior') || c.includes('window') || c.includes('seat') || c.includes('mirror') || c.includes('داخلي') || c.includes('فرش') || c.includes('زجاج') || c.includes('سلامة') || c.includes('مقصورة')) {
-      return { id: 'interior', labelAr: 'المقصورة والداخلية', labelEn: 'Interior & Cabin', iconName: 'armchair' };
-    }
-    const found = INSPECTION_CATEGORIES.find(ic => ic.id === category);
-    if (found) {
-      if (found.section === 'body') return { id: 'body', labelAr: 'الهيكل الخارجي', labelEn: 'Body & Exterior', iconName: 'car-profile' };
-      if (found.section === 'mechanic') return { id: 'mechanic', labelAr: 'الميكانيكا', labelEn: 'Mechanics & Powertrain', iconName: 'gear-six' };
-      if (found.section === 'electric') return { id: 'electric', labelAr: 'الكهرباء والإلكترونيات', labelEn: 'Electrical & Electronics', iconName: 'lightning' };
-      if (found.section === 'transmission') return { id: 'transmission', labelAr: 'ناقل الحركة', labelEn: 'Transmission', iconName: 'arrows-left-right' };
-      if (found.section === 'interior') return { id: 'interior', labelAr: 'المقصورة والداخلية', labelEn: 'Interior & Cabin', iconName: 'armchair' };
-    }
-    return { id: 'general', labelAr: 'الفحص العام', labelEn: 'General Inspection', iconName: 'clipboard-text' };
-  };
-
-  items.forEach((item) => {
-    const meta = getGroupMeta(item.category);
-    if (!groupsMap.has(meta.id)) {
-      groupsMap.set(meta.id, {
-        id: meta.id,
-        labelAr: meta.labelAr,
-        labelEn: meta.labelEn,
-        iconName: meta.iconName,
-        items: []
-      });
-    }
-    groupsMap.get(meta.id)!.items.push(item);
+  // Pre-seed the 6 sections in canonical order
+  MAIN_SECTIONS.forEach((sec) => {
+    groupsMap.set(sec.id, {
+      id: sec.id,
+      labelAr: sec.label,
+      labelEn: sec.labelEn,
+      iconName: sec.iconName,
+      color: sec.color,
+      items: [],
+    });
   });
 
-  return Array.from(groupsMap.values());
+  items.forEach((item) => {
+    const canonicalId = mapLegacyCategoryToMainSection(item.category);
+    if (!groupsMap.has(canonicalId)) {
+      const def = getMainSectionById(canonicalId);
+      groupsMap.set(canonicalId, {
+        id: def.id,
+        labelAr: def.label,
+        labelEn: def.labelEn,
+        iconName: def.iconName,
+        color: def.color,
+        items: [],
+      });
+    }
+    groupsMap.get(canonicalId)!.items.push(item);
+  });
+
+  // Only return sections that have findings
+  return Array.from(groupsMap.values()).filter((g) => g.items.length > 0);
 }
 
 // Section 3: Inspection Results Section - Categorized Finding Cards matching Reference

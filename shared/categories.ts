@@ -1,143 +1,289 @@
-// Main category sections - 6 أقسام رئيسية
-export const MAIN_SECTIONS = [
-  { id: "mechanic", label: "الأجزاء الميكانيكية", labelEn: "MECHANIC" },
-  { id: "transmission", label: "ناقل الحركة", labelEn: "TRANSMISSION" },
-  { id: "body", label: "الهيكل الخارجي", labelEn: "BODY" },
-  { id: "chassis", label: "الهيكل", labelEn: "CHASSIS" },
-  { id: "electric", label: "الأجزاء الكهربائية والإلكترونية", labelEn: "ELECTRIC" },
-  { id: "interior", label: "الداخلية والسلامة والملحقات", labelEn: "INTERIOR & SAFETY" },
+// ==============================================================================
+// High Safety International Center - Core 6 Main Inspection Sections System
+// ==============================================================================
+
+export interface MainSectionDef {
+  id: string;
+  label: string;
+  labelEn: string;
+  iconName: string;
+  color: string;
+  badgeBg: string;
+  badgeBorder: string;
+  badgeText: string;
+  description: string;
+  sortOrder: number;
+}
+
+/**
+ * The 6 Canonical Main Sections of High Safety Report
+ */
+export const MAIN_SECTIONS: MainSectionDef[] = [
+  {
+    id: "mechanical",
+    label: "ميكانيكا",
+    labelEn: "Mechanical",
+    iconName: "wrench",
+    color: "#3b82f6",
+    badgeBg: "bg-blue-500/15",
+    badgeBorder: "border-blue-500/30",
+    badgeText: "text-blue-400",
+    description: "المحرك، التبريد، الفرامل، التوجيه، العادم، السيور والفلاتر",
+    sortOrder: 1,
+  },
+  {
+    id: "exterior_body",
+    label: "الهيكل الخارجي",
+    labelEn: "Exterior Body",
+    iconName: "car-profile",
+    color: "#f59e0b",
+    badgeBg: "bg-amber-500/15",
+    badgeBorder: "border-amber-500/30",
+    badgeText: "text-amber-400",
+    description: "الصدمات، الأبواب، الرفارف، الكبوت، الشنطة، الزجاج، والدهان",
+    sortOrder: 2,
+  },
+  {
+    id: "electrical_electronics",
+    label: "الأجزاء الكهربائية والإلكترونية",
+    labelEn: "Electrical & Electronics",
+    iconName: "lightning",
+    color: "#eab308",
+    badgeBg: "bg-yellow-500/15",
+    badgeBorder: "border-yellow-500/30",
+    badgeText: "text-yellow-400",
+    description: "البطارية، الدينامو، الحساسات، الأنوار، المكيف، والكمبيوتر",
+    sortOrder: 3,
+  },
+  {
+    id: "transmission",
+    label: "نقل الحركة",
+    labelEn: "Transmission",
+    iconName: "gear-six",
+    color: "#8b5cf6",
+    badgeBg: "bg-purple-500/15",
+    badgeBorder: "border-purple-500/30",
+    badgeText: "text-purple-400",
+    description: "القير، الكلتش، الدبل، الدفرنس، العكوس، وعمود الكردان",
+    sortOrder: 4,
+  },
+  {
+    id: "chassis",
+    label: "الشاصي (الهيكل السفلي)",
+    labelEn: "Chassis (Underbody)",
+    iconName: "shield-check",
+    color: "#ef4444",
+    badgeBg: "bg-rose-500/15",
+    badgeBorder: "border-rose-500/30",
+    badgeText: "text-rose-400",
+    description: "جسور الشاصي، الشاصي الأمامي والخلفي، القوائم، والمقصات",
+    sortOrder: 5,
+  },
+  {
+    id: "other",
+    label: "أخرى",
+    labelEn: "Other",
+    iconName: "dots-three-circle",
+    color: "#6b7280",
+    badgeBg: "bg-zinc-500/15",
+    badgeBorder: "border-zinc-500/30",
+    badgeText: "text-zinc-400",
+    description: "الإطارات والجنوط، الملحقات، الداخلية، والسلامة العامة",
+    sortOrder: 6,
+  },
 ];
 
-export const INSPECTION_CATEGORIES = [
-  // ==================== MECHANIC (الأجزاء الميكانيكية) ====================
-  { id: "engine", label: "المحرك", labelEn: "Engine", section: "mechanic" },
-  { id: "suspension_system", label: "نظام التعليق", labelEn: "Suspension System", section: "mechanic" },
-  { id: "steering_system", label: "نظام التوجيه", labelEn: "Steering System", section: "mechanic" },
-  { id: "brake_system", label: "نظام الفرامل", labelEn: "Brake System", section: "mechanic" },
-  { id: "fuel_exhaust", label: "نظام الوقود والعادم", labelEn: "Fuel & Exhaust System", section: "mechanic" },
-  { id: "ac_cooling", label: "نظام التكييف", labelEn: "AC & Cooling System", section: "mechanic" },
-  { id: "misc_mechanical", label: "أعطال ميكانيكية متنوعة", labelEn: "Misc Mechanical", section: "mechanic" },
-  
-  // ==================== TRANSMISSION (ناقل الحركة) ====================
-  { id: "transmission_auto", label: "قير أوتوماتيك", labelEn: "Automatic Transmission", section: "transmission" },
-  { id: "transmission_manual", label: "قير عادي", labelEn: "Manual Transmission", section: "transmission" },
-  { id: "transmission_performance", label: "أداء ناقل الحركة", labelEn: "Transmission Performance", section: "transmission" },
-  { id: "transmission_sounds", label: "أصوات ناقل الحركة", labelEn: "Transmission Sounds", section: "transmission" },
-  { id: "transmission_leaks", label: "تسريبات ناقل الحركة", labelEn: "Transmission Leaks", section: "transmission" },
-  { id: "transmission_shifting", label: "التبديل والتعشيق", labelEn: "Gear Shifting", section: "transmission" },
-  
-  // ==================== BODY (الهيكل الخارجي) ====================
-  { id: "door_front_left", label: "الباب الأمامي يسار", labelEn: "Front Left Door", section: "body" },
-  { id: "door_front_right", label: "الباب الأمامي يمين", labelEn: "Front Right Door", section: "body" },
-  { id: "door_rear_left", label: "الباب الخلفي يسار", labelEn: "Rear Left Door", section: "body" },
-  { id: "door_rear_right", label: "الباب الخلفي يمين", labelEn: "Rear Right Door", section: "body" },
-  { id: "hood", label: "غطاء المحرك", labelEn: "Hood", section: "body" },
-  { id: "trunk", label: "صندوق الأمتعة", labelEn: "Trunk", section: "body" },
-  { id: "fender_front_left", label: "الرفرف الأمامي يسار", labelEn: "Front Left Fender", section: "body" },
-  { id: "fender_front_right", label: "الرفرف الأمامي يمين", labelEn: "Front Right Fender", section: "body" },
-  { id: "fender_rear_left", label: "الرفرف الخلفي يسار", labelEn: "Rear Left Fender", section: "body" },
-  { id: "fender_rear_right", label: "الرفرف الخلفي يمين", labelEn: "Rear Right Fender", section: "body" },
-  { id: "quarter_panel_left", label: "اللوح الجانبي الأيسر", labelEn: "Left Quarter Panel", section: "body" },
-  { id: "quarter_panel_right", label: "اللوح الجانبي الأيمن", labelEn: "Right Quarter Panel", section: "body" },
-  { id: "roof", label: "السقف", labelEn: "Roof", section: "body" },
-  { id: "pillars", label: "القوائم", labelEn: "Pillars", section: "body" },
-  { id: "front_chest", label: "الصدر الأمامي", labelEn: "Front Frame", section: "body" },
-  { id: "rear_chest", label: "الصدر الخلفي", labelEn: "Rear Frame", section: "body" },
-  { id: "front_bumper", label: "الدعامية الأمامية", labelEn: "Front Bumper", section: "body" },
-  { id: "rear_bumper", label: "الدعامية الخلفية", labelEn: "Rear Bumper", section: "body" },
-  { id: "bumper_frame_front", label: "جسر الدعامية الأمامية", labelEn: "Front Bumper Frame", section: "body" },
-  { id: "bumper_frame_rear", label: "جسر الدعامية الخلفية", labelEn: "Rear Bumper Frame", section: "body" },
-  { id: "fender_front", label: "الرفرف الأمامي", labelEn: "Front Fender", section: "body" },
-  { id: "fender_rear", label: "الرفرف الخلفي", labelEn: "Rear Fender", section: "body" },
-  
-  // ==================== CHASSIS (الهيكل) ====================
-  { id: "chassis_frame", label: "الهيكل والإطار", labelEn: "Chassis & Frame", section: "chassis" },
-  { id: "chassis_alignment", label: "الاستقامة", labelEn: "Alignment", section: "chassis" },
-  { id: "chassis_welding", label: "القص واللحام", labelEn: "Cutting & Welding", section: "chassis" },
-  { id: "chassis_accident", label: "آثار الحوادث القوية", labelEn: "Accident Damage", section: "chassis" },
-  
-  // ==================== ELECTRIC (الأجزاء الكهربائية والإلكترونية) ====================
-  { id: "electrical_system", label: "النظام الكهربائي", labelEn: "Electrical System", section: "electric" },
-  { id: "battery", label: "البطارية", labelEn: "Battery", section: "electric" },
-  { id: "exterior_lighting", label: "الإضاءة الخارجية", labelEn: "Exterior Lighting", section: "electric" },
-  { id: "lights_front", label: "الأضواء الأمامية", labelEn: "Front Lights", section: "electric" },
-  { id: "lights_rear", label: "الأضواء الخلفية", labelEn: "Rear Lights", section: "electric" },
-  { id: "wire_harness", label: "أسلاك التوصيل", labelEn: "Wire Harness", section: "electric" },
-  { id: "mirror_controls", label: "زر تحكم المرايا", labelEn: "Mirror Controls", section: "electric" },
-  { id: "computer_sensors", label: "فحص الكمبيوتر والحساسات", labelEn: "Computer & Sensors", section: "electric" },
-  
-  // ==================== INTERIOR & SAFETY (الداخلية والسلامة والملحقات) ====================
-  { id: "interior", label: "الداخلية", labelEn: "Interior", section: "interior" },
-  { id: "safety_systems", label: "أنظمة السلامة", labelEn: "Safety Systems", section: "interior" },
-  { id: "tires_rims", label: "الإطارات والجنوط", labelEn: "Tires & Rims", section: "interior" },
-  { id: "windows", label: "الزجاج والنوافذ", labelEn: "Glass & Windows", section: "interior" },
-  { id: "mirrors", label: "المرايا", labelEn: "Mirrors", section: "interior" },
-  { id: "accessories", label: "الإكسسوارات والملحقات", labelEn: "Accessories", section: "interior" },
-  { id: "documentation", label: "الوثائق والتوثيق", labelEn: "Documentation", section: "interior" },
-];
+/**
+ * Safe Mapping: Maps any legacy category or section to one of the 6 canonical Main Sections.
+ * Ensures that 100% of old inspections and fault library items resolve accurately.
+ */
+export function mapLegacyCategoryToMainSection(categoryOrSection?: string | null): string {
+  if (!categoryOrSection) return "other";
+  const raw = categoryOrSection.toLowerCase().trim();
 
-export const CATEGORY_GROUPS = [
-  {
-    group: "الأجزاء الميكانيكية",
-    groupEn: "MECHANIC",
-    sectionId: "mechanic",
-    categories: ["engine", "suspension_system", "steering_system", "brake_system", "fuel_exhaust", "ac_cooling", "misc_mechanical"]
-  },
-  {
-    group: "ناقل الحركة",
-    groupEn: "TRANSMISSION",
-    sectionId: "transmission",
-    categories: ["transmission_auto", "transmission_manual", "transmission_performance", "transmission_sounds", "transmission_leaks", "transmission_shifting"]
-  },
-  {
-    group: "الهيكل الخارجي",
-    groupEn: "BODY",
-    sectionId: "body",
-    categories: ["door_front_left", "door_front_right", "door_rear_left", "door_rear_right", "hood", "trunk", "fender_front_left", "fender_front_right", "fender_rear_left", "fender_rear_right", "quarter_panel_left", "quarter_panel_right", "roof", "pillars", "front_chest", "rear_chest", "front_bumper", "rear_bumper", "bumper_frame_front", "bumper_frame_rear", "fender_front", "fender_rear"]
-  },
-  {
-    group: "الهيكل",
-    groupEn: "CHASSIS",
-    sectionId: "chassis",
-    categories: ["chassis_frame", "chassis_alignment", "chassis_welding", "chassis_accident"]
-  },
-  {
-    group: "الأجزاء الكهربائية والإلكترونية",
-    groupEn: "ELECTRIC",
-    sectionId: "electric",
-    categories: ["electrical_system", "battery", "exterior_lighting", "lights_front", "lights_rear", "wire_harness", "mirror_controls", "computer_sensors"]
-  },
-  {
-    group: "الداخلية والسلامة والملحقات",
-    groupEn: "INTERIOR & SAFETY",
-    sectionId: "interior",
-    categories: ["interior", "safety_systems", "tires_rims", "windows", "mirrors", "accessories", "documentation"]
+  // 1. Direct match with new canonical IDs
+  if (raw === "mechanical" || raw === "mechanic") return "mechanical";
+  if (raw === "exterior_body" || raw === "body" || raw === "exterior") return "exterior_body";
+  if (raw === "electrical_electronics" || raw === "electric" || raw === "electrical") return "electrical_electronics";
+  if (raw === "transmission" || raw === "gearbox") return "transmission";
+  if (raw === "chassis" || raw === "underbody" || raw === "frame") return "chassis";
+  if (raw === "other" || raw === "interior" || raw === "misc") return "other";
+
+  // 2. Arabic name mappings
+  if (raw.includes("ميكانيك") || raw.includes("محرك") || raw.includes("فرامل") || raw.includes("تبريد") || raw.includes("توجيه") || raw.includes("عادم") || raw.includes("سيور")) {
+    return "mechanical";
   }
-];
+  if (raw.includes("هيكل خارجي") || raw.includes("صدم") || raw.includes("باب") || raw.includes("رفرف") || raw.includes("كبوت") || raw.includes("شنطة") || raw.includes("دعامية") || raw.includes("دهان") || raw.includes("رش") || raw.includes("سمكرة") || raw.includes("زجاج")) {
+    return "exterior_body";
+  }
+  if (raw.includes("كهرب") || raw.includes("إلكترون") || raw.includes("بطارية") || raw.includes("دينامو") || raw.includes("حساس") || raw.includes("نور") || raw.includes("أنوار") || raw.includes("مكيف") || raw.includes("كمبيوتر") || raw.includes("ضفيرة")) {
+    return "electrical_electronics";
+  }
+  if (raw.includes("نقل الحركة") || raw.includes("قير") || raw.includes("جير") || raw.includes("كلتش") || raw.includes("دبل") || raw.includes("دفرنس") || raw.includes("عكوس") || raw.includes("كردان") || raw.includes("تعشيق")) {
+    return "transmission";
+  }
+  if (raw.includes("شاص") || raw.includes("هيكل سفلي") || raw.includes("مقص") || raw.includes("جسر") || raw.includes("قائم") || raw.includes("لحام") || raw.includes("قص")) {
+    return "chassis";
+  }
+
+  // 3. Legacy category ID map
+  const legacyMap: Record<string, string> = {
+    engine: "mechanical",
+    suspension_system: "chassis",
+    steering_system: "mechanical",
+    brake_system: "mechanical",
+    fuel_exhaust: "mechanical",
+    ac_cooling: "mechanical",
+    misc_mechanical: "mechanical",
+
+    transmission_auto: "transmission",
+    transmission_manual: "transmission",
+    transmission_performance: "transmission",
+    transmission_sounds: "transmission",
+    transmission_leaks: "transmission",
+    transmission_shifting: "transmission",
+
+    door_front_left: "exterior_body",
+    door_front_right: "exterior_body",
+    door_rear_left: "exterior_body",
+    door_rear_right: "exterior_body",
+    hood: "exterior_body",
+    trunk: "exterior_body",
+    fender_front_left: "exterior_body",
+    fender_front_right: "exterior_body",
+    fender_rear_left: "exterior_body",
+    fender_rear_right: "exterior_body",
+    quarter_panel_left: "exterior_body",
+    quarter_panel_right: "exterior_body",
+    roof: "exterior_body",
+    pillars: "exterior_body",
+    front_chest: "exterior_body",
+    rear_chest: "exterior_body",
+    front_bumper: "exterior_body",
+    rear_bumper: "exterior_body",
+    bumper_frame_front: "exterior_body",
+    bumper_frame_rear: "exterior_body",
+    fender_front: "exterior_body",
+    fender_rear: "exterior_body",
+
+    chassis_frame: "chassis",
+    chassis_alignment: "chassis",
+    chassis_welding: "chassis",
+    chassis_accident: "chassis",
+
+    electrical_system: "electrical_electronics",
+    battery: "electrical_electronics",
+    exterior_lighting: "electrical_electronics",
+    lights_front: "electrical_electronics",
+    lights_rear: "electrical_electronics",
+    wire_harness: "electrical_electronics",
+    mirror_controls: "electrical_electronics",
+    computer_sensors: "electrical_electronics",
+
+    interior: "other",
+    safety_systems: "other",
+    tires_rims: "other",
+    windows: "exterior_body",
+    mirrors: "exterior_body",
+    accessories: "other",
+    documentation: "other",
+  };
+
+  return legacyMap[raw] || "other";
+}
+
+/**
+ * Intelligent section suggestion for search faults based on technical terms
+ */
+export function suggestMainSectionForFault(faultName: string, existingCategory?: string): string {
+  if (existingCategory) {
+    const mapped = mapLegacyCategoryToMainSection(existingCategory);
+    if (mapped !== "other") return mapped;
+  }
+
+  const text = (faultName || "").toLowerCase();
+
+  if (text.includes("قير") || text.includes("جير") || text.includes("transmission") || text.includes("كلتش") || text.includes("clutch") || text.includes("دبل") || text.includes("دفرنس") || text.includes("عكوس") || text.includes("كردان") || text.includes("تعشيق")) {
+    return "transmission";
+  }
+  if (text.includes("شاص") || text.includes("chassis") || text.includes("مقص") || text.includes("لحام") || text.includes("قص") || text.includes("استقامة") || text.includes("جسور") || text.includes("قائم")) {
+    return "chassis";
+  }
+  if (text.includes("باب") || text.includes("رفرف") || text.includes("كبوت") || text.includes("شنطة") || text.includes("دعامية") || text.includes("صدام") || text.includes("رش") || text.includes("سمكرة") || text.includes("خدش") || text.includes("صدم") || text.includes("دهان") || text.includes("fender") || text.includes("bumper") || text.includes("hood") || text.includes("door") || text.includes("paint") || text.includes("scratch")) {
+    return "exterior_body";
+  }
+  if (text.includes("كهرب") || text.includes("بطارية") || text.includes("battery") || text.includes("دينامو") || text.includes("alternator") || text.includes("حساس") || text.includes("sensor") || text.includes("نور") || text.includes("light") || text.includes("مكيف") || text.includes("ac") || text.includes("كمبيوتر") || text.includes("ecu") || text.includes("ضفيرة") || text.includes("فيوز")) {
+    return "electrical_electronics";
+  }
+  if (text.includes("زيت") || text.includes("oil") || text.includes("تهريب") || text.includes("ترشيح") || text.includes("leak") || text.includes("محرك") || text.includes("engine") || text.includes("فرامل") || text.includes("brake") || text.includes("رديتر") || text.includes("radiator") || text.includes("حرارة") || text.includes("سير") || text.includes("belt") || text.includes("عادم") || text.includes("exhaust") || text.includes("فلتر") || text.includes("filter") || text.includes("بواجي") || text.includes("spark")) {
+    return "mechanical";
+  }
+
+  return "other";
+}
+
+export function getMainSectionById(id: string): MainSectionDef {
+  const canonicalId = mapLegacyCategoryToMainSection(id);
+  const found = MAIN_SECTIONS.find((s) => s.id === canonicalId);
+  return (
+    found || {
+      id: canonicalId,
+      label: "أخرى",
+      labelEn: "Other",
+      iconName: "dots-three-circle",
+      color: "#6b7280",
+      badgeBg: "bg-zinc-500/15",
+      badgeBorder: "border-zinc-500/30",
+      badgeText: "text-zinc-400",
+      description: "فحص عام",
+      sortOrder: 99,
+    }
+  );
+}
+
+export function getSectionLabel(id: string): string {
+  return getMainSectionById(id).label;
+}
+
+export function getSectionLabelEn(id: string): string {
+  return getMainSectionById(id).labelEn;
+}
+
+// Backward compatibility legacy arrays for any legacy import references
+export const INSPECTION_CATEGORIES = MAIN_SECTIONS.map((s) => ({
+  id: s.id,
+  label: s.label,
+  labelEn: s.labelEn,
+  section: s.id,
+}));
+
+export const CATEGORY_GROUPS = MAIN_SECTIONS.map((s) => ({
+  group: s.label,
+  groupEn: s.labelEn,
+  sectionId: s.id,
+  categories: [s.id],
+}));
 
 export function getCategoryById(id: string) {
-  return INSPECTION_CATEGORIES.find(c => c.id === id);
+  return getMainSectionById(id);
 }
 
 export function getCategoryLabel(id: string): string {
-  const cat = getCategoryById(id);
-  return cat?.label || id;
+  return getMainSectionById(id).label;
 }
 
 export function getCategoryLabelEn(id: string): string {
-  const cat = getCategoryById(id);
-  return cat?.labelEn || id;
+  return getMainSectionById(id).labelEn;
 }
 
 export function getCategorySection(id: string): string {
-  const cat = getCategoryById(id);
-  return cat?.section || "interior";
+  return mapLegacyCategoryToMainSection(id);
 }
 
 export function getSectionById(id: string) {
-  return MAIN_SECTIONS.find(s => s.id === id);
+  return getMainSectionById(id);
 }
 
 export function getCategoriesBySection(sectionId: string) {
-  return INSPECTION_CATEGORIES.filter(c => c.section === sectionId);
+  return [getMainSectionById(sectionId)];
 }
