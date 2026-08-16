@@ -1,5 +1,3 @@
-import { BluetoothPrinterModal } from "@/components/bluetooth-printer-modal";
-import { Bluetooth } from "lucide-react";
 import { api } from "@shared/routes";
 import { useQueryClient } from "@tanstack/react-query";
 import { useInspection, useCreateInspectionItem, useDeleteInspectionItem, useUpdateInspectionItem, useUpdateInspection, useFaultSuggestions, usePhotoAnalysis } from "@/hooks/use-inspections";
@@ -64,7 +62,6 @@ export default function InspectionDetails() {
   const [isEditingInfo, setIsEditingInfo] = useState(false);
   const [editInfo, setEditInfo] = useState<Record<string, any>>({});
   const [isObdOpen, setIsObdOpen] = useState(false);
-  const [isBluetoothModalOpen, setIsBluetoothModalOpen] = useState(false);
 
   // Dynamic Sections and Categories Structure
   const {
@@ -780,15 +777,6 @@ export default function InspectionDetails() {
                 data-testid="button-interactive-report"
               >
                 <FileText className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsBluetoothModalOpen(true)}
-                className="p-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-bold transition-all shadow-xs flex items-center gap-1.5 text-xs font-arabic cursor-pointer"
-                title="طباعة لاسلكية عبر البلوتوث للطابعة الحرارية"
-              >
-                <Bluetooth className="w-4 h-4" />
-                <span className="hidden lg:inline">طابعة حرارية بلوتوث</span>
               </button>
               <button
                 onClick={handlePrint}

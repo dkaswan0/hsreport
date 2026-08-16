@@ -131,20 +131,9 @@ public class MainActivity extends Activity {
 
     private void checkAndRequestPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            String[] permissions;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                permissions = new String[]{
-                        Manifest.permission.CAMERA,
-                        Manifest.permission.BLUETOOTH_CONNECT,
-                        Manifest.permission.BLUETOOTH_SCAN
-                };
-            } else {
-                permissions = new String[]{
-                        Manifest.permission.CAMERA,
-                        Manifest.permission.BLUETOOTH,
-                        Manifest.permission.BLUETOOTH_ADMIN
-                };
-            }
+            String[] permissions = new String[]{
+                    Manifest.permission.CAMERA
+            };
 
             boolean needRequest = false;
             for (String p : permissions) {
