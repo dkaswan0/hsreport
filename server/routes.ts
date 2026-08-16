@@ -1,5 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import type { Server } from "http";
+import fs from "fs";
+import path from "path";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
@@ -414,6 +416,77 @@ export async function registerRoutes(
       }
       console.error(`Create inspection error: ${err?.message || err}`);
       return res.status(500).json({ message: err?.message || 'Failed to create inspection' });
+    }
+  });
+
+  // ═══ Fast File & Media Upload Endpoint for Permanent Gallery Storage ═══
+  app.post("/api/upload-media", async (req, res) => {
+    try {
+      const { base64, type = "image", filename } = req.body || {};
+      if (!base64 || typeof base64 !== "string") {
+        return res.status(400).json({ error: "بيانات الوسائط غير صالحة" });
+      }
+
+      // If already a hosted /uploads/ URL, return immediately
+      if (base64.startsWith("/uploads/") || (base64.startsWith("http") && !base64.startsWith("data:"))) {
+        return res.json({
+          success: true,
+          url: base64,
+          thumbnailUrl: base64,
+          filename: filename || "media-file",
+          type,
+        });
+      }
+
+      let ext = type === "video" ? "mp4" : "jpg";
+      let cleanData = base64;
+
+      if (base64.startsWith("data:")) {
+        const matches = base64.match(/^data:([A-Za-z0-9+/]+);base64,(.+)$/);
+        if (matches && matches.length === 3) {
+          const mime = matches[1].toLowerCase();
+          if (mime.includes("video/mp4") || mime.includes("video/quicktime") || mime.includes("video/webm")) {
+            ext = mime.includes("webm") ? "webm" : "mp4";
+          } else if (mime.includes("image/png")) {
+            ext = "png";
+          } else if (mime.includes("image/webp")) {
+            ext = "webp";
+          } else {
+            ext = "jpg";
+          }
+          cleanData = matches[2];
+        }
+      }
+
+      const buffer = Buffer.from(cleanData, "base64");
+      const namePrefix = type === "video" ? "video" : "media";
+      const generatedName = `${namePrefix}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
+
+      const uploadDirPrimary = path.join(process.cwd(), "public", "uploads");
+      const uploadDirSecondary = path.join(process.cwd(), "client", "public", "uploads");
+
+      await fs.promises.mkdir(uploadDirPrimary, { recursive: true });
+      await fs.promises.mkdir(uploadDirSecondary, { recursive: true });
+
+      const filePathPrimary = path.join(uploadDirPrimary, generatedName);
+      const filePathSecondary = path.join(uploadDirSecondary, generatedName);
+
+      await fs.promises.writeFile(filePathPrimary, buffer);
+      fs.promises.writeFile(filePathSecondary, buffer).catch(() => {});
+
+      const publicUrl = `/uploads/${generatedName}`;
+
+      res.json({
+        success: true,
+        url: publicUrl,
+        thumbnailUrl: publicUrl,
+        filename: filename || generatedName,
+        type,
+        size: buffer.length,
+      });
+    } catch (err: any) {
+      console.error("Upload media error:", err);
+      res.status(500).json({ error: err?.message || "فشل رفع وحفظ ملف الوسائط" });
     }
   });
 

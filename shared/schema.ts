@@ -45,6 +45,7 @@ export interface InspectionMediaItem {
   thumbnailUrl?: string | null;
   name: string;
   sortOrder: number;
+  inspectionId?: number | null;
 }
 
 export const inspectionMediaItemSchema = z.object({
@@ -54,6 +55,7 @@ export const inspectionMediaItemSchema = z.object({
   thumbnailUrl: z.string().optional().nullable(),
   name: z.string(),
   sortOrder: z.number(),
+  inspectionId: z.number().optional().nullable(),
 });
 
 // === TABLE DEFINITIONS ===

@@ -189,7 +189,7 @@ export class DatabaseStorage implements IStorage {
       'rearLeftDoorInteriorPhoto', 'rearRightDoorInteriorPhoto', 'frontLeftDoorInteriorPhoto',
       'frontRightDoorInteriorPhoto', 'hoodInteriorPhoto', 'trunkInteriorPhoto',
       'obdCodes', 'autelReportPdf', 'autelReportName', 'mojazRecord', 'mojazAnalysis',
-      'vehiclePhotosMeta', 'vehiclePhotosAudit'
+      'vehiclePhotosMeta', 'vehiclePhotosAudit', 'videoUrl', 'mediaGallery'
     ]);
 
     const sanitizedUpdates: Record<string, any> = {};

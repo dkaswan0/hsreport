@@ -33,8 +33,19 @@ const allowlist = [
   "zod-validation-error",
 ];
 
+async function safeRm(dir: string) {
+  for (let i = 0; i < 5; i++) {
+    try {
+      await rm(dir, { recursive: true, force: true });
+      return;
+    } catch {
+      await new Promise((r) => setTimeout(r, 200));
+    }
+  }
+}
+
 async function buildAll() {
-  await rm("dist", { recursive: true, force: true });
+  await safeRm("dist");
 
   console.log("building client...");
   await viteBuild();

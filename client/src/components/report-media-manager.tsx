@@ -5,8 +5,12 @@ import { useToast } from "@/hooks/use-toast";
 import { useUpdateInspection } from "@/hooks/use-inspections";
 import type { Inspection, InspectionMediaItem } from "@shared/schema";
 
-interface ReportMediaManagerProps {
-  inspection: Inspection;
+export interface ReportMediaManagerProps {
+  inspection?: Inspection;
+  videoUrl?: string | null;
+  onVideoChange?: (url: string | null) => void;
+  mediaGallery?: InspectionMediaItem[];
+  onMediaGalleryChange?: (items: InspectionMediaItem[]) => void;
   className?: string;
 }
 
@@ -30,7 +34,7 @@ const PRESET_PHOTO_NAMES = [
 ];
 
 // Helper to compress image in browser
-async function compressImageFile(file: File, maxWidth = 1600, quality = 0.85): Promise<string> {
+async function compressImageFile(file: File, maxWidth = 1800, quality = 0.88): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -64,8 +68,30 @@ async function compressImageFile(file: File, maxWidth = 1600, quality = 0.85): P
   });
 }
 
+// Helper to upload media file to backend storage (/api/upload-media)
+async function uploadMediaToStorage(base64Data: string, type: "image" | "video", filename?: string): Promise<string> {
+  try {
+    const res = await fetch("/api/upload-media", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ base64: base64Data, type, filename }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.url) return data.url;
+    }
+  } catch (err) {
+    console.warn("Storage upload warning, fallback to data url:", err);
+  }
+  return base64Data;
+}
+
 export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
   inspection,
+  videoUrl: controlledVideoUrl,
+  onVideoChange,
+  mediaGallery: controlledMediaGallery,
+  onMediaGalleryChange,
   className,
 }) => {
   const { toast } = useToast();
@@ -79,6 +105,9 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
   const [pendingPhotoUrl, setPendingPhotoUrl] = useState<string | null>(null);
   const [pendingPhotoName, setPendingPhotoName] = useState<string>("");
   const [isNameDialogOpen, setIsNameDialogOpen] = useState(false);
+
+  // For Lightbox Zoom Preview
+  const [zoomPhoto, setZoomPhoto] = useState<{ url: string; name: string } | null>(null);
 
   // For In-place Edit Name
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
@@ -94,45 +123,99 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
   const photoFileInputRef = useRef<HTMLInputElement>(null);
   const replacePhotoInputRef = useRef<HTMLInputElement>(null);
 
-  // Current Video and Gallery Data
-  const currentVideoUrl = (inspection as any).videoUrl || null;
+  // Controlled vs Inspection mode determination
+  const isControlled = onMediaGalleryChange !== undefined || onVideoChange !== undefined;
+
+  const currentVideoUrl = useMemo(() => {
+    if (controlledVideoUrl !== undefined) return controlledVideoUrl;
+    if (inspection) return (inspection as any).videoUrl || null;
+    return null;
+  }, [controlledVideoUrl, inspection]);
+
   const currentGallery: InspectionMediaItem[] = useMemo(() => {
-    const raw = (inspection as any).mediaGallery;
+    let raw: any[] = [];
+    if (controlledMediaGallery !== undefined) {
+      raw = controlledMediaGallery;
+    } else if (inspection) {
+      raw = (inspection as any).mediaGallery || [];
+    }
     if (Array.isArray(raw)) {
       return [...raw].sort((a, b) => a.sortOrder - b.sortOrder);
     }
     return [];
-  }, [inspection]);
+  }, [controlledMediaGallery, inspection]);
 
   // Save gallery helper
   const saveMediaGallery = (updatedList: InspectionMediaItem[], successMessage?: string) => {
     // Re-index sortOrder sequentially starting at 1
-    const normalized = updatedList.map((item, idx) => ({
+    const normalized: InspectionMediaItem[] = updatedList.map((item, idx) => ({
       ...item,
       sortOrder: idx + 1,
-      inspectionId: inspection.id,
+      inspectionId: inspection?.id,
     }));
 
-    updateInspection.mutate(
-      {
-        id: inspection.id,
-        mediaGallery: normalized,
-      } as any,
-      {
-        onSuccess: () => {
-          if (successMessage) {
-            toast({ title: "تم الحفظ بنجاح", description: successMessage });
-          }
-        },
-        onError: (err: any) => {
-          toast({
-            title: "خطأ في الحفظ",
-            description: err?.message || "تعذر حفظ الوسائط في قاعدة البيانات",
-            variant: "destructive",
-          });
-        },
+    if (onMediaGalleryChange) {
+      onMediaGalleryChange(normalized);
+      if (successMessage) {
+        toast({ title: "تم التحديث", description: successMessage });
       }
-    );
+    }
+
+    if (inspection?.id) {
+      updateInspection.mutate(
+        {
+          id: inspection.id,
+          mediaGallery: normalized,
+        } as any,
+        {
+          onSuccess: () => {
+            if (successMessage && !onMediaGalleryChange) {
+              toast({ title: "تم الحفظ بنجاح", description: successMessage });
+            }
+          },
+          onError: (err: any) => {
+            toast({
+              title: "خطأ في الحفظ",
+              description: err?.message || "تعذر حفظ الوسائط في قاعدة البيانات",
+              variant: "destructive",
+            });
+          },
+        }
+      );
+    }
+  };
+
+  // Video Save helper
+  const saveVideoUrl = (url: string | null, successMessage?: string) => {
+    if (onVideoChange) {
+      onVideoChange(url);
+      if (successMessage) {
+        toast({ title: "تم التحديث", description: successMessage });
+      }
+    }
+
+    if (inspection?.id) {
+      updateInspection.mutate(
+        {
+          id: inspection.id,
+          videoUrl: url,
+        } as any,
+        {
+          onSuccess: () => {
+            if (successMessage && !onVideoChange) {
+              toast({ title: "تم الحفظ", description: successMessage });
+            }
+          },
+          onError: (err: any) => {
+            toast({
+              title: "خطأ في حفظ الفيديو",
+              description: err?.message || "تعذر حفظ الفيديو",
+              variant: "destructive",
+            });
+          },
+        }
+      );
+    }
   };
 
   // Video Upload Handlers
@@ -140,10 +223,10 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 100 * 1024 * 1024) {
+    if (file.size > 150 * 1024 * 1024) {
       toast({
         title: "حجم الفيديو كبير",
-        description: "يرجى اختيار فيديو بحجم أقل من 100 ميغابايت",
+        description: "يرجى اختيار فيديو بحجم أقل من 150 ميغابايت",
         variant: "destructive",
       });
       return;
@@ -151,31 +234,20 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
 
     setIsUploadingVideo(true);
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       const videoDataUrl = event.target?.result as string;
-      updateInspection.mutate(
-        {
-          id: inspection.id,
-          videoUrl: videoDataUrl,
-        } as any,
-        {
-          onSuccess: () => {
-            toast({
-              title: "تم حفظ فيديو الفحص بنجاح",
-              description: "سيظهر الفيديو كأول عنصر في تقرير الفحص (sortOrder = 0)",
-            });
-            setIsUploadingVideo(false);
-          },
-          onError: (err: any) => {
-            toast({
-              title: "خطأ في حفظ الفيديو",
-              description: err?.message || "تعذر رفع الفيديو",
-              variant: "destructive",
-            });
-            setIsUploadingVideo(false);
-          },
-        }
-      );
+      try {
+        const permanentUrl = await uploadMediaToStorage(videoDataUrl, "video", file.name);
+        saveVideoUrl(permanentUrl, "تم حفظ ورفع فيديو الفحص بنجاح (العنصر رقم 0)");
+      } catch (err: any) {
+        toast({
+          title: "خطأ في رفع الفيديو",
+          description: err?.message || "تعذر رفع الفيديو إلى التخزين",
+          variant: "destructive",
+        });
+      } finally {
+        setIsUploadingVideo(false);
+      }
     };
     reader.readAsDataURL(file);
     e.target.value = "";
@@ -183,17 +255,7 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
 
   const handleRemoveVideo = () => {
     if (!confirm("هل أنت متأكد من حذف فيديو الفحص؟")) return;
-    updateInspection.mutate(
-      {
-        id: inspection.id,
-        videoUrl: null,
-      } as any,
-      {
-        onSuccess: () => {
-          toast({ title: "تم حذف الفيديو بنجاح" });
-        },
-      }
-    );
+    saveVideoUrl(null, "تم حذف الفيديو بنجاح");
   };
 
   // Single Photo Camera/File Handlers
@@ -213,22 +275,31 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
     e.target.value = "";
   };
 
-  const handleConfirmAddPhoto = () => {
+  const handleConfirmAddPhoto = async () => {
     if (!pendingPhotoUrl) return;
 
-    const newItem: InspectionMediaItem = {
-      id: `media-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-      type: "image",
-      url: pendingPhotoUrl,
-      thumbnailUrl: pendingPhotoUrl,
-      name: pendingPhotoName.trim() || `صورة ${currentGallery.length + 1}`,
-      sortOrder: currentGallery.length + 1,
-    };
-
-    saveMediaGallery([...currentGallery, newItem], `تمت إضافة ${newItem.name}`);
+    const photoToUpload = pendingPhotoUrl;
+    const finalName = pendingPhotoName.trim() || `صورة ${currentGallery.length + 1}`;
     setPendingPhotoUrl(null);
     setPendingPhotoName("");
     setIsNameDialogOpen(false);
+
+    try {
+      const permanentUrl = await uploadMediaToStorage(photoToUpload, "image", `${finalName}.jpg`);
+      const newItem: InspectionMediaItem = {
+        id: `media-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        type: "image",
+        url: permanentUrl,
+        thumbnailUrl: permanentUrl,
+        name: finalName,
+        sortOrder: currentGallery.length + 1,
+        inspectionId: inspection?.id,
+      };
+
+      saveMediaGallery([...currentGallery, newItem], `تمت إضافة ${newItem.name}`);
+    } catch (err: any) {
+      toast({ title: "خطأ في حفظ الصورة", description: err?.message, variant: "destructive" });
+    }
   };
 
   // Bulk Photos Multi-Select Handler
@@ -243,13 +314,16 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
         const file = files[i];
         const compressed = await compressImageFile(file);
         const itemNumber = currentGallery.length + i + 1;
+        const permanentUrl = await uploadMediaToStorage(compressed, "image", `photo_${itemNumber}.jpg`);
+
         newItems.push({
           id: `media-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 7)}`,
           type: "image",
-          url: compressed,
-          thumbnailUrl: compressed,
+          url: permanentUrl,
+          thumbnailUrl: permanentUrl,
           name: `صورة ${itemNumber}`,
           sortOrder: itemNumber,
+          inspectionId: inspection?.id,
         });
       }
 
@@ -269,8 +343,9 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
 
     try {
       const compressed = await compressImageFile(file);
+      const permanentUrl = await uploadMediaToStorage(compressed, "image", file.name);
       const updated = currentGallery.map((item) =>
-        item.id === replacingItemId ? { ...item, url: compressed, thumbnailUrl: compressed } : item
+        item.id === replacingItemId ? { ...item, url: permanentUrl, thumbnailUrl: permanentUrl } : item
       );
       saveMediaGallery(updated, "تم استبدال الصورة بنجاح");
     } catch (err: any) {
@@ -321,7 +396,7 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
   return (
     <div
       className={cn(
-        "bg-white rounded-2xl border border-zinc-200 overflow-hidden shadow-xs mb-4",
+        "bg-white rounded-3xl border border-zinc-200 overflow-hidden shadow-sm mb-6",
         className
       )}
       data-testid="report-media-manager-section"
@@ -329,21 +404,21 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
     >
       {/* ── Section Header ── */}
       <div
-        className="bg-zinc-950 px-4 py-3 sm:px-5 sm:py-3.5 flex items-center justify-between cursor-pointer select-none text-white border-b border-zinc-800"
+        className="bg-zinc-950 px-4 py-3.5 sm:px-6 sm:py-4 flex items-center justify-between cursor-pointer select-none text-white border-b border-zinc-800"
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-white shrink-0 shadow-inner">
-            <PhosphorIcon name="film-strip" weight="bold" size={20} className="text-amber-400" />
+          <div className="w-10 h-10 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-white shrink-0 shadow-inner">
+            <PhosphorIcon name="film-strip" weight="bold" size={22} className="text-amber-400" />
           </div>
           <div>
-            <h3 className="font-bold text-sm sm:text-base font-arabic flex items-center gap-2 text-white">
-              <span>صور وفيديو التقرير</span>
-              <span className="text-[11px] font-normal text-zinc-400 font-mono hidden sm:inline">
+            <h3 className="font-bold text-base sm:text-lg font-arabic flex items-center gap-2 text-white">
+              <span>1. صور وفيديو التقرير</span>
+              <span className="text-xs font-normal text-zinc-400 font-mono hidden sm:inline">
                 | Unified Media & Video Gallery
               </span>
             </h3>
-            <p className="text-[11px] text-zinc-400 font-arabic">
+            <p className="text-xs text-zinc-400 font-arabic">
               إضافة فيديو الفحص والصور العامة التي تظهر في معرض التقرير بأعلى صفحة العميل
             </p>
           </div>
@@ -353,25 +428,25 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
           {/* Quick Counter */}
           <div className="flex items-center gap-1.5 font-mono text-xs">
             {currentVideoUrl && (
-              <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full text-[11px] font-bold flex items-center gap-1">
+              <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1">
                 <PhosphorIcon name="play" weight="fill" size={10} />
                 <span>1 فيديو</span>
               </span>
             )}
-            <span className="bg-zinc-900 border border-zinc-800 text-zinc-300 px-2.5 py-0.5 rounded-full text-[11px] font-bold">
+            <span className="bg-zinc-900 border border-zinc-800 text-zinc-200 px-3 py-1 rounded-full text-xs font-bold">
               {currentGallery.length} صورة
             </span>
           </div>
 
           <button className="text-zinc-400 hover:text-white p-1 cursor-pointer">
-            <PhosphorIcon name={isOpen ? "caret-down" : "caret-left"} weight="bold" size={18} />
+            <PhosphorIcon name={isOpen ? "caret-down" : "caret-left"} weight="bold" size={20} />
           </button>
         </div>
       </div>
 
       {/* ── Section Content ── */}
       {isOpen && (
-        <div className="p-4 sm:p-5 bg-zinc-50/50 space-y-6">
+        <div className="p-4 sm:p-6 bg-zinc-50/50 space-y-6">
           {/* Hidden File / Camera Inputs */}
           <input
             ref={videoCameraInputRef}
@@ -416,12 +491,12 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
           <div className="bg-white rounded-2xl border border-zinc-200 p-4 sm:p-5 shadow-2xs space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-100 pb-3">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-600 border border-amber-500/20 flex items-center justify-center shrink-0 font-bold font-mono text-sm">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 border border-amber-500/20 flex items-center justify-center shrink-0 font-bold font-mono text-sm">
                   #0
                 </div>
                 <div>
-                  <h4 className="font-bold text-sm text-zinc-950 font-arabic flex items-center gap-1.5">
-                    <PhosphorIcon name="video-camera" weight="bold" size={16} className="text-amber-600" />
+                  <h4 className="font-bold text-sm sm:text-base text-zinc-950 font-arabic flex items-center gap-1.5">
+                    <PhosphorIcon name="video-camera" weight="bold" size={18} className="text-amber-600" />
                     <span>فيديو التقرير (Video Element #0)</span>
                   </h4>
                   <p className="text-xs text-zinc-500 font-arabic">
@@ -437,16 +512,16 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
                   type="button"
                   onClick={() => videoCameraInputRef.current?.click()}
                   disabled={isUploadingVideo}
-                  className="px-3 py-1.5 bg-zinc-950 hover:bg-black text-white rounded-xl text-xs font-bold font-arabic flex items-center gap-1.5 shadow-xs transition-all cursor-pointer disabled:opacity-50 active:scale-95"
+                  className="px-3.5 py-2 bg-zinc-950 hover:bg-black text-white rounded-xl text-xs font-bold font-arabic flex items-center gap-1.5 shadow-xs transition-all cursor-pointer disabled:opacity-50 active:scale-95"
                   data-testid="btn-camera-video"
                 >
                   <PhosphorIcon
                     name={isUploadingVideo ? "spinner-gap" : "camera"}
                     className={isUploadingVideo ? "animate-spin" : ""}
                     weight="bold"
-                    size={14}
+                    size={15}
                   />
-                  <span>تصوير فيديو بالكاميرا</span>
+                  <span>{isUploadingVideo ? "جاري الرفع..." : "تصوير فيديو بالكاميرا"}</span>
                 </button>
 
                 {/* Choose Video File */}
@@ -454,10 +529,10 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
                   type="button"
                   onClick={() => videoFileInputRef.current?.click()}
                   disabled={isUploadingVideo}
-                  className="px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border border-zinc-300 rounded-xl text-xs font-bold font-arabic flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                  className="px-3.5 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border border-zinc-300 rounded-xl text-xs font-bold font-arabic flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
                   data-testid="btn-upload-video-file"
                 >
-                  <PhosphorIcon name="folder-open" weight="bold" size={14} />
+                  <PhosphorIcon name="folder-open" weight="bold" size={15} />
                   <span>اختيار ملف فيديو</span>
                 </button>
               </div>
@@ -466,7 +541,7 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
             {/* Video Preview Card (if present) */}
             {currentVideoUrl ? (
               <div className="bg-zinc-950 rounded-2xl border border-zinc-800 p-3 sm:p-4 text-white flex flex-col sm:flex-row items-center gap-4">
-                <div className="relative w-full sm:w-64 aspect-video rounded-xl bg-black overflow-hidden border border-zinc-800 shrink-0">
+                <div className="relative w-full sm:w-72 aspect-video rounded-xl bg-black overflow-hidden border border-zinc-800 shrink-0">
                   <video
                     src={currentVideoUrl}
                     controls
@@ -477,20 +552,20 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
                 </div>
 
                 <div className="flex-1 min-w-0 space-y-1.5 text-right w-full">
-                  <div className="inline-flex items-center gap-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-md text-[11px] font-bold">
-                    <PhosphorIcon name="check-circle" weight="fill" size={12} />
+                  <div className="inline-flex items-center gap-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2.5 py-0.5 rounded-md text-xs font-bold">
+                    <PhosphorIcon name="check-circle" weight="fill" size={13} />
                     <span>فيديو معتمد وجاهز للتقرير</span>
                   </div>
-                  <h5 className="font-bold text-sm text-white font-arabic">فيديو الفحص الشامل للمركبة</h5>
+                  <h5 className="font-bold text-sm sm:text-base text-white font-arabic">فيديو الفحص الشامل للمركبة</h5>
                   <p className="text-xs text-zinc-400 font-arabic">
-                    الترتيب: العنصر رقم 0 (يظهر دائماً قبل الصور في المعرض)
+                    الترتيب: العنصر رقم 0 (يظهر دائماً كأول عنصر في المعرض)
                   </p>
 
                   <div className="pt-2 flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => videoCameraInputRef.current?.click()}
-                      className="px-3 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-xs font-bold font-arabic flex items-center gap-1 transition-colors cursor-pointer"
+                      className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-lg text-xs font-bold font-arabic flex items-center gap-1 transition-colors cursor-pointer"
                     >
                       <PhosphorIcon name="arrows-clockwise" weight="bold" size={13} />
                       <span>إعادة التصوير / استبدال</span>
@@ -499,7 +574,7 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
                     <button
                       type="button"
                       onClick={handleRemoveVideo}
-                      className="px-3 py-1 bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white rounded-lg text-xs font-bold font-arabic flex items-center gap-1 transition-colors cursor-pointer"
+                      className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white rounded-lg text-xs font-bold font-arabic flex items-center gap-1 transition-colors cursor-pointer"
                       data-testid="btn-delete-video"
                     >
                       <PhosphorIcon name="trash" weight="bold" size={13} />
@@ -561,7 +636,7 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
                     weight="bold"
                     size={15}
                   />
-                  <span>{isUploadingPhotos ? "جاري الإضافة..." : "+ اختيار مجموعة صور"}</span>
+                  <span>{isUploadingPhotos ? "جاري الإضافة والحفظ..." : "+ اختيار مجموعة صور"}</span>
                 </button>
               </div>
             </div>
@@ -578,18 +653,22 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
                 {currentGallery.map((item, idx) => {
                   const isEditingThis = editingItemId === item.id;
 
                   return (
                     <div
                       key={item.id || idx}
-                      className="bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800 flex flex-col justify-between shadow-xs group"
+                      className="bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800 flex flex-col justify-between shadow-xs group transition-transform duration-150 hover:shadow-md"
                       data-testid={`media-item-card-${idx}`}
                     >
                       {/* Image Thumbnail Container */}
-                      <div className="relative w-full aspect-video bg-black flex items-center justify-center overflow-hidden">
+                      <div
+                        className="relative w-full aspect-[4/3] bg-black flex items-center justify-center overflow-hidden cursor-pointer"
+                        onClick={() => setZoomPhoto({ url: item.url, name: item.name })}
+                        title="انقر للمعاينة بحجم كبير"
+                      >
                         <img
                           src={item.thumbnailUrl || item.url}
                           alt={item.name}
@@ -598,26 +677,27 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
                         />
 
                         {/* Top Overlays: Index Badge */}
-                        <div className="absolute top-1.5 right-1.5 bg-black/80 backdrop-blur-xs text-white font-mono text-[10px] font-black px-2 py-0.5 rounded-md border border-white/10">
+                        <div className="absolute top-2 right-2 bg-black/85 backdrop-blur-xs text-white font-mono text-[11px] font-black px-2.5 py-0.5 rounded-lg border border-white/10 shadow-sm">
                           #{idx + 1}
                         </div>
 
                         {/* Top Overlays: Retake / Replace Quick Button */}
                         <button
                           type="button"
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setReplacingItemId(item.id);
                             replacePhotoInputRef.current?.click();
                           }}
-                          className="absolute top-1.5 left-1.5 p-1 bg-black/80 hover:bg-black text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer border border-white/10"
+                          className="absolute top-2 left-2 p-1.5 bg-black/80 hover:bg-black text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer border border-white/10 shadow-sm"
                           title="استبدال / إعادة التقاط الصورة"
                         >
-                          <PhosphorIcon name="arrows-clockwise" weight="bold" size={12} />
+                          <PhosphorIcon name="arrows-clockwise" weight="bold" size={13} />
                         </button>
                       </div>
 
                       {/* Info & Action Controls */}
-                      <div className="p-2.5 bg-zinc-950 text-white space-y-2">
+                      <div className="p-3 bg-zinc-950 text-white space-y-2.5">
                         {/* Name or Rename Input */}
                         {isEditingThis ? (
                           <div className="flex items-center gap-1">
@@ -625,7 +705,7 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
                               type="text"
                               value={editingItemName}
                               onChange={(e) => setEditingItemName(e.target.value)}
-                              className="w-full bg-zinc-800 border border-zinc-700 rounded-md px-1.5 py-0.5 text-xs text-white outline-none font-arabic"
+                              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1 text-xs text-white outline-none font-arabic"
                               autoFocus
                               onKeyDown={(e) => {
                                 if (e.key === "Enter") handleSaveRename(item.id);
@@ -635,10 +715,10 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
                             <button
                               type="button"
                               onClick={() => handleSaveRename(item.id)}
-                              className="p-1 bg-white text-zinc-950 rounded-md hover:bg-zinc-200 cursor-pointer"
+                              className="p-1.5 bg-white text-zinc-950 rounded-lg hover:bg-zinc-200 cursor-pointer shrink-0"
                               title="حفظ الاسم"
                             >
-                              <PhosphorIcon name="check" weight="bold" size={12} />
+                              <PhosphorIcon name="check" weight="bold" size={13} />
                             </button>
                           </div>
                         ) : (
@@ -652,35 +732,35 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
                                 setEditingItemId(item.id);
                                 setEditingItemName(item.name);
                               }}
-                              className="text-zinc-400 hover:text-white p-0.5 transition-colors cursor-pointer shrink-0"
+                              className="text-zinc-400 hover:text-white p-1 transition-colors cursor-pointer shrink-0"
                               title="تعديل اسم الصورة"
                             >
-                              <PhosphorIcon name="pencil-simple" weight="bold" size={12} />
+                              <PhosphorIcon name="pencil-simple" weight="bold" size={13} />
                             </button>
                           </div>
                         )}
 
                         {/* Order & Delete Buttons */}
-                        <div className="flex items-center justify-between pt-1 border-t border-zinc-800/80">
+                        <div className="flex items-center justify-between pt-1.5 border-t border-zinc-800/80">
                           {/* Reorder Up/Down */}
                           <div className="flex items-center gap-1">
                             <button
                               type="button"
                               onClick={() => handleMoveUp(idx)}
                               disabled={idx === 0}
-                              className="p-1 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed text-zinc-300 rounded-md transition-colors cursor-pointer"
+                              className="p-1.5 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed text-zinc-300 rounded-lg transition-colors cursor-pointer"
                               title="تحريك للأمام (تقديم الترتيب)"
                             >
-                              <PhosphorIcon name="caret-right" weight="bold" size={12} />
+                              <PhosphorIcon name="caret-right" weight="bold" size={13} />
                             </button>
                             <button
                               type="button"
                               onClick={() => handleMoveDown(idx)}
                               disabled={idx === currentGallery.length - 1}
-                              className="p-1 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed text-zinc-300 rounded-md transition-colors cursor-pointer"
+                              className="p-1.5 bg-zinc-800 hover:bg-zinc-700 disabled:opacity-30 disabled:cursor-not-allowed text-zinc-300 rounded-lg transition-colors cursor-pointer"
                               title="تحريك للخلف (تأخير الترتيب)"
                             >
-                              <PhosphorIcon name="caret-left" weight="bold" size={12} />
+                              <PhosphorIcon name="caret-left" weight="bold" size={13} />
                             </button>
                           </div>
 
@@ -688,11 +768,11 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
                           <button
                             type="button"
                             onClick={() => handleDeleteItem(item.id, item.name)}
-                            className="p-1 bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white rounded-md transition-colors cursor-pointer"
+                            className="p-1.5 bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white rounded-lg transition-colors cursor-pointer"
                             title="حذف الصورة"
                             data-testid={`btn-delete-media-${idx}`}
                           >
-                            <PhosphorIcon name="trash" weight="bold" size={13} />
+                            <PhosphorIcon name="trash" weight="bold" size={14} />
                           </button>
                         </div>
                       </div>
@@ -708,30 +788,30 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
       {/* ── Dialog for Naming Captured Single Photo ── */}
       {isNameDialogOpen && pendingPhotoUrl && (
         <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[99999] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/85 backdrop-blur-sm z-[99999] flex items-center justify-center p-4"
           onClick={() => setIsNameDialogOpen(false)}
           dir="rtl"
         >
           <div
-            className="bg-zinc-950 text-white border border-zinc-800 rounded-3xl max-w-md w-full p-4 sm:p-6 space-y-4 shadow-2xl animate-in fade-in zoom-in-95"
+            className="bg-zinc-950 text-white border border-zinc-800 rounded-3xl max-w-lg w-full p-4 sm:p-6 space-y-4 shadow-2xl animate-in fade-in zoom-in-95"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
               <div className="flex items-center gap-2">
-                <PhosphorIcon name="camera" weight="bold" size={20} className="text-amber-400" />
-                <h4 className="font-bold text-sm sm:text-base font-arabic">تسمية وحفظ صورة الفحص</h4>
+                <PhosphorIcon name="camera" weight="bold" size={22} className="text-amber-400" />
+                <h4 className="font-bold text-base sm:text-lg font-arabic">معاينة وتسمية صورة الفحص</h4>
               </div>
               <button
                 type="button"
                 onClick={() => setIsNameDialogOpen(false)}
-                className="p-1 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white cursor-pointer"
+                className="p-1.5 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white cursor-pointer"
               >
-                <PhosphorIcon name="x" weight="bold" size={18} />
+                <PhosphorIcon name="x" weight="bold" size={20} />
               </button>
             </div>
 
-            {/* Photo Preview */}
-            <div className="w-full aspect-video rounded-2xl bg-black overflow-hidden border border-zinc-800 flex items-center justify-center">
+            {/* Clear Large Photo Preview */}
+            <div className="w-full aspect-[16/10] rounded-2xl bg-black overflow-hidden border border-zinc-800 flex items-center justify-center">
               <img src={pendingPhotoUrl} alt="Captured preview" className="w-full h-full object-contain" />
             </div>
 
@@ -745,7 +825,7 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
                 value={pendingPhotoName}
                 onChange={(e) => setPendingPhotoName(e.target.value)}
                 placeholder="أدخل اسم الصورة (مثال: الصدام الأمامي)..."
-                className="w-full bg-zinc-900 border border-zinc-700 focus:border-white rounded-xl px-3 py-2.5 text-sm text-white outline-none font-arabic"
+                className="w-full bg-zinc-900 border border-zinc-700 focus:border-white rounded-xl px-3.5 py-2.5 text-sm text-white outline-none font-arabic"
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleConfirmAddPhoto();
@@ -755,14 +835,14 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
               {/* Quick Preset Buttons */}
               <div className="pt-1">
                 <span className="text-[11px] text-zinc-400 font-arabic block mb-1.5">أسماء مقترحة سريعة:</span>
-                <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
+                <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
                   {PRESET_PHOTO_NAMES.map((name) => (
                     <button
                       key={name}
                       type="button"
                       onClick={() => setPendingPhotoName(name)}
                       className={cn(
-                        "px-2.5 py-1 rounded-lg text-[11px] font-arabic transition-colors cursor-pointer border",
+                        "px-2.5 py-1 rounded-lg text-xs font-arabic transition-colors cursor-pointer border",
                         pendingPhotoName === name
                           ? "bg-white text-zinc-950 border-white font-bold"
                           : "bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border-zinc-700"
@@ -780,7 +860,7 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
               <button
                 type="button"
                 onClick={handleConfirmAddPhoto}
-                className="flex-1 py-2.5 bg-white hover:bg-zinc-200 text-zinc-950 rounded-xl font-bold font-arabic text-sm transition-all shadow-md cursor-pointer active:scale-95"
+                className="flex-1 py-3 bg-white hover:bg-zinc-200 text-zinc-950 rounded-xl font-bold font-arabic text-sm transition-all shadow-md cursor-pointer active:scale-95"
                 data-testid="btn-confirm-add-photo"
               >
                 حفظ وإضافة للمعرض
@@ -788,10 +868,42 @@ export const ReportMediaManager: React.FC<ReportMediaManagerProps> = ({
               <button
                 type="button"
                 onClick={() => setIsNameDialogOpen(false)}
-                className="px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl font-bold font-arabic text-sm transition-colors cursor-pointer"
+                className="px-5 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl font-bold font-arabic text-sm transition-colors cursor-pointer"
               >
                 إلغاء
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Lightbox Zoom Preview Modal for Large View ── */}
+      {zoomPhoto && (
+        <div
+          className="fixed inset-0 bg-black/95 backdrop-blur-md z-[999999] flex items-center justify-center p-4"
+          onClick={() => setZoomPhoto(null)}
+          dir="rtl"
+        >
+          <div
+            className="bg-zinc-950 border border-zinc-800 rounded-3xl max-w-4xl w-full max-h-[92vh] overflow-hidden flex flex-col p-4 sm:p-6 shadow-2xl text-white space-y-3 animate-in fade-in zoom-in-95"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+              <div className="flex items-center gap-2">
+                <PhosphorIcon name="image" weight="bold" size={20} className="text-zinc-300" />
+                <h4 className="font-bold text-base font-arabic">{zoomPhoto.name}</h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => setZoomPhoto(null)}
+                className="p-1.5 rounded-xl hover:bg-zinc-800 text-zinc-400 hover:text-white cursor-pointer"
+              >
+                <PhosphorIcon name="x" weight="bold" size={20} />
+              </button>
+            </div>
+
+            <div className="flex-1 min-h-0 bg-black/80 rounded-2xl overflow-hidden flex items-center justify-center p-2 border border-zinc-800">
+              <img src={zoomPhoto.url} alt={zoomPhoto.name} className="max-w-full max-h-[72vh] object-contain rounded-xl" />
             </div>
           </div>
         </div>

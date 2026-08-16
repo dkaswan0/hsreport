@@ -2,7 +2,7 @@ import { BarcodeScannerModal } from "@/components/barcode-scanner-modal";
 import { Barcode } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertInspectionSchema } from "@shared/schema";
+import { insertInspectionSchema, type InspectionMediaItem } from "@shared/schema";
 import { useCreateInspection } from "@/hooks/use-inspections";
 import { useLocation } from "wouter";
 import { z } from "zod";
@@ -11,8 +11,7 @@ import { PhosphorIcon } from "@/components/phosphor-icon";
 import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { VehiclePhotosGrid } from "@/components/vehicle-photos-grid";
-import { VehiclePhotoKey } from "@shared/vehicle-photos";
+import { ReportMediaManager } from "@/components/report-media-manager";
 import { SearchRouterModal } from "@/components/search-router-modal";
 
 const compressImage = (dataUrl: string, maxWidth = 1200, quality = 0.7): Promise<string> => {
@@ -68,14 +67,9 @@ export default function NewInspection() {
   const [inspectionType, setInspectionType] = useState('full');
   const [notes, setNotes] = useState("");
 
-  // Standard 5 Core Vehicle Photos
-  const [vehiclePhotos, setVehiclePhotos] = useState<Record<VehiclePhotoKey, string | null>>({
-    main_vehicle: null,
-    right_side: null,
-    front_view: null,
-    left_side: null,
-    rear_view: null,
-  });
+  // Report Media (Video + General Photos for Unified Gallery)
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [mediaGallery, setMediaGallery] = useState<InspectionMediaItem[]>([]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -322,19 +316,8 @@ export default function NewInspection() {
       notes: notes.trim() || undefined,
       odometerPhoto: odometerPhoto || undefined,
       inspectionType: inspectionTypeLabel,
-      // Standard 5 Core Vehicle Photos
-      mainCarPhoto: vehiclePhotos.main_vehicle || undefined,
-      frontRightDoorPhoto: vehiclePhotos.right_side || undefined,
-      hoodPhoto: vehiclePhotos.front_view || undefined,
-      frontLeftDoorPhoto: vehiclePhotos.left_side || undefined,
-      trunkPhoto: vehiclePhotos.rear_view || undefined,
-      vehiclePhotosMeta: {
-        main_vehicle: vehiclePhotos.main_vehicle ? { originalUrl: vehiclePhotos.main_vehicle, activeMode: 'original', processingStatus: 'idle' } : undefined,
-        right_side: vehiclePhotos.right_side ? { originalUrl: vehiclePhotos.right_side, activeMode: 'original', processingStatus: 'idle' } : undefined,
-        front_view: vehiclePhotos.front_view ? { originalUrl: vehiclePhotos.front_view, activeMode: 'original', processingStatus: 'idle' } : undefined,
-        left_side: vehiclePhotos.left_side ? { originalUrl: vehiclePhotos.left_side, activeMode: 'original', processingStatus: 'idle' } : undefined,
-        rear_view: vehiclePhotos.rear_view ? { originalUrl: vehiclePhotos.rear_view, activeMode: 'original', processingStatus: 'idle' } : undefined,
-      },
+      videoUrl: videoUrl || undefined,
+      mediaGallery: mediaGallery.length > 0 ? mediaGallery : undefined,
     };
 
     mutate(submissionData as any, {
@@ -378,11 +361,19 @@ export default function NewInspection() {
       <div className="bg-white rounded-3xl shadow-sm border border-slate-200/80 p-6 md:p-8 space-y-8">
         <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
 
-          {/* ── 1. بيانات السيارة ── */}
+          {/* ── 1. صور وفيديو التقرير (الوسائط العامة للتقرير) ── */}
+          <ReportMediaManager
+            videoUrl={videoUrl}
+            onVideoChange={setVideoUrl}
+            mediaGallery={mediaGallery}
+            onMediaGalleryChange={setMediaGallery}
+          />
+
+          {/* ── 2. بيانات السيارة ── */}
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-3 gap-3">
               <h3 className="text-lg font-bold flex items-center gap-2 text-zinc-950 font-arabic">
-                <span className="w-8 h-8 rounded-xl bg-zinc-950 text-white flex items-center justify-center text-sm font-bold shadow">1</span>
+                <span className="w-8 h-8 rounded-xl bg-zinc-950 text-white flex items-center justify-center text-sm font-bold shadow">2</span>
                 بيانات السيارة واستخراج الهيكل (VIN)
               </h3>
               <button
@@ -699,11 +690,11 @@ export default function NewInspection() {
             </div>
           </div>
 
-          {/* ── 2. بيانات العميل (خاصة بالمركز الداخلي) ── */}
+          {/* ── 3. بيانات العميل (خاصة بالمركز الداخلي) ── */}
           <div className="space-y-4 bg-slate-50/80 p-5 rounded-2xl border border-slate-200">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-3 gap-2">
               <h3 className="text-lg font-bold flex items-center gap-2 text-zinc-950 font-arabic">
-                <span className="w-8 h-8 rounded-xl bg-zinc-950 text-white flex items-center justify-center text-sm font-bold shadow">2</span>
+                <span className="w-8 h-8 rounded-xl bg-zinc-950 text-white flex items-center justify-center text-sm font-bold shadow">3</span>
                 بيانات العميل
               </h3>
               <div className="flex items-center gap-1.5 text-xs text-zinc-800 bg-zinc-100 px-3 py-1.5 rounded-lg border border-zinc-300 font-arabic font-medium">
@@ -742,10 +733,10 @@ export default function NewInspection() {
             </div>
           </div>
 
-          {/* ── 3. نوع الفحص ── */}
+          {/* ── 4. نوع الفحص ── */}
           <div className="space-y-4">
             <h3 className="text-lg font-bold flex items-center gap-2 text-zinc-950 border-b border-slate-200 pb-3 font-arabic">
-              <span className="w-8 h-8 rounded-xl bg-zinc-950 text-white flex items-center justify-center text-sm font-bold shadow">3</span>
+              <span className="w-8 h-8 rounded-xl bg-zinc-950 text-white flex items-center justify-center text-sm font-bold shadow">4</span>
               <FileCheck className="w-5 h-5 text-zinc-950" />
               نوع وباقة الفحص
             </h3>
@@ -783,26 +774,6 @@ export default function NewInspection() {
                 );
               })}
             </div>
-          </div>
-
-          {/* ── 4. صور فحص المركبة الأساسية (5 صور قياسية) ── */}
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-3 gap-2">
-              <h3 className="text-lg font-bold flex items-center gap-2 text-zinc-950 font-arabic">
-                <span className="w-8 h-8 rounded-xl bg-zinc-950 text-white flex items-center justify-center text-sm font-bold shadow">4</span>
-                <Camera className="w-5 h-5 text-zinc-950" />
-                صور فحص المركبة الأساسية
-              </h3>
-              <span className="text-xs text-slate-500 font-arabic">صور زوايا المركبة الأساسية</span>
-            </div>
-
-            <VehiclePhotosGrid
-              photos={vehiclePhotos}
-              onPhotoChange={(key, dataUrl) => {
-                setVehiclePhotos((prev) => ({ ...prev, [key]: dataUrl }));
-              }}
-              isEditable={true}
-            />
           </div>
 
           {/* زر حفظ وبدء الفحص */}

@@ -46,7 +46,6 @@ import { useInspectionStructure } from "@/hooks/use-inspection-structure";
 import { AddEditSectionModal, AddEditCategoryModal } from "@/components/section-category-manager-modal";
 import { queryClient } from "@/lib/queryClient";
 import { FaultCameraModal } from "@/components/fault-camera-modal";
-import { ReportMediaManager } from "@/components/report-media-manager";
 
 export default function InspectionDetails() {
   const [, params] = useRoute("/inspections/:id");
@@ -820,9 +819,6 @@ export default function InspectionDetails() {
           </div>
           )}
         </div>
-
-        {/* Dedicated Report Media & Video Manager for Unified Gallery */}
-        {inspection && <ReportMediaManager inspection={inspection} />}
 
         {/* Category Items */}
         <div className="flex-1 bg-white rounded-xl border border-stone-100 flex flex-col overflow-hidden">
