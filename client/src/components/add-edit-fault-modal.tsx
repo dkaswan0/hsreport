@@ -1,28 +1,24 @@
 // ==============================================================================
 // Add / Edit Fault Modal - High Safety Inspection System
-// Focused ONLY on:
-// 1. وصف العطل (Fault Description)
-// 2. البحث في مكتبة الأعطال (Search Fault Library)
-// 3. التصوير (Live Camera)
-// 4. رفع الصورة (Upload Photo)
-// 5. تحليل AI بشكل اختياري (Optional AI Analysis)
-// 6. حفظ العطل (Save Fault)
+// Visual Theme: Strictly BLACK, WHITE & GRAY (Monochrome Luxury Aesthetic)
+// Section is Fixed (NO Section Switcher inside Modal)
+// Features: 9000+ Deep Library Search, Live Camera, Upload, Multi-Suggestion AI
 // ==============================================================================
 
 import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { PhosphorIcon } from "@/components/phosphor-icon";
-import { MAIN_SECTIONS, getMainSectionById, mapLegacyCategoryToMainSection } from "@shared/categories";
+import { getMainSectionById, mapLegacyCategoryToMainSection } from "@shared/categories";
 import { FaultCameraModal } from "@/components/fault-camera-modal";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Sparkles, Check, X, Camera, Upload, Trash2, RotateCcw, Search } from "lucide-react";
+import { Loader2, Sparkles, Check, X, Camera, Upload, Trash2, RotateCcw, Search, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 interface AddEditFaultModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialSectionId?: string;
+  sectionId: string; // The active section is fixed from caller
   editItem?: {
     id?: number;
     faultName: string;
@@ -34,7 +30,6 @@ interface AddEditFaultModalProps {
   onSave: (faultData: {
     faultName: string;
     sectionId: string;
-    severity?: "low" | "medium" | "high" | "critical";
     notes?: string;
     imageUrl?: string | null;
   }) => Promise<void> | void;
@@ -43,15 +38,15 @@ interface AddEditFaultModalProps {
 export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
   isOpen,
   onClose,
-  initialSectionId = "mechanical",
+  sectionId = "mechanical",
   editItem,
   onSave,
 }) => {
   const { toast } = useToast();
 
-  const [selectedSection, setSelectedSection] = useState<string>(() =>
-    mapLegacyCategoryToMainSection(editItem?.category || initialSectionId)
-  );
+  const canonicalSectionId = mapLegacyCategoryToMainSection(editItem?.category || sectionId);
+  const sectionDef = getMainSectionById(canonicalSectionId);
+
   const [faultText, setFaultText] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
@@ -63,51 +58,49 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
   // Camera & AI Vision state
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isAnalyzingAi, setIsAnalyzingAi] = useState(false);
-  const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Initialize or reset form on open/editItem change
+  // Reset/Initialize state
   useEffect(() => {
     if (isOpen) {
       if (editItem) {
-        setSelectedSection(mapLegacyCategoryToMainSection(editItem.category || initialSectionId));
         setFaultText(editItem.faultName || editItem.notes || "");
         setImageUrl(editItem.imageUrl || null);
       } else {
-        setSelectedSection(mapLegacyCategoryToMainSection(initialSectionId));
         setFaultText("");
         setImageUrl(null);
       }
       setSearchQuery("");
       setDebouncedSearch("");
-      setAiSuggestion(null);
+      setAiSuggestions([]);
       setIsSubmitting(false);
     }
-  }, [isOpen, editItem, initialSectionId]);
+  }, [isOpen, editItem]);
 
-  // Debounce search query (280ms)
+  // Debounce search query (250ms)
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery.trim());
-    }, 280);
+    }, 250);
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Search Fault Library Query (9,000+ faults)
+  // Search Fault Library (9,000+ faults with section priority)
   const { data: searchResults, isLoading: isSearchLoading } = useQuery({
-    queryKey: ["/api/fault-library", debouncedSearch],
+    queryKey: ["/api/fault-library", debouncedSearch, canonicalSectionId],
     queryFn: async () => {
       if (!debouncedSearch || debouncedSearch.length < 2) return [];
-      const res = await fetch(`/api/fault-library?q=${encodeURIComponent(debouncedSearch)}`);
+      const res = await fetch(
+        `/api/fault-library?q=${encodeURIComponent(debouncedSearch)}&section=${encodeURIComponent(canonicalSectionId)}`
+      );
       if (!res.ok) return [];
       return res.json();
     },
     enabled: debouncedSearch.length >= 2,
   });
-
-  const sectionDef = getMainSectionById(selectedSection);
 
   // Handle Photo Selection from File Input
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,12 +111,12 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
     reader.onload = (event) => {
       const dataUrl = event.target?.result as string;
       setImageUrl(dataUrl);
-      setAiSuggestion(null);
+      setAiSuggestions([]);
     };
     reader.readAsDataURL(file);
   };
 
-  // Handle AI Vision Image Analysis (Optional)
+  // Handle AI Vision Analysis (Optional)
   const handleAnalyzeWithAi = async () => {
     if (!imageUrl) return;
 
@@ -134,8 +127,8 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           image: imageUrl,
-          section: selectedSection,
-          prompt: "حلل صورة العطل الفني للمركبة واقترح وصفاً فنياً دقيقاً ومختصراً للعطل باللغة العربية.",
+          section: canonicalSectionId,
+          prompt: "حلل صورة العطل الفني للمركبة واقترح وصفاً دقيقاً ومختصراً للعطل باللغة العربية.",
         }),
       });
 
@@ -144,20 +137,31 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
       }
 
       const data = await res.json();
-      const suggestedText = data.description || data.text || data.faultName || "ملاحظة فنية تحتاج للمعاينة";
+      const list: string[] = [];
 
-      setAiSuggestion(suggestedText);
+      if (data.suggestions && Array.isArray(data.suggestions) && data.suggestions.length > 0) {
+        data.suggestions.forEach((s: string) => {
+          if (s && !list.includes(s)) list.push(s);
+        });
+      } else if (data.description || data.text) {
+        list.push(data.description || data.text);
+      }
+
+      if (list.length === 0) {
+        list.push("يوجد ملاحظة فنية تحتاج للمعاينة");
+      }
+
+      setAiSuggestions(list);
 
       toast({
-        title: "✨ تم تحليل الصورة بالذكاء الاصطناعي",
-        description: "راجع الاقتراح في الأسفل واعتمد ما يناسبك.",
+        title: "✨ تم تحليل الصورة",
+        description: `تم استخراج ${list.length} اقتراحات فنية، اختر الأنسب منها.`,
       });
     } catch (err: any) {
       console.warn("AI analysis error:", err);
       toast({
         title: "تنبيه",
         description: "تعذر التحليل التلقائي للصورة حالياً. يمكنك كتابة الوصف يدوياً.",
-        variant: "destructive",
       });
     } finally {
       setIsAnalyzingAi(false);
@@ -182,15 +186,14 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
     try {
       await onSave({
         faultName: cleanText,
-        sectionId: selectedSection,
-        severity: (editItem?.severity as any) || "medium",
+        sectionId: canonicalSectionId,
         notes: cleanText,
         imageUrl,
       });
 
       toast({
-        title: editItem ? "تم تعديل العطل بنجاح" : "✨ تم إضافة العطل بنجاح",
-        description: `تم حفظ العطل في قسم: ${sectionDef.label}`,
+        title: editItem ? "تم حفظ التعديلات بنجاح" : "✨ تم إضافة العطل بنجاح",
+        description: `تم تسجيل العطل تحت قسم: ${sectionDef.label}`,
       });
       onClose();
     } catch (err: any) {
@@ -209,36 +212,27 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className="max-w-2xl w-[95vw] sm:w-full bg-zinc-950 text-white p-4 sm:p-6 rounded-3xl border border-zinc-800 shadow-2xl font-arabic max-h-[92vh] overflow-y-auto z-[99990]">
           <DialogTitle className="sr-only">
-            {editItem ? "تعديل العطل الفني" : "إضافة عطل فني جديد"}
+            {editItem ? `تعديل عطل — ${sectionDef.label}` : `إضافة عطل — ${sectionDef.label}`}
           </DialogTitle>
 
-          {/* ── Modal Header ── */}
-          <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
-            <div className="flex items-center gap-2.5">
-              <div
-                className="w-10 h-10 rounded-2xl flex items-center justify-center border shadow-inner"
-                style={{
-                  backgroundColor: `${sectionDef.color}20`,
-                  borderColor: `${sectionDef.color}40`,
-                }}
-              >
-                <PhosphorIcon
-                  name={sectionDef.iconName as any}
-                  weight="bold"
-                  size={22}
-                  style={{ color: sectionDef.color }}
-                />
+          {/* ── Modal Header (Strict Monochrome) ── */}
+          <div className="flex items-center justify-between border-b border-zinc-800 pb-3.5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-zinc-900 border border-zinc-700 flex items-center justify-center text-white shadow-inner">
+                <PhosphorIcon name={sectionDef.iconName as any} weight="bold" size={22} className="text-white" />
               </div>
               <div>
                 <h3 className="font-bold text-base sm:text-lg text-white">
-                  {editItem ? "تعديل الملاحظة الفنية" : "إضافة عطل فني جديد"}
+                  {editItem ? "تعديل الملاحظة الفنية" : "إضافة عطل فني"}
                 </h3>
                 <div className="flex items-center gap-1.5 text-xs text-zinc-400">
                   <span>القسم المعتمد:</span>
-                  <span className="font-bold text-white" style={{ color: sectionDef.color }}>
+                  <span className="font-bold text-white bg-zinc-900 px-2 py-0.5 rounded-md border border-zinc-700">
                     {sectionDef.label}
                   </span>
-                  <span className="text-[10px] text-zinc-500 font-mono">({sectionDef.labelEn})</span>
+                  <span className="text-[11px] text-zinc-500 font-mono" dir="ltr">
+                    ({sectionDef.labelEn})
+                  </span>
                 </div>
               </div>
             </div>
@@ -246,58 +240,25 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4 pt-3 text-right" dir="rtl">
-            {/* ── 1. Section Selector (Quick Switcher) ── */}
-            <div>
-              <label className="block text-xs font-bold text-zinc-400 mb-1.5">
-                تحديد القسم التابع له العطل:
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                {MAIN_SECTIONS.map((sec) => {
-                  const isSelected = selectedSection === sec.id;
-                  return (
-                    <button
-                      key={sec.id}
-                      type="button"
-                      onClick={() => setSelectedSection(sec.id)}
-                      className={cn(
-                        "py-2 px-2.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-2 cursor-pointer",
-                        isSelected
-                          ? "bg-zinc-800 border-white text-white shadow-md scale-[1.01]"
-                          : "bg-zinc-900/70 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60"
-                      )}
-                    >
-                      <PhosphorIcon
-                        name={sec.iconName as any}
-                        weight={isSelected ? "fill" : "bold"}
-                        size={16}
-                        style={{ color: sec.color }}
-                      />
-                      <span className="truncate">{sec.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* ── 2. Fault Library Search (Search-First) ── */}
-            <div className="bg-zinc-900/90 border border-zinc-800 p-3 rounded-2xl space-y-2">
+            {/* ── 1. Fault Library Search (Search-First on 9,000+ faults) ── */}
+            <div className="bg-zinc-900/90 border border-zinc-800 p-3.5 rounded-2xl space-y-2.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-zinc-300 flex items-center gap-1.5">
-                  <Search className="w-3.5 h-3.5 text-amber-400" />
+                <span className="font-bold text-zinc-200 flex items-center gap-1.5">
+                  <Search className="w-4 h-4 text-zinc-400" />
                   <span>البحث في مكتبة الأعطال (9,000+ عطل)</span>
                 </span>
                 {searchQuery && (
                   <button
                     type="button"
                     onClick={() => setSearchQuery("")}
-                    className="text-[11px] text-zinc-400 hover:text-white"
+                    className="text-[11px] text-zinc-400 hover:text-white underline cursor-pointer"
                   >
                     مسح البحث
                   </button>
@@ -310,21 +271,21 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="ابحث مثل: تهريب زيت، رش تجميلي، كود، صوت، تهريب..."
-                  className="w-full bg-zinc-950 border border-zinc-800 focus:border-amber-500 rounded-xl py-2 px-3 text-xs sm:text-sm text-white placeholder-zinc-500 focus:outline-none transition-colors"
+                  placeholder="ابحث مثل: تهريب زيت، رش، خدش، كود، صوت، ترشيح، لحام..."
+                  className="w-full bg-zinc-950 border border-zinc-700 focus:border-white rounded-xl py-2.5 px-3 text-xs sm:text-sm text-white placeholder-zinc-500 focus:outline-none transition-colors"
                 />
                 {isSearchLoading && (
                   <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                    <Loader2 className="w-4 h-4 text-amber-400 animate-spin" />
+                    <Loader2 className="w-4 h-4 text-zinc-400 animate-spin" />
                   </div>
                 )}
               </div>
 
               {/* Live Search Suggestions Dropdown */}
               {debouncedSearch.length >= 2 && (
-                <div className="max-h-48 overflow-y-auto space-y-1 pt-1 scrollbar-thin scrollbar-thumb-zinc-700">
+                <div className="max-h-52 overflow-y-auto space-y-1.5 pt-1 scrollbar-thin scrollbar-thumb-zinc-700">
                   {searchResults && searchResults.length > 0 ? (
-                    searchResults.slice(0, 10).map((item: any, idx: number) => (
+                    searchResults.map((item: any, idx: number) => (
                       <button
                         key={item.id || idx}
                         type="button"
@@ -332,25 +293,25 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
                           setFaultText(item.faultName || item.description || "");
                           setSearchQuery("");
                         }}
-                        className="w-full p-2 text-right bg-zinc-950/80 hover:bg-zinc-800/90 border border-zinc-800/60 hover:border-zinc-700 rounded-xl transition-all flex items-center justify-between gap-2 cursor-pointer group"
+                        className="w-full p-2.5 text-right bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-600 rounded-xl transition-all flex items-center justify-between gap-2 cursor-pointer group"
                       >
-                        <div className="min-w-0">
-                          <div className="text-xs font-bold text-white group-hover:text-amber-300 transition-colors truncate">
+                        <div className="min-w-0 flex-1">
+                          <div className="text-xs sm:text-sm font-bold text-white group-hover:text-white transition-colors truncate">
                             {item.faultName}
                           </div>
-                          {item.description && (
-                            <div className="text-[10px] text-zinc-400 truncate">
+                          {item.description && item.description !== item.faultName && (
+                            <div className="text-[11px] text-zinc-400 truncate mt-0.5">
                               {item.description}
                             </div>
                           )}
                         </div>
-                        <span className="text-[10px] font-bold text-amber-400 shrink-0 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
-                          اختيار
+                        <span className="text-[11px] font-bold text-white shrink-0 bg-zinc-800 group-hover:bg-white group-hover:text-black px-2.5 py-1 rounded-lg border border-zinc-700 transition-colors">
+                          + اختيار
                         </span>
                       </button>
                     ))
                   ) : !isSearchLoading ? (
-                    <div className="text-center py-2 text-xs text-zinc-500">
+                    <div className="text-center py-3 text-xs text-zinc-400 bg-zinc-950/60 rounded-xl border border-zinc-800">
                       لا توجد نتائج مطابقة في المكتبة. يمكنك كتابة العطل يدويًا في الأسفل.
                     </div>
                   ) : null}
@@ -358,17 +319,17 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
               )}
             </div>
 
-            {/* ── 3. Fault Description / Notes (Manual Comfortable Textarea) ── */}
+            {/* ── 2. Fault Description / Notes (Spacious Textarea) ── */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-bold text-zinc-300">
-                  وصف العطل أو الملاحظة الفنية: <span className="text-rose-400">*</span>
+                <label className="text-xs font-bold text-zinc-200">
+                  وصف العطل أو الملاحظة الفنية: <span className="text-zinc-400">*</span>
                 </label>
                 {faultText && (
                   <button
                     type="button"
                     onClick={() => setFaultText("")}
-                    className="text-[11px] text-zinc-400 hover:text-white"
+                    className="text-[11px] text-zinc-400 hover:text-white underline cursor-pointer"
                   >
                     تفريغ النص
                   </button>
@@ -379,43 +340,43 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
                 onChange={(e) => setFaultText(e.target.value)}
                 placeholder="اكتب العطل أو الملاحظة الفنية هنا بكل وضوح..."
                 rows={4}
-                className="w-full bg-zinc-900 border border-zinc-800 focus:border-white rounded-2xl p-3.5 text-sm text-white placeholder-zinc-500 focus:outline-none transition-all resize-y leading-relaxed shadow-inner"
+                className="w-full bg-zinc-900 border border-zinc-700 focus:border-white rounded-2xl p-3.5 text-sm text-white placeholder-zinc-500 focus:outline-none transition-all resize-y leading-relaxed shadow-inner"
                 required
               />
             </div>
 
-            {/* ── 4. Photo Capture & Upload (Camera / Upload / Optional AI) ── */}
+            {/* ── 3. Photo Capture & Upload (Camera / Upload / AI) ── */}
             <div className="bg-zinc-900/90 border border-zinc-800 p-3.5 rounded-2xl space-y-3">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-zinc-300 flex items-center gap-1.5">
+                <label className="text-xs font-bold text-zinc-200 flex items-center gap-1.5">
                   <Camera className="w-4 h-4 text-zinc-400" />
                   <span>صورة العطل التوثيقية (اختياري)</span>
                 </label>
                 {imageUrl && (
-                  <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-bold">
+                  <span className="text-[10px] bg-zinc-800 text-zinc-200 border border-zinc-700 px-2 py-0.5 rounded-full font-bold">
                     ✓ تم إرفاق صورة
                   </span>
                 )}
               </div>
 
               {!imageUrl ? (
-                /* Capture Buttons */
+                /* Capture & Upload Buttons */
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setIsCameraOpen(true)}
-                    className="py-3 px-3 bg-zinc-800 hover:bg-zinc-700 active:scale-95 border border-zinc-700 rounded-2xl flex items-center justify-center gap-2 text-xs sm:text-sm font-bold text-white transition-all cursor-pointer shadow-sm"
+                    className="py-3 px-3 bg-zinc-900 hover:bg-zinc-800 active:scale-95 border border-zinc-700 rounded-2xl flex items-center justify-center gap-2 text-xs sm:text-sm font-bold text-white transition-all cursor-pointer shadow-sm"
                   >
-                    <Camera className="w-4 h-4 text-amber-400" />
+                    <Camera className="w-4 h-4 text-zinc-300" />
                     <span>📸 التقاط صورة</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="py-3 px-3 bg-zinc-800 hover:bg-zinc-700 active:scale-95 border border-zinc-700 rounded-2xl flex items-center justify-center gap-2 text-xs sm:text-sm font-bold text-white transition-all cursor-pointer shadow-sm"
+                    className="py-3 px-3 bg-zinc-900 hover:bg-zinc-800 active:scale-95 border border-zinc-700 rounded-2xl flex items-center justify-center gap-2 text-xs sm:text-sm font-bold text-white transition-all cursor-pointer shadow-sm"
                   >
-                    <Upload className="w-4 h-4 text-blue-400" />
+                    <Upload className="w-4 h-4 text-zinc-300" />
                     <span>🖼️ رفع صورة</span>
                   </button>
 
@@ -428,7 +389,7 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
                   />
                 </div>
               ) : (
-                /* Photo Preview & AI Options */
+                /* Photo Preview & Actions */
                 <div className="space-y-3">
                   <div className="relative w-full aspect-video max-h-56 bg-black rounded-2xl overflow-hidden border border-zinc-700 shadow-md flex items-center justify-center">
                     <img
@@ -438,13 +399,13 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
                     />
                   </div>
 
-                  {/* Photo Actions Row */}
+                  {/* Photo Actions Row (Strict Monochrome) */}
                   <div className="flex flex-wrap items-center gap-2">
                     <button
                       type="button"
                       disabled={isAnalyzingAi}
                       onClick={handleAnalyzeWithAi}
-                      className="flex-1 py-2 px-3 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 disabled:opacity-50 text-black font-black rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer"
+                      className="flex-1 py-2.5 px-3 bg-white hover:bg-zinc-200 disabled:opacity-50 text-black font-black rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer"
                     >
                       {isAnalyzingAi ? (
                         <>
@@ -454,7 +415,7 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
                       ) : (
                         <>
                           <Sparkles className="w-3.5 h-3.5" />
-                          <span>🔍 تحليل بالذكاء الاصطناعي</span>
+                          <span>🔍 تحليل الصورة بالذكاء الاصطناعي</span>
                         </>
                       )}
                     </button>
@@ -462,7 +423,7 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
                     <button
                       type="button"
                       onClick={() => setIsCameraOpen(true)}
-                      className="py-2 px-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl text-xs font-bold flex items-center gap-1 border border-zinc-700 transition-colors cursor-pointer"
+                      className="py-2.5 px-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl text-xs font-bold flex items-center gap-1 border border-zinc-700 transition-colors cursor-pointer"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
                       <span>إعادة التقاط</span>
@@ -472,53 +433,66 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
                       type="button"
                       onClick={() => {
                         setImageUrl(null);
-                        setAiSuggestion(null);
+                        setAiSuggestions([]);
                       }}
-                      className="py-2 px-3 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 rounded-xl text-xs font-bold flex items-center gap-1 border border-rose-500/30 transition-colors cursor-pointer"
+                      className="py-2.5 px-3 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-xl text-xs font-bold flex items-center gap-1 border border-zinc-800 transition-colors cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       <span>حذف</span>
                     </button>
                   </div>
 
-                  {/* AI Vision Suggestion Card (Optional Helper) */}
-                  {aiSuggestion && (
-                    <div className="bg-amber-500/10 border border-amber-500/30 p-3 rounded-2xl space-y-2 animate-in fade-in duration-200">
-                      <div className="flex items-center gap-2 text-amber-400 text-xs font-bold">
-                        <Sparkles className="w-4 h-4 shrink-0" />
-                        <span>اقتراح الذكاء الاصطناعي:</span>
+                  {/* Multiple AI Vision Suggestions (Optional Helper) */}
+                  {aiSuggestions.length > 0 && (
+                    <div className="bg-zinc-900 border border-zinc-700 p-3.5 rounded-2xl space-y-2.5 animate-in fade-in duration-200">
+                      <div className="flex items-center justify-between text-xs font-bold text-white border-b border-zinc-800 pb-1.5">
+                        <span className="flex items-center gap-1.5">
+                          <Sparkles className="w-4 h-4 text-zinc-300" />
+                          <span>اقتراحات الذكاء الاصطناعي ({aiSuggestions.length}):</span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setAiSuggestions([])}
+                          className="text-[11px] text-zinc-400 hover:text-white"
+                        >
+                          إغلاق
+                        </button>
                       </div>
-                      <p className="text-xs sm:text-sm text-zinc-200 leading-relaxed bg-black/40 p-2.5 rounded-xl border border-white/5">
-                        {aiSuggestion}
-                      </p>
-                      <div className="flex items-center gap-2 pt-1">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setFaultText(aiSuggestion);
-                            setAiSuggestion(null);
-                          }}
-                          className="py-1.5 px-3 bg-amber-500 hover:bg-amber-400 text-black text-xs font-black rounded-lg transition-all cursor-pointer"
-                        >
-                          ✓ استخدام الاقتراح
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setFaultText((prev) => (prev ? `${prev} - ${aiSuggestion}` : aiSuggestion));
-                            setAiSuggestion(null);
-                          }}
-                          className="py-1.5 px-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-bold rounded-lg transition-all cursor-pointer"
-                        >
-                          تعديل ودمج
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setAiSuggestion(null)}
-                          className="py-1.5 px-2 text-zinc-400 hover:text-white text-xs"
-                        >
-                          تجاهل
-                        </button>
+
+                      <div className="space-y-1.5">
+                        {aiSuggestions.map((suggestion, sIdx) => (
+                          <div
+                            key={sIdx}
+                            className="p-2.5 bg-zinc-950 border border-zinc-800 rounded-xl flex items-center justify-between gap-2 text-xs"
+                          >
+                            <p className="text-zinc-200 leading-relaxed min-w-0 flex-1">
+                              <span className="font-bold text-zinc-400 ml-1">#{sIdx + 1}</span>
+                              {suggestion}
+                            </p>
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setFaultText(suggestion);
+                                  setAiSuggestions([]);
+                                }}
+                                className="py-1 px-2.5 bg-white hover:bg-zinc-200 text-black font-bold rounded-lg transition-all cursor-pointer"
+                              >
+                                ✓ استخدام
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setFaultText((prev) => (prev ? `${prev} - ${suggestion}` : suggestion));
+                                  setAiSuggestions([]);
+                                }}
+                                className="py-1 px-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-all cursor-pointer"
+                              >
+                                دمج
+                              </button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )}
@@ -526,13 +500,13 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
               )}
             </div>
 
-            {/* ── 5. Modal Footer Action (Save Fault) ── */}
-            <div className="pt-3 flex gap-2.5 border-t border-zinc-800/80">
+            {/* ── 4. Modal Footer Actions (Save Fault) ── */}
+            <div className="pt-3 flex gap-2.5 border-t border-zinc-800">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={isSubmitting}
-                className="py-3 px-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 rounded-2xl text-xs sm:text-sm font-bold transition-colors cursor-pointer"
+                className="py-3 px-4 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 rounded-2xl text-xs sm:text-sm font-bold transition-colors cursor-pointer"
               >
                 إلغاء
               </button>
@@ -540,7 +514,7 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
               <button
                 type="submit"
                 disabled={isSubmitting || !faultText.trim()}
-                className="flex-1 py-3 px-5 bg-white hover:bg-zinc-100 disabled:opacity-50 text-zinc-950 font-black rounded-2xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xl transition-all cursor-pointer active:scale-98"
+                className="flex-1 py-3 px-5 bg-white hover:bg-zinc-200 disabled:opacity-50 text-zinc-950 font-black rounded-2xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xl transition-all cursor-pointer active:scale-98"
               >
                 {isSubmitting ? (
                   <>
@@ -550,7 +524,7 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
                 ) : (
                   <>
                     <Check className="w-4 h-4" />
-                    <span>{editItem ? "حفظ التعديلات" : "حفظ العطل في الفحص"}</span>
+                    <span>{editItem ? "حفظ التعديلات" : `حفظ العطل في ${sectionDef.label}`}</span>
                   </>
                 )}
               </button>
@@ -566,7 +540,7 @@ export const AddEditFaultModal: React.FC<AddEditFaultModalProps> = ({
         onCapture={(dataUrl) => {
           setImageUrl(dataUrl);
           setIsCameraOpen(false);
-          setAiSuggestion(null);
+          setAiSuggestions([]);
         }}
         title={`تصوير عطل في قسم: ${sectionDef.label}`}
       />

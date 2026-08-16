@@ -1,7 +1,8 @@
 // ==============================================================================
-// Inspection Details Page - High Safety Modern 6-Main-Section Workspace
-// Workflow: 6 Main Sections -> Select Section -> Quick Add Fault (Manual/Search/Camera)
-// Dedicated VIN Section Card (LTR 17-char, Camera, Upload, OCR Scan)
+// Inspection Details Page - High Safety Modern 2-Stage Monochrome Workflow
+// Visual Identity: Strictly BLACK, WHITE & GRAY (Automotive Inspection Luxury Standard)
+// Stage 1: Vehicle & Customer Info + VIN Card
+// Stage 2: 6 Main Inspection Sections -> Direct Section Workspace (No Section Re-prompt)
 // ==============================================================================
 
 import React, { useState, useMemo } from "react";
@@ -19,20 +20,16 @@ import {
   Car, 
   FileText, 
   Printer, 
-  Save, 
   Plus, 
   Trash2, 
   Pencil, 
-  Camera, 
   Eye, 
-  EyeOff, 
   Monitor, 
   Check, 
   X, 
   Loader2, 
   AlertTriangle,
   ArrowRight,
-  Sparkles
 } from "lucide-react";
 
 export default function InspectionDetails() {
@@ -64,7 +61,6 @@ export default function InspectionDetails() {
   const [newObdDiagnosis, setNewObdDiagnosis] = useState("");
   const [newObdCauses, setNewObdCauses] = useState("");
   const [newObdSolutions, setNewObdSolutions] = useState("");
-  const [expandedCode, setExpandedCode] = useState<string | null>(null);
 
   // Inline Vehicle Specs Edit State
   const [isEditingSpecs, setIsEditingSpecs] = useState(false);
@@ -135,13 +131,10 @@ export default function InspectionDetails() {
   const handleSaveFault = async (faultData: {
     faultName: string;
     sectionId: string;
-    severity?: "low" | "medium" | "high" | "critical";
     notes?: string;
     imageUrl?: string | null;
   }) => {
     if (!inspection) return;
-
-    const safeSeverity = faultData.severity || "medium";
 
     if (editingFaultItem && editingFaultItem.id) {
       // Update existing item
@@ -150,7 +143,7 @@ export default function InspectionDetails() {
         inspectionId: inspection.id,
         category: faultData.sectionId, // Authoritative section
         faultName: faultData.faultName,
-        severity: safeSeverity,
+        severity: "medium", // Default database column safely in background
         notes: faultData.notes || faultData.faultName,
         imageUrl: faultData.imageUrl || null,
       });
@@ -161,7 +154,7 @@ export default function InspectionDetails() {
         category: faultData.sectionId, // Authoritative section
         faultName: faultData.faultName,
         status: "fail",
-        severity: safeSeverity,
+        severity: "medium", // Default database column safely in background
         notes: faultData.notes || faultData.faultName,
         imageUrl: faultData.imageUrl || null,
       });
@@ -187,7 +180,7 @@ export default function InspectionDetails() {
     }
   };
 
-  // Open Add Fault Modal for current or selected section
+  // Open Add Fault Modal for current active section
   const handleOpenAddFault = (sectionId?: string) => {
     if (sectionId) setActiveSectionId(sectionId);
     setEditingFaultItem(null);
@@ -262,9 +255,9 @@ export default function InspectionDetails() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 text-white">
-        <Loader2 className="w-10 h-10 animate-spin text-amber-400 mb-3" />
-        <p className="font-bold text-sm font-arabic">جارٍ تحميل بيانات الفحص...</p>
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 text-white font-arabic">
+        <Loader2 className="w-10 h-10 animate-spin text-zinc-400 mb-3" />
+        <p className="font-bold text-sm">جارٍ تحميل بيانات الفحص...</p>
       </div>
     );
   }
@@ -272,12 +265,12 @@ export default function InspectionDetails() {
   if (error || !inspection) {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 text-white font-arabic">
-        <AlertTriangle className="w-12 h-12 text-rose-500 mb-3" />
+        <AlertTriangle className="w-12 h-12 text-zinc-500 mb-3" />
         <h2 className="text-xl font-bold mb-1">الفحص غير موجود</h2>
         <p className="text-zinc-400 text-sm mb-4">تعذر العثور على تقرير الفحص المطلوب.</p>
         <button
           onClick={() => (window.location.href = "/")}
-          className="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-xs font-bold"
+          className="px-5 py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 rounded-xl text-xs font-bold"
         >
           العودة للرئيسية
         </button>
@@ -286,15 +279,15 @@ export default function InspectionDetails() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white pb-24 font-arabic" dir="rtl">
-      {/* ── Top Floating Action Header ── */}
-      <header className="sticky top-0 z-40 bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800/80 px-3 py-3 sm:px-6">
+    <div className="min-h-screen bg-black text-white pb-28 font-arabic" dir="rtl">
+      {/* ── Top Header (Strict Monochrome) ── */}
+      <header className="sticky top-0 z-40 bg-zinc-950/95 backdrop-blur-md border-b border-zinc-800 px-3 py-3 sm:px-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
           {/* Right: Back & Inspection ID */}
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <button
               onClick={() => (window.location.href = "/")}
-              className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 transition-colors shrink-0"
+              className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 transition-colors shrink-0 cursor-pointer"
               title="العودة للقائمة"
             >
               <ArrowRight className="w-5 h-5" />
@@ -319,13 +312,13 @@ export default function InspectionDetails() {
               className="py-2 px-3 sm:px-4 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
               title="معاينة التقرير الرقمي"
             >
-              <FileText className="w-4 h-4 text-amber-400" />
+              <FileText className="w-4 h-4 text-zinc-300" />
               <span className="hidden sm:inline">التقرير المعتمد</span>
             </button>
 
             <button
               onClick={() => window.print()}
-              className="p-2 sm:p-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-white transition-colors"
+              className="p-2 sm:p-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-white transition-colors cursor-pointer"
               title="طباعة"
             >
               <Printer className="w-4 h-4" />
@@ -336,13 +329,13 @@ export default function InspectionDetails() {
                 onClick={() => handleStatusUpdate("completed")}
                 className="py-2 px-3 sm:px-5 rounded-xl bg-white hover:bg-zinc-200 text-black text-xs sm:text-sm font-black flex items-center gap-1.5 transition-all shadow-lg cursor-pointer active:scale-95"
               >
-                <Check className="w-4 h-4 text-emerald-600" />
+                <Check className="w-4 h-4" />
                 <span>خلص الفحص</span>
               </button>
             ) : (
               <button
                 onClick={() => handleStatusUpdate("draft")}
-                className="py-2 px-3 sm:px-4 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs sm:text-sm font-bold transition-all cursor-pointer"
+                className="py-2 px-3 sm:px-4 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs sm:text-sm font-bold transition-all cursor-pointer"
               >
                 إعادة للعمل
               </button>
@@ -351,185 +344,208 @@ export default function InspectionDetails() {
         </div>
       </header>
 
-      {/* ── Main Container ── */}
-      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-5 sm:space-y-6">
-        {/* ── 1. Top Section: Dedicated VIN Card & Vehicle Info Grid ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          {/* VIN Section Card (Cols 1-6 on Desktop) */}
-          <div className="lg:col-span-6">
-            <VinSectionCard
-              vin={inspection.vin}
-              vinPhoto={inspection.vinPhoto}
-              onVinChange={(newVin) => {
-                updateInspection.mutate({
-                  id: inspection.id,
-                  vin: newVin,
-                });
-              }}
-              onVinPhotoChange={(newPhotoUrl) => {
-                updateInspection.mutate({
-                  id: inspection.id,
-                  vinPhoto: newPhotoUrl,
-                });
-              }}
-            />
-          </div>
-
-          {/* Vehicle & Customer Specs Summary (Cols 7-12 on Desktop) */}
-          <div className="lg:col-span-6 bg-zinc-950 text-white rounded-3xl p-4 sm:p-5 border border-zinc-800 shadow-xl flex flex-col justify-between space-y-3">
-            <div className="flex items-center justify-between border-b border-zinc-800 pb-2.5">
-              <div className="flex items-center gap-2">
-                <Car className="w-5 h-5 text-amber-400" />
-                <h3 className="font-bold text-sm sm:text-base">بيانات المركبة والعميل</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  if (!isEditingSpecs) {
-                    setSpecsForm({
-                      make: inspection.make || "",
-                      model: inspection.model || "",
-                      year: inspection.year || 0,
-                      color: inspection.color || "",
-                      odometer: inspection.odometer || 0,
-                      customerName: inspection.customerName || "",
-                      customerPhone: inspection.customerPhone || "",
-                      inspectionType: inspection.inspectionType || "فحص شامل",
-                      notes: inspection.notes || "",
-                    });
-                  }
-                  setIsEditingSpecs(!isEditingSpecs);
-                }}
-                className="text-xs text-amber-400 hover:underline flex items-center gap-1 font-bold"
-              >
-                <Pencil className="w-3.5 h-3.5" />
-                <span>{isEditingSpecs ? "إلغاء التعديل" : "تعديل البيانات"}</span>
-              </button>
+      {/* ── Main Container: 2 Distinct Workflow Stages ── */}
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-5 sm:py-7 space-y-8">
+        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            المرحلة 1: بيانات المركبة والعميل (Stage 1)
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+        <section className="space-y-3.5" data-testid="workflow-stage-1">
+          <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-white"></span>
+              <h2 className="text-sm sm:text-base font-black text-white tracking-wide">
+                المرحلة 1: بيانات المركبة والعميل
+              </h2>
             </div>
-
-            {!isEditingSpecs ? (
-              /* Specs Display Mode */
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
-                <div className="bg-zinc-900/80 p-2.5 rounded-2xl border border-zinc-800/80">
-                  <div className="text-zinc-500 text-[10px]">المركبة</div>
-                  <div className="font-bold text-white mt-0.5 truncate">
-                    {inspection.make} {inspection.model}
-                  </div>
-                </div>
-                <div className="bg-zinc-900/80 p-2.5 rounded-2xl border border-zinc-800/80">
-                  <div className="text-zinc-500 text-[10px]">سنة الصنع / اللون</div>
-                  <div className="font-bold text-white mt-0.5">
-                    {inspection.year || "-"} / {inspection.color || "-"}
-                  </div>
-                </div>
-                <div className="bg-zinc-900/80 p-2.5 rounded-2xl border border-zinc-800/80">
-                  <div className="text-zinc-500 text-[10px]">قراءة العداد</div>
-                  <div className="font-bold text-white font-mono mt-0.5">
-                    {inspection.odometer ? `${inspection.odometer.toLocaleString()} كم` : "-"}
-                  </div>
-                </div>
-                <div className="bg-zinc-900/80 p-2.5 rounded-2xl border border-zinc-800/80">
-                  <div className="text-zinc-500 text-[10px]">العميل</div>
-                  <div className="font-bold text-white mt-0.5 truncate">
-                    {inspection.customerName || "-"}
-                  </div>
-                </div>
-                <div className="bg-zinc-900/80 p-2.5 rounded-2xl border border-zinc-800/80">
-                  <div className="text-zinc-500 text-[10px]">جوال العميل</div>
-                  <div className="font-bold text-white font-mono mt-0.5" dir="ltr">
-                    {inspection.customerPhone || "-"}
-                  </div>
-                </div>
-                <div className="bg-zinc-900/80 p-2.5 rounded-2xl border border-zinc-800/80">
-                  <div className="text-zinc-500 text-[10px]">نوع الفحص</div>
-                  <div className="font-bold text-amber-400 mt-0.5 truncate">
-                    {inspection.inspectionType || "فحص شامل"}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              /* Specs Inline Edit Form */
-              <div className="space-y-2.5 text-xs">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  <input
-                    type="text"
-                    value={specsForm.make}
-                    onChange={(e) => setSpecsForm({ ...specsForm, make: e.target.value })}
-                    placeholder="الشركة (مثال: تويوتا)"
-                    className="bg-zinc-900 border border-zinc-700 rounded-xl p-2 text-white focus:outline-none focus:border-amber-400"
-                  />
-                  <input
-                    type="text"
-                    value={specsForm.model}
-                    onChange={(e) => setSpecsForm({ ...specsForm, model: e.target.value })}
-                    placeholder="الموديل (مثال: كامري)"
-                    className="bg-zinc-900 border border-zinc-700 rounded-xl p-2 text-white focus:outline-none focus:border-amber-400"
-                  />
-                  <input
-                    type="number"
-                    value={specsForm.year || ""}
-                    onChange={(e) => setSpecsForm({ ...specsForm, year: Number(e.target.value) })}
-                    placeholder="سنة الصنع"
-                    className="bg-zinc-900 border border-zinc-700 rounded-xl p-2 text-white focus:outline-none focus:border-amber-400"
-                  />
-                  <input
-                    type="text"
-                    value={specsForm.color}
-                    onChange={(e) => setSpecsForm({ ...specsForm, color: e.target.value })}
-                    placeholder="اللون"
-                    className="bg-zinc-900 border border-zinc-700 rounded-xl p-2 text-white focus:outline-none focus:border-amber-400"
-                  />
-                  <input
-                    type="number"
-                    value={specsForm.odometer || ""}
-                    onChange={(e) => setSpecsForm({ ...specsForm, odometer: Number(e.target.value) })}
-                    placeholder="العداد (كم)"
-                    className="bg-zinc-900 border border-zinc-700 rounded-xl p-2 text-white focus:outline-none focus:border-amber-400"
-                  />
-                  <input
-                    type="text"
-                    value={specsForm.customerName}
-                    onChange={(e) => setSpecsForm({ ...specsForm, customerName: e.target.value })}
-                    placeholder="اسم العميل"
-                    className="bg-zinc-900 border border-zinc-700 rounded-xl p-2 text-white focus:outline-none focus:border-amber-400"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    await updateInspection.mutateAsync({
-                      id: inspection.id,
-                      ...specsForm,
-                    });
-                    setIsEditingSpecs(false);
-                    toast({ title: "تم حفظ بيانات المركبة بنجاح" });
-                  }}
-                  className="w-full py-2 bg-amber-500 hover:bg-amber-400 text-black font-black rounded-xl text-xs flex items-center justify-center gap-1 cursor-pointer"
-                >
-                  <Check className="w-4 h-4" />
-                  <span>حفظ التعديلات</span>
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ── 2. The 6 Main Sections Navigation Bar ── */}
-        <div className="space-y-2.5">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm sm:text-base font-black text-white flex items-center gap-2">
-              <span>أقسام الفحص الرئيسية</span>
-              <span className="bg-zinc-800 text-zinc-300 font-mono text-xs px-2.5 py-0.5 rounded-full border border-zinc-700">
-                {totalFaultsCount} ملاحظة مسجلة
-              </span>
-            </h2>
-            <span className="text-xs text-zinc-400 font-arabic hidden sm:inline">
-              اختر القسم لعرض وتدوين الملاحظات التابعة له
+            <span className="text-[11px] text-zinc-400 font-mono" dir="ltr">
+              STAGE 01 — VEHICLE & CUSTOMER DATA
             </span>
           </div>
 
-          {/* 6 Section Tabs Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-2.5">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            {/* VIN Card (6 cols on Desktop) */}
+            <div className="lg:col-span-6">
+              <VinSectionCard
+                vin={inspection.vin}
+                vinPhoto={inspection.vinPhoto}
+                onVinChange={(newVin) => {
+                  updateInspection.mutate({
+                    id: inspection.id,
+                    vin: newVin,
+                  });
+                }}
+                onVinPhotoChange={(newPhotoUrl) => {
+                  updateInspection.mutate({
+                    id: inspection.id,
+                    vinPhoto: newPhotoUrl,
+                  });
+                }}
+              />
+            </div>
+
+            {/* Vehicle & Customer Specs Summary (6 cols on Desktop) */}
+            <div className="lg:col-span-6 bg-zinc-950 text-white rounded-3xl p-4 sm:p-5 border border-zinc-800 shadow-xl flex flex-col justify-between space-y-3">
+              <div className="flex items-center justify-between border-b border-zinc-800 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <Car className="w-5 h-5 text-zinc-300" />
+                  <h3 className="font-bold text-sm sm:text-base">بيانات المركبة والعميل</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!isEditingSpecs) {
+                      setSpecsForm({
+                        make: inspection.make || "",
+                        model: inspection.model || "",
+                        year: inspection.year || 0,
+                        color: inspection.color || "",
+                        odometer: inspection.odometer || 0,
+                        customerName: inspection.customerName || "",
+                        customerPhone: inspection.customerPhone || "",
+                        inspectionType: inspection.inspectionType || "فحص شامل",
+                        notes: inspection.notes || "",
+                      });
+                    }
+                    setIsEditingSpecs(!isEditingSpecs);
+                  }}
+                  className="text-xs text-zinc-300 hover:text-white hover:underline flex items-center gap-1 font-bold cursor-pointer"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                  <span>{isEditingSpecs ? "إلغاء التعديل" : "تعديل البيانات"}</span>
+                </button>
+              </div>
+
+              {!isEditingSpecs ? (
+                /* Specs Display Mode */
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+                  <div className="bg-zinc-900 p-2.5 rounded-2xl border border-zinc-800">
+                    <div className="text-zinc-500 text-[10px]">المركبة</div>
+                    <div className="font-bold text-white mt-0.5 truncate">
+                      {inspection.make} {inspection.model}
+                    </div>
+                  </div>
+                  <div className="bg-zinc-900 p-2.5 rounded-2xl border border-zinc-800">
+                    <div className="text-zinc-500 text-[10px]">سنة الصنع / اللون</div>
+                    <div className="font-bold text-white mt-0.5">
+                      {inspection.year || "-"} / {inspection.color || "-"}
+                    </div>
+                  </div>
+                  <div className="bg-zinc-900 p-2.5 rounded-2xl border border-zinc-800">
+                    <div className="text-zinc-500 text-[10px]">قراءة العداد</div>
+                    <div className="font-bold text-white font-mono mt-0.5">
+                      {inspection.odometer ? `${inspection.odometer.toLocaleString()} كم` : "-"}
+                    </div>
+                  </div>
+                  <div className="bg-zinc-900 p-2.5 rounded-2xl border border-zinc-800">
+                    <div className="text-zinc-500 text-[10px]">العميل</div>
+                    <div className="font-bold text-white mt-0.5 truncate">
+                      {inspection.customerName || "-"}
+                    </div>
+                  </div>
+                  <div className="bg-zinc-900 p-2.5 rounded-2xl border border-zinc-800">
+                    <div className="text-zinc-500 text-[10px]">جوال العميل</div>
+                    <div className="font-bold text-white font-mono mt-0.5" dir="ltr">
+                      {inspection.customerPhone || "-"}
+                    </div>
+                  </div>
+                  <div className="bg-zinc-900 p-2.5 rounded-2xl border border-zinc-800">
+                    <div className="text-zinc-500 text-[10px]">نوع الفحص</div>
+                    <div className="font-bold text-zinc-200 mt-0.5 truncate">
+                      {inspection.inspectionType || "فحص شامل"}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* Specs Inline Edit Form */
+                <div className="space-y-2.5 text-xs">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <input
+                      type="text"
+                      value={specsForm.make}
+                      onChange={(e) => setSpecsForm({ ...specsForm, make: e.target.value })}
+                      placeholder="الشركة (مثال: تويوتا)"
+                      className="bg-zinc-900 border border-zinc-700 rounded-xl p-2 text-white focus:outline-none focus:border-white"
+                    />
+                    <input
+                      type="text"
+                      value={specsForm.model}
+                      onChange={(e) => setSpecsForm({ ...specsForm, model: e.target.value })}
+                      placeholder="الموديل (مثال: كامري)"
+                      className="bg-zinc-900 border border-zinc-700 rounded-xl p-2 text-white focus:outline-none focus:border-white"
+                    />
+                    <input
+                      type="number"
+                      value={specsForm.year || ""}
+                      onChange={(e) => setSpecsForm({ ...specsForm, year: Number(e.target.value) })}
+                      placeholder="سنة الصنع"
+                      className="bg-zinc-900 border border-zinc-700 rounded-xl p-2 text-white focus:outline-none focus:border-white"
+                    />
+                    <input
+                      type="text"
+                      value={specsForm.color}
+                      onChange={(e) => setSpecsForm({ ...specsForm, color: e.target.value })}
+                      placeholder="اللون"
+                      className="bg-zinc-900 border border-zinc-700 rounded-xl p-2 text-white focus:outline-none focus:border-white"
+                    />
+                    <input
+                      type="number"
+                      value={specsForm.odometer || ""}
+                      onChange={(e) => setSpecsForm({ ...specsForm, odometer: Number(e.target.value) })}
+                      placeholder="العداد (كم)"
+                      className="bg-zinc-900 border border-zinc-700 rounded-xl p-2 text-white focus:outline-none focus:border-white"
+                    />
+                    <input
+                      type="text"
+                      value={specsForm.customerName}
+                      onChange={(e) => setSpecsForm({ ...specsForm, customerName: e.target.value })}
+                      placeholder="اسم العميل"
+                      className="bg-zinc-900 border border-zinc-700 rounded-xl p-2 text-white focus:outline-none focus:border-white"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await updateInspection.mutateAsync({
+                        id: inspection.id,
+                        ...specsForm,
+                      });
+                      setIsEditingSpecs(false);
+                      toast({ title: "تم حفظ بيانات المركبة بنجاح" });
+                    }}
+                    className="w-full py-2 bg-white hover:bg-zinc-200 text-black font-black rounded-xl text-xs flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>حفظ التعديلات</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            المرحلة 2: أقسام الفحص الرئيسية (Stage 2)
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+        <section className="space-y-4" data-testid="workflow-stage-2">
+          <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-white"></span>
+              <h2 className="text-sm sm:text-base font-black text-white tracking-wide">
+                المرحلة 2: أقسام الفحص الرئيسية
+              </h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="bg-zinc-900 text-zinc-300 font-mono text-xs px-2.5 py-0.5 rounded-full border border-zinc-800">
+                {totalFaultsCount} ملاحظة مسجلة
+              </span>
+              <span className="text-[11px] text-zinc-400 font-mono hidden sm:inline" dir="ltr">
+                STAGE 02 — 6 MAIN SECTIONS
+              </span>
+            </div>
+          </div>
+
+          {/* 6 Section Tabs Grid (Strict Monochrome Luxury Styling) */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
             {MAIN_SECTIONS.map((sec) => {
               const isSelected = activeSectionId === sec.id;
               const sectionFaults = itemsBySection[sec.id] || [];
@@ -541,26 +557,26 @@ export default function InspectionDetails() {
                   type="button"
                   onClick={() => setActiveSectionId(sec.id)}
                   className={cn(
-                    "p-3 sm:p-3.5 rounded-2xl border text-right transition-all flex flex-col justify-between gap-2.5 cursor-pointer relative overflow-hidden group",
+                    "p-3.5 rounded-2xl border text-right transition-all flex flex-col justify-between gap-3 cursor-pointer relative overflow-hidden group",
                     isSelected
-                      ? "bg-zinc-900 border-white ring-2 ring-white/60 shadow-xl scale-[1.02]"
-                      : "bg-zinc-950/80 border-zinc-800 hover:border-zinc-600 hover:bg-zinc-900/60"
+                      ? "bg-zinc-900 border-white ring-2 ring-white/70 shadow-2xl scale-[1.02]"
+                      : "bg-zinc-950 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900/60"
                   )}
                 >
                   {/* Top: Icon & Count Badge */}
                   <div className="flex items-center justify-between">
                     <div
-                      className="w-8 h-8 rounded-xl flex items-center justify-center border shadow-inner"
-                      style={{
-                        backgroundColor: `${sec.color}20`,
-                        borderColor: `${sec.color}40`,
-                      }}
+                      className={cn(
+                        "w-8 h-8 rounded-xl flex items-center justify-center border transition-colors shadow-inner",
+                        isSelected
+                          ? "bg-white text-black border-white"
+                          : "bg-zinc-900 text-zinc-300 border-zinc-800 group-hover:border-zinc-700"
+                      )}
                     >
                       <PhosphorIcon
                         name={sec.iconName as any}
                         weight={isSelected ? "fill" : "bold"}
                         size={18}
-                        style={{ color: sec.color }}
                       />
                     </div>
 
@@ -568,7 +584,7 @@ export default function InspectionDetails() {
                       className={cn(
                         "font-mono text-[11px] font-bold px-2 py-0.5 rounded-full border",
                         count > 0
-                          ? "bg-amber-500/20 text-amber-300 border-amber-500/40 font-black"
+                          ? "bg-white text-black border-white font-black"
                           : "bg-zinc-900 text-zinc-500 border-zinc-800"
                       )}
                     >
@@ -576,12 +592,12 @@ export default function InspectionDetails() {
                     </span>
                   </div>
 
-                  {/* Bottom: Label */}
+                  {/* Bottom: Labels */}
                   <div>
-                    <div className="font-black text-xs sm:text-sm text-white group-hover:text-white transition-colors truncate">
+                    <div className="font-black text-xs sm:text-sm text-white transition-colors truncate">
                       {sec.label}
                     </div>
-                    <div className="text-[10px] text-zinc-500 font-mono font-medium truncate" dir="ltr">
+                    <div className="text-[10px] text-zinc-500 font-mono truncate mt-0.5" dir="ltr">
                       {sec.labelEn}
                     </div>
                   </div>
@@ -589,178 +605,172 @@ export default function InspectionDetails() {
               );
             })}
           </div>
-        </div>
 
-        {/* ── 3. Active Section Workspace ── */}
-        <div
-          className="bg-zinc-950 rounded-3xl border border-zinc-800 shadow-2xl p-4 sm:p-6 space-y-4 animate-in fade-in duration-300"
-          data-testid="active-section-workspace"
-        >
-          {/* Active Section Banner */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-900/90 border border-zinc-800/80 p-3.5 sm:p-4 rounded-2xl">
-            <div className="flex items-center gap-3">
-              <div
-                className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center border shadow-md shrink-0"
-                style={{
-                  backgroundColor: `${activeSectionDef.color}20`,
-                  borderColor: `${activeSectionDef.color}40`,
-                }}
-              >
-                <PhosphorIcon
-                  name={activeSectionDef.iconName as any}
-                  weight="bold"
-                  size={24}
-                  style={{ color: activeSectionDef.color }}
-                />
-              </div>
-
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-black text-base sm:text-lg text-white">
-                    قسم: {activeSectionDef.label}
-                  </h3>
-                  <span className="text-xs font-mono text-zinc-400">
-                    ({activeSectionDef.labelEn})
-                  </span>
+          {/* ── Active Section Dedicated Workspace ── */}
+          <div
+            className="bg-zinc-950 rounded-3xl border border-zinc-800 shadow-2xl p-4 sm:p-6 space-y-5 animate-in fade-in duration-200"
+            data-testid="active-section-workspace"
+          >
+            {/* Active Section Banner & Big "+ إضافة عطل" Button */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-900 border border-zinc-800 p-4 rounded-2xl">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-black border border-zinc-700 flex items-center justify-center text-white shadow-md shrink-0">
+                  <PhosphorIcon
+                    name={activeSectionDef.iconName as any}
+                    weight="bold"
+                    size={24}
+                    className="text-white"
+                  />
                 </div>
-                <p className="text-xs text-zinc-400 font-arabic mt-0.5">
-                  {activeSectionDef.description}
-                </p>
-              </div>
-            </div>
 
-            {/* Prominent "+ إضافة عطل" Button */}
-            <button
-              type="button"
-              onClick={() => handleOpenAddFault(activeSectionId)}
-              className="py-3 px-5 bg-amber-500 hover:bg-amber-400 active:scale-95 text-black font-black rounded-2xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xl transition-all cursor-pointer shrink-0"
-              data-testid="btn-add-fault-active-section"
-            >
-              <Plus className="w-5 h-5 stroke-[3]" />
-              <span>+ إضافة عطل في {activeSectionDef.label}</span>
-            </button>
-          </div>
-
-          {/* List of Faults in this Section */}
-          <div className="space-y-2.5">
-            {activeSectionItems.length === 0 ? (
-              /* Empty State */
-              <div className="text-center py-10 px-4 bg-zinc-900/40 rounded-2xl border border-dashed border-zinc-800 space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center mx-auto text-zinc-600 border border-zinc-800">
-                  <PhosphorIcon name={activeSectionDef.iconName as any} weight="light" size={26} />
-                </div>
                 <div>
-                  <h4 className="font-bold text-sm text-zinc-300 font-arabic">
-                    لا توجد ملاحظات أو أعطال مسجلة في {activeSectionDef.label}
-                  </h4>
-                  <p className="text-xs text-zinc-500 mt-1">
-                    اضغط على زر "إضافة عطل" لكتابة ملاحظة يدوياً أو البحث في المكتبة أو التقاط صورة.
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-black text-base sm:text-lg text-white">
+                      قسم: {activeSectionDef.label}
+                    </h3>
+                    <span className="text-xs font-mono text-zinc-400" dir="ltr">
+                      ({activeSectionDef.labelEn})
+                    </span>
+                  </div>
+                  <p className="text-xs text-zinc-400 font-arabic mt-0.5">
+                    {activeSectionDef.description}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleOpenAddFault(activeSectionId)}
-                  className="py-2.5 px-4 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  <Plus className="w-4 h-4 text-amber-400" />
-                  <span>+ إضافة أول عطل في {activeSectionDef.label}</span>
-                </button>
               </div>
-            ) : (
-              /* Fault Cards Grid */
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {activeSectionItems.map((item: InspectionItem) => {
-                  return (
-                    <div
-                      key={item.id}
-                      className="bg-zinc-900/90 hover:bg-zinc-900 border border-zinc-800/90 hover:border-zinc-700 p-3.5 sm:p-4 rounded-2xl transition-all shadow-md flex flex-col justify-between gap-3 group"
-                    >
-                      {/* Fault Header & Name */}
-                      <div className="space-y-1.5">
-                        <div className="flex items-center justify-between gap-2">
-                          <h4 className="font-black text-sm sm:text-base text-white leading-snug">
-                            {item.faultName}
-                          </h4>
 
-                          <div className="flex items-center gap-1 shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => handleOpenEditFault(item)}
-                              className="p-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-colors cursor-pointer"
-                              title="تعديل العطل"
-                            >
-                              <Pencil className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteFault(item.id)}
-                              className="p-1.5 rounded-lg bg-rose-500/15 hover:bg-rose-500/30 text-rose-400 transition-colors cursor-pointer"
-                              title="حذف العطل"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+              {/* Prominent Action Button: "+ إضافة عطل في [اسم القسم]" */}
+              <button
+                type="button"
+                onClick={() => handleOpenAddFault(activeSectionId)}
+                className="py-3 px-5 bg-white hover:bg-zinc-200 active:scale-95 text-black font-black rounded-2xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xl transition-all cursor-pointer shrink-0"
+                data-testid="btn-add-fault-active-section"
+              >
+                <Plus className="w-5 h-5 stroke-[3]" />
+                <span>+ إضافة عطل في {activeSectionDef.label}</span>
+              </button>
+            </div>
+
+            {/* List of Faults in Active Section (Clean & Severity-Free) */}
+            <div className="space-y-3">
+              {activeSectionItems.length === 0 ? (
+                /* Empty State */
+                <div className="text-center py-12 px-4 bg-zinc-900/40 rounded-2xl border border-dashed border-zinc-800 space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center mx-auto text-zinc-500 border border-zinc-800">
+                    <PhosphorIcon name={activeSectionDef.iconName as any} weight="light" size={26} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm text-zinc-300 font-arabic">
+                      لا توجد ملاحظات أو أعطال مسجلة في {activeSectionDef.label}
+                    </h4>
+                    <p className="text-xs text-zinc-500 mt-1">
+                      اضغط على الزر لكتابة ملاحظة يدويًا أو البحث في المكتبة أو التقاط صورة.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenAddFault(activeSectionId)}
+                    className="py-2.5 px-4 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4 text-zinc-300" />
+                    <span>+ إضافة أول عطل في {activeSectionDef.label}</span>
+                  </button>
+                </div>
+              ) : (
+                /* Fault Cards Grid: ONLY Name/Notes, Photo, Edit, Delete */
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {activeSectionItems.map((item: InspectionItem) => {
+                    return (
+                      <div
+                        key={item.id}
+                        className="bg-zinc-900 border border-zinc-800 hover:border-zinc-700 p-4 rounded-2xl transition-all shadow-md flex flex-col justify-between gap-3 group"
+                      >
+                        {/* Fault Title & Actions */}
+                        <div className="space-y-1.5">
+                          <div className="flex items-start justify-between gap-2">
+                            <h4 className="font-black text-sm sm:text-base text-white leading-snug">
+                              {item.faultName}
+                            </h4>
+
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditFault(item)}
+                                className="p-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-colors cursor-pointer"
+                                title="تعديل العطل"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteFault(item.id)}
+                                className="p-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                                title="حذف العطل"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </div>
+
+                          {item.notes && item.notes !== item.faultName && (
+                            <p className="text-xs text-zinc-400 leading-relaxed font-arabic">
+                              {item.notes}
+                            </p>
+                          )}
                         </div>
 
-                        {item.notes && item.notes !== item.faultName && (
-                          <p className="text-xs text-zinc-400 leading-relaxed font-arabic">
-                            {item.notes}
-                          </p>
+                        {/* Attached Defect Photo (Isolated under defect item) */}
+                        {item.imageUrl && (
+                          <div
+                            className="relative w-full aspect-[16/9] max-h-40 bg-black rounded-xl overflow-hidden border border-zinc-800 cursor-pointer group/img shadow-inner"
+                            onClick={() =>
+                              setLightboxImage({
+                                url: item.imageUrl!,
+                                title: item.faultName,
+                              })
+                            }
+                          >
+                            <img
+                              src={item.imageUrl}
+                              alt={item.faultName}
+                              className="w-full h-full object-contain group-hover/img:scale-105 transition-transform duration-300"
+                            />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                              <span className="bg-black/80 text-white text-[11px] font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 border border-zinc-700">
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>تكبير الصورة</span>
+                              </span>
+                            </div>
+                          </div>
                         )}
                       </div>
-
-                      {/* Attached Defect Photo (Isolated in this defect card) */}
-                      {item.imageUrl && (
-                        <div
-                          className="relative w-full aspect-[16/9] max-h-40 bg-black rounded-xl overflow-hidden border border-zinc-800 cursor-pointer group/img shadow-inner"
-                          onClick={() =>
-                            setLightboxImage({
-                              url: item.imageUrl!,
-                              title: item.faultName,
-                            })
-                          }
-                        >
-                          <img
-                            src={item.imageUrl}
-                            alt={item.faultName}
-                            className="w-full h-full object-contain group-hover/img:scale-105 transition-transform duration-300"
-                          />
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
-                            <span className="bg-black/80 text-white text-[11px] font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 border border-white/20">
-                              <Eye className="w-3.5 h-3.5" />
-                              <span>تكبير الصورة</span>
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        </section>
 
-        {/* ── 4. OBD Diagnostic Fault Codes Manager ── */}
-        <div className="bg-zinc-950 rounded-3xl border border-zinc-800 shadow-xl overflow-hidden">
+        {/* ── OBD Diagnostic Codes (Monochrome) ── */}
+        <section className="bg-zinc-950 rounded-3xl border border-zinc-800 shadow-xl overflow-hidden">
           <div
             className="p-4 sm:p-5 flex items-center justify-between cursor-pointer select-none bg-zinc-900/60 hover:bg-zinc-900 transition-colors"
             onClick={() => setIsObdOpen(!isObdOpen)}
           >
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-amber-400">
+              <div className="w-8 h-8 rounded-xl bg-zinc-900 border border-zinc-700 flex items-center justify-center text-white">
                 <Monitor className="w-4 h-4" />
               </div>
               <div>
                 <h3 className="font-bold text-sm sm:text-base text-white">
                   أكواد فحص الكمبيوتر (OBD-II Diagnostic Codes)
                 </h3>
-                <p className="text-xs text-zinc-400 font-mono">
-                  {obdCodes.length} كود مسجل
+                <p className="text-xs text-zinc-400 font-mono" dir="ltr">
+                  {obdCodes.length} CODES RECORDED
                 </p>
               </div>
             </div>
-            <button className="text-xs text-amber-400 font-bold">
+            <button className="text-xs text-zinc-300 font-bold hover:text-white">
               {isObdOpen ? "إخفاء" : "عرض وإضافة أكواد"}
             </button>
           </div>
@@ -774,7 +784,7 @@ export default function InspectionDetails() {
                   value={newObdCode}
                   onChange={(e) => setNewObdCode(e.target.value.toUpperCase())}
                   placeholder="كود العطل (مثال: P0300)"
-                  className="bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 text-xs text-white font-mono font-bold uppercase focus:outline-none focus:border-amber-400"
+                  className="bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 text-xs text-white font-mono font-bold uppercase focus:outline-none focus:border-white"
                   required
                 />
                 <input
@@ -782,11 +792,11 @@ export default function InspectionDetails() {
                   value={newObdNameAr}
                   onChange={(e) => setNewObdNameAr(e.target.value)}
                   placeholder="وصف الكود بالعربية"
-                  className="bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-amber-400"
+                  className="bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-white"
                 />
                 <button
                   type="submit"
-                  className="py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-black rounded-xl text-xs flex items-center justify-center gap-1 cursor-pointer"
+                  className="py-2.5 bg-white hover:bg-zinc-200 text-black font-black rounded-xl text-xs flex items-center justify-center gap-1 cursor-pointer transition-colors"
                 >
                   <Plus className="w-4 h-4" />
                   <span>إضافة الكود</span>
@@ -802,13 +812,13 @@ export default function InspectionDetails() {
                       className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl flex items-center justify-between gap-2 text-xs"
                     >
                       <div className="min-w-0">
-                        <span className="font-mono font-black text-amber-400 mr-2">{obd.code}</span>
-                        <span className="font-bold text-white truncate">{obd.nameAr}</span>
+                        <span className="font-mono font-black text-white mr-2">{obd.code}</span>
+                        <span className="font-bold text-zinc-300 truncate">{obd.nameAr}</span>
                       </div>
                       <button
                         type="button"
                         onClick={() => handleDeleteObdCode(obd.code)}
-                        className="p-1 text-zinc-500 hover:text-rose-400"
+                        className="p-1 text-zinc-500 hover:text-white cursor-pointer"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -818,17 +828,17 @@ export default function InspectionDetails() {
               )}
             </div>
           )}
-        </div>
+        </section>
       </main>
 
-      {/* ── Add / Edit Fault Modal ── */}
+      {/* ── Add / Edit Fault Modal (Fixed to Active Section) ── */}
       <AddEditFaultModal
         isOpen={isAddFaultModalOpen}
         onClose={() => {
           setIsAddFaultModalOpen(false);
           setEditingFaultItem(null);
         }}
-        initialSectionId={activeSectionId}
+        sectionId={activeSectionId}
         editItem={editingFaultItem}
         onSave={handleSaveFault}
       />

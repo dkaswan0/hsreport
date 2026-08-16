@@ -11,6 +11,7 @@ import {
   type InspectionCategory, type InsertInspectionCategory,
 } from "@shared/schema";
 import { eq, ilike, desc, asc, inArray } from "drizzle-orm";
+import { mapLegacyCategoryToMainSection } from "@shared/categories";
 
 export interface IStorage {
   // Inspections
@@ -36,7 +37,7 @@ export interface IStorage {
   deleteInspectionItem(id: number): Promise<void>;
 
   // Fault Library
-  getFaultLibrary(search?: string): Promise<FaultLibrary[]>;
+  getFaultLibrary(search?: string, section?: string): Promise<FaultLibrary[]>;
   createFault(fault: InsertFaultLibrary): Promise<FaultLibrary>;
   deleteFault(id: number): Promise<boolean>;
 
@@ -297,12 +298,122 @@ export class DatabaseStorage implements IStorage {
     await db.delete(inspectionItems).where(eq(inspectionItems.id, id));
   }
 
-  // Fault Library
-  async getFaultLibrary(search?: string): Promise<FaultLibrary[]> {
-    if (search) {
-      return await db.select().from(faultLibrary).where(ilike(faultLibrary.faultName, `%${search}%`));
+  // Fault Library - Deep Search Engine (9,000+ faults)
+  async getFaultLibrary(search?: string, section?: string): Promise<FaultLibrary[]> {
+    const allFaults = await db.select().from(faultLibrary);
+    if (!search || !search.trim()) {
+      if (section) {
+        const canonicalTarget = mapLegacyCategoryToMainSection(section);
+        return allFaults.filter(f => mapLegacyCategoryToMainSection(f.category) === canonicalTarget).slice(0, 100);
+      }
+      return allFaults.slice(0, 100);
     }
-    return await db.select().from(faultLibrary);
+
+    // Helper: Normalize Arabic Text
+    const normalize = (text?: string | null): string => {
+      if (!text) return "";
+      return text
+        .toLowerCase()
+        .replace(/[\u064B-\u065F\u0670ـ]/g, "") // remove tashkeel & tatweel
+        .replace(/[أإآٱ]/g, "ا")
+        .replace(/[ة]/g, "ه")
+        .replace(/[ى]/g, "ي")
+        .replace(/[ؤئ]/g, "ي")
+        .trim();
+    };
+
+    // Automotive Synonyms Map (Gulf & Technical terms)
+    const SYNONYM_GROUPS: string[][] = [
+      ["زيت", "oil", "تهريب", "تسريب", "ترشيح", "رشح", "كارتير", "بلوف", "صوفه", "صوفة", "فلتر"],
+      ["تهريب", "تسريب", "ترشيح", "رشح", "leak", "ندي", "تنقيط"],
+      ["محرك", "مكينه", "مكينة", "ماكينه", "engine", "سلندر", "بواجي", "كويلات", "سير", "رديتر", "حراره", "حرارة", "شكمان", "عادم", "تفتفه", "صوت"],
+      ["قير", "جير", "transmission", "كلتش", "clutch", "دبل", "دفرنس", "عكوس", "كردان", "تعشيق", "طنجره", "طنجرة", "نتعه", "تاخير"],
+      ["صدم", "صدمه", "صدمة", "سمكره", "سمكرة", "تعديل", "رش", "دهان", "بويه", "بوية", "شحفه", "شحفة", "حكه", "حكة", "خدش", "طعجه", "طعجة", "كسر", "مبدل", "استبدال", "fender", "bumper", "door"],
+      ["رش", "طلاء", "دهان", "بويه", "بوية", "تجميلي", "معجون", "تفاوت", "صبغ", "paint"],
+      ["شاص", "شاصي", "هيكل سفلي", "chassis", "frame", "مقص", "لحام", "قص", "جسر", "قائم", "استقامه", "استقامة"],
+      ["كهرب", "كهرباء", "electric", "بطاريه", "بطارية", "دينامو", "حساس", "نور", "انوار", "أنوار", "مكيف", "كمبيوتر", "ecu", "ضفيره", "ضفيرة", "فيوز"],
+      ["صدام", "دعاميه", "دعامية", "bumper", "كلبسات", "شبك", "فيبر"],
+      ["كبوت", "غطاء", "hood", "شنطه", "شنطة", "trunk"],
+      ["باب", "door", "رفرف", "fender", "مراه", "مرايه", "مراية", "زجاج", "قزاز"],
+      ["فرامل", "بريك", "فحمات", "هوبات", "اقمشه", "أقمشة", "brake", "abs"],
+      ["كفر", "اطار", "إطار", "جنط", "عجلات", "tire", "wheel", "رجه", "مسحيه"],
+    ];
+
+    const cleanQuery = normalize(search);
+    const queryTokens = cleanQuery.split(/\s+/).filter(t => t.length > 0);
+
+    // Expand search tokens with synonyms
+    const expandedTokens = new Set<string>(queryTokens);
+    for (const token of queryTokens) {
+      for (const group of SYNONYM_GROUPS) {
+        const normalizedGroup = group.map(normalize);
+        if (normalizedGroup.some(g => g.includes(token) || token.includes(g))) {
+          normalizedGroup.forEach(g => expandedTokens.add(g));
+        }
+      }
+    }
+
+    const canonicalTargetSection = section ? mapLegacyCategoryToMainSection(section) : null;
+
+    // Score and rank all faults
+    const scoredFaults: { fault: FaultLibrary; score: number }[] = [];
+
+    for (const fault of allFaults) {
+      const faultNameNorm = normalize(fault.faultName);
+      const descNorm = normalize(fault.description);
+      const combined = `${faultNameNorm} ${descNorm}`;
+      const faultSection = mapLegacyCategoryToMainSection(fault.category);
+
+      let score = 0;
+
+      // 1. Exact phrase match
+      if (faultNameNorm.includes(cleanQuery)) {
+        score += 150;
+      } else if (descNorm.includes(cleanQuery)) {
+        score += 90;
+      }
+
+      // 2. Query Tokens match
+      let matchedDirectTokens = 0;
+      for (const token of queryTokens) {
+        if (faultNameNorm.includes(token)) {
+          score += 60;
+          matchedDirectTokens++;
+        } else if (descNorm.includes(token)) {
+          score += 30;
+          matchedDirectTokens++;
+        }
+      }
+
+      // If all query tokens matched, heavy bonus
+      if (queryTokens.length > 1 && matchedDirectTokens === queryTokens.length) {
+        score += 100;
+      }
+
+      // 3. Synonym Token match
+      for (const syn of Array.from(expandedTokens)) {
+        if (!queryTokens.includes(syn)) {
+          if (faultNameNorm.includes(syn)) {
+            score += 25;
+          } else if (descNorm.includes(syn)) {
+            score += 15;
+          }
+        }
+      }
+
+      // 4. Section Priority weighting (Prioritize active section without filtering others out)
+      if (canonicalTargetSection && faultSection === canonicalTargetSection && score > 0) {
+        score += 40;
+      }
+
+      if (score > 0) {
+        scoredFaults.push({ fault, score });
+      }
+    }
+
+    // Sort by score descending and return top 100
+    scoredFaults.sort((a, b) => b.score - a.score);
+    return scoredFaults.slice(0, 100).map(s => s.fault);
   }
 
   async createFault(fault: InsertFaultLibrary): Promise<FaultLibrary> {

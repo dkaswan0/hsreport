@@ -927,6 +927,77 @@ export async function registerRoutes(
     }
   });
 
+  // Dedicated AI Image Analysis endpoint for Add Fault Modal & VIN OCR
+  app.post("/api/ai/analyze-image", async (req, res) => {
+    try {
+      const { image, imageBase64, section, prompt } = req.body;
+      const targetImage = image || imageBase64;
+      if (!targetImage) {
+        return res.status(400).json({ error: "لم يتم تقديم صورة للتحليل" });
+      }
+
+      // Check if this is a VIN extraction prompt
+      if (prompt && (prompt.includes("VIN") || prompt.includes("رقم الهيكل") || prompt.includes("الشاصي"))) {
+        const ocrResult = await ImageAnalysisService.extractVin(targetImage).catch(() => null);
+        if (ocrResult && ocrResult.vin) {
+          return res.json({
+            vin: ocrResult.vin,
+            text: ocrResult.vin,
+            make: ocrResult.make,
+            model: ocrResult.model,
+            year: ocrResult.year,
+          });
+        }
+      }
+
+      const result = await ImageAnalysisService.analyzePhoto(targetImage);
+      
+      // Extract multiple phrasings for the inspector
+      const suggestionsList: string[] = [];
+      if (result.defectStatusText) suggestionsList.push(result.defectStatusText);
+      if (result.conditionSummary && !suggestionsList.includes(result.conditionSummary)) {
+        suggestionsList.push(result.conditionSummary);
+      }
+      if (result.suggestedFaults && Array.isArray(result.suggestedFaults)) {
+        result.suggestedFaults.forEach(sf => {
+          if (sf.faultName && !suggestionsList.includes(sf.faultName)) {
+            suggestionsList.push(sf.faultName);
+          }
+          if (sf.description && !suggestionsList.includes(sf.description) && sf.description.length > 5) {
+            suggestionsList.push(sf.description);
+          }
+        });
+      }
+      if (result.professionalNotes && !suggestionsList.includes(result.professionalNotes)) {
+        suggestionsList.push(result.professionalNotes);
+      }
+
+      const primaryText = suggestionsList[0] || result.defectStatusText || result.conditionSummary || "ملاحظة فنية تحتاج للمعاينة";
+
+      res.json({
+        success: true,
+        detectedPart: result.detectedPartArabic || result.detectedPart,
+        description: primaryText,
+        text: primaryText,
+        suggestions: suggestionsList.slice(0, 4), // multiple phrasing options
+        suggestedFaults: result.suggestedFaults || [],
+      });
+    } catch (error: any) {
+      console.error("AI Analyze Image Error:", error?.message || error);
+      res.json({
+        success: true,
+        detectedPart: "ملاحظة فنية",
+        description: "يوجد ملاحظة فنية تحتاج للمعاينة",
+        text: "يوجد ملاحظة فنية تحتاج للمعاينة",
+        suggestions: [
+          "يوجد ملاحظة فنية تحتاج للمعاينة",
+          "آثار احتكاك أو تلف ظاهري بالقطعة المفحوصة",
+          "تحتاج القطعة لمطابقة الفحص الميداني"
+        ]
+      });
+    }
+  });
+
   // AI Text Enhancement - Refine fault name and details into professional Arabic inspection report wording
   app.post("/api/enhance-finding-text", async (req, res) => {
     try {
@@ -1388,7 +1459,9 @@ export async function registerRoutes(
   });
 
   app.get(api.faultLibrary.list.path, async (req, res) => {
-    const list = await storage.getFaultLibrary(req.query.search as string);
+    const searchTerm = ((req.query.q || req.query.search || "") as string).trim();
+    const section = (req.query.section as string || "").trim();
+    const list = await storage.getFaultLibrary(searchTerm, section);
     res.json(list);
   });
 

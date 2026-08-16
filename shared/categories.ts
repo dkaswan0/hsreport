@@ -1,5 +1,6 @@
 // ==============================================================================
 // High Safety International Center - Core 6 Main Inspection Sections System
+// Visual Identity: Strictly BLACK, WHITE, & GRAY (Monochrome Luxury Aesthetic)
 // ==============================================================================
 
 export interface MainSectionDef {
@@ -16,7 +17,7 @@ export interface MainSectionDef {
 }
 
 /**
- * The 6 Canonical Main Sections of High Safety Report
+ * The 6 Canonical Main Sections of High Safety Report (Monochrome Theme)
  */
 export const MAIN_SECTIONS: MainSectionDef[] = [
   {
@@ -24,10 +25,10 @@ export const MAIN_SECTIONS: MainSectionDef[] = [
     label: "ميكانيكا",
     labelEn: "Mechanical",
     iconName: "wrench",
-    color: "#3b82f6",
-    badgeBg: "bg-blue-500/15",
-    badgeBorder: "border-blue-500/30",
-    badgeText: "text-blue-400",
+    color: "#ffffff",
+    badgeBg: "bg-zinc-800",
+    badgeBorder: "border-zinc-700",
+    badgeText: "text-zinc-200",
     description: "المحرك، التبريد، الفرامل، التوجيه، العادم، السيور والفلاتر",
     sortOrder: 1,
   },
@@ -36,10 +37,10 @@ export const MAIN_SECTIONS: MainSectionDef[] = [
     label: "الهيكل الخارجي",
     labelEn: "Exterior Body",
     iconName: "car-profile",
-    color: "#f59e0b",
-    badgeBg: "bg-amber-500/15",
-    badgeBorder: "border-amber-500/30",
-    badgeText: "text-amber-400",
+    color: "#ffffff",
+    badgeBg: "bg-zinc-800",
+    badgeBorder: "border-zinc-700",
+    badgeText: "text-zinc-200",
     description: "الصدمات، الأبواب، الرفارف، الكبوت، الشنطة، الزجاج، والدهان",
     sortOrder: 2,
   },
@@ -48,10 +49,10 @@ export const MAIN_SECTIONS: MainSectionDef[] = [
     label: "الأجزاء الكهربائية والإلكترونية",
     labelEn: "Electrical & Electronics",
     iconName: "lightning",
-    color: "#eab308",
-    badgeBg: "bg-yellow-500/15",
-    badgeBorder: "border-yellow-500/30",
-    badgeText: "text-yellow-400",
+    color: "#ffffff",
+    badgeBg: "bg-zinc-800",
+    badgeBorder: "border-zinc-700",
+    badgeText: "text-zinc-200",
     description: "البطارية، الدينامو، الحساسات، الأنوار، المكيف، والكمبيوتر",
     sortOrder: 3,
   },
@@ -60,10 +61,10 @@ export const MAIN_SECTIONS: MainSectionDef[] = [
     label: "نقل الحركة",
     labelEn: "Transmission",
     iconName: "gear-six",
-    color: "#8b5cf6",
-    badgeBg: "bg-purple-500/15",
-    badgeBorder: "border-purple-500/30",
-    badgeText: "text-purple-400",
+    color: "#ffffff",
+    badgeBg: "bg-zinc-800",
+    badgeBorder: "border-zinc-700",
+    badgeText: "text-zinc-200",
     description: "القير، الكلتش، الدبل، الدفرنس، العكوس، وعمود الكردان",
     sortOrder: 4,
   },
@@ -72,10 +73,10 @@ export const MAIN_SECTIONS: MainSectionDef[] = [
     label: "الشاصي (الهيكل السفلي)",
     labelEn: "Chassis (Underbody)",
     iconName: "shield-check",
-    color: "#ef4444",
-    badgeBg: "bg-rose-500/15",
-    badgeBorder: "border-rose-500/30",
-    badgeText: "text-rose-400",
+    color: "#ffffff",
+    badgeBg: "bg-zinc-800",
+    badgeBorder: "border-zinc-700",
+    badgeText: "text-zinc-200",
     description: "جسور الشاصي، الشاصي الأمامي والخلفي، القوائم، والمقصات",
     sortOrder: 5,
   },
@@ -84,10 +85,10 @@ export const MAIN_SECTIONS: MainSectionDef[] = [
     label: "أخرى",
     labelEn: "Other",
     iconName: "dots-three-circle",
-    color: "#6b7280",
-    badgeBg: "bg-zinc-500/15",
-    badgeBorder: "border-zinc-500/30",
-    badgeText: "text-zinc-400",
+    color: "#ffffff",
+    badgeBg: "bg-zinc-800",
+    badgeBorder: "border-zinc-700",
+    badgeText: "text-zinc-200",
     description: "الإطارات والجنوط، الملحقات، الداخلية، والسلامة العامة",
     sortOrder: 6,
   },
@@ -231,10 +232,10 @@ export function getMainSectionById(id: string): MainSectionDef {
       label: "أخرى",
       labelEn: "Other",
       iconName: "dots-three-circle",
-      color: "#6b7280",
-      badgeBg: "bg-zinc-500/15",
-      badgeBorder: "border-zinc-500/30",
-      badgeText: "text-zinc-400",
+      color: "#ffffff",
+      badgeBg: "bg-zinc-800",
+      badgeBorder: "border-zinc-700",
+      badgeText: "text-zinc-200",
       description: "فحص عام",
       sortOrder: 99,
     }
