@@ -39,26 +39,52 @@ export const FaultCameraModal: React.FC<FaultCameraModalProps> = ({
 
     const startCamera = async () => {
       setCameraError(null);
+      
+      // Tier 1: High Resolution with facingMode
       try {
-        const constraints: MediaStreamConstraints = {
+        const mediaStream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: { ideal: facingMode },
             width: { ideal: 1920 },
             height: { ideal: 1080 }
           },
           audio: false
-        };
-
-        const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+        });
         currentStream = mediaStream;
         setStream(mediaStream);
+        if (videoRef.current) videoRef.current.srcObject = mediaStream;
+        return;
+      } catch (e1) {
+        console.warn("Tier 1 camera constraints failed, trying Tier 2:", e1);
+      }
 
-        if (videoRef.current) {
-          videoRef.current.srcObject = mediaStream;
-        }
-      } catch (err: any) {
-        console.error('Fault Camera access error:', err);
-        setCameraError('تعذر فتح الكاميرا المباشرة. يمكنك استخدام كاميرا الجهاز الافتراضية.');
+      // Tier 2: Standard facingMode
+      try {
+        const mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: facingMode },
+          audio: false
+        });
+        currentStream = mediaStream;
+        setStream(mediaStream);
+        if (videoRef.current) videoRef.current.srcObject = mediaStream;
+        return;
+      } catch (e2) {
+        console.warn("Tier 2 camera constraints failed, trying Tier 3:", e2);
+      }
+
+      // Tier 3: Basic video
+      try {
+        const mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false
+        });
+        currentStream = mediaStream;
+        setStream(mediaStream);
+        if (videoRef.current) videoRef.current.srcObject = mediaStream;
+        return;
+      } catch (e3) {
+        console.error("All WebRTC camera tiers failed, prompting native camera:", e3);
+        setCameraError("تعذر فتح البث المباشر للكاميرا. يمكنك التقاط الصورة بكاميرا الجهاز مباشرة.");
       }
     };
 

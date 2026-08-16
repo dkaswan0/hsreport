@@ -3,12 +3,14 @@ package com.highsafety.report;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -23,6 +25,10 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends Activity {
 
     private static final String APP_URL = "https://hsreport.onrender.com";
@@ -32,6 +38,7 @@ public class MainActivity extends Activity {
     private WebView webView;
     private ProgressBar progressBar;
     private ValueCallback<Uri[]> filePathCallback;
+    private PermissionRequest currentWebPermissionRequest;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -69,13 +76,15 @@ public class MainActivity extends Activity {
         settings.setDatabaseEnabled(true);
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
+        settings.setAllowFileAccessFromFileURLs(true);
+        settings.setAllowUniversalAccessFromFileURLs(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         settings.setUseWideViewPort(true);
         settings.setLoadWithOverviewMode(true);
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
-        settings.setUserAgentString(settings.getUserAgentString() + " HighSafetyApp/2.0 (Android; Mobile)");
+        settings.setUserAgentString(settings.getUserAgentString() + " HighSafetyApp/2.1 (Android; Mobile; NativeCamera)");
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -105,11 +114,20 @@ public class MainActivity extends Activity {
                 }
             }
 
+            // WebRTC Camera & Audio Permission Handler
             @Override
             public void onPermissionRequest(final PermissionRequest request) {
-                runOnUiThread(() -> request.grant(request.getResources()));
+                runOnUiThread(() -> {
+                    currentWebPermissionRequest = request;
+                    if (hasCameraPermission()) {
+                        request.grant(request.getResources());
+                    } else {
+                        checkAndRequestPermissions();
+                    }
+                });
             }
 
+            // Native File & Camera Chooser Handler
             @Override
             public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
                 if (MainActivity.this.filePathCallback != null) {
@@ -117,34 +135,88 @@ public class MainActivity extends Activity {
                 }
                 MainActivity.this.filePathCallback = filePathCallback;
 
-                Intent intent = fileChooserParams.createIntent();
                 try {
-                    startActivityForResult(intent, FILE_CHOOSER_REQUEST_CODE);
+                    // Create Camera Capture Intent
+                    Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+                    // Create Gallery / File Intent
+                    Intent getContentIntent = new Intent(Intent.ACTION_GET_CONTENT);
+                    getContentIntent.addCategory(Intent.CATEGORY_OPENABLE);
+                    getContentIntent.setType("*/*");
+                    if (fileChooserParams.getAcceptTypes() != null && fileChooserParams.getAcceptTypes().length > 0 && !fileChooserParams.getAcceptTypes()[0].isEmpty()) {
+                        getContentIntent.setType(fileChooserParams.getAcceptTypes()[0]);
+                    }
+
+                    // Multi-choice Chooser
+                    Intent chooserIntent = Intent.createChooser(getContentIntent, "اختر طريقة إضافة الصورة / الملف");
+                    chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{takePictureIntent});
+
+                    startActivityForResult(chooserIntent, FILE_CHOOSER_REQUEST_CODE);
+                    return true;
                 } catch (Exception e) {
-                    MainActivity.this.filePathCallback = null;
-                    return false;
+                    try {
+                        Intent fallbackIntent = fileChooserParams.createIntent();
+                        startActivityForResult(fallbackIntent, FILE_CHOOSER_REQUEST_CODE);
+                        return true;
+                    } catch (Exception ex) {
+                        MainActivity.this.filePathCallback = null;
+                        return false;
+                    }
                 }
-                return true;
             }
         });
     }
 
+    private boolean hasCameraPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
+        }
+        return true;
+    }
+
     private void checkAndRequestPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            String[] permissions = new String[]{
-                    Manifest.permission.CAMERA
-            };
-
-            boolean needRequest = false;
-            for (String p : permissions) {
-                if (checkSelfPermission(p) != PackageManager.PERMISSION_GRANTED) {
-                    needRequest = true;
-                    break;
+            List<String> needed = new ArrayList<>();
+            if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                needed.add(Manifest.permission.CAMERA);
+            }
+            if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                needed.add(Manifest.permission.RECORD_AUDIO);
+            }
+            if (Build.VERSION.SDK_INT >= 33) {
+                if (checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+                    needed.add(Manifest.permission.READ_MEDIA_IMAGES);
+                }
+            } else {
+                if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    needed.add(Manifest.permission.READ_EXTERNAL_STORAGE);
                 }
             }
 
-            if (needRequest) {
-                requestPermissions(permissions, PERMISSION_REQUEST_CODE);
+            if (!needed.isEmpty()) {
+                requestPermissions(needed.toArray(new String[0]), PERMISSION_REQUEST_CODE);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            boolean allGranted = true;
+            for (int res : grantResults) {
+                if (res != PackageManager.PERMISSION_GRANTED) {
+                    allGranted = false;
+                    break;
+                }
+            }
+            if (allGranted && currentWebPermissionRequest != null) {
+                runOnUiThread(() -> {
+                    try {
+                        currentWebPermissionRequest.grant(currentWebPermissionRequest.getResources());
+                    } catch (Exception ignored) {}
+                    currentWebPermissionRequest = null;
+                });
             }
         }
     }
