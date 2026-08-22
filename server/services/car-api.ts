@@ -24,8 +24,11 @@ export class CarApiService {
       return this.jwtToken;
     }
 
-    const apiToken = process.env.CAR_API_TOKEN || "ci_7dfc9e4e63b36ad66fdf58f0b451f1a1527591f2542380a044322d38";
-    const apiSecret = process.env.CAR_API_SECRET || "7e22a50a1545db05c6dd1939825bbb21737200a3af56a4821f70408f3f618aad";
+    const apiToken = process.env.CAR_API_TOKEN;
+    const apiSecret = process.env.CAR_API_SECRET;
+    if (!apiToken || !apiSecret) {
+      return null;
+    }
 
     try {
       const response = await fetch("https://carapi.app/api/auth/login", {

@@ -100,6 +100,7 @@ app.use("/api/obd", aiLimiter);
 import { pool } from "./db";
 
 // ── Session middleware ────────────────────────────────────────────────────────
+const isProd = process.env.NODE_ENV === "production";
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "highsafetysecretkey12345",
@@ -111,7 +112,7 @@ app.use(
       tableName: "user_sessions",
     }),
     cookie: {
-      secure: false,
+      secure: isProd ? "auto" : false,
       httpOnly: true,
       sameSite: "lax" as const,
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days

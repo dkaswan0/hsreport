@@ -146,7 +146,20 @@ export async function savePersistentMedia(
  * 2. If not found (e.g. after Render redeploy/restart), restores it from PostgreSQL `uploaded_media_blobs`.
  */
 export async function getPersistentMedia(filename: string): Promise<{ buffer: Buffer; mimeType: string } | null> {
-  const cleanFilename = path.basename(filename);
+  if (!filename || typeof filename !== "string") return null;
+
+  // Strict Path Traversal Defense: Strip all directory parts and illegal characters
+  const cleanFilename = path.basename(filename).replace(/[^a-zA-Z0-9_.-]/g, "");
+  if (!cleanFilename || cleanFilename.includes("..") || cleanFilename.startsWith(".")) {
+    return null;
+  }
+
+  // Allowed extensions defense
+  const ext = path.extname(cleanFilename).toLowerCase();
+  const allowedExts = [".jpg", ".jpeg", ".png", ".webp", ".mp4", ".webm", ".mov"];
+  if (!allowedExts.includes(ext)) {
+    return null;
+  }
 
   // Check local disk first
   const primaryPath = path.join(UPLOAD_DIR_PRIMARY, cleanFilename);
@@ -154,15 +167,13 @@ export async function getPersistentMedia(filename: string): Promise<{ buffer: Bu
 
   if (fs.existsSync(primaryPath)) {
     const buffer = await fs.promises.readFile(primaryPath);
-    const ext = path.extname(cleanFilename).toLowerCase();
-    const mimeType = ext === ".mp4" ? "video/mp4" : ext === ".png" ? "image/png" : ext === ".webp" ? "image/webp" : "image/jpeg";
+    const mimeType = ext === ".mp4" ? "video/mp4" : ext === ".webm" ? "video/webm" : ext === ".mov" ? "video/quicktime" : ext === ".png" ? "image/png" : ext === ".webp" ? "image/webp" : "image/jpeg";
     return { buffer, mimeType };
   }
 
   if (fs.existsSync(secondaryPath)) {
     const buffer = await fs.promises.readFile(secondaryPath);
-    const ext = path.extname(cleanFilename).toLowerCase();
-    const mimeType = ext === ".mp4" ? "video/mp4" : ext === ".png" ? "image/png" : ext === ".webp" ? "image/webp" : "image/jpeg";
+    const mimeType = ext === ".mp4" ? "video/mp4" : ext === ".webm" ? "video/webm" : ext === ".mov" ? "video/quicktime" : ext === ".png" ? "image/png" : ext === ".webp" ? "image/webp" : "image/jpeg";
     return { buffer, mimeType };
   }
 

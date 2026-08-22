@@ -68,18 +68,12 @@ export async function registerRoutes(
 
       const providedHash = createHash("sha256").update(password).digest("hex");
 
-      // Allowed usernames: hs, admin, or envUser
+      // Allowed usernames: hs or configured ADMIN_USERNAME
       const uLower = username.toLowerCase();
-      const isAllowedUser = (uLower === "hs" || uLower === "admin" || uLower === envUser);
+      const isAllowedUser = (uLower === envUser || uLower === "admin" || uLower === "hs");
 
-      // Allowed fallback passwords: hs, ahmed, admin, 123456, or envPass
-      const isAllowedPass = (
-        password === "hs" ||
-        password === "ahmed" ||
-        password === "admin" ||
-        password === "123456" ||
-        password === envPass
-      );
+      // Verify against configured environment password
+      const isAllowedPass = (password === envPass);
 
       let passwordMatches = isAllowedUser && isAllowedPass;
 
@@ -240,7 +234,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/inspection-sections", async (req, res) => {
+  app.post("/api/inspection-sections", requireAuthOrApiKey, async (req, res) => {
     try {
       const { label, labelEn, icon, sortOrder, isDefault, isActive } = req.body;
       if (!label || !label.trim()) {
@@ -262,7 +256,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/inspection-sections/:id", async (req, res) => {
+  app.patch("/api/inspection-sections/:id", requireAuthOrApiKey, async (req, res) => {
     try {
       const { id } = req.params;
       const updates = req.body;
@@ -274,7 +268,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/inspection-sections/:id", async (req, res) => {
+  app.delete("/api/inspection-sections/:id", requireAuthOrApiKey, async (req, res) => {
     try {
       const { id } = req.params;
       const success = await storage.deleteInspectionSection(id);
@@ -285,7 +279,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/inspection-sections/reorder", async (req, res) => {
+  app.post("/api/inspection-sections/reorder", requireAuthOrApiKey, async (req, res) => {
     try {
       const { ids } = req.body;
       if (!Array.isArray(ids)) {
@@ -311,7 +305,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/inspection-categories", async (req, res) => {
+  app.post("/api/inspection-categories", requireAuthOrApiKey, async (req, res) => {
     try {
       const { sectionId, label, labelEn, icon, sortOrder, isDefault, isActive } = req.body;
       if (!sectionId) {
@@ -337,7 +331,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/inspection-categories/:id", async (req, res) => {
+  app.patch("/api/inspection-categories/:id", requireAuthOrApiKey, async (req, res) => {
     try {
       const { id } = req.params;
       const updates = req.body;
@@ -349,7 +343,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/inspection-categories/:id", async (req, res) => {
+  app.delete("/api/inspection-categories/:id", requireAuthOrApiKey, async (req, res) => {
     try {
       const { id } = req.params;
       const success = await storage.deleteInspectionCategory(id);
@@ -360,7 +354,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/inspection-categories/reorder", async (req, res) => {
+  app.post("/api/inspection-categories/reorder", requireAuthOrApiKey, async (req, res) => {
     try {
       const { ids } = req.body;
       if (!Array.isArray(ids)) {
@@ -476,12 +470,16 @@ export async function registerRoutes(
     }
   });
 
-  app.delete(api.inspections.delete.path, async (req, res) => {
-    await storage.deleteInspection(Number(req.params.id));
+  app.delete(api.inspections.delete.path, requireAuthOrApiKey, async (req, res) => {
+    const id = Number(req.params.id);
+    if (!id || isNaN(id)) {
+      return res.status(400).json({ message: "معرف الفحص غير صحيح" });
+    }
+    await storage.deleteInspection(id);
     res.status(204).end();
   });
 
-  app.post(api.inspections.deleteMultiple.path, async (req, res) => {
+  app.post(api.inspections.deleteMultiple.path, requireAuthOrApiKey, async (req, res) => {
     try {
       const input = api.inspections.deleteMultiple.input.parse(req.body);
       const deleted = await storage.deleteMultipleInspections(input.ids);
