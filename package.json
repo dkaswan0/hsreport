@@ -8,7 +8,7 @@
     "build": "tsx script/build.ts",
     "start": "node dist/index.cjs",
     "check": "tsc",
-    "db:push": "drizzle-kit push --force"
+    "db:push": "tsx script/db-sync.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
