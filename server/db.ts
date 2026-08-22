@@ -68,5 +68,10 @@ pool.query(`
   ALTER TABLE "inspections" ADD COLUMN IF NOT EXISTS "vehicle_photos_audit" jsonb;
   ALTER TABLE "inspections" ADD COLUMN IF NOT EXISTS "video_url" text;
   ALTER TABLE "inspections" ADD COLUMN IF NOT EXISTS "media_gallery" jsonb;
+
+  ALTER TABLE "inspection_items" ADD COLUMN IF NOT EXISTS "description" text;
+  ALTER TABLE "inspection_items" ADD COLUMN IF NOT EXISTS "notes" text;
+  ALTER TABLE "inspection_items" ADD COLUMN IF NOT EXISTS "image_url" text;
+  ALTER TABLE "inspection_items" ADD COLUMN IF NOT EXISTS "severity" text DEFAULT 'medium';
 `).catch(err => console.error("Database tables init warning:", err?.message || err));
 

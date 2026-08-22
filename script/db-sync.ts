@@ -86,11 +86,16 @@ async function syncDatabase() {
         "category" text NOT NULL,
         "fault_name" text NOT NULL,
         "status" text DEFAULT 'fail' NOT NULL,
+        "description" text,
         "severity" text DEFAULT 'medium',
         "notes" text,
         "image_url" text,
         "created_at" timestamp DEFAULT now()
       );
+      ALTER TABLE "inspection_items" ADD COLUMN IF NOT EXISTS "description" text;
+      ALTER TABLE "inspection_items" ADD COLUMN IF NOT EXISTS "notes" text;
+      ALTER TABLE "inspection_items" ADD COLUMN IF NOT EXISTS "image_url" text;
+      ALTER TABLE "inspection_items" ADD COLUMN IF NOT EXISTS "severity" text DEFAULT 'medium';
 
       CREATE TABLE IF NOT EXISTS "inspection_sections" (
         "id" text PRIMARY KEY,
@@ -146,12 +151,38 @@ async function syncDatabase() {
       );
     `);
 
+    // Check if fault_library needs initial seed
+    const faultCountRes = await pool.query("SELECT COUNT(*) FROM fault_library;");
+    const count = parseInt(faultCountRes.rows[0].count, 10);
+    if (count === 0) {
+      console.log("==> Seeding initial Gulf fault library...");
+      try {
+        const { ORIGINAL_FAULTS } = await import("../shared/original-faults");
+        for (let i = 0; i < ORIGINAL_FAULTS.length; i += 100) {
+          const chunk = ORIGINAL_FAULTS.slice(i, i + 100);
+          const values: string[] = [];
+          const params: any[] = [];
+          chunk.forEach((f, idx) => {
+            const offset = idx * 4;
+            values.push(`($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4})`);
+            params.push(f.category, f.faultName, f.description || f.faultName, f.severity || 'medium');
+          });
+          await pool.query(
+            `INSERT INTO fault_library (category, fault_name, description, severity) VALUES ${values.join(", ")} ON CONFLICT DO NOTHING;`,
+            params
+          );
+        }
+        console.log(`==> Seeded ${ORIGINAL_FAULTS.length} faults successfully!`);
+      } catch (seedErr: any) {
+        console.warn("==> Seeding warning:", seedErr.message);
+      }
+    }
+
     console.log("==> High Safety Auto DB Sync completed successfully! 🎉");
     await pool.end();
     process.exit(0);
   } catch (err: any) {
     console.warn("==> DB Sync Notice:", err.message);
-    // Exit with 0 so Render deployment is never blocked
     process.exit(0);
   }
 }
