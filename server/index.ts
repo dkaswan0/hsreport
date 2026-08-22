@@ -97,22 +97,24 @@ app.use("/api/auth/login", authLimiter);
 app.use("/api/analyze-photo", aiLimiter);
 app.use("/api/obd", aiLimiter);
 
+import { pool } from "./db";
+
 // ── Session middleware ────────────────────────────────────────────────────────
 app.use(
   session({
-    secret: process.env.SESSION_SECRET!,
+    secret: process.env.SESSION_SECRET || "highsafetysecretkey12345",
     resave: false,
     saveUninitialized: false,
     store: new PgSession({
-      conString: process.env.DATABASE_URL,
-      createTableIfMissing: false,
+      pool,
+      createTableIfMissing: true,
       tableName: "user_sessions",
     }),
     cookie: {
       secure: false,
       httpOnly: true,
       sameSite: "lax" as const,
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     },
   })
 );

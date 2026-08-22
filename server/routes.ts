@@ -53,8 +53,7 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // === Authentication Routes ===
-  app.post("/api/auth/login", async (req, res) => {
+  const handleLogin = async (req: Request, res: Response) => {
     try {
       const { username: rawUsername, password: rawPassword } = req.body || {};
       if (!rawUsername || !rawPassword) {
@@ -118,7 +117,10 @@ export async function registerRoutes(
       console.error("Global Login Route Error:", globalErr);
       return res.status(500).json({ success: false, message: globalErr?.message || "خطأ في تسجيل الدخول" });
     }
-  });
+  };
+
+  app.post("/api/auth/login", handleLogin);
+  app.post("/api/login", handleLogin);
 
   // === Change Password ===
   app.post("/api/auth/change-password", requireAuth, async (req, res) => {
