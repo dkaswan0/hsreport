@@ -328,7 +328,7 @@ export default function FaultLibrary() {
         </div>
         <h2 className="text-2xl font-bold text-foreground mb-2 font-arabic">ما في أعطال</h2>
         <p className="text-muted-foreground max-w-md mb-6 font-arabic">
-          اضغط الزر عشان تحمل كل الأعطال (1040 عطل)
+          اضغط الزر عشان تحمل كل الأعطال (9,639 عطل وبند فحص)
         </p>
         <Button 
           onClick={() => reseedMutation.mutate()}
@@ -345,7 +345,7 @@ export default function FaultLibrary() {
           ) : (
             <>
               <RefreshCw className="w-5 h-5 ml-2" />
-              حمل كل الأعطال (1040)
+              تحميل مكتبة الأعطال الكاملة (9,639)
             </>
           )}
         </Button>
@@ -370,11 +370,11 @@ export default function FaultLibrary() {
           <PhosphorIcon name="wrench" weight="duotone" size={32} className="text-zinc-950 dark:text-white" />
           <div>
             <h1 className="text-2xl font-bold font-arabic">الأعطال</h1>
-            <p className="text-muted-foreground font-arabic">كل أعطال السيارات في مكان واحد</p>
+            <p className="text-muted-foreground font-arabic">كل أعطال السيارات في مكان واحد ({stats.total.toLocaleString()} عطل)</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {stats.total < 1000 && (
+          {stats.total < 5000 && (
             <Button 
               onClick={() => reseedMutation.mutate()}
               disabled={reseedMutation.isPending}
@@ -389,7 +389,7 @@ export default function FaultLibrary() {
               ) : (
                 <>
                   <RefreshCw className="w-4 h-4 ml-2" />
-                  حمل كل الأعطال (1040)
+                  تحميل كامل الأعطال (9,639)
                 </>
               )}
             </Button>

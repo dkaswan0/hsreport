@@ -314,9 +314,9 @@ export class DatabaseStorage implements IStorage {
     if (!search || !search.trim()) {
       if (section) {
         const canonicalTarget = mapLegacyCategoryToMainSection(section);
-        return allFaults.filter(f => mapLegacyCategoryToMainSection(f.category) === canonicalTarget).slice(0, 100);
+        return allFaults.filter(f => mapLegacyCategoryToMainSection(f.category) === canonicalTarget);
       }
-      return allFaults.slice(0, 100);
+      return allFaults;
     }
 
     // Helper: Normalize Arabic Text
