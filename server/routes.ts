@@ -1104,6 +1104,24 @@ export async function registerRoutes(
     }
   });
 
+  // Vehicle Studio 4K Stock Imagery (CarImagesAPI & Automotive Studio CDN)
+  app.get("/api/vehicle/studio-image", async (req, res) => {
+    try {
+      const make = req.query.make as string;
+      const model = req.query.model as string;
+      const year = req.query.year as string;
+      const color = req.query.color as string;
+      const angle = (req.query.angle as any) || 'front34';
+
+      const { CarImagesService } = await import("./services/car-images");
+      const result = await CarImagesService.getStudioImage({ make, model, year, color, angle });
+      res.json(result);
+    } catch (err: any) {
+      console.error("Studio Image Error:", err?.message || err);
+      res.json({ success: false });
+    }
+  });
+
   // VIN Extract from Image - Use AI vision to read VIN from label or metal stamp photo
   app.post("/api/vin/extract-from-image", async (req, res) => {
     try {

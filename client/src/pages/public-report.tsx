@@ -195,6 +195,24 @@ const CompanyHeader = ({ inspection }: { inspection?: any }) => {
 const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
   const vehicleColor = useMemo(() => getVehicleColor(inspection.color), [inspection.color]);
 
+  const { data: studioData } = useQuery<{ success: boolean; imageUrl?: string }>({
+    queryKey: ['/api/vehicle/studio-image', inspection.make, inspection.model, inspection.year, inspection.color],
+    queryFn: async () => {
+      if (!inspection.make || !inspection.model) return { success: false };
+      const params = new URLSearchParams({
+        make: inspection.make,
+        model: inspection.model,
+        year: String(inspection.year || ''),
+        color: inspection.color || '',
+      });
+      const res = await fetch(`/api/vehicle/studio-image?${params.toString()}`);
+      if (!res.ok) return { success: false };
+      return res.json();
+    },
+    enabled: !!(inspection.make && inspection.model),
+    staleTime: 1000 * 60 * 60 * 24,
+  });
+
   return (
     <div className="bg-white rounded-2xl shadow-xs border border-zinc-200 overflow-hidden" data-testid="vehicle-info-card">
       {/* Section Header */}
@@ -209,7 +227,28 @@ const VehicleInfoCard = ({ inspection }: { inspection: any }) => {
             <span className="text-zinc-400 text-[11px] sm:text-xs md:text-sm font-mono font-semibold">| Vehicle Information</span>
           </div>
         </div>
+        {studioData?.imageUrl && (
+          <div className="hidden sm:flex items-center gap-2 bg-zinc-900 px-2.5 py-1 rounded-lg border border-zinc-800 text-[11px] text-zinc-300 font-arabic">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>مجسم الوكالة الرسمي 4K</span>
+          </div>
+        )}
       </div>
+
+      {studioData?.imageUrl && (
+        <div className="bg-gradient-to-b from-zinc-100/80 via-zinc-50 to-white px-4 py-3 border-b border-zinc-200/80 flex items-center justify-center relative overflow-hidden group">
+          <div className="absolute top-2 right-3 flex items-center gap-1.5 bg-black/70 backdrop-blur-xs text-white text-[10px] px-2 py-0.5 rounded-md font-arabic z-10">
+            <PhosphorIcon name="camera" weight="bold" size={12} className="text-zinc-300" />
+            <span>صورة الوكالة الاستوديو الرسمية</span>
+          </div>
+          <img 
+            src={studioData.imageUrl} 
+            alt={`${inspection.make} ${inspection.model}`} 
+            className="max-h-36 sm:max-h-48 object-contain transition-transform duration-500 group-hover:scale-105 select-none drop-shadow-md" 
+            loading="lazy"
+          />
+        </div>
+      )}
 
       <div className="p-3 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4">
         {/* Left Side (5 Cols): 2-Column Key-Value Specs Table */}
