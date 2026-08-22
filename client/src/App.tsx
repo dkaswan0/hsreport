@@ -40,32 +40,47 @@ function ProtectedRoutes({ onLogout }: { onLogout: () => void }) {
 }
 
 function AppContent() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(() => {
+    try {
+      return localStorage.getItem("hs_auth") === "true";
+    } catch {
+      return null;
+    }
+  });
 
   const { data: authData, isLoading } = useQuery({
     queryKey: ["/api/auth/check"],
     queryFn: async () => {
-      const res = await fetch("/api/auth/check");
-      if (!res.ok) return { isAuthenticated: false };
-      return res.json();
+      try {
+        const res = await fetch("/api/auth/check");
+        if (!res.ok) return { isAuthenticated: localStorage.getItem("hs_auth") === "true" };
+        return res.json();
+      } catch {
+        return { isAuthenticated: localStorage.getItem("hs_auth") === "true" };
+      }
     },
-    staleTime: 0,
+    staleTime: 10000,
     refetchOnWindowFocus: true,
   });
 
   useEffect(() => {
-    if (authData !== undefined) {
+    if (authData !== undefined && authData.isAuthenticated !== undefined) {
       setIsAuthenticated(!!authData.isAuthenticated);
+      if (authData.isAuthenticated) {
+        try { localStorage.setItem("hs_auth", "true"); } catch {}
+      }
     }
   }, [authData]);
 
   const handleLoginSuccess = () => {
+    try { localStorage.setItem("hs_auth", "true"); } catch {}
     setIsAuthenticated(true);
     queryClient.invalidateQueries({ queryKey: ["/api/auth/check"] });
   };
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
+    try { localStorage.removeItem("hs_auth"); } catch {}
+    await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
     setIsAuthenticated(false);
     queryClient.invalidateQueries({ queryKey: ["/api/auth/check"] });
   };

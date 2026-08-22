@@ -35,6 +35,7 @@ export default function Login({ onLoginSuccess }: { onLoginSuccess: () => void }
     },
     onSuccess: (data) => {
       if (data.success) {
+        try { localStorage.setItem("hs_auth", "true"); } catch {}
         onLoginSuccess();
         setLocation("/");
       } else {
